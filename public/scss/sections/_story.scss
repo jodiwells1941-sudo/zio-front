@@ -1,0 +1,184 @@
+/* ==== 
+ --------- (5.02) story styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.story {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  .chart {
+    position: absolute;
+    bottom: 80px;
+    right: 300px;
+    z-index: -1;
+
+    img {
+      max-width: 30vw;
+      min-width: 100px;
+      animation: moveLeftRight 6s linear infinite;
+    }
+  }
+
+  .btc {
+    position: absolute;
+    top: 240px;
+    right: 300px;
+    z-index: -1;
+
+    img {
+      max-width: 30vw;
+      min-width: 100px;
+      animation: moveLeftRight 6s linear infinite;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    top: 360px;
+    left: 340px;
+    z-index: -1;
+    transform: rotateY(180deg);
+
+    img {
+      max-width: 30vw;
+      min-width: 100px;
+      animation: moveLeftRight 6s linear infinite;
+    }
+  }
+
+  .left-thumb {
+    position: absolute;
+    bottom: 160px;
+    left: 240px;
+    z-index: -1;
+
+    img {
+      max-width: 30vw;
+      min-width: 100px;
+      animation: moveLeftRight 6s linear infinite;
+    }
+  }
+}
+
+.story__inner {
+  display: flex;
+  gap: 0;
+  overflow: hidden;
+}
+
+.story__wrapper {
+  display: flex;
+  gap: 24px;
+  animation: marquee 25s linear infinite;
+  animation-play-state: running;
+
+  &:hover {
+    animation-play-state: paused;
+  }
+}
+
+.story__wrapper-center {
+  animation: marquee-reverse 40s linear infinite;
+  direction: rtl;
+
+  .story__single {
+    direction: ltr;
+  }
+}
+
+.story__single {
+  flex: 0 0 auto;
+  padding: 40px 20px;
+  background-color: var(--quaternary-color);
+  border: 1px solid var(--septenary-color);
+  border-radius: 12px;
+  position: relative;
+  z-index: 1;
+  max-width: 300px;
+  transition: var(--transition);
+
+  .ti-quote {
+    position: absolute;
+    top: 30px;
+    right: 24px;
+    z-index: -1;
+    font-size: 100px;
+    pointer-events: none;
+    opacity: 0.1;
+    transform: rotate(180deg);
+    transition: var(--transition);
+  }
+
+  .author__info {
+    flex-direction: row !important;
+    align-items: center;
+  }
+
+  p,
+  q {
+    transition: var(--transition);
+  }
+
+  &:hover {
+    background-color: var(--primary-color);
+
+    p,
+    q {
+      color: var(--octonary-color);
+    }
+
+    .ti-quote {
+      color: #071431;
+    }
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes marquee-reverse {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes marquee-top {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes marquee-top-reverse {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* ==== 
+ --------- (5.02) story styles end ---------
+ ==== */

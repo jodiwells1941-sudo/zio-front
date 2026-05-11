@@ -1,0 +1,86 @@
+/* ==== 
+ --------- (5.05) counter styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.counter {
+  position: relative;
+  z-index: 2;
+  position: relative;
+  top: -145px;
+  margin-bottom: -145px;
+}
+
+.counter__single {
+  padding: 40px 24px;
+  background-color: var(--quaternary-color);
+  border: 1px solid var(--septenary-color);
+  border-radius: 12px;
+  transition: var(--transition);
+
+  h3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    .prefix {
+      margin-top: -5px;
+      color: var(--primary-color);
+      margin-left: 6px;
+      transition: var(--transition);
+    }
+  }
+
+  .odometer-inside {
+    padding-top: 8px;
+  }
+
+  h3,
+  p {
+    transition: var(--transition);
+  }
+
+  &:hover {
+    background-color: var(--primary-color);
+
+    h3,
+    p {
+      color: var(--octonary-color);
+    }
+
+    .prefix {
+      color: var(--octonary-color);
+    }
+
+    .counter__single-thumb {
+      background-color: var(--quaternary-color);
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+  }
+}
+
+.counter__single-thumb {
+  @include box(90px);
+  background-color: var(--primary-color);
+  transition: var(--transition);
+  margin-inline: auto;
+
+  i {
+    font-size: 40px;
+    color: var(--octonary-color);
+    transition: var(--transition);
+    margin: 0px;
+  }
+}
+
+/* ==== 
+ --------- (5.05) counter styles end ---------
+ ==== */

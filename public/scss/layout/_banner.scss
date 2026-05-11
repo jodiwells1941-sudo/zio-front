@@ -1,0 +1,748 @@
+/* ==== 
+ --------- (4.02) banner styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+// hero section
+.hero {
+  padding-block: 190px 160px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right bottom;
+
+  .sub-title {
+    margin-block: 4px;
+
+    strong {
+      background-color: var(--secondary-color);
+      color: #071431;
+      padding: 6px 12px;
+      margin-inline-end: 4px;
+    }
+  }
+
+  .hero__review {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hero__thumb-wrapper {
+    position: relative;
+    z-index: 1;
+    direction: ltr;
+    height: 100%;
+    padding-inline-start: 60px;
+
+    .hero__thumb {
+      position: absolute;
+      min-width: 700px;
+    }
+
+    .main-img {
+      position: relative;
+      z-index: -1;
+
+      img {
+        animation: moveLeftRight 5s linear infinite;
+      }
+    }
+
+    .star-img {
+      position: absolute;
+      z-index: -2;
+
+      img {
+        animation: pulse 6s linear infinite;
+      }
+    }
+  }
+
+  .ball-img-one {
+    position: absolute;
+    top: 20%;
+    inset-inline-end: 10%;
+    z-index: -3;
+
+    img {
+      animation: rotation 6s linear infinite;
+      max-width: 40px;
+    }
+  }
+
+  .ball-img-two {
+    position: absolute;
+    bottom: 5%;
+    inset-inline-end: 35%;
+    z-index: -3;
+
+    img {
+      animation: pulseSm 6s linear infinite;
+      max-width: 40px;
+    }
+  }
+
+  .ball-img-three {
+    position: absolute;
+    bottom: 20%;
+    inset-inline-end: 5%;
+    z-index: -3;
+
+    img {
+      animation: rotation 6s linear infinite;
+      max-width: 50px;
+    }
+  }
+
+  .ball-img-four {
+    position: absolute;
+    top: 60%;
+    inset-inline-end: 3%;
+    z-index: -3;
+
+    img {
+      animation: moveTopBottom 6s linear infinite;
+      max-width: 50px;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-start: 50px;
+    z-index: -5;
+
+    img {
+      max-width: 15vw;
+      min-width: 80px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+      animation-delay: 2s;
+    }
+  }
+
+  .btc {
+    position: absolute;
+    top: 160px;
+    inset-inline-start: 5%;
+    z-index: -5;
+
+    img {
+      max-width: 15vw;
+      min-width: 80px;
+      animation: pulseSm 5s infinite ease-in-out;
+      animation-delay: 2s;
+    }
+  }
+}
+
+//  banner
+.banner {
+  padding-block: 190px 160px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 600px;
+    height: 600px;
+    border-radius: 604px;
+    opacity: 0.5;
+    background: linear-gradient(90deg, #9b60da 0%, #f15e55 100%);
+    filter: blur(250px);
+    z-index: -3;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 600px;
+    height: 600px;
+    border-radius: 604px;
+    opacity: 0.5;
+    background: linear-gradient(90deg, #9b60da 0%, #f15e55 100%);
+    filter: blur(250px);
+    z-index: -3;
+  }
+
+  p {
+    max-width: 680px;
+  }
+
+  .banner__thumb {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  .thumb {
+    position: absolute;
+    bottom: -160px;
+    inset-inline-end: 0px;
+
+    img {
+      min-width: 100px;
+      max-width: 20vw;
+      animation: moveTopBottom 5s infinite ease-in-out;
+      opacity: 1 !important;
+    }
+  }
+
+  .coin-down {
+    position: absolute;
+    top: 120px;
+    inset-inline-end: 90px;
+    z-index: -1;
+
+    img {
+      max-width: 12vw;
+      min-width: 120px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+
+  .btc {
+    position: absolute;
+    top: 80px;
+    inset-inline-start: 55%;
+    z-index: -5;
+
+    img {
+      max-width: 12vw;
+      min-width: 70px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-end: 70%;
+    z-index: -5;
+
+    img {
+      max-width: 15vw;
+      min-width: 80px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+      animation-delay: 2s;
+    }
+  }
+
+  .lottery {
+    position: absolute;
+    top: 40%;
+    inset-inline-start: 55%;
+    z-index: -5;
+
+    img {
+      max-width: 20vw;
+      min-width: 80px;
+      animation: moveLeftRight 5s infinite ease-in-out;
+    }
+  }
+
+  .coin-up {
+    position: absolute;
+    bottom: 25px;
+    inset-inline-start: 60px;
+    z-index: -5;
+
+    img {
+      max-width: 17vw;
+      min-width: 120px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+
+  .point {
+    position: absolute;
+    top: 30%;
+    inset-inline-end: 80px;
+    z-index: -1;
+
+    img {
+      max-width: 15vw;
+      min-width: 120px;
+      animation: moveLeftRight 5s infinite ease-in-out;
+    }
+  }
+
+  .right-th {
+    position: absolute;
+    top: 60%;
+    inset-inline-start: 120px;
+
+    img {
+      max-width: 20vw;
+      min-width: 80px;
+      animation: rotate 5s infinite ease-in-out;
+    }
+  }
+}
+
+// banner two
+.banner-two {
+  padding-block: 190px 150px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  .odometer-inside {
+    padding-top: 4px;
+  }
+
+  .banner-two__thumb {
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 500px;
+      background-color: var(--secondary-color);
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+    img {
+      min-width: 150px;
+      max-width: 200px;
+      animation: moveLeftRight 5s linear infinite;
+      opacity: 1 !important;
+    }
+  }
+
+  .banner-three__content,
+  .banner-two__content {
+    max-width: 360px;
+    margin-inline: auto;
+  }
+
+  .odometer {
+    margin-bottom: -2px;
+  }
+
+  h4 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .prefix {
+    margin-top: -4px;
+    margin-left: 8px;
+  }
+
+  .testimonial__thumb-content {
+    @include box(200px);
+    display: inline-flex;
+    background-color: var(--primary-color);
+    flex-direction: column;
+
+    h4 {
+      color: var(--octonary-color);
+    }
+
+    i {
+      font-size: 60px;
+      color: var(--octonary-color);
+    }
+
+    p {
+      color: var(--octonary-color);
+    }
+  }
+
+  .left-thumb {
+    position: absolute;
+    z-index: -3;
+    top: 140px;
+    left: 0px;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: moveTopBottom 8s infinite ease-in-out;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    bottom: -240px;
+    left: -100px;
+    z-index: -3;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    z-index: -3;
+    top: 300px;
+    right: 0px;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+}
+
+// banner three
+.banner-three {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding-block: 190px 200px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+
+  .shape {
+    position: absolute;
+    bottom: 0px;
+    inset-inline: 0px;
+    z-index: -3;
+
+    img {
+      width: 100%;
+    }
+  }
+
+  .banner-thumb {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-end: 40px;
+    z-index: -1;
+
+    img {
+      max-width: 35vw;
+      animation: moveLeftRight 3s linear infinite;
+      opacity: 1 !important;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    bottom: 300px;
+    left: 30px;
+    z-index: -3;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    z-index: -3;
+    bottom: 50px;
+    right: 0px;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+}
+
+.banner-three__content {
+  .breadcrumb-item+.breadcrumb-item {
+    &::before {
+      content: "\ea1c" !important;
+      font-family: "tabler-icons";
+      color: var(--secondary-color) !important;
+    }
+  }
+
+  .sub-title {
+    margin-block: 4px;
+
+    strong {
+      background-color: var(--secondary-color);
+      color: #071431;
+      padding: 6px 12px;
+      margin-inline-end: 4px;
+    }
+  }
+}
+
+.banner-action {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.banner-three__group {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 20px;
+
+  .left-content {
+    min-width: max-content;
+  }
+
+  .divide {
+    height: 80px;
+    border-right: 2px dashed var(--septenary-color);
+  }
+}
+
+.join-users {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  padding-left: 16px;
+
+  .single-user {
+    @include box(40px);
+    background-color: var(--secondary-color);
+    margin-left: -16px;
+
+    img {
+      border-radius: 50%;
+    }
+
+    p {
+      padding-left: 3px;
+      color: var(--octonary-color);
+    }
+  }
+}
+
+// common banner
+.common-banner {
+  padding-block: 190px 100px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  .banner-bg {
+    position: absolute;
+    inset: 0px;
+    z-index: -3;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-position: center bottom;
+    }
+  }
+
+  .thumb-wrapper {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-end: 17vw;
+    z-index: -1;
+  }
+
+  .thumb {
+    position: relative;
+    bottom: -15px;
+    z-index: -1;
+
+    img {
+      max-width: 40vw;
+      min-width: 170px;
+      animation: moveLeftRight 5s infinite ease-in-out;
+    }
+  }
+
+  .coin-up {
+    position: absolute;
+    bottom: 40px;
+    inset-inline-start: -100px;
+    z-index: -5;
+
+    img {
+      max-width: 12vw;
+      min-width: 70px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+      opacity: 0.3 !important;
+    }
+  }
+
+  .btc {
+    position: absolute;
+    top: 0px;
+    inset-inline-start: -60px;
+    z-index: -5;
+
+    img {
+      max-width: 12vw;
+      min-width: 70px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-end: -120px;
+    z-index: -5;
+
+    img {
+      max-width: 20vw;
+      min-width: 70px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+    }
+  }
+
+  .coin-down {
+    position: absolute;
+    top: 120px;
+    inset-inline-end: 50px;
+    z-index: -1;
+
+    img {
+      max-width: 6vw;
+      min-width: 70px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+
+  .point {
+    position: absolute;
+    top: 140px;
+    inset-inline-start: 40px;
+    z-index: -1;
+
+    img {
+      max-width: 10vw;
+      min-width: 70px;
+      animation: pulse 5s infinite ease-in-out;
+    }
+  }
+
+  .bg-r {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 16vw;
+      min-width: 70px;
+    }
+  }
+
+  .bg-l {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 13vw;
+      min-width: 70px;
+    }
+  }
+}
+
+@keyframes moveTopBottom {
+  0% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(30px);
+    opacity: 0.8;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: scale(1.015);
+    opacity: 0.8;
+  }
+}
+
+@keyframes moveLeftRight {
+  0% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateX(30px);
+    opacity: 0.8;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+}
+
+/* ==== 
+ --------- (4.02) banner styles end ---------
+ ==== */

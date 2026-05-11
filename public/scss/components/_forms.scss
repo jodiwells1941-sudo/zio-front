@@ -1,0 +1,70 @@
+/* ==== 
+ --------- (3.02) forms styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.input-single {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0px 16px;
+  border-radius: 8px !important;
+  border: 1px solid var(--septenary-color);
+  width: auto;
+  flex-grow: 1;
+  margin-bottom: 30px;
+
+  &:nth-last-of-type(1) {
+    margin-bottom: 0px;
+  }
+
+  input,
+  textarea,
+  .nice-select {
+    flex-grow: 1;
+    background-color: transparent;
+    color: var(--white);
+    border: 0px;
+    padding: 16px 0px;
+
+    &::placeholder {
+      color: #ffffff90;
+    }
+  }
+
+  i {
+    font-size: 18px;
+    color: var(--primary-color);
+  }
+}
+
+.input-wrapper {
+  label {
+    display: block;
+    margin-top: -8px;
+    margin-bottom: 12px;
+  }
+}
+
+.alter-input {
+  align-items: flex-start;
+
+  i {
+    margin-top: 20px;
+  }
+}
+
+.password-group {
+  i {
+    font-size: 24px;
+    cursor: pointer;
+  }
+}
+
+/* ==== 
+ --------- (3.02) forms styles end ---------
+ ==== */

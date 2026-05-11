@@ -1,0 +1,289 @@
+/* ==== 
+ --------- (5.07) work styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.work {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  .left-thumb {
+    position: absolute;
+    top: 50%;
+    left: 80px;
+    transform: translateY(-50%);
+    z-index: -1;
+
+    img {
+      animation: moveTopBottom 10s linear infinite;
+      max-width: 10vw;
+      min-width: 60px;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    top: 50px;
+    right: 200px;
+    z-index: -1;
+
+    img {
+      animation: rotate 10s linear infinite;
+      max-width: 15vw;
+      min-width: 60px;
+    }
+  }
+}
+
+.work__single {
+  position: relative;
+  z-index: 1;
+
+  i {
+    font-size: 70px;
+    color: var(--primary-color);
+  }
+
+  .thumb {
+    position: relative;
+
+    b {
+      color: var(--primary-color);
+    }
+
+    .lg-arrow {
+      position: absolute;
+      bottom: 5px;
+      right: -140px;
+    }
+  }
+
+  .content {
+    p {
+      color: #ebecef;
+      max-width: 380px;
+      margin-inline: auto;
+    }
+  }
+
+  .bg-text {
+    font-size: calc(40px + 7vw);
+    position: absolute;
+    top: 50px;
+    left: 45px;
+    opacity: 0.05;
+    font-weight: 700;
+    pointer-events: none;
+  }
+}
+
+.work-alternate {
+  .content {
+    p {
+      max-width: 290px;
+    }
+  }
+
+  .step {
+    padding: 4px 28px;
+    border-radius: 32px;
+    border: 1px solid rgba(255, 186, 35, 0.2);
+    background: rgba(255, 186, 35, 0.05);
+    font-weight: 500;
+    color: #ffba23;
+  }
+
+  .work__single {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 30px;
+
+    .bg-text {
+      top: unset;
+      bottom: 0px;
+      opacity: 0.06;
+    }
+  }
+
+  .walt {
+    flex-direction: column-reverse;
+
+    .bg-text {
+      top: 70px;
+      bottom: unset;
+    }
+  }
+
+  .alternate-content {
+    .alt-thumb {
+      @include box(80px);
+      border-radius: 12px;
+      border: 2px dashed #1d1e24;
+      background: #ffba23;
+
+      i {
+        font-size: 40px;
+        color: #071431;
+      }
+    }
+  }
+
+  .divide {
+    display: none;
+  }
+}
+
+.work__cta {
+  padding: 24px;
+  background-color: var(--quaternary-color);
+  border: 1px solid var(--septenary-color);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  i {
+    font-size: 30px;
+  }
+
+  .btn--primary {
+    background-color: var(--primary-color);
+    border-color: var(--secondary-color);
+
+    &::before,
+    &::after {
+      background-color: var(--secondary-color);
+    }
+
+    &:hover {
+      border-color: var(--primary-color);
+    }
+  }
+}
+
+.work-alter {
+  .thumb {
+    @include box(90px);
+    margin-inline: auto;
+    border: 8px solid var(--primary-color);
+    outline: 1px dashed white;
+    position: relative;
+
+    span {
+      @include box(40px);
+      background-color: var(--secondary-color);
+      color: var(--octonary-color);
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      font-weight: 700;
+    }
+
+    i {
+      font-size: 40px;
+    }
+
+    .lg-arrow {
+      width: 216px;
+      max-width: 15vw;
+      position: absolute;
+      bottom: -5px;
+      right: -255px;
+      animation: moveLeftRight 6s linear infinite;
+    }
+
+    .lg-r-arrow {
+      bottom: 20px;
+    }
+  }
+
+  .line {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    z-index: -1;
+  }
+}
+
+.work-two {
+  .thumb {
+    border: 0px solid transparent;
+    outline: 0px solid transparent;
+    width: auto;
+    height: auto;
+
+    i {
+      font-size: 72px;
+    }
+  }
+
+  .ar-img {
+    position: absolute;
+    top: 48%;
+    transform: translateY(-50%);
+    left: 74%;
+    max-width: 180px;
+    animation: moveLeftRight 3s linear infinite;
+  }
+
+  .work__single .content p {
+    max-width: 300px;
+  }
+
+  .work-two__cta {
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    row-gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+
+    p {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      justify-content: center;
+      flex-direction: column;
+
+      i {
+        font-size: 32px;
+        color: var(--secondary-color);
+      }
+    }
+
+    a {
+      font-weight: 600;
+      background-color: var(--primary-color);
+      border-color: inherit;
+
+      &::before,
+      &::after {
+        background-color: var(--secondary-color);
+      }
+    }
+  }
+}
+
+/* ==== 
+ --------- (5.07) work styles end ---------
+ ==== */

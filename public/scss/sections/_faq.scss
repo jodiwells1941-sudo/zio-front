@@ -1,0 +1,174 @@
+/* ==== 
+ --------- (5.11) faq styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.faq__tab-btns,
+.ch-list__btns {
+  ul {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px;
+    border: 1px solid var(--septenary-color);
+    border-radius: 40px;
+  }
+
+  button {
+    padding: 12px 20px;
+    background-color: var(--quaternary-color);
+    border: 1px solid var(--septenary-color);
+    border-radius: 30px;
+    gap: 12px;
+    font-weight: 600;
+
+    i {
+      font-size: 24px;
+    }
+
+    &:hover {
+      background-color: var(--primary-color);
+      color: var(--octonary-color);
+    }
+  }
+
+  .active {
+    background-color: var(--primary-color);
+    color: var(--octonary-color);
+  }
+}
+
+.accordion-item {
+  background-color: var(--quaternary-color);
+  border-radius: 10px;
+  border: 1px solid var(--septenary-color);
+  margin-bottom: 24px;
+
+  &:last-of-type {
+    margin-bottom: 0px;
+  }
+
+  .accordion-button:not(.collapsed) {
+    color: var(--octonary-color);
+    background-color: var(--primary-color);
+    border-radius: 10px 10px 0px 0px;
+    box-shadow: none;
+
+    &::after {
+      content: "\f068";
+      color: var(--primary-color);
+      background-color: var(--octonary-color);
+      transform: rotate(0deg);
+    }
+  }
+
+  .accordion-button {
+    border-radius: 0px;
+    color: var(--white);
+    position: relative;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-weight: 500;
+
+    &::after {
+      content: "\2b";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      @include box(36px);
+      background-image: none;
+      font-size: 16px;
+      color: var(--octonary-color);
+      background-color: var(--primary-color);
+    }
+  }
+}
+
+.accordion-item:first-of-type>.accordion-header .accordion-button.collapsed {
+  border-radius: 10px;
+}
+
+.accordion-item:last-of-type>.accordion-header .accordion-button.collapsed {
+  border-radius: 10px;
+}
+
+.accordion-body {
+  padding: 24px 20px;
+  border: 0px;
+}
+
+.fcq {
+  .common-banner {
+    .title-animation {
+      text-transform: uppercase !important;
+    }
+  }
+
+  .faq__tab-single {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .faq__tab-single.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .faq__tab-single.animating {
+    animation: slideUp 0.5s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+
+.ch-fcq {
+  .ch-list__single {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .ch-list__single.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .ch-list__single.animating {
+    animation: slideUp 0.5s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* ==== 
+ --------- (5.11) faq styles end ---------
+ ==== */

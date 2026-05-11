@@ -1,0 +1,92 @@
+/* ==============
+ ========= css table of contents =========
+
+ * template name: Zio Lottery
+ * version: 1.0
+ * description: Online Crypto Gaming & Lottery React NextJs Template
+ * author: wowtheme7
+ * author-url: https://ziolottery.com/
+
+ 01. abstracts
+     1.01 --> mixins
+     1.02 --> variables
+    
+ 02. base
+     2.01 --> reset
+     2.02 --> typography
+     2.03 --> global
+
+ 03. components
+     3.01 --> buttons
+     3.02 --> forms
+     3.03 --> preloader
+     3.04 --> scroll progress button
+     3.05 --> custom cursor
+     3.06 --> widgets
+
+ 04. layout
+     4.01 --> header
+     4.02 --> banner
+     4.03 --> footer
+
+ 05. sections
+     5.01 --> game
+     5.02 --> story
+     5.03 --> lottery
+     5.04 --> about
+     5.05 --> counter
+     5.06 --> testimonial
+     5.07 --> work
+     5.08 --> refer
+     5.09 --> champion
+     5.10 --> fantasy
+     5.11 --> faq
+     5.12 --> authentication
+     5.13 --> blog
+     5.14 --> contact
+     5.15 --> coming soon
+     
+    ==================================
+============== */
+
+// abstract styles
+@use "./abstracts/mixins" as *;
+@use "./abstracts/variables" as *;
+
+// base styles
+@use "./base/reset" as reset;
+@use "./base/typography" as typography;
+@use "./base/global" as global;
+
+// component styles
+@use "./components/buttons" as butons;
+@use "./components/forms" as forms;
+@use "./components/preloader" as preloader;
+@use "./components/cursor" as cursor;
+@use "./components/scroll-progress" as scrollProgress;
+@use "./components/widgets" as widgets;
+
+// layout styles
+@use "./layout/header" as header;
+@use "./layout/banner" as banner;
+@use "./layout/footer" as footer;
+
+// section styles
+@use "./sections/game" as game;
+@use "./sections/story" as story;
+@use "./sections/lottery" as lottery;
+@use "./sections/about" as about;
+@use "./sections/counter" as counter;
+@use "./sections/testimonial" as testimonial;
+@use "./sections/work" as work;
+@use "./sections/refer" as refer;
+@use "./sections/champion" as champion;
+@use "./sections/fantasy" as fantasy;
+@use "./sections/faq" as faq;
+@use "./sections/authentication" as authentication;
+@use "./sections/blog" as blog;
+@use "./sections/contact" as contact;
+@use "./sections/coming-soon" as comingSoon;
+
+// responsive styles
+@use "./responsive.scss" as responsive;

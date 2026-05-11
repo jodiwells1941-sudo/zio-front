@@ -1,0 +1,110 @@
+/* ==== 
+ --------- (3.01) buttons styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+// btn primary
+.btn--primary {
+  padding: 14px 32px;
+  background-color: var(--secondary-color);
+  color: var(--octonary-color);
+  position: relative;
+  font-weight: 600;
+  border: 1px solid var(--primary-color);
+  z-index: 1;
+  gap: 8px;
+  overflow: hidden;
+  letter-spacing: 0.8px;
+  border-radius: 30px;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    background-color: var(--primary-color);
+    width: 50%;
+    height: 100%;
+    transition: var(--transition);
+    z-index: -1;
+  }
+
+  &::before {
+    inset-inline-end: 0px;
+  }
+
+  &::after {
+    inset-inline-start: 0px;
+  }
+
+  &:hover {
+    color: var(--octonary-color);
+    border: 1px solid var(--secondary-color);
+
+    &::before,
+    &::after {
+      width: 0%;
+    }
+  }
+
+  i {
+    font-size: 24px;
+    transition: transform 0.5s ease, color 0s ease;
+  }
+}
+
+// btn secondary
+.btn--secondary {
+  padding: 14px 32px;
+  background-color: transparent;
+  color: var(--primary-color);
+  position: relative;
+  font-weight: 600;
+  border: 1px solid var(--primary-color);
+  z-index: 1;
+  gap: 8px;
+  overflow: hidden;
+  letter-spacing: 0.8px;
+  border-radius: 30px;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    background-color: var(--primary-color);
+    width: 0%;
+    height: 100%;
+    transition: var(--transition);
+    z-index: -1;
+  }
+
+  &::before {
+    inset-inline-end: 0px;
+  }
+
+  &::after {
+    inset-inline-start: 0px;
+  }
+
+  &:hover {
+    color: var(--octonary-color);
+    border: 1px solid var(--primary-color);
+
+    &::before,
+    &::after {
+      width: 50%;
+    }
+  }
+
+  i {
+    font-size: 24px;
+    transition: transform 0.5s ease, color 0s ease;
+  }
+}
+
+/* ==== 
+ --------- (3.01) buttons styles end ---------
+ ==== */

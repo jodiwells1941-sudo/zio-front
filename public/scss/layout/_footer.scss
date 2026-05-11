@@ -1,0 +1,266 @@
+/* ==== 
+ --------- (4.03) footer styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.footer {
+  margin-top: 126px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  z-index: 1;
+
+  .left-thumb {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-start: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 25vw;
+      min-width: 120px;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    bottom: 0px;
+    inset-inline-end: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 12vw;
+      min-width: 80px;
+    }
+  }
+
+  .arrow {
+    position: absolute;
+    z-index: -1;
+    inset-inline-end: 80px;
+    top: 80px;
+
+    img {
+      max-width: 10vw;
+      min-width: 50px;
+      animation: moveLeftRight 4s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes moveLeftRight {
+  0% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateX(30px);
+    opacity: 0.8;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+}
+
+.footer__newsletter {
+  padding-block: 80px;
+  padding-inline: 20px;
+  background-color: var(--septenary-color);
+  border-radius: 12px;
+  position: relative;
+  z-index: 1;
+  top: -126px;
+  margin-bottom: -126px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+}
+
+.footer__newsletter-content {
+  max-width: 360px;
+}
+
+.footer__newsletter-form {
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding-block: 8px;
+    padding-inline: 24px 8px;
+    background-color: var(--tertiary-color);
+    border: 1px solid var(--septenary-color);
+    border-radius: 40px;
+
+    .input-icon {
+      flex-grow: 1;
+      width: 100%;
+    }
+
+    input {
+      width: 100%;
+      padding-block: 8px;
+      background: transparent;
+      color: var(--white);
+    }
+
+    button {
+      flex-grow: 1;
+      justify-content: center;
+      min-width: 70px;
+      height: 46px;
+      background-color: var(--primary-color);
+      color: var(--octonary-color);
+      border-radius: 40px;
+
+      &:hover {
+        background-color: var(--secondary-color);
+      }
+    }
+  }
+}
+
+.footer__copyright {
+  padding-block: 30px;
+  border-top: 1px solid var(--septenary-color);
+}
+
+.footer__copyright-content {
+  a {
+    color: var(--secondary-color);
+    font-weight: 600;
+
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+}
+
+.footer__copyright-list {
+  ul {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    row-gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  a {
+    color: var(--white);
+
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+}
+
+// footer two
+.footer-two {
+  margin-top: 194px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-color: #23262b;
+  position: relative;
+  z-index: 1;
+
+  .left-thumb {
+    position: absolute;
+    bottom: 60px;
+    inset-inline-start: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 25vw;
+      min-width: 120px;
+      animation: pulseSm 5s infinite ease-in-out;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    top: 150px;
+    inset-inline-end: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 12vw;
+      min-width: 80px;
+      animation: pulseSm 4s infinite ease-in-out;
+    }
+  }
+
+  .footer__newsletter-form {
+    max-width: 700px;
+    margin-inline: auto;
+  }
+}
+
+.footer--alter {
+  .footer__copyright {
+    border-top: 1px solid #ffffff14;
+  }
+}
+
+.footer__newsletter-two {
+  top: -194px;
+  margin-bottom: -194px;
+}
+
+@keyframes pulseSm {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+
+// footer three
+.footer-three {
+  margin-top: 0px;
+
+  .divider {
+    border-color: #ffffff00;
+    margin-block: 80px;
+  }
+}
+
+.footer-three-alternate {
+  background-color: #23262b;
+
+  .footer__newsletter-content p {
+    margin-inline: unset !important;
+  }
+}
+
+
+
+/* ==== 
+ --------- (4.03) footer styles end ---------
+ ==== */

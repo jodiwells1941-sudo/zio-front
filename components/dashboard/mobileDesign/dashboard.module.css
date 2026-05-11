@@ -1,0 +1,1548 @@
+/* Screen background */
+.screen {
+  padding: 12px 0px;
+}
+
+.card { background: #2a2d34 !important; }
+.resultCard { background: #2a2d34 !important; }
+.balanceCardInner { background: #2a2d34 !important; }
+.popularCard { background-color: #2a2d34 !important; }
+
+/* match screenshot-ish width */
+.wrap {
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+/* Balance card */
+.balanceCard {
+  border-radius: 22px;
+  padding: 2px;
+}
+
+.balanceCardInner {
+  border-radius: 20px;
+  padding: 26px 28px 22px;
+  /* background: linear-gradient(180deg, #071a3a 0%, #04142f 100%); */
+  background: #2a2d34;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+.label {
+  font-size: 18px;
+  letter-spacing: 0.2px;
+  color: rgba(220, 235, 255, 0.75);
+  margin-bottom: 8px;
+}
+
+.balanceValue {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+}
+
+/* Right CTA */
+.depositBtn {
+  width: 180px;
+  height: 58px;
+  border: 0;
+  border-radius: 10px;
+  background: #93e3ff;
+  color: #05213a;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.2px;
+  box-shadow:
+    0 12px 26px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+.depositBtn:active {
+  transform: translateY(1px);
+}
+
+.withdrawLink {
+  margin-top: 10px;
+  font-size: 26px;
+  font-weight: 500;
+  color: #86e6ff;
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+
+/* Stats */
+.statsRow {
+  margin-top: 22px;
+}
+
+.statLabel {
+  font-size: 18px;
+  color: rgba(220, 235, 255, 0.72);
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.profit { color: #7fe2ff; }
+.tickets { color: #2ee07b; }
+.win { color: #ffcf4a; }
+
+/* Bottom nav */
+.bottomNav {
+  margin-top: 30px;
+  /* padding: 0 6px; */
+}
+
+.navTile {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 10px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 16px 30px rgba(0,0,0,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.16);
+}
+
+.navIcon {
+  font-size: 30px;
+  color: #ffffff;
+}
+
+.navLabel {
+  font-size: 22px;
+  color: rgba(230, 240, 255, 0.85);
+  letter-spacing: 0.2px;
+}
+
+/* Tile colors */
+.tileGreen  { background: #137b49; }
+.tileGold   { background: #b07a06; }
+.tilePurple { background: #8a5cf3; }
+.tileRed    { background: #ff5c4d; }
+
+/* ---------------------------------------
+   Responsive (ONLY this section changes)
+---------------------------------------- */
+
+/* <= 992px */
+@media (max-width: 992px) {
+  .wrap { max-width: 680px; }
+
+  .balanceCard { border-radius: 20px; }
+  .balanceCardInner { border-radius: 18px; padding: 22px 22px 18px; }
+
+  .label { font-size: 16px; margin-bottom: 7px; }
+  .balanceValue { font-size: 40px; }
+
+  .depositBtn { width: 170px; height: 54px; font-size: 19px; border-radius: 10px; }
+  .withdrawLink { font-size: 22px; margin-top: 9px; }
+
+  .statsRow { margin-top: 18px; }
+  .statLabel { font-size: 16px; margin-bottom: 5px; }
+  .statValue { font-size: 22px; }
+
+  .bottomNav { margin-top: 26px; }
+  .navTile { width: 62px; height: 62px; border-radius: 15px; }
+  .navIcon { font-size: 28px; }
+  .navLabel { font-size: 20px; }
+}
+
+/* <= 768px */
+@media (max-width: 768px) {
+  .screen { padding: 10px 10px; }
+  .wrap { max-width: 600px; }
+
+  .balanceCard { border-radius: 18px; }
+  .balanceCardInner { border-radius: 16px; padding: 18px 16px 16px; }
+
+  .label { font-size: 14px; margin-bottom: 6px; }
+  .balanceValue { font-size: 34px; }
+
+  .depositBtn { width: 150px; height: 48px; font-size: 18px; border-radius: 10px; }
+  .withdrawLink { font-size: 20px; margin-top: 8px; }
+
+  .statsRow { margin-top: 16px; }
+  .statLabel { font-size: 14px; margin-bottom: 4px; }
+  .statValue { font-size: 20px; }
+
+  .bottomNav { margin-top: 20px; }
+  .navTile { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 8px; }
+  .navIcon { font-size: 24px; }
+  .navLabel { font-size: 18px; }
+}
+
+/* <= 480px */
+@media (max-width: 480px) {
+  .screen { padding: 8px 8px; }
+
+  .balanceCard { border-radius: 16px; }
+  .balanceCardInner { border-radius: 14px; padding: 16px 14px 14px; }
+
+  .label { font-size: 13px; margin-bottom: 5px; }
+  .balanceValue { font-size: 30px; }
+
+  .depositBtn { width: 132px; height: 44px; font-size: 16px; border-radius: 9px; }
+  .withdrawLink { font-size: 18px; margin-top: 7px; }
+
+  .statsRow { margin-top: 14px; }
+  .statLabel { font-size: 13px; }
+  .statValue { font-size: 18px; }
+
+  .bottomNav { margin-top: 18px; }
+  .navTile { width: 52px; height: 52px; border-radius: 13px; }
+  .navIcon { font-size: 22px; }
+  .navLabel { font-size: 14px; }
+}
+
+/* <= 360px */
+@media (max-width: 360px) {
+  .screen { padding: 6px 6px; }
+
+  .balanceCardInner { padding: 14px 12px 12px; }
+  .balanceValue { font-size: 28px; }
+
+  .depositBtn { 
+    width: 78px;
+    height: 32px;
+    font-size: 14px;
+   }
+  .withdrawLink { font-size: 16px; }
+
+  .statLabel { font-size: 12px; }
+  .statValue { font-size: 17px; }
+
+  .navTile { width: 48px; height: 48px; }
+  .navIcon { font-size: 20px; }
+  .navLabel { font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+  .topRowCompact {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start !important;
+  }
+  .topRowCompact .depositBtn {
+    width: 100%;
+  }
+}
+
+
+/* ===================================================================  */
+/* ---------------- Trending Lotteries card ---------------- */
+/* MOBILE ONLY LOOK (matches screenshot) */
+.card {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px 12px 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(420px 220px at 20% 55%, rgba(70, 180, 255, 0.10), transparent 60%),
+    linear-gradient(180deg, #071a3a 0%, #04142f 100%);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+}
+
+/* subtle background bubbles */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(100px 100px at 35% 35%, rgba(255,255,255,0.05), transparent 62%),
+    radial-gradient(120px 120px at 55% 60%, rgba(255,255,255,0.04), transparent 62%),
+    radial-gradient(90px 90px at 75% 35%, rgba(255,255,255,0.03), transparent 68%);
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.stitch {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  border-top: 2px dashed rgba(255,255,255,0.08);
+  z-index: 2;
+}
+.stitchTop { top: 8px; }
+.stitchBottom { bottom: 8px; }
+
+.top {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr 150px; /* right fixed like screenshot */
+  gap: 10px;
+  align-items: start;
+}
+
+/* LEFT */
+.left {
+  position: relative;
+  /* padding-left: 38px; */
+  padding-top: 2px;
+}
+
+/* .serial {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #b8f2ff;
+  font-weight: 900;
+  font-size: 14px;
+} */
+
+.logoRow {
+  margin-bottom: 6px;
+}
+.logo {
+  width: 92px;
+  height: auto;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.05;
+  letter-spacing: 0.2px;
+}
+
+.code {
+  color: #ffbf3a;
+  font-weight: 800;
+}
+
+.perTicket {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(170, 240, 255, 0.90);
+}
+.perTicketValue {
+  font-weight: 900;
+}
+
+/* RIGHT */
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.round {
+  position: absolute;
+  top: 2px;
+  right: -16px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffbf3a;
+  padding: 6px 10px;
+  border-radius: 20px 0 0 20px;
+  border: 2px solid rgba(255,191,58,0.18);
+  background: rgba(0,0,0,0.18);
+}
+
+.prize1 {
+  width: 150px;
+  border-radius: 50px;
+  padding: 6px 8px 8px;
+  text-align: center;
+  background: rgba(40,255,120,0.08);
+  box-shadow: inset 0 0 0 3px rgba(0, 255, 90, 0.65);
+}
+
+.prizeCap {
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.92);
+}
+
+.prizeBig {
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: 1000;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.prizeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 150px;
+}
+
+.prize2,
+.prize3 {
+  border-radius: 14px;
+  padding: 6px 6px 7px;
+  text-align: center;
+  background: rgba(255, 210, 90, 0.08);
+  box-shadow: inset 0 0 0 3px rgba(255, 190, 40, 0.65);
+}
+
+.prize3 {
+  background: rgba(200, 170, 255, 0.08);
+  box-shadow: inset 0 0 0 3px rgba(185, 130, 255, 0.60);
+}
+
+.prizeCapSmall {
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.92);
+}
+
+.prizeMid {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 1000;
+  color: #ffffff;
+}
+
+/* BOTTOM */
+.bottom {
+  position: relative;
+  z-index: 3;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 14px 140px; /* chips | divider | button */
+  gap: 10px;
+  align-items: center;
+}
+
+.timeLabel {
+  font-size: 12px;
+  font-weight: 900;
+  color: #ffbf3a;
+  /* margin-bottom: 6px; */
+  text-align: center;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.chip {
+  width: 44px;
+  padding: 7px 0;
+  border-radius: 10px;
+  background: rgba(30, 255, 120, 0.22);
+  box-shadow: inset 0 0 0 2px rgba(30, 255, 120, 0.18);
+  color: #eafff3;
+  font-weight: 1000;
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: 0.6px;
+}
+
+.divider {
+  width: 2px;
+  height: 52px;
+  background: rgba(255,255,255,0.16);
+  justify-self: center;
+}
+
+.payBtn {
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #93e3ff;
+  color: #05213a;
+  font-weight: 1000;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 12px 22px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.55);
+  white-space: nowrap;
+}
+
+.payBtn i {
+  font-size: 14px;
+}
+
+.payAmount {
+  font-weight: 1000;
+}
+
+/* tiny devices (<=360): tighten a bit */
+@media (max-width: 360px) {
+  .top { grid-template-columns: 1fr 140px; }
+  .prize1, .prizeRow { width: 140px; }
+  .bottom { grid-template-columns: 1fr 12px 132px; }
+  .chip { width: 40px; }
+}
+
+
+
+
+
+/* ===============================================================  */
+/* Mobile-only section */
+.section {
+  margin-top: 16px;
+  /* padding: 0 6px; */
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(240, 248, 255, 0.92);
+  letter-spacing: 0.2px;
+}
+
+.headingAccent {
+  color: #ffbf3a;
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  margin-left: 4px;
+}
+
+.seeAll {
+  font-size: 14px;
+  color: #86e6ff;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.seeAll:hover { opacity: 0.9; }
+
+/* Cards row (mobile carousel feel) */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Card */
+.card {
+  border-radius: 18px;
+  padding: 12px 12px 14px;
+  background: linear-gradient(180deg, #071a3a 0%, #04142f 100%);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.42);
+  position: relative;
+  overflow: hidden;
+}
+
+/* border highlight like screenshot */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(160, 210, 255, 0.25);
+  pointer-events: none;
+}
+
+/* top pills */
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.placePill {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #b8f2ff;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.placePill i {
+  font-size: 14px;
+  color: #b8f2ff;
+}
+
+.roundPill {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0,0,0,0.18);
+  border: 2px solid rgba(255,191,58,0.18);
+  color: #ffbf3a;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+/* Avatar */
+.avatarWrap {
+  width: 78px;
+  height: 78px;
+  margin: 8px auto 10px;
+  border-radius: 999px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+/* ring colors */
+.ring_green { box-shadow: 0 0 0 3px rgba(45, 255, 120, 0.70); }
+.ring_purple { box-shadow: 0 0 0 3px rgba(175, 120, 255, 0.70); }
+.ring_blue { box-shadow: 0 0 0 3px rgba(120, 190, 255, 0.70); }
+
+/* check badge */
+.check {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #2ee07b;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 14px rgba(0,0,0,0.35);
+  border: 2px solid rgba(7, 26, 58, 0.95);
+}
+
+.check i {
+  font-size: 12px;
+  color: #062338;
+}
+
+/* Text */
+.title {
+  /* text-align: center; */
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+  margin-top: 2px;
+}
+
+.username {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(230, 240, 255, 0.70);
+  margin-top: 4px;
+}
+
+/* WON box */
+.wonBox {
+  margin: 14px auto 12px;
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(160, 210, 255, 0.18);
+  color: #ffffff;
+  font-weight: 1000;
+  font-size: 18px;
+  letter-spacing: 0.3px;
+}
+
+/* tickets line */
+.tickets {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(230, 240, 255, 0.72);
+  margin-bottom: 10px;
+}
+
+.tickets span {
+  color: #ffbf3a;
+  font-weight: 900;
+  padding-left: 4px;
+}
+
+/* View details */
+.detailsBtn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #86e6ff;
+  font-weight: 900;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0 2px;
+}
+
+.detailsBtn i {
+  font-size: 16px;
+}
+
+/* Dots */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.22);
+}
+.dotActive {
+  background: #86e6ff;
+  box-shadow: 0 0 0 4px rgba(134, 230, 255, 0.14);
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .heading { font-size: 20px; }
+  .row { gap: 10px; }
+  .card { padding: 10px 10px 12px; border-radius: 16px; }
+  .title { font-size: 20px; }
+  .wonBox { height: 38px; font-size: 14px; }
+  .detailsBtn { font-size: 15px; }
+}
+
+/* ======================= Latest Draw Mobile Card==========================  */
+/* mobile-only wrapper */
+.section {
+  margin-top: 16px;
+  /* padding: 0 6px; */
+}
+
+/* header like screenshot */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(240, 248, 255, 0.92);
+  letter-spacing: 0.2px;
+}
+
+.headingAccent {
+  color: #ffbf3a;
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  margin-left: 4px;
+}
+
+.seeAll {
+  font-size: 14px;
+  color: #86e6ff;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.seeAll:hover { opacity: 0.9; }
+
+/* card */
+.card {
+  position: relative;
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #071a3a 0%, #04142f 100%);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+}
+
+/* pattern overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(110px 110px at 25% 35%, rgba(255,255,255,0.05), transparent 62%),
+    radial-gradient(140px 140px at 60% 60%, rgba(255,255,255,0.04), transparent 62%),
+    radial-gradient(100px 100px at 78% 35%, rgba(255,255,255,0.03), transparent 68%),
+    radial-gradient(520px 240px at 28% 52%, rgba(70, 180, 255, 0.10), transparent 62%);
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.topGrid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr; /* close to screenshot */
+  gap: 4px;
+  align-items: start;
+}
+
+/* LEFT */
+.left {
+  /* position: relative; */
+  /* padding-left: 40px;  */
+  padding-top: 44px;
+}
+
+.serial {
+    color: #b8f2ff;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 0px 20px 20px 0px;
+    place-items: center;
+    width: 50px;
+    height: 34px;
+    font-size: 14px;
+    font-weight: 900;
+    display: grid;
+    position: absolute;
+    top: 2px;
+    left: -16px;
+}
+
+.logoRow {
+  margin-bottom: 6px;
+}
+
+.logo {
+  width: 98px;
+  height: auto;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.05;
+  letter-spacing: 0.2px;
+}
+
+.code {
+  color: #ffbf3a;
+  font-weight: 800;
+  font-size: 8px;
+}
+
+.drawAt {
+  margin-top: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(230, 240, 255, 0.70);
+}
+
+.nextDrawLabel {
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #ffbf3a;
+}
+
+.chips {
+  /* margin-top: 8px; */
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.chip {
+  color: #eafff3;
+  text-align: center;
+  letter-spacing: .6px;
+  background: #1eff7838;
+  border-radius: 7px;
+  width: 34px;
+  padding: 4px 2px;
+  font-size: 10px;
+  font-weight: 1000;
+  box-shadow: inset 0 0 0 2px #1eff782e;
+}
+
+/* RIGHT TABLE */
+.right {
+  padding-top: 34px;
+}
+
+.investmentResponsiveImg{
+  width: 200px !important;
+  padding-top: 77px !important;
+}
+
+.tableTitle {
+  font-size: 14px;
+  font-weight: 900;
+  color: rgba(200, 250, 255, 0.95);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.tableWrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tableCol {
+  border-radius: 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(160, 210, 255, 0.14);
+  overflow: hidden;
+}
+
+.tableHead {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  padding: 7px 4px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(160, 210, 255, 0.14);
+}
+
+.thRank {
+  font-size: 9px;
+  font-weight: 900;
+  color: #ffbf3a;
+}
+
+.thWon {
+  font-size: 9px;
+  font-weight: 900;
+  color: #2ee07b;
+  text-align: right;
+}
+
+.tr {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.tr:last-child { border-bottom: 0; }
+
+.tdRank {
+  font-size: 9px;
+  font-weight: 800;
+  color: rgba(240, 248, 255, 0.92);
+}
+
+.tdWon {
+  font-size: 9px;
+  font-weight: 900;
+  color: rgba(240, 248, 255, 0.75);
+  text-align: right;
+  letter-spacing: 0.3px;
+}
+
+/* dots */
+.dots {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.22);
+}
+
+.dotActive {
+  background: #86e6ff;
+  box-shadow: 0 0 0 4px rgba(134, 230, 255, 0.14);
+}
+
+/* extra small */
+/* @media (max-width: 360px) {
+  .topGrid { grid-template-columns: 1fr; }
+  .tableWrap { grid-template-columns: 1fr; }
+} */
+
+/* =============================================================================  */
+/* ---------------- Refer Card (mobile) ---------------- */
+
+.referWrap{
+  margin-top: 16px;
+  /* padding: 0 6px; */
+}
+
+.referCard{
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 128px;
+  padding: 18px 16px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+
+  /* IMPORTANT: keep image visible */
+  background-color: #2a2d34;          /* your new base */
+  background-repeat: no-repeat;
+  background-position: right -8px center;  /* push balls slightly outside */
+  background-size: 62% auto;          /* matches screenshot */
+}
+
+/* Your gradient overlay (keeps left side dark + readable) */
+/* .referOverlay{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    270deg,
+    rgba(7, 20, 49, 0) 0%,
+    rgba(7, 20, 49, 0) 9.93%,
+    rgba(7, 20, 49, 0.04) 14.23%,
+    rgba(7, 20, 49, 0.2) 20.85%,
+    rgba(7, 20, 49, 0.497859) 32.55%,
+    rgba(7, 20, 49, 0.6) 40.15%,
+    rgba(7, 20, 49, 0.72) 48.03%,
+    rgba(7, 20, 49, 0.88) 55.67%,
+    #071431 100%
+  );
+  pointer-events: none;
+} */
+
+/* content */
+.referContent{
+  position: relative;
+  z-index: 2;
+  padding-right: 86px; /* room for circle button */
+}
+
+.referTitle{
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.referSubtitle{
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: rgba(230, 240, 255, 0.78);
+}
+
+.referLine{ display:block; }
+
+/* action circle */
+.referAction{
+  position: absolute;
+  right: 14px;
+  top: 18px;
+  width: 54px;
+  height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: #93e3ff;
+  color: #05213a;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 24px rgba(45, 45, 45, 0.32), inset 0 1px 0 rgba(255,255,255,0.55);
+  z-index: 3;
+}
+
+.referAction i{
+  font-size: 18px;
+  font-weight: 900;
+}
+
+/* Small phones */
+@media (max-width: 360px){
+  .referCard{
+    padding: 16px 14px;
+    min-height: 122px;
+    background-position: right -14px center;
+    background-size: 66% auto;
+  }
+  .referContent{ padding-right: 78px; }
+  .referTitle{ font-size: 20px; }
+  .referSubtitle{ font-size: 13px; }
+  .referAction{ width: 50px; height: 50px; right: 12px; top: 16px; }
+}
+
+
+/* =================================== popular card design ================================================  */
+/* ---------------- Popular Lottery (mobile) ---------------- */
+
+.popularSection {
+  margin-top: 16px;
+  /* padding: 0 6px; */
+}
+
+/* Header */
+.popularHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.popularHeading {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(240, 248, 255, 0.92);
+  letter-spacing: 0.2px;
+}
+
+.popularHeadingAccent {
+  color: #ffbf3a;
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  margin-left: 4px;
+}
+
+.popularSeeAll {
+  font-size: 14px;
+  color: #86e6ff;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.popularSeeAll:hover { opacity: 0.9; }
+
+/* Cards row */
+.popularRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Card */
+.popularCard {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 170px;
+  padding: 12px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.55),
+    inset 0 0 0 1px rgba(160, 210, 255, 0.14);
+  }
+
+/* subtle border glow */
+.popularCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(160, 210, 255, 0.20);
+  pointer-events: none;
+}
+
+.popularCard::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background: rgba(0,0,0,0.08);
+}
+
+/* bottom readability overlay */
+.popularCardOverlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+
+  /* darker overlay + vignette like your UI */
+  background:
+    radial-gradient(180px 140px at 30% 30%, rgba(0,0,0,0.10), transparent 70%),
+    radial-gradient(240px 200px at 70% 35%, rgba(0,0,0,0.14), transparent 72%),
+    radial-gradient(380px 260px at 50% 75%, rgba(0,0,0,0.35), transparent 70%),
+    linear-gradient(
+      180deg,
+      rgba(7, 20, 49, 0.10) 0%,
+      rgba(7, 20, 49, 0.35) 40%,
+      rgba(7, 20, 49, 0.86) 100%
+    );
+}
+
+/* Badge */
+.popularBadge {
+  position: absolute;
+  left: 12px;
+  top: 58px;
+  z-index: 3;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 900;
+  font-size: 14px;
+  color: #05213a;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+.popularBadgeHot { background: #ffbf3a; }
+.popularBadgeNew { background: #93e3ff; }
+
+/* Content at bottom */
+.popularCardContent {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+  z-index: 3;
+}
+
+.popularCardTitle {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.popularCardSubRow {
+  /* margin-top: 6px; */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popularCardSub {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(230, 240, 255, 0.78);
+}
+
+.popularSubIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Dots */
+.popularDots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.popularDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.22);
+}
+
+.popularDotActive {
+  background: #86e6ff;
+  box-shadow: 0 0 0 4px rgba(134, 230, 255, 0.14);
+}
+
+/* extra small */
+@media (max-width: 360px) {
+  .popularRow { gap: 10px; }
+  .popularCard { height: 142px; border-radius: 16px; }
+  .popularCard::before { border-radius: 16px; }
+  .popularBadge { top: 54px; height: 32px; font-size: 13px; }
+  .popularCardTitle { font-size: 14px; }
+}
+
+
+
+/* ---------------- Lottery Result (mobile) ---------------- */
+
+.resultSection {
+  margin-top: 16px;
+  /* padding: 0 6px; */
+}
+
+/* outer card */
+.resultCard {
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #071a3a 0%, #04142f 100%);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+  position: relative;
+}
+
+/* top visual area */
+.resultImage {
+  position: relative;
+  height: 320px; /* matches screenshot proportion */
+  /* background-size: cover; */
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+/* subtle dark overlay to match UI */
+.resultImageOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(220px 180px at 50% 30%, rgba(0,0,0,0.06), transparent 70%),
+    linear-gradient(180deg, rgba(7,20,49,0.06) 0%, rgba(7,20,49,0.18) 55%, rgba(7,20,49,0.38) 100%);
+  pointer-events: none;
+}
+
+/* bottom bar */
+.resultBottom {
+  border-top: 1px solid rgba(160, 210, 255, 0.14);
+  padding: 14px 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* left content */
+.resultLeft {
+  min-width: 0;
+}
+
+.resultBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #ffbf3a;
+  color: #05213a;
+  font-weight: 900;
+  font-size: 14px;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+.resultTitle {
+  margin-top: 10px;
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+  line-height: 1.1;
+}
+
+/* CTA button */
+.resultCta {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: transparent;
+  border: 2px solid rgba(147, 227, 255, 0.85);
+  color: rgba(147, 227, 255, 0.95);
+  font-weight: 900;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.18);
+}
+
+.resultCta:active {
+  transform: translateY(1px);
+}
+
+/* very small phones */
+@media (max-width: 360px) {
+  .resultImage { height: 300px; }
+  .resultTitle { font-size: 24px; }
+  .resultBottom { padding: 12px 12px 14px; }
+  .resultCta { height: 42px; padding: 0 14px; font-size: 13px; }
+}
+
+
+
+/* model popup open in down css  */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, background 0.35s ease;
+}
+
+.backdropVisible {
+  background: rgba(0,0,0,0.5);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Bottom sheet ── */
+.sheet {
+  position: fixed;
+  bottom: 0px;
+  left: 0;
+  right: 0;
+  background: #2a2d34;
+  border-radius: 20px 20px 0 0;
+  z-index: 1050;
+  padding: 12px 20px 36px;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.22,1,0.36,1),
+              opacity 0.35s ease;
+  /* max-height: 90vh; */
+  height: 500px;
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+/* OPEN STATE */
+.sheetOpen {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Desktop: hide entirely ── */
+@media (min-width: 768px) {
+  .backdrop,
+  .sheet {
+    display: none;
+  }
+}
+
+/* ── Handle bar ── */
+.handle {
+  width: 40px;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+/* ── spaceY: gap between every item ── */
+.body {
+  display: flex;
+  flex-direction: column;
+  /* gap: 16px; */
+}
+
+.item {
+  opacity: 0;
+  transform: translateY(14px);
+  margin-top: 0;
+
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    margin-top 0.35s ease;
+
+  transition-delay: 0s;
+}
+
+/* When visible */
+.itemVisible {
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 16px;   /* space-Y value */
+
+  transition-delay: var(--delay, 0s);
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+.closeBtn {
+  background: #f5f5f529;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.closeBtn:hover {
+  background: #e8e8e8;
+}
+ 
+/* ── P2P button ── */
+.p2pBtn {
+  width: 100%;
+  padding: 15px;
+  background: transparent;
+  color: #538c99;
+  border: 1.5px solid #538c99;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  gap: 8px;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+ 
+.p2pBtn:hover {
+  background: #538c99;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+ 
+.p2pBtn:active {
+  transform: translateY(0);
+}
+

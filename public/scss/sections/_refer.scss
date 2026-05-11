@@ -1,0 +1,337 @@
+/* ==== 
+ --------- (5.08) refer styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.refer {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0px;
+    inset-inline-end: 0px;
+    width: 600px;
+    height: 600px;
+    border-radius: 604px;
+    opacity: 0.5;
+    background: linear-gradient(114deg, #8e61ee 0%, #99f5ae 100%);
+    filter: blur(250px);
+    z-index: -4;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0px;
+    inset-inline-start: 0px;
+    width: 600px;
+    height: 600px;
+    border-radius: 604px;
+    opacity: 0.5;
+    background: linear-gradient(90deg, #9b60da 0%, #f15e55 100%);
+    filter: blur(250px);
+    z-index: -4;
+  }
+
+  .btc-out {
+    position: absolute;
+    z-index: -1;
+    bottom: 70px;
+    inset-inline-start: 150px;
+    animation: rotate 16s linear infinite;
+
+    img {
+      max-width: 6vw;
+      min-width: 30px;
+      animation: moveLeftRight 8s linear alternate-reverse infinite;
+    }
+  }
+
+  .arrow-out {
+    position: absolute;
+    z-index: -1;
+    top: 40px;
+    inset-inline-start: 220px;
+    animation: rotate 8s linear infinite;
+
+    img {
+      max-width: 6vw;
+      min-width: 30px;
+      animation: moveTopBottom 12s infinite ease-in-out;
+    }
+  }
+
+  .left-thumb {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 15vw;
+      min-width: 100px;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 10vw;
+      min-width: 60px;
+    }
+  }
+}
+
+.refer-alter {
+
+  &::before,
+  &::after {
+    content: none;
+  }
+}
+
+.refer__content-group {
+  display: flex;
+  gap: 40px;
+  row-gap: 24px;
+  flex-direction: column;
+  align-items: flex-start;
+
+  .text-xl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      font-size: 20px;
+      color: var(--secondary-color);
+      margin-bottom: -3px;
+    }
+  }
+
+  .divider {
+    height: 70px;
+    border-right: 1px dashed var(--septenary-color);
+  }
+}
+
+.refer__thumb {
+  position: relative;
+  z-index: 1;
+  margin-left: 20px;
+
+  .thumb {
+    img {
+      max-width: 30vw;
+      animation: moveTopBottom 8s linear infinite;
+    }
+  }
+
+  .circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .btc,
+  .eth,
+  .arrow,
+  .btc-alt,
+  .eth-alt {
+    position: absolute;
+    z-index: -2;
+
+    img {
+      max-width: 6vw;
+      min-width: 30px;
+    }
+  }
+
+  .btc {
+    top: 30%;
+    left: -20px;
+    animation: moveLeftRight 4s ease-in-out infinite;
+
+    img {
+      animation: rotate 8s linear infinite;
+    }
+  }
+
+  .eth {
+    top: 55%;
+    left: -20px;
+    animation: moveLeftRight 8s linear alternate infinite;
+
+    img {
+      animation: rotate 16s linear alternate-reverse infinite;
+    }
+  }
+
+  .arrow {
+    bottom: 10%;
+    right: -20px;
+    animation: moveLeftRight 9s linear infinite;
+
+    img {
+      animation: rotate 25s linear infinite;
+    }
+  }
+
+  .btc-alt {
+    top: 40%;
+    right: -50px;
+    animation: moveLeftRight 12s linear alternate-reverse infinite;
+
+    img {
+      animation: rotate 22s linear infinite;
+    }
+  }
+
+  .eth-alt {
+    top: 0%;
+    right: -30px;
+    animation: moveLeftRight 5s linear alternate infinite;
+
+    img {
+      animation: rotate 5s linear alternate infinite;
+    }
+  }
+}
+
+.discover {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+
+  .left-thumb {
+    position: absolute;
+    z-index: -1;
+    bottom: 0px;
+    left: 0px;
+
+    img {
+      animation: moveLeftRight 5s linear infinite;
+      max-width: 25vw;
+      min-width: 120px;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    z-index: -1;
+    bottom: 0px;
+    right: 0px;
+
+    img {
+      animation: moveTopBottom 5s linear infinite;
+      max-width: 15vw;
+      min-width: 120px;
+    }
+  }
+
+  .chart {
+    position: absolute;
+    z-index: -1;
+    top: 120px;
+    right: 5%;
+
+    img {
+      animation: rotate 5s linear infinite;
+      max-width: 15vw;
+      min-width: 30px;
+    }
+  }
+
+  .left-th {
+    position: absolute;
+    z-index: -1;
+    bottom: 500px;
+    left: 30px;
+
+    img {
+      animation: rotate 5s linear infinite;
+      max-width: 5vw;
+      min-width: 20px;
+    }
+  }
+
+  .about__content-single {
+    .thumb {
+      &::before {
+        content: none;
+      }
+
+      i {
+        @include box(64px);
+        background-color: var(--primary-color);
+        font-size: 40px;
+        color: var(--octonary-color);
+      }
+    }
+  }
+}
+
+.discover__thumb {
+  direction: rtl;
+
+  .thumb {
+    img {
+      min-width: 600px;
+    }
+  }
+
+  .eth-alt {
+    bottom: 140px;
+    left: -60px;
+    top: unset;
+    right: unset;
+
+    img {
+      animation: pulse 5s linear infinite;
+      max-width: 25vw;
+    }
+  }
+
+  .eth {
+    bottom: 30px;
+    left: 100px;
+    top: unset;
+    right: unset;
+
+    img {
+      animation: pulse 5s linear infinite;
+      max-width: 25vw;
+    }
+  }
+}
+
+/* ==== 
+ --------- (5.08) refer styles end ---------
+ ==== */

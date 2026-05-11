@@ -1,0 +1,35 @@
+/* ==== 
+ --------- (1.02) variables start ---------
+ ==== */
+
+:root {
+  // font family
+  --chakra: "Chakra Petch", serif;
+
+  // template default
+  --template-font: var(--chakra);
+  --template-bg: #1d1e24;
+  --template-color: #ffffff;
+
+  // colors
+  --white: #ffffff;
+  --black: #000000;
+  --primary-color: #9cecfe;
+  --secondary-color: #ffba23;
+  --tertiary-color: #23262b;
+  --quaternary-color: #2a2d33;
+  --quinary-color: #1d1e24;
+  --septenary-color: #ffffff33;
+  --senary-color: #ffffff0d;
+  --octonary-color: #222e48;
+
+  // transitions
+  --transition: all 0.5s ease;
+
+  // box shadow
+  --shadow: 0px 10px 25px 0px rgba(37, 42, 52, 0.08);
+}
+
+/* ==== 
+   --------- (1.02) variables end ---------
+   ==== */

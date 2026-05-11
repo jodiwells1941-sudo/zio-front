@@ -1,0 +1,171 @@
+/* ==== 
+ --------- (5.10) fantasy styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.fantasy {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right center;
+
+  .left-thumb {
+    position: absolute;
+    bottom: 0%;
+    left: 0px;
+    z-index: -1;
+
+    img {
+      animation: moveTopBottom 10s linear infinite;
+      max-width: 10vw;
+      min-width: 60px;
+    }
+  }
+
+  .rocket {
+    position: absolute;
+    top: 480px;
+    right: 0px;
+    z-index: -5;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: moveTopBottom 5s infinite ease-in-out;
+    }
+  }
+
+  .right-thumb {
+    position: absolute;
+    top: 180px;
+    right: 190px;
+    z-index: -5;
+
+    img {
+      max-width: 20vw;
+      min-width: 120px;
+      animation: rotate 15s infinite ease-in-out;
+    }
+  }
+}
+
+.fantasy__single {
+  padding: 40px 24px;
+  background-color: var(--quaternary-color);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    inset-inline-end: 0px;
+    width: 260px;
+    height: 260px;
+    background-color: #6affb3;
+    filter: blur(200px);
+    z-index: -2;
+  }
+
+  h5 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .content {
+    max-width: 230px;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+
+    &:hover {
+      color: var(--secondary-color);
+    }
+
+    i {
+      margin: 0px;
+      font-size: 20px;
+    }
+  }
+
+  .thumb {
+    position: absolute;
+    z-index: -1;
+    top: 0px;
+    inset-inline-end: 0px;
+    transition: var(--transition);
+
+    img {
+      max-width: 14vw;
+      min-width: 140px;
+      transition: var(--transition);
+    }
+  }
+
+  &:hover {
+    .thumb {
+      top: 20px;
+
+      img {
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+.fantasy__single-long {
+  height: 100%;
+  min-height: 600px;
+
+  .thumb {
+    top: unset !important;
+    bottom: 40px;
+
+    img {
+      max-width: min-content;
+    }
+  }
+}
+
+.single-two {
+  &::before {
+    background-color: #ffba23;
+  }
+}
+
+.single-three {
+  &::before {
+    background: linear-gradient(90deg, #9b60da 0%, #f15e55 100%);
+  }
+}
+
+.single-four {
+  &::before {
+    background-color: #aa4ee5;
+  }
+}
+
+/* ==== 
+ --------- (5.10) fantasy styles end ---------
+ ==== */

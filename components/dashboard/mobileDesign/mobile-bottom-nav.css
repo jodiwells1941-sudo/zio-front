@@ -1,0 +1,115 @@
+/* ============================================
+   Mobile Bottom Navigation Bar
+   ============================================ */
+
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  /* Dark navy background matching the image */
+  background-color: #0f1628;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* 5 columns — center one is wider for the floating button */
+  display: flex;
+  align-items: flex-end;
+  height: 64px;
+
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Regular nav item ── */
+.mobile-bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 64px;
+  text-decoration: none;
+  color: #8a93b0;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-bottom-nav__item:hover {
+  color: #a0aac2;
+  text-decoration: none;
+}
+
+.mobile-bottom-nav__item.nav-item-active {
+  color: #5fd8f5; /* bright cyan/teal matching the "Home" active color in image */
+}
+
+.mobile-bottom-nav__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.mobile-bottom-nav__label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* ── Center floating button wrapper ── */
+.mobile-bottom-nav__center-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Push the circle up above the bar */
+  margin-bottom: 14px;
+}
+
+/* ── Center circle button ── */
+.mobile-bottom-nav__center-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+
+  /* Light blue circle fill matching image */
+  background: #b8e8f5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f1628;
+
+  /* Glow ring matching image */
+  box-shadow:
+    0 0 0 5px #0f1628,           /* dark gap between circle and ring */
+    0 0 0 8px rgba(95, 216, 245, 0.35), /* soft cyan outer ring */
+    0 4px 20px rgba(95, 216, 245, 0.25);
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-bottom-nav__center-btn:active {
+  transform: scale(0.95);
+}
+
+.mobile-bottom-nav__center-btn.center-active {
+  background: #a0ddf0;
+  box-shadow:
+    0 0 0 5px #0f1628,
+    0 0 0 8px rgba(95, 216, 245, 0.55),
+    0 4px 24px rgba(95, 216, 245, 0.4);
+}
+
+/* ── Bottom spacer so page content clears the nav ── */
+.mobile-bottom-nav__spacer {
+  height: 80px;
+}

@@ -1,0 +1,82 @@
+/* ==== 
+ --------- (5.09) champion styles start ---------
+ ==== */
+
+// mixins
+@use "../abstracts/mixins" as *;
+// variables
+@use "../abstracts/variables" as *;
+
+.champion {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  .left-thumb {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    z-index: -1;
+
+    img {
+      max-width: 25vw;
+      min-width: 100px;
+      animation: moveTopBottom 15s linear infinite;
+    }
+  }
+
+  .left-thumb-th {
+    position: absolute;
+    z-index: -1;
+    top: 300px;
+    right: 300px;
+
+    img {
+      max-width: 10vw;
+      min-width: 40px;
+      animation: rotate 20s linear infinite;
+    }
+  }
+}
+
+.champion__single {
+  .thumb {
+    img {
+      @include box(120px);
+      margin-inline: auto;
+    }
+  }
+
+  .timer {
+    p {
+      font-size: 18px;
+    }
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    li {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--septenary-color);
+      @include box(40px);
+      font-weight: 700;
+    }
+
+    .active {
+      background-color: var(--primary-color);
+      color: var(--octonary-color);
+    }
+  }
+}
+
+/* ==== 
+ --------- (5.09) champion styles end ---------
+ ==== */
