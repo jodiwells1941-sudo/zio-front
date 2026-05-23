@@ -31,6 +31,8 @@ function reverbHost(): string {
 
 /** Laravel Echo + Reverb; returns null if NEXT_PUBLIC_REVERB_APP_KEY is unset. */
 export function getTradeEcho(): TradeEcho | null {
+  console.log('okk', process.env.NEXT_PUBLIC_REVERB_HOST);
+  
   if (typeof window === "undefined") return null;
   const key = process.env.NEXT_PUBLIC_REVERB_APP_KEY;
   if (!key) return null;
