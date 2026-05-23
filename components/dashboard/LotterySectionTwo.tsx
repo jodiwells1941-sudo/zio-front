@@ -128,7 +128,13 @@ const LotteryCard = ({
     }
 
     try {
-      await ticketPurchase(roundId, count);
+      const response =  await ticketPurchase(roundId, count);
+      
+      if (response?.error) {
+        toast.error(response.message);
+        return;
+      }
+
       await onPurchaseSuccess?.();
       Swal.fire({
         title: "Purchase Successful",
@@ -137,9 +143,25 @@ const LotteryCard = ({
         confirmButtonText: "OK",
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Ticket purchase failed";
+      const errorMessage = (() => {
+        if (err && typeof err === "object" && "response" in err) {
+          const response = (err as { response?: { data?: Record<string, unknown> } }).response?.data;
+          if (response && typeof response === "object") {
+            if ("message" in response && typeof response.message === "string") return response.message;
+            if ("error" in response && typeof response.error === "string") return response.error;
+          }
+        }
+        if (err instanceof Error) return err.message;
+        return "Ticket purchase failed";
+      })();
+
       toast.error(errorMessage);
-      Swal.fire({ title: "Purchase Failed", text: errorMessage, icon: "error", confirmButtonText: "OK" });
+      Swal.fire({
+        title: "Purchase Failed",
+        text: errorMessage,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
 
   };  
