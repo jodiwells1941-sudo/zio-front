@@ -199,7 +199,7 @@ const RegisterForm = () => {
             }}
             placeholder="Select Country"
             isSearchable
-            className="w-100"
+            className="w-100 fs-6"
             classNamePrefix="rs"
           />
           <i className="fa-solid fa-globe" />

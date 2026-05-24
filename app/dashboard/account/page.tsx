@@ -3,14 +3,27 @@
 import { updatePassword, updateUserInfo, walletSettingsDataApi } from "@/app/api/auth";
 import AccountPage from "@/components/dashboard/Account/AccountPage";
 import { useAuth } from "@/hooks/useAuth";
-import { getAccessToken, getUserInfo, setAuthData } from "@/utils/auth";
+import { getAccessToken, getUserInfo, logout, setAuthData } from "@/utils/auth";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 export default function Page() {
   const { user } = useAuth();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [walletSettings, setWalletSettings] = useState<any>(null);
+  interface Wallet {
+    amount?: number;
+    real_amount?: number;
+    bonus_amount?: number;
+    pending_withdrawal?: number;
+    // Add other wallet properties as needed
+  }
+
+  interface WalletSettings {
+    wallet?: Wallet;
+    // Add other wallet settings properties as needed
+  }
+
+  const [walletSettings, setWalletSettings] = useState<WalletSettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [editUserForm, setEditUserForm] = useState({
@@ -65,15 +78,30 @@ export default function Page() {
         password_confirmation: payload.confirmPassword,
       });
       toast.success("Password changed successfully");
+
+      handleLogout();
+
       setEditUserForm((prev) => ({
         ...prev,
         old_password:     "",
         password:         "",
         confirm_password: "",
       }));
-    } catch (error: any) {
-      toast.error("Failed to change password: " + error.message);
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to change password: " + errorMessage);
     }
+  };
+
+
+  const handleLogout = async () => {
+    // Delete the httpOnly cookie via API route (cannot be done client-side)
+    await fetch("/api/auth/logout", { method: "POST" });
+
+    // Clear localStorage / in-memory auth state
+    logout();
+
+    window.location.href = "/sign-in";
   };
 
   // ── Profile update ─────────────────────────────────────────────────────────
@@ -117,8 +145,9 @@ export default function Page() {
       );
 
       toast.success("Profile updated successfully");
-    } catch (error: any) {
-      toast.error("Failed to update profile: " + error.message);
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update profile: " + errorMessage);
     }
   };
 
@@ -151,6 +180,21 @@ export default function Page() {
   const realMoney            = walletSettings?.wallet?.real_amount;
   const bonusMoney           = walletSettings?.wallet?.bonus_amount;
   const pendingWithdrawals   = walletSettings?.wallet?.pending_withdrawal;  
+
+  const updatedAt = user?.updated_at;
+
+  const getDaysAgo = (dateString: string): string => {
+    const updatedDate = new Date(dateString);
+    const currentDate = new Date();
+
+    const diffTime = currentDate.getTime() - updatedDate.getTime();
+
+    const diffDays = Math.floor(
+      diffTime / (1000 * 60 * 60 * 24)
+    );
+
+    return `Last Change ${diffDays} Day${diffDays !== 1 ? "s" : ""} Ago`;
+  };
 
   return (
     <>
@@ -188,7 +232,7 @@ export default function Page() {
           phoneVerified: user?.phone_verified ?? false,
         }}
         security={{
-          lastChangeText: "Last Change: 12 Days Ago",
+          lastChangeText: updatedAt ? getDaysAgo(updatedAt) : "Last Change: N/A",
         }}
         onSavePersonalInfo={handleUpdateProfile}
         onSaveSecurity={handleChangePassword}
