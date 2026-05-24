@@ -110,8 +110,11 @@ const formatCurrency = (amount: number | undefined | null): string => {
 export default function VerifyProfilePage() {
   const { user } = useAuth();
 
+  console.log('user ==', user);
+  
+
   const userVerifyStatus = mapVerifyStatus(user?.verify_status);
-  const isEmailVerified  = !!user?.email_verified_at;
+  const isEmailVerified  = user?.email_verified_at;
 
   const [activeDoc,  setActiveDoc]  = useState<DocType>("passport");
   const [activeSide, setActiveSide] = useState<Side>("front");
@@ -419,7 +422,7 @@ export default function VerifyProfilePage() {
               {
                 lbl: "Email",
                 val: user?.email || "—",
-                icon: !user.email_verified ? <i className="fas fa-times-circle crs" /> : <i className="fas fa-check-circle chk" />,
+                icon: !isEmailVerified ? <i className="fas fa-times-circle crs" /> : <i className="fas fa-check-circle chk" />,
               },
               {
                 lbl: "Phone",
@@ -459,10 +462,12 @@ export default function VerifyProfilePage() {
 
         {/* Document verification */}
         <div className="vp-card">
-          <div className="vp-card-title"><i className="fas fa-id-card" /> Document Verification</div>
+          <div className="vp-card-title">
+            <i className="fas fa-id-card" /> Document Verification
+          </div>
 
-          {/* 2×2 doc type grid */}
-          <div className="vp-doc-grid">
+          {/* Compact pill tabs — title only */}
+          <div className="vp-doc-tab-row">
             {DOC_TYPES.map((tab) => (
               <button
                 key={tab.id}
@@ -470,187 +475,95 @@ export default function VerifyProfilePage() {
                 className={`vp-doc-tab ${activeDoc === tab.id ? "active" : ""}`}
                 style={
                   activeDoc === tab.id
-                    ? { borderColor: tab.color, background: `${tab.color}12` }
+                    ? { color: tab.color, borderColor: tab.color, background: `${tab.color}12` }
                     : {}
                 }
                 onClick={() => setActiveDoc(tab.id)}
               >
-                <div
-                  className="vp-doc-icon"
-                  style={{ background: `${tab.color}18`, color: tab.color }}
-                >
-                  <i className={tab.icon} />
-                </div>
-                <div>
-                  <div className="vp-doc-tab-title">{tab.title}</div>
-                  <div className="vp-doc-tab-sub">{tab.sub}</div>
-                  {statusBadge(documents[tab.id].status)}
-                </div>
+                {/* left dot — always visible, small */}
+                <span style={{
+                  width: 7, height: 7, borderRadius: "50%",
+                  background: activeDoc === tab.id ? tab.color : "rgba(255,255,255,0.2)",
+                  display: "inline-block", flexShrink: 0,
+                }} />
+
+                {tab.title}
+
+                {/* right dot — only on active, larger & glowing */}
+                {activeDoc === tab.id && (
+                  <span style={{
+                    width: 12, height: 12, borderRadius: "50%",
+                    background: tab.color,
+                    display: "inline-block", flexShrink: 0,
+                    marginLeft: "auto",
+                    boxShadow: `0 0 6px 2px ${tab.color}80`,
+                  }} />
+                )}
               </button>
             ))}
           </div>
 
-          {/* Hidden file input */}
-          <input
-            ref={docInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={handleDocUpload}
-          />
-
-          {/* Front / Back side switcher */}
-          <div style={{
-            display: "flex", gap: 8, margin: "16px 0 0",
-          }}>
-            {(["front", "back"] as Side[]).map((side) => {
-              const sideState = currentDocState[side];
-              const isActive  = activeSide === side;
-              return (
-                <button
-                  key={side}
-                  type="button"
-                  onClick={() => setActiveSide(side)}
-                  className="mb-10"
-                  style={{
-                    flex: 1,
-                    padding: "9px 0",
-                    borderRadius: 10,
-                    border: `1.5px solid ${isActive ? activeColor : "rgba(255,255,255,0.1)"}`,
-                    background: isActive ? `${activeColor}15` : "rgba(255,255,255,0.03)",
-                    color: isActive ? activeColor : "rgba(255,255,255,0.45)",
-                    fontWeight: 600,
-                    fontSize: 12,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 7,
-                    transition: "all .18s",
-                  }}
-                >
-                  <i className={side === "front" ? "fas fa-id-card" : "fas fa-id-card-alt"} />
-                  {side === "front" ? "Front Side" : "Back Side"}
-                  {sideState.preview && (
-                    <span style={{
-                      width: 6, height: 6, borderRadius: "50%",
-                      background: sideState.file ? "#f7a600" : "#22c55e",
-                      display: "inline-block",
-                    }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Upload panel */}
-          <div
-            className={`vp-upload-panel ${currentSideState.preview ? "has-file" : ""}`}
-            style={{ "--active-color": activeColor } as React.CSSProperties}
-          >
-            {/* Panel header */}
-            <div className="vp-upload-header">
-              <span className="vp-upload-label">
-                <i
-                  className={DOC_TYPES.find((d) => d.id === activeDoc)?.icon}
-                  style={{ color: activeColor, marginRight: 7 }}
-                />
-                {DOC_TYPES.find((d) => d.id === activeDoc)?.title}
-                {" — "}{activeSide === "front" ? "Front Side" : "Back Side"}
-              </span>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                {statusBadge(currentDocState.status)}
-                {currentSideState.preview && canModifySide && (
-                  <button
-                    type="button"
-                    className="vp-btn-sm"
-                    onClick={() => triggerUpload(activeDoc, activeSide)}
-                  >
-                    <i className="fas fa-redo" /> Replace
-                  </button>
-                )}
-                {userVerifyStatus === "approved" && currentSideState.isExisting && (
-                  <span style={{ fontSize: 10, color: "rgba(34,197,94,0.7)", display: "flex", alignItems: "center", gap: 4 }}>
-                    <i className="fas fa-lock" /> Verified
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Preview or upload zone */}
-            {currentSideState.preview ? (
-              <div className="vp-preview">
-                <img src={currentSideState.preview} alt="Document preview" />
-                {canModifySide ? (
-                  <div className="vp-preview-overlay">
-                    <button type="button" className="vp-remove-btn" onClick={removeDoc}>
-                      <i className="fas fa-trash" /> Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div className="vp-preview-overlay" style={{ background: "rgba(0,0,0,0.5)" }}>
-                    <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 600 }}>
-                      <i className="fas fa-shield-alt" /> Document Verified
-                    </span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div
-                className="vp-upload-zone"
-                onClick={() => {
-                  if (canModifySide) {
-                    triggerUpload(activeDoc, activeSide);
-                  } else {
-                    toast.info("You cannot upload documents while verification is approved.");
-                  }
-                }}
-              >
-                <i className="fas fa-cloud-upload-alt" />
-                <p className="mb-1">
-                  <span className="hl" style={{ color: activeColor }}>Click to upload</span>
-                  {" "}or drag &amp; drop
-                </p>
-                <p style={{ fontSize: 11, marginTop: 6, color: "rgba(255,255,255,0.25)" }}>
-                  JPG, PNG or WebP · Max 2 MB
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Mini thumbnails — both sides at a glance */}
-          {/* <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+          {/* Both sides always visible side by side */}
+          <div className="vp-panels-row">
             {(["front", "back"] as Side[]).map((side) => {
               const sideState = currentDocState[side];
               return (
                 <div
                   key={side}
+                  className={`vp-side-panel ${activeSide === side ? "active" : ""}`}
                   onClick={() => setActiveSide(side)}
-                  style={{
-                    flex: 1, height: 56, borderRadius: 8, overflow: "hidden",
-                    border: `1.5px solid ${activeSide === side ? activeColor : "rgba(255,255,255,0.08)"}`,
-                    background: "rgba(255,255,255,0.03)",
-                    cursor: "pointer", position: "relative",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
                 >
-                  {sideState.preview ? (
-                    <img
-                      src={sideState.preview}
-                      alt={side}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
-                      {side === "front" ? "Front" : "Back"}
+                  <div className="vp-side-header">
+                    <span className="vp-side-label">
+                      <i className={side === "front" ? "fas fa-id-card" : "fas fa-id-card-alt"} />
+                      {side === "front" ? "Front side" : "Back side"}
                     </span>
+                    {statusBadge(currentDocState.status)}
+                  </div>
+
+                  {sideState.preview ? (
+                    <div className="vp-preview" style={{ height: "auto", background: "rgba(0,0,0,0.2)" }}>
+                      <img
+                        src={sideState.preview}
+                        alt="Document preview"
+                        style={{ width: "100%", height: "auto", objectFit: "contain", display: "block" }}
+                      />
+                      {canModifySide && (
+                        <div className="vp-preview-overlay">
+                          <button
+                            type="button"
+                            className="vp-remove-btn"
+                            onClick={(e) => { e.stopPropagation(); removeDoc(); }}
+                          >
+                            <i className="fas fa-trash" /> Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className="vp-side-zone"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        canModifySide
+                          ? triggerUpload(activeDoc, side)
+                          : toast.info("Cannot upload while approved.");
+                      }}
+                    >
+                      <i className="fas fa-cloud-upload-alt" />
+                      <p>
+                        <span style={{ color: activeColor }}>Click to upload</span>
+                        <br />JPG, PNG or WebP · Max 2 MB
+                      </p>
+                    </div>
                   )}
                 </div>
               );
             })}
-          </div> */}
+          </div>
 
-          {/* Tips */}
+          <input ref={docInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleDocUpload} />
+
           <ul className="vp-tips mt-3">
             {[
               "Document must not be expired",

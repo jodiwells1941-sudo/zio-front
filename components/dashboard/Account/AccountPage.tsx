@@ -221,6 +221,16 @@ function BalanceCard({
             <i className="fas fa-print" /> Withdrawal
           </button>
         </Link>
+        <Link href="/dashboard/wallet?tab=tab3">
+          <button className="btn-withdrawal px-5" type="button">
+            P2P <i className="fas fa-chevron-right" />
+          </button>
+        </Link>
+        <Link href="/dashboard/wallet?tab=tab4">
+          <button className="btn-withdrawal px-5" type="button">
+            Transfer <i className="fas fa-chevron-right" />
+          </button>
+        </Link>
       </div>
     </div>
   );
@@ -354,16 +364,6 @@ function PersonalInfoForm({
           <label>Phone (optional)</label>
           <div className="phone-input-container">
             <div className="country-code">
-
-              {/* <select
-                value={form.countryCode}
-                onChange={(e) => update("countryCode", e.target.value)}
-              >
-                <option value="+84">+84</option>
-                <option value="+880">+880</option>
-                <option value="+1">+1</option>
-              </select> */}
-
               <select
                 value={form.countryCode}
                 onChange={(e) => update("countryCode", e.target.value)}
@@ -378,7 +378,7 @@ function PersonalInfoForm({
             <div className="divider" />
             <input
               type="text"
-              placeholder="0123456789"
+              placeholder="00++"
               value={form.phone}
               onChange={(e) => update("phone", e.target.value)}
             />
@@ -436,15 +436,6 @@ function SecuritySettings({
           <h2>Security</h2>
           <p>{defaultValue.lastChangeText}</p>
         </div>
-        <button
-          className="btn-save"
-          type="button"
-          onClick={() =>
-            onSave?.({ oldPassword, password, confirmPassword, twoStepEnabled })
-          }
-        >
-          Save
-        </button>
       </div>
 
       <div className="password-settings-container">
@@ -509,6 +500,18 @@ function SecuritySettings({
               <EyeIcon />
             </button>
           </div>
+        </div>
+
+        <div className="info-header">
+          <button
+            className="btn-save"
+            type="button"
+            onClick={() =>
+              onSave?.({ oldPassword, password, confirmPassword, twoStepEnabled })
+            }
+          >
+            Save
+          </button>
         </div>
 
         {/* ── Two-step toggle ── */}

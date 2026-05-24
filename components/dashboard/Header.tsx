@@ -138,8 +138,11 @@ export default function Header({
                 </div>
 
                 <div className="navbar__options">
-                  <div className="d-flex align-items-center gap-md-3 gap-2">
-                    <div>
+                  <div
+                    className="d-flex align-items-center gap-md-3 gap-2"
+                  >
+                    {/* Deposit Button */}
+                    <div className="wallet-menu position-relative">
                       <button
                         type="button"
                         title="Play Lottery"
@@ -148,14 +151,72 @@ export default function Header({
                       >
                         Deposit
                       </button>
+                      <ul className="wallet-submenu">
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab1">Balance</a>
+                        </li>
 
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab2">Deposit</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab3">P2P</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab4">Transfer</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab5">Withdraw</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab6">
+                            Transactions History
+                          </a>
+                        </li>
+                      </ul>
                     </div>
 
-                    <div className="d-md-flex d-none border border-dark-light rounded-pill py-2 px-sm-3 px-2 d-flex align-items-center gap-1">
+                    {/* Wallet Balance */}
+                    <div className="wallet-menu position-relative d-md-flex d-none border border-dark-light rounded-pill py-2 px-sm-3 px-2 align-items-center gap-1 bg-dark">
                       <span>
                         <img src="/images/coin.png" alt="Coin" />
                       </span>
-                      <span className="text-white">{user?.wallet?.amount?.toFixed(2) || 0}</span>
+
+                      <span className="text-white">
+                        {user?.wallet?.amount?.toFixed(2) || 0}
+                      </span>
+
+                      <ul className="wallet-submenu">
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab1">Balance</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab2">Deposit</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab3">P2P</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab4">Transfer</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab5">Withdraw</a>
+                        </li>
+
+                        <li>
+                          <a href="/dashboard/wallet/?tab=tab6">
+                            Transactions History
+                          </a>
+                        </li>
+                      </ul>
                     </div>
 
                     <div className="dropdown">
