@@ -442,7 +442,6 @@ export default function LotteryDetails({ slug }: { slug?: string }) {
       toast.error("Ticket purchasing closes 1 minute before the draw. Please wait for the next round.");
       return;
     }
-
     
     setIsLoading(true);
     setError("");
@@ -456,12 +455,9 @@ export default function LotteryDetails({ slug }: { slug?: string }) {
 
             await fetchRound();
             await fetchWinners();
-          Swal.fire({
-            title: "Purchase Successful",
-            text: `You have successfully purchased ticket.`,
-            icon: "success",
-            confirmButtonText: "OK",
-          });
+
+          toast.success("Ticket purchase successful!");
+          
         } catch (err) {
           const errorMessage = (() => {
             if (err && typeof err === "object" && "response" in err) {

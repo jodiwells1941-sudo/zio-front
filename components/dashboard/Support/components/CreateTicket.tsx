@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { TicketItem, TicketStatus } from '@/types/SupportTypes';
+import { TicketItem } from '@/types/SupportTypes';
+import { createTicket } from '@/app/api/support';
 
 type Props = {
   open: boolean;
@@ -10,55 +11,50 @@ type Props = {
   onClose: () => void;
 };
 
-function makeTicketId() {
-  return `T-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-}
-function nowText() {
-  return new Date().toLocaleString();
-}
-
 export default function CreateTicket({ open, onCreate, categories, onClose }: Props) {
   const finalCategories = useMemo(() => (categories?.length ? categories : ['Other']), [categories]);
 
-  const [subject, setSubject] = useState('');
+  const [subject, setSubject]   = useState('');
   const [category, setCategory] = useState(finalCategories[0] ?? 'Other');
-  const [message, setMessage] = useState('');
-  const status: TicketStatus = 'Open';
+  const [message, setMessage]   = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]       = useState('');
 
-  // keep category safe if categories list updates
   useEffect(() => {
-    if (!finalCategories.includes(category)) {
-      setCategory(finalCategories[0] ?? 'Other');
-    }
+    if (!finalCategories.includes(category)) setCategory(finalCategories[0] ?? 'Other');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalCategories.join('|')]);
 
   const canSubmit = useMemo(() => subject.trim().length >= 3 && message.trim().length >= 5, [subject, message]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || submitting) return;
 
-    const newTicket: TicketItem = {
-      id: makeTicketId(),
-      subject: subject.trim(),
-      category,
-      message: message.trim(),
-      status,
-      createdAt: nowText(),
-    };
+    setSubmitting(true);
+    setError('');
 
-    onCreate(newTicket);
+    try {
+      const newTicket = await createTicket({
+        subject: subject.trim(),
+        category,
+        message: message.trim(),
+      });
 
-    // reset
-    setSubject('');
-    setMessage('');
-    setCategory(finalCategories[0] ?? 'Other');
-
-    onClose();
+      onCreate(newTicket);
+      setSubject('');
+      setMessage('');
+      setCategory(finalCategories[0] ?? 'Other');
+      onClose();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error && 'response' in err ? (err as any).response?.data?.message : undefined;
+      setError(errorMessage ?? 'Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (!open) return null;  
+  if (!open) return null;
 
   return (
     <div className="rt-modal-overlay" role="dialog" aria-modal="true">
@@ -67,12 +63,14 @@ export default function CreateTicket({ open, onCreate, categories, onClose }: Pr
       <div className="bg-light-white rt-modal--lg">
         <div className="rt-modal-head">
           <h6 className="rt-modal-title">Create New Ticket</h6>
-          <button type="button" className="rt-modal-x" onClick={onClose} aria-label="Close">
-            ✕
-          </button>
+          <button type="button" className="rt-modal-x" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
         <div className="rt-modal-body">
+          {error && (
+            <div className="ticket-error-alert mb-3">{error}</div>
+          )}
+
           <form className="ticket-form" onSubmit={handleSubmit}>
             <div className="ticket-form-grid">
               <div className="input-box">
@@ -81,18 +79,14 @@ export default function CreateTicket({ open, onCreate, categories, onClose }: Pr
                   type="text"
                   placeholder="Write ticket subject"
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={e => setSubject(e.target.value)}
                 />
               </div>
 
               <div className="input-box">
-                <label id='category'>Category</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)} id='category' >
-                  {finalCategories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                <label htmlFor="category">Category</label>
+                <select value={category} onChange={e => setCategory(e.target.value)} id="category">
+                  {finalCategories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
             </div>
@@ -102,22 +96,24 @@ export default function CreateTicket({ open, onCreate, categories, onClose }: Pr
               <textarea
                 placeholder="Write your problem details..."
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={e => setMessage(e.target.value)}
               />
             </div>
 
             <div className="rt-modal-foot">
-              <button type="button" className="ticket-action-btn" onClick={onClose}>
+              <button type="button" className="ticket-action-btn" onClick={onClose} disabled={submitting}>
                 Cancel
               </button>
-
-              <button type="submit" disabled={!canSubmit} className="btn--primary py-2 px-3 text-sm d-flex align-items-center justify-content-center">
-                Submit Ticket <span className="arrow">›</span>
+              <button
+                type="submit"
+                disabled={!canSubmit || submitting}
+                className="btn--primary py-2 px-3 text-sm d-flex align-items-center justify-content-center"
+              >
+                {submitting ? 'Submitting…' : <>Submit Ticket <span className="arrow">›</span></>}
               </button>
             </div>
           </form>
         </div>
-        
       </div>
     </div>
   );

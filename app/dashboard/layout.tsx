@@ -11,10 +11,36 @@ import MobileBottomNav from '@/components/dashboard/mobileDesign/MobileBottomNav
 import { useAuth } from '@/hooks/useAuth'
 import { fetchUserInfoAPI } from '../api/auth'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [rightOpen, setRightOpen] = useState(false)
   const { user } = useAuth();
+
+
+  // page reload after 3 minuts
+  const pathname = usePathname()
+
+  useEffect(() => {
+    const allowedRoutes = [
+      "/dashboard",
+      "/dashboard/lottery",
+      "/dashboard/lottery-winner",
+      "/dashboard/ticket-history",
+    ]
+
+    const shouldReload = allowedRoutes.some((p) =>
+      pathname.startsWith(p)
+    )
+
+    if (!shouldReload) return
+
+    const interval = setInterval(() => {
+      window.location.reload()
+    }, 180000)
+
+    return () => clearInterval(interval)
+  }, [pathname])
 
   // get login user info from api and update localStorage 
   useEffect(() => {
@@ -63,9 +89,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <main className="mx-auto page-wrapper a-cursor flex-grow-1 w-100 px-2 px-md-0">
               {/* show profile verification force link */}
               {user?.verify_status != 1 && (
-                <div className="alert alert-warning alert-dismissible border-dark-light text-warning bg-dark fade show z-index-1000" role="alert">
-                  <strong>Profile Verification Required!</strong> Please verify your profile to access all features.
-                  <Link href="/dashboard/verify-profile" className="text-info ms-3"><u>Verify Now</u></Link>
+                <div className="alert alert-warning alert-dismissible py-1 bg-warning text-success-emphasis border-dark-light text-warning fade show z-index-1000" role="alert">
+                  {
+                    user?.verify_status == 3 && (
+                      <><strong>Profile Verification Required!</strong> Please verify your profile to access all features.</>
+                    )
+                  }
+
+                  {
+                    user?.verify_status == 2 && (
+                      <><strong>Profile Under Review!</strong> Your profile verification is under review. Please wait for approval.</>
+                    )
+                  }
+                  {
+                    user?.verify_status == 3 && (
+                      <Link href="/dashboard/verify-profile" className="text-success ms-3"><u>Verify Now</u></Link>
+                    )
+                  }
                 </div>
               )}
 

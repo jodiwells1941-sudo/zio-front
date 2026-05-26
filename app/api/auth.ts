@@ -79,6 +79,11 @@ export const getResendStatus = async () => {
 };
 
 
+export const verifyOtp = async (otp: string) => {
+  const response = await apiClient.post("/email/verify-otp", { otp });
+  return response.data;
+};
+
 
 
 
