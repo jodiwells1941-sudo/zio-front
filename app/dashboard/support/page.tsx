@@ -11,6 +11,7 @@ import TicketsTable from '@/components/dashboard/Support/components/TicketsTable
 import { faqs, supportCards, topics } from '@/components/dashboard/Support/data';
 import { TicketItem } from '@/types/SupportTypes';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
 
 const CATEGORIES = [
   'Account', 'Support', 'Payment', 'Bonus promotions',
@@ -64,12 +65,24 @@ export default function SupportPage() {
   }, []);
 
   const handleCloseTicket = useCallback(async (id: string) => {
-    try {
-      await closeTicket(id);
-      setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'Closed' } : t));
-    } catch {
-      /* optionally show a toast */
+    const result = await Swal.fire({
+      title: "Close this ticket?",
+      text: "Are you sure you want to close this ticket? You can reopen it later if needed.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, close it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await closeTicket(id);
+        setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'Closed' } : t));
+      } catch {
+        /* optionally show a toast */
+      }
     }
+
   }, []);
 
   // Called from conversation modal when status / unread changes

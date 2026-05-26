@@ -1,5 +1,5 @@
 export type TicketStatus = 'Open' | 'In Progress' | 'Closed';
- 
+
 export interface TicketItem {
   id: string;           // e.g. "T-ABC123"
   subject: string;
@@ -9,11 +9,12 @@ export interface TicketItem {
   unread_count?: number; // unread replies from admin
   created_at: string;
 }
- 
+
 export interface TicketMessage {
   id: number;
   message: string;
   is_admin: boolean;
   sender?: string;
   created_at: string;
+  file?: string | null;  // URL to attached image (if any)
 }

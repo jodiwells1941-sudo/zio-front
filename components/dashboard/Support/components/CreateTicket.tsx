@@ -19,6 +19,7 @@ export default function CreateTicket({ open, onCreate, categories, onClose }: Pr
   const [message, setMessage]   = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]       = useState('');
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!finalCategories.includes(category)) setCategory(finalCategories[0] ?? 'Other');
@@ -39,6 +40,7 @@ export default function CreateTicket({ open, onCreate, categories, onClose }: Pr
         subject: subject.trim(),
         category,
         message: message.trim(),
+        file: file ?? undefined,
       });
 
       onCreate(newTicket);
@@ -98,6 +100,20 @@ export default function CreateTicket({ open, onCreate, categories, onClose }: Pr
                 value={message}
                 onChange={e => setMessage(e.target.value)}
               />
+            </div>
+            <div className="input-box mt-3">
+              <label>Attachment</label>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (!e.target.files?.length) return;
+                  setFile(e.target.files[0]);
+                }}
+              />
+
+              {file && <p className="mt-2">📎 {file.name}</p>}
             </div>
 
             <div className="rt-modal-foot">
