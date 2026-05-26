@@ -48,6 +48,7 @@ type LotteryCardProps = {
   serial?: string;
   drawAtText?: string;
   onPurchaseSuccess?: () => Promise<void> | void;
+  borderColor: string;
 };
 
 // ── prize amount hook per position ──────────────────────────────────────────
@@ -68,6 +69,7 @@ const LotteryCard = ({
   serial = "#1",
   drawAtText = "Pricing List",
   onPurchaseSuccess,
+    borderColor
 }: LotteryCardProps) => {
   const [ticketCount, setTicketCount] = useState<number | "">(1);
   const [showHistory, setShowHistory] = useState(false);
@@ -136,12 +138,7 @@ const LotteryCard = ({
       }
 
       await onPurchaseSuccess?.();
-      Swal.fire({
-        title: "Purchase Successful",
-        text: `You have successfully purchased ticket.`,
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      toast.success("Ticket purchase successful!");
     } catch (err) {
       const errorMessage = (() => {
         if (err && typeof err === "object" && "response" in err) {
@@ -179,7 +176,8 @@ const LotteryCard = ({
   };
 
   return (
-    <div className="lotteries-card-items bg-dark pb-2">
+    // <div className="lotteries-card-items bg-dark pb-2">
+    <div className="lotteries-card-items bg-dark pb-2" style={{border: `1px solid ${borderColor}`}}>
       <span className="serial">{serial}</span>
       <span className="price">
         <i className="fa-solid fa-star"></i>R-{round?.round}
@@ -379,7 +377,7 @@ const LotteryCard = ({
                     <span>
                       <i className="fa-solid fa-ticket me-1 text-warning"></i>
                       {item.ticket_code}
-                      <small className="text-muted text-white-50 d-block">
+                      <small className="fs-9 text-muted text-white-50 d-block">
                         {moment(item.created_at).format("DD MMM YY, hh:mm A")}
                       </small>
                     </span>
@@ -452,6 +450,20 @@ const LotterySectionTwo = ({ roundShow = 0 }: LotterySectionProps) => {
     };
   }, [allRounds]);
 
+  const borderColors = [
+    "#ff6b6b",
+    "#4ecdc4",
+    "#45b7d1",
+    "#f7b731",
+    "#a55eea",
+    "#26de81",
+    "#fd9644",
+    "#2bcbba",
+    "#eb3b5a",
+    "#20bf6b",
+    "#8854d0",
+  ];
+
   return (
     <div className="container px-2 px-md-0">
       <div className="row gutter-24">
@@ -468,6 +480,7 @@ const LotterySectionTwo = ({ roundShow = 0 }: LotterySectionProps) => {
               roundShow={roundShow}
               serial={`#${idx + 1}`}
               onPurchaseSuccess={getRounds}
+              borderColor={borderColors[idx % borderColors.length]}
             />
           </div>
         ))}

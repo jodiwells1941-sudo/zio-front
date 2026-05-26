@@ -1,5 +1,6 @@
 'use client';
 
+import { closeTicket, getMyTicketList } from '@/app/api/support';
 import CreateTicket from '@/components/dashboard/Support/components/CreateTicket';
 import FaqSection from '@/components/dashboard/Support/components/FaqSection';
 import PopularTopics from '@/components/dashboard/Support/components/PopularTopics';
@@ -9,36 +10,90 @@ import SupportIntro from '@/components/dashboard/Support/components/SupportIntro
 import TicketsTable from '@/components/dashboard/Support/components/TicketsTable';
 import { faqs, supportCards, topics } from '@/components/dashboard/Support/data';
 import { TicketItem } from '@/types/SupportTypes';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
+
+const CATEGORIES = [
+  'Account', 'Support', 'Payment', 'Bonus promotions',
+  'Winning', 'Security', 'Partnerships', 'Other',
+];
 
 export default function SupportPage() {
-  const [tickets, setTickets] = useState<TicketItem[]>([]);
-  const [search, setSearch] = useState('');
+  const [tickets, setTickets]     = useState<TicketItem[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [search, setSearch]       = useState('');
   const [modalOpen, setModalOpen] = useState(false);
 
-  // manual categories (always available)
-  const manualCategories = useMemo(
-    () => ['Account', 'Support', 'Payment', 'Bonus promotions', 'Winning', 'Education', 'Security', 'Retailers', 'Partnerships', 'Other'],
-    []
+  // ── Fetch tickets on mount ─────────────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getMyTicketList();
+        // Sort: unread first, then by date
+        const sorted = [...data].sort((a, b) => {
+          const ua = a.unread_count ?? 0;
+          const ub = b.unread_count ?? 0;
+          if (ub !== ua) return ub - ua;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        setTickets(sorted);
+      } catch {
+        /* silently fail — user sees empty state */
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // ── Categories (manual + topic titles) ────────────────────
+  const topicCategories = useMemo(() => topics.map(t => t.title), []);
+  const categories = useMemo(
+    () => Array.from(new Set([...CATEGORIES, ...topicCategories])),
+    [topicCategories]
   );
 
-  // optional: include topics titles too
-  const topicCategories = useMemo(() => topics.map((t) => t.title), []);
-  const categories = useMemo(() => Array.from(new Set([...manualCategories, ...topicCategories])), [manualCategories, topicCategories]);
-
+  // ── FAQ search ─────────────────────────────────────────────
   const filteredFaqs = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return faqs;
-    return faqs.filter((f) => (f.question + ' ' + f.answer).toLowerCase().includes(q));
+    return faqs.filter(f => (f.question + ' ' + f.answer).toLowerCase().includes(q));
   }, [search]);
 
-  const handleCreateTicket = (ticket: TicketItem) => {
-    setTickets((prev) => [ticket, ...prev]);
-  };
+  // ── Ticket actions ─────────────────────────────────────────
+  const handleCreateTicket = useCallback((ticket: TicketItem) => {
+    setTickets(prev => [ticket, ...prev]);
+  }, []);
 
-  const handleCloseTicket = (id: string) => {
-    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, status: 'Closed' } : t)));
-  };
+  const handleCloseTicket = useCallback(async (id: string) => {
+    const result = await Swal.fire({
+      title: "Close this ticket?",
+      text: "Are you sure you want to close this ticket? You can reopen it later if needed.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, close it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await closeTicket(id);
+        setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'Closed' } : t));
+      } catch {
+        /* optionally show a toast */
+      }
+    }
+
+  }, []);
+
+  // Called from conversation modal when status / unread changes
+  const handleTicketStatusChange = useCallback(
+    (id: string, status: TicketItem['status'], unread = 0) => {
+      setTickets(prev =>
+        prev.map(t => t.id === id ? { ...t, status, unread_count: unread } : t)
+      );
+    },
+    []
+  );
 
   return (
     <div className="support-main-wrapper pt-0 px-xl-0 px-2">
@@ -47,15 +102,16 @@ export default function SupportPage() {
 
       <TicketsTable
         tickets={tickets}
+        loading={loading}
         onCloseTicket={handleCloseTicket}
         onOpenCreate={() => setModalOpen(true)}
+        onTicketStatusChange={handleTicketStatusChange}
       />
 
       <PopularTopics topics={topics} />
       <FaqSection faqs={filteredFaqs} />
       <QuestionSection cards={supportCards} />
 
-      {/* React modal (no bootstrap => no backdrop crash) */}
       <CreateTicket
         open={modalOpen}
         onClose={() => setModalOpen(false)}
