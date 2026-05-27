@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Select from "react-select";
 import countryList from "react-select-country-list";
@@ -27,6 +27,7 @@ function validateFields(fields: {
   country: string;
   email: string;
   password: string;
+  ref?: string;
 }): Record<string, string> {
   const errors: Record<string, string> = {};
 
@@ -83,10 +84,21 @@ const RegisterForm = () => {
   const [country, setCountry] = useState<Option | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [partnerCode, setPartnerCode] = useState("");
 
   const options = useMemo(() => countryList().getData() as Option[], []);
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
+  // const redirect = searchParams.get("redirect");
+
+  const ref = searchParams.get('ref');
+
+  useEffect(() => {
+    if (ref) {
+      setPartnerCode(ref);
+      setOpen(true);
+    }
+  }, [ref]);
+
 
   // useEffect(() => {
   //   if (searchParams.get("verified") === "1") {
@@ -114,9 +126,10 @@ const RegisterForm = () => {
     const email    = (formData.get("email")    as string) ?? "";
     const password = (formData.get("password") as string) ?? "";
     const countryValue = country?.label ?? "";
+    const ref = partnerCode.trim() || undefined;
 
     // ── Client-side validation ────────────────────────────────────────────
-    const fieldErrors = validateFields({ name, country: countryValue, email, password });
+    const fieldErrors = validateFields({ name, country: countryValue, email, password, ref});
 
     if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors);
@@ -128,7 +141,7 @@ const RegisterForm = () => {
 
     // ── API call ──────────────────────────────────────────────────────────
     try {
-      const data = (await registerAPI({ name, country: countryValue, email, password })) as LoginResponse;
+      const data = (await registerAPI({ name, country: countryValue, email, password, ref })) as LoginResponse;
       const responseData = data?.data;
 
       if (responseData?.access_token && responseData?.user) {
@@ -267,6 +280,8 @@ const RegisterForm = () => {
             <input
               type="text"
               name="partner_code"
+              value={partnerCode}
+              onChange={(e) => setPartnerCode(e.target.value)}
               id="partnerCode"
               placeholder="Enter Code"
             />
