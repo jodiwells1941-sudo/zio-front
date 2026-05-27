@@ -7,6 +7,7 @@ import numbers from "@/public/images/authentication/numbers.png";
 const RegisterForm = dynamic(() => import("../widgets/RegisterForm"));
 
 const CreateAccount = () => {
+
 	return (
 		<section className="authentication py-5 pt-md-120 pb-md-120">
 			<div className="container">
