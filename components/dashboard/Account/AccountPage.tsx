@@ -378,7 +378,7 @@ function PersonalInfoForm({
             <div className="divider" />
             <input
               type="text"
-              placeholder="00++"
+              placeholder="Phone number"
               value={form.phone}
               onChange={(e) => update("phone", e.target.value)}
             />

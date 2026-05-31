@@ -9,6 +9,7 @@ import { Investment } from "@/types/CommonTypes";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 // ── Countdown using ended_at ─────────────────────────────────────────────────
 type ApiInvestment = {
@@ -54,14 +55,11 @@ function InvestmentCard({ item }: { item: ApiInvestment }) {
     setError("");
 
     try {
-      await investmentPurchase(item.id.toString());
+      const response = await investmentPurchase(item.id.toString());
 
-      Swal.fire({
-        title: "Investment Successful",
-        text: `You have successfully invested ${formatMoney(investmentAmount)} and will receive ${formatMoney(returnAmount)} in return.`,
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      if (response) {
+        toast.success("Investment successful! Your returns will be reflected in your account soon.");
+      }
 
     } catch (err) {
       // Set the error message from the API response

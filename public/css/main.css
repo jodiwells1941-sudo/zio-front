@@ -14486,18 +14486,18 @@ span {
   width: 100%;          /* each tab takes full row width */
   padding: 8px 14px;
   border-radius: 20px;
-  border:1.5px solid var(--accent);
+  border:1.5px solid rgba(255,255,255,0.08) !important;
   background: transparent;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  color: #d98f00;
+  color: #999 !important;
   transition: all .15s;
 }
 
 .vp-doc-tab:hover {
-  border: 1.5px solid #fff !important;
-  color: #fff !important;
+  border: 1.5px solid var(--accent) !important;
+  color: var(--accent) !important;
 }
 
 .vp-doc-tab-row { display: flex !important; 

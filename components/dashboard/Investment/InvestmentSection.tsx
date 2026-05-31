@@ -103,6 +103,9 @@ function InvestmentCard({ index, item }: { index: number; item: ApiInvestment })
         confirmButtonText: "OK",
       });
 
+      // reload the page to reflect the new investment
+      router.refresh();
+
     } catch (err) {
       // Set the error message from the API response
       const errorMessage = err instanceof Error ? err.message : "Ticket purchase failed";

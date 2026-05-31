@@ -13,6 +13,7 @@ import Link from "next/link";
 import { Investment } from "@/types/CommonTypes";
 import { investmentPurchase } from "@/app/api/lottery";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 type ModalType = "deposit" | "withdraw" | null;
 
@@ -43,14 +44,11 @@ export default function DashboardPage({investment}: {investment: Investment | nu
 
       setIsLoading(true);
       try {
-        await investmentPurchase(investment.id.toString());
+        const response = await investmentPurchase(investment.id.toString());
   
-        Swal.fire({
-          title: "Investment Successful",
-          text: `You have successfully invested ${formatMoney(investment.investment_amount)} and will receive ${formatMoney(investment.return_amount)} in return.`,
-          icon: "success",
-          confirmButtonText: "OK",
-        });
+        if (response) {
+          toast.success("Investment successful! Your returns will be reflected in your account soon.");
+        }
   
       } catch (err) {
         // Set the error message from the API response

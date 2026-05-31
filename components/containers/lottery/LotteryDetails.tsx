@@ -479,42 +479,11 @@ export default function LotteryDetails({ slug }: { slug?: string }) {
             confirmButtonText: "OK",
           });
         }
-
-    // try {
-    //   await ticketPurchase(round.details.lottery_round_id, ticketCount);
-    //   await fetchRound();
-    //   await fetchWinners();
-    //   Swal.fire({
-    //     title: "Purchase Successful",
-    //     text: `You have successfully purchased ${ticketCount} ticket(s) for ${details?.lottery_name} (Round ${details?.round}).`,
-    //     icon: "success",
-    //     confirmButtonText: "OK",
-    //   });
-    // } catch (err) {
-    //   const errorMessage = err instanceof Error ? err.message : "Ticket purchase failed";
-    //   setError(errorMessage);
-    //   Swal.fire({ title: "Purchase Failed", text: errorMessage, icon: "error", confirmButtonText: "OK" });
-    // } finally {
-    //   setIsLoading(false);
-    // }
-
-
   };
 
   const buyTickets = async () => {
-    const result = await Swal.fire({
-      title: "Purchase Confirmation",
-      icon: "info",
-      html: `You are about to purchase <strong>${ticketCount}</strong> ticket(s) for <br />
-             <strong>${details?.lottery_name} (Round ${details?.round})</strong> <br />
-             at a total cost of <strong>$${totalAmount.toFixed(2)}</strong>. <br />
-             Do you want to proceed?`,
-      showCloseButton: true,
-      showCancelButton: true,
-      confirmButtonText: "Yes, Buy!",
-      cancelButtonText: "No, Cancel!",
-    });
-    if (result.isConfirmed) await handlePurchase();
+    await handlePurchase();
+    setIsLoading(false);
   };
 
   if (loading) {
