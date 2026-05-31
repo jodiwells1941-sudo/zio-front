@@ -450,17 +450,8 @@ const LotterySection = ({ roundShow = 0 }: LotterySectionProps) => {
   }, [allRounds]);
 
   const borderColors = [
-    "#ff6b6b",
-    "#4ecdc4",
     "#45b7d1",
-    "#f7b731",
-    "#a55eea",
-    "#26de81",
-    "#fd9644",
-    "#2bcbba",
-    "#eb3b5a",
-    "#20bf6b",
-    "#8854d0",
+    "#fdc544d3",
   ];
 
   return (

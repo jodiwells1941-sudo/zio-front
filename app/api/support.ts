@@ -56,7 +56,7 @@ export const replyToTicket = async (
   }
 
   // No file — send as JSON (lighter, no multipart overhead)
-  const res = await apiClient.post(`/user/support-ticket/${ticketId}/reply`, { message });
+  const res = await apiClient.post(`/user/support-ticket/${ticketId}/reply`, { message });  
   return res.data.data;
 };
 

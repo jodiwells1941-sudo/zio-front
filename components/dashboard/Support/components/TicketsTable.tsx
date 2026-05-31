@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TicketItem, TicketMessage } from '@/types/SupportTypes';
 import { getTicketMessages, replyToTicket, closeTicket } from '@/app/api/support';
 import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
+import { AxiosError } from 'axios';
 
 const statusClass = (s: string) =>
   s === 'Closed' ? 'closed' : s === 'In Progress' ? 'progress' : 'open';
@@ -97,14 +99,18 @@ function ConversationModal({
     if ((!reply.trim() && !replyFile) || sending) return;
     setSending(true);
     try {
-      const msg = await replyToTicket(ticketData.id, reply.trim(), replyFile);
+      const msg = await replyToTicket(ticketData.id, reply.trim(), replyFile);   
+      
       setMessages(prev => [...prev, msg]);
       setReply('');
       setReplyFile(null);
       if (fileRef.current) fileRef.current.value = '';
       scrollBottom();
-    } catch {
-      /* handle error */
+    } catch (err: unknown) {
+      const error = err as AxiosError<any>;
+      const message = error.response?.data?.message || "Something went wrong";
+
+      toast.error(message);
     } finally {
       setSending(false);
     }

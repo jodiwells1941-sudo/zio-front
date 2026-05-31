@@ -60,18 +60,16 @@ const HomePage: React.FC = () => {
     }
 
     try {
-      await investmentPurchase(investment.id.toString());
+      const response = await investmentPurchase(investment.id.toString());
 
-      Swal.fire({
-        title: "Investment Successful",
-        text: `You have successfully invested ${formatMoney(investment?.investment_amount)} and will receive ${formatMoney(investment?.return_amount)} in return.`,
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      if (response) {
+        toast.success("Investment successful! Your returns will be reflected in your account soon.");
+      }
 
     } catch (err) {
       // Set the error message from the API response
       const errorMessage = err instanceof Error ? err.message : "Ticket purchase failed";
+      toast.error(errorMessage);
       Swal.fire({
         title: "Purchase Failed",
         text: errorMessage,

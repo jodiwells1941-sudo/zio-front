@@ -18,6 +18,7 @@ type RawInvestment = {
   closed_at: string | null;
   status: string;
   created_at: string;
+  code_no?: string;
   investment: {
     id: number;
     name: string;
@@ -209,7 +210,7 @@ function InvestmentCard({
         }
   };
 
-  console.log('investment', investment);
+  console.log('investment ==', investment);
   
 
   return (
@@ -272,12 +273,12 @@ function InvestmentCard({
         {investment.investment && (
           <ul>
             <li>
-              <span>Code No</span>
-              <span>{investment?.id}</span>
-            </li>
-            <li>
               <span>Serial No</span>
               <span>#{investment?.id}</span>
+            </li>
+            <li>
+              <span>Code No</span>
+              <span>{investment?.code_no}</span>
             </li>
             <li>
               <span>Start Date</span>
