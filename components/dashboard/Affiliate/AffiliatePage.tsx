@@ -4,6 +4,7 @@ import { getAffiliateData } from "@/app/api/affiliate";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import AffiliatePackages from "../Affiliatepackages";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -229,6 +230,8 @@ function AffiliatePage({
 
       <section className="your-information-box-items">
         <div className="containers">
+
+          <AffiliatePackages />
 
           {/* ── Profile + Stats ── */}
           <h2 className="section-title mb-4">Your Information</h2>
