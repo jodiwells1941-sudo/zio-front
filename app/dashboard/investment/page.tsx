@@ -1,12 +1,42 @@
+'use client';
 import CloseInvestmentSection from "@/components/dashboard/Investment/CloseInvestmentSection";
+import CompletedInvestmentSection from "@/components/dashboard/Investment/CompletedInvestmentSection";
 import InvestmentSection from "@/components/dashboard/Investment/InvestmentSection";
 import MyInvestmentSection from "@/components/dashboard/Investment/MyInvestmentSection";
 import Image from "next/image";
+import { useState } from "react";
 
 const baseDescription =
   "Earn up to 40% annual interest on your USD. At maturity,\n the USD & interest will be credited back to your account automatically.";
 
 export default function InvestmentPage() {
+
+     const tabs = [
+    {
+      id: "all",
+      label: "All Investment",
+      title: "All Investments",
+    },
+    {
+      id: "active",
+      label: "Active",
+      title: "Active Investments",
+    },
+    {
+      id: "completed",
+      label: "Completed",
+      title: "Completed Investments",
+    },
+    {
+      id: "cancelled",
+      label: "Cancelled",
+      title: "Cancelled Investments",
+    },
+  ];
+
+  const [activeTab, setActiveTab] = useState("all");
+  const selectedTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+
   return (
     <>
       {/* Banner Section */}
@@ -82,26 +112,54 @@ export default function InvestmentPage() {
           </div>
         </div>
 
-      <div className="container">
-        <InvestmentSection
-          title="Secure Investment Platform"
-          description={'Earn up to 40% annual interest on your USD. At maturity,\n the USD & interest will be credited back to your account automatically.'}
-          wrapperClassName="investment-history-area mt-100 investment-area"
-        />
+        <div className="container mt-5">
+
+            {/* Tabs */}
+            <ul className="nav nav-pills investment-tabs mb-4">
+              {tabs.map((tab) => (
+                <li className="nav-item me-2" key={tab.id}>
+                  <button
+                    className={`nav-link px-4 py-2 rounded-pill ${
+                      activeTab === tab.id ? "btn-warning text-black" : "border border-secondary rounded-fill text-light"
+                    }`}
+                    onClick={() => setActiveTab(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/* Content */}
+            {selectedTab.id === 'all' && (
+              <InvestmentSection
+                title="Secure Investment Platform"
+                description={'Earn up to 40% annual interest on your USD. At maturity,\n the USD & interest will be credited back to your account automatically.'}
+                wrapperClassName="investment-history-area mt-100 investment-area"
+              />
+          )} 
+            {selectedTab.id === 'active' && (
+               <MyInvestmentSection
+                title="Investment History"
+                description={baseDescription}
+                wrapperClassName="investment-history-area mt-100 investment-area"
+              />
+            )}
+            {selectedTab.id === 'completed' && (
+              <CompletedInvestmentSection
+                title={selectedTab.title}
+                description={baseDescription}
+                wrapperClassName="investment-history-area mt-100 investment-area"
+              />
+            )}
+            {selectedTab.id === 'cancelled' && (
+              <CloseInvestmentSection
+                title="Cancelled Investment History"
+                description={baseDescription}
+                wrapperClassName="investment-history-area mt-100 investment-area"
+              />
+            )}
       </div>
-
-
-      <MyInvestmentSection
-        title="Investment History"
-        description={baseDescription}
-        wrapperClassName="investment-history-area mt-100 investment-area"
-      />
-
-      <CloseInvestmentSection
-        title="Close Investment History"
-        description={baseDescription}
-        wrapperClassName="investment-history-area mt-100 investment-area"
-      />
 
     </>
   );

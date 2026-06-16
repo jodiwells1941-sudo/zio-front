@@ -224,6 +224,20 @@ function AffiliatePage({
     window.open(map[platform], "_blank", "noopener,noreferrer");
   };
 
+   const tabs = [
+      {
+        id: "affiliate_dashboard",
+        label: "Affiliate Dashboard",
+      },
+      {
+        id: "affiliate_packages",
+        label: "All Investment",
+      }
+    ];
+  
+    const [activeTab, setActiveTab] = useState("affiliate_dashboard");
+    const selectedTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+
   return (
     <div>
       <h2 className="page-title mb-4">{title}</h2>
@@ -231,71 +245,84 @@ function AffiliatePage({
       <section className="your-information-box-items">
         <div className="containers">
 
-          <AffiliatePackages />
+          {/* Tabs */}
+          <ul className="nav nav-pills investment-tabs mb-4">
+            {tabs.map((tab) => (
+              <li className="nav-item me-2" key={tab.id}>
+                <button
+                  className={`nav-link px-4 py-2 rounded-pill ${
+                    activeTab === tab.id ? "btn-warning text-black" : "border border-secondary rounded-fill text-light"
+                  }`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              </li>
+            ))}
+          </ul>
 
-          {/* ── Profile + Stats ── */}
-          <h2 className="section-title mb-4">Your Information</h2>
-          <div className="row g-4 mb-4">
-            <div className="col-lg-6">
-              <ProfileCard profile={profile} />
+          {selectedTab.id === 'affiliate_packages' && (
+            <AffiliatePackages />
+          )}
+
+
+          {selectedTab.id === 'affiliate_dashboard' && (
+          <>
+            {/* ── Profile + Stats ── */}
+            <h2 className="section-title mb-4">Your Information</h2>
+            <div className="row g-4 mb-4">
+              <div className="col-lg-6">
+                <ProfileCard profile={profile} />
+              </div>
+              <div className="col-lg-6">
+                <StatisticsCard stats={stats} />
+              </div>
             </div>
-            <div className="col-lg-6">
-              <StatisticsCard stats={stats} />
+
+            {/* ── Affiliate Blocks ── */}
+            <h2 className="section-title mb-4">Your Affiliate Accounts</h2>
+            <div className="row g-4 mb-4">
+
+              {/* Default affiliate — always exists */}
+              <div className="col-lg-6">
+                <AffiliateBlockCard
+                  type="default"
+                  label="Default Affiliate"
+                  badge="Auto"
+                  badgeClass="badge-default"
+                  description="Auto-created when you registered. Share this link to start earning."
+                  block={defaultAffiliate}
+                  onCopy={handleCopy}
+                  onShare={handleShare}
+                  refLink={refLink}
+                  onChangeLink={setRefLink}
+                  isActive={!specialAffiliate?.exists}
+                />
+              </div>
+
+              {/* Special affiliate — may or may not exist */}
+              <div className="col-lg-6">
+                <AffiliateBlockCard
+                  type="special"
+                  label="Special Affiliate"
+                  badge="Special"
+                  badgeClass="badge-special"
+                  description={
+                    specialAffiliate?.exists
+                      ? "Admin-assigned special commission rate."
+                      : "Not assigned yet. Contact support to get a special affiliate account."
+                  }
+                  block={specialAffiliate}
+                  onCopy={handleCopy}
+                  onShare={handleShare}
+                  refLink={refLink}
+                  onChangeLink={setRefLink}
+                  isActive={!!specialAffiliate?.exists}
+                />
+              </div>
             </div>
-          </div>
-
-          {/* ── Affiliate Blocks ── */}
-          <h2 className="section-title mb-4">Your Affiliate Accounts</h2>
-          <div className="row g-4 mb-4">
-
-            {/* Default affiliate — always exists */}
-            <div className="col-lg-6">
-              <AffiliateBlockCard
-                type="default"
-                label="Default Affiliate"
-                badge="Auto"
-                badgeClass="badge-default"
-                description="Auto-created when you registered. Share this link to start earning."
-                block={defaultAffiliate}
-                onCopy={handleCopy}
-                onShare={handleShare}
-                refLink={refLink}
-                onChangeLink={setRefLink}
-                isActive={!specialAffiliate?.exists}
-              />
-            </div>
-
-            {/* Special affiliate — may or may not exist */}
-            <div className="col-lg-6">
-              <AffiliateBlockCard
-                type="special"
-                label="Special Affiliate"
-                badge="Special"
-                badgeClass="badge-special"
-                description={
-                  specialAffiliate?.exists
-                    ? "Admin-assigned special commission rate."
-                    : "Not assigned yet. Contact support to get a special affiliate account."
-                }
-                block={specialAffiliate}
-                onCopy={handleCopy}
-                onShare={handleShare}
-                refLink={refLink}
-                onChangeLink={setRefLink}
-                isActive={!!specialAffiliate?.exists}
-              />
-            </div>
-          </div>
-
-          {/* ── Active referral link (used for share buttons) ── */}
-          <div className="col-12 mb-4">
-            <ReferralCard
-              link={refLink}
-              onChangeLink={setRefLink}
-              onCopy={() => handleCopy()}
-              onShare={handleShare}
-            />
-          </div>
+          </>
+          )}
 
           {/* ── Referred Users Table ── */}
           <h2 className="section-title mb-4 mt-3">Referred Users</h2>
@@ -329,6 +356,52 @@ function AffiliateBlockCard({
   isActive: boolean;
 }) {
   const exists = block?.exists ?? false;
+
+  console.log('exists && block', block);
+
+   const handleCopy = async (link?: string) => {
+    const text = link ?? block?.referral_link;
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Referral link copied!");
+    } catch {
+      const input = document.createElement("input");
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      try { input.setSelectionRange(0, 99999); document.execCommand("copy"); } catch { /* ignore */ }
+      document.body.removeChild(input);
+    }
+  };
+
+  const handleShare = (platform: SharePlatform) => {
+    const encoded = encodeURIComponent(block?.referral_link ?? "");
+    const map: Record<SharePlatform, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encoded}`,
+      telegram: `https://t.me/share/url?url=${encoded}`,
+      discord:  `https://discord.com/channels/@me`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`,
+      twitter:  `https://twitter.com/intent/tweet?url=${encoded}`,
+      youtube:  `https://www.youtube.com`,
+      tiktok:   `https://www.tiktok.com`,
+      skype:    `https://web.skype.com/share?url=${encoded}`,
+    };
+    if (["discord", "youtube", "tiktok"].includes(platform)) {
+      void handleCopy();
+      return;
+    }
+    window.open(map[platform], "_blank", "noopener,noreferrer");
+  };
+
+  const onCodeCopy = (code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      toast.success("Referral code copied!");
+    }).catch(() => {
+      toast.error("Failed to copy referral code.");
+    });
+  }
+  
 
   return (
     <div className={`info-card p-4 h-100 ${isActive ? "affiliate-card-active" : ""}`}>
@@ -382,7 +455,7 @@ function AffiliateBlockCard({
               <button
                 type="button"
                 className="btn btn-copy-link btn-sm"
-                onClick={() => block.referral_link && onCopy(block.referral_link)}
+                onClick={() => block.referral_code && onCodeCopy(block.referral_code)}
               >
                 <i className="far fa-copy" /> Copy
               </button>
@@ -395,6 +468,15 @@ function AffiliateBlockCard({
           <p className="text-secondary small mb-0">Not activated</p>
         </div>
       )}
+
+      <div className="col-12 mb-4">
+        <ReferralCard
+          link={block?.referral_link ?? ""}
+          onChangeLink={() => {}}
+          onCopy={() => handleCopy()}
+          onShare={handleShare}
+        />
+      </div>
     </div>
   );
 }
@@ -484,15 +566,15 @@ function ReferralCard({
   onShare: (p: SharePlatform) => void;
 }) {
   return (
-    <div className="info-card p-4">
+    <div className="info-card border-0 p-0">
       <div className="row g-4 align-items-end">
-        <div className="col-lg-6">
+        <div className="col-lg-12">
           <p className="small fw-bold text-white mb-2">Active Referral Link</p>
           <div className="d-flex gap-2">
             <div className="flex-grow-1">
               <input
                 type="text"
-                className="referral-box"
+                className="referral-box px-3"
                 placeholder="https://yourdomain.com/sign-up?ref=xxxxx"
                 value={link}
                 onChange={(e) => onChangeLink(e.target.value)}
@@ -503,7 +585,7 @@ function ReferralCard({
             </button>
           </div>
         </div>
-        <div className="col-lg-6">
+        <div className="col-lg-12">
           <p className="small fw-bold text-white mb-2">Share Your Link</p>
           <div className="d-flex flex-wrap gap-2">
             {SHARE_ITEMS.map((s) => (

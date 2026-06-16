@@ -426,6 +426,7 @@ export default function LotteryDetails({ slug }: { slug?: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showAllTickets, setShowAllTickets] = useState(false);
 
   const handleLoginClick = () => {
     router.push("/sign-in?redirect=/lottery-details/" + slug);
@@ -679,7 +680,20 @@ export default function LotteryDetails({ slug }: { slug?: string }) {
                     <span className="value">${round?.net_pool?.toLocaleString() ?? 0}</span>
                   </div> */}
                   <div className="counter-container border-info">
-                    {ticketCount !== 0 && <span>No of Tickets</span>}
+                    {/* {ticketCount !== 0 && <span>No of Tickets</span>} */}
+                    {ticketCount !== 0 && (
+                      <span>
+                        <input
+                          className="bg-dark px-2 py-1 rounded text-center"
+                          value={String(ticketCount)}
+                          placeholder="No of Tickets"
+                          onChange={(e) => {
+                            const parsed = parseInt(e.target.value || "0", 10);
+                            setTicketCount(Number.isNaN(parsed) ? 0 : parsed);
+                          }}
+                        />
+                      </span>
+                    )}
                     <div className="controls">
                       <button id="minus-btn" type="button" onClick={handleMinus}>-</button>
                       <span id="ticket-count">{ticketCount}</span>
@@ -736,13 +750,115 @@ export default function LotteryDetails({ slug }: { slug?: string }) {
                     <h3>Winning Tickets</h3>
                     <div className="short-line"></div>
                   </div>
-                  <div className="ticket-grid">
+                  {/* <div className="ticket-grid text-start text-left">
                     {round?.my_tickets?.map((p, index) => (
-                      <span key={index}>{p}</span>
+                      <span key={index} className="text-start text-left">
+                        <i className="fa-solid fa-ticket me-1 text-warning"></i>{p}</span>
                     ))}
+                  </div> */}
+                  {/* ── Ticket Grid with "See More" ── */}
+                  <div className="ticket-grid text-start text-left">
+                    {(round?.my_tickets?.length ?? 0) > 29
+                      ? round!.my_tickets!.slice(0, 29).map((p, index) => (
+                          <span key={index} className="text-start text-left">
+                            <i className="fa-solid fa-ticket me-1 text-warning"></i>{p}
+                          </span>
+                        ))
+                      : round?.my_tickets?.map((p, index) => (
+                          <span key={index} className="text-start text-left">
+                            <i className="fa-solid fa-ticket me-1 text-warning"></i>{p}
+                          </span>
+                        ))
+                    }
                   </div>
+
+                  {/* See More button */}
+                  {(round?.my_tickets?.length ?? 0) > 29 && (
+                    <div className="text-center mt-3 w-50 mx-auto">
+                      <button
+                        className="btn btn-sm btn-outline-warning mt-2 w-100"
+                        onClick={() => setShowAllTickets(true)}
+                      >
+                        See More ({round!.my_tickets!.length} total)
+                      </button>
+                    </div>
+                  )}
+
+
+                  {/* ── All Tickets Modal ── */}
+                  {showAllTickets && (
+                    <div
+                      style={{
+                        position: "fixed", inset: 0, zIndex: 9999,
+                        background: "rgba(0,0,0,0.75)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
+                      onClick={() => setShowAllTickets(false)}
+                    >
+                      <div className="bg-dark"
+                        style={{
+                          borderRadius: "12px",
+                          padding: "24px", maxWidth: "600px", width: "90%",
+                          maxHeight: "80vh", display: "flex", flexDirection: "column",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Modal Header */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                          <h5 style={{ color: "#fff", margin: 0 }}>
+                            All Tickets
+                            <span style={{ color: "#ffc107", marginLeft: "8px", fontSize: "14px" }}>
+                              ({round?.my_tickets?.length} total)
+                            </span>
+                          </h5>
+                          <button
+                            onClick={() => setShowAllTickets(false)}
+                            style={{
+                              background: "none", border: "none", color: "#aaa",
+                              fontSize: "22px", cursor: "pointer", lineHeight: 1,
+                            }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+
+                        {/* Scrollable ticket list */}
+                        <div
+                          style={{
+                            overflowY: "auto", flex: 1,
+                            display: "flex", flexWrap: "wrap", gap: "8px",
+                          }}
+                        >
+                          {round?.my_tickets?.map((p, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                background: "rgba(255,193,7,0.1)",
+                                border: "1px solid rgba(255,193,7,0.3)",
+                                borderRadius: "6px", padding: "4px 10px",
+                                color: "#fff", fontSize: "13px", whiteSpace: "nowrap",
+                              }}
+                            >
+                              <i className="fa-solid fa-ticket me-1 text-warning"></i>{p}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{ marginTop: "16px", textAlign: "center" }}>
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => setShowAllTickets(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="lotterie-btn style-3 mt-5">
+                <div className="lotterie-btn style-3 mt-3">
                   <Link href={`/dashboard/ticket-history?tab=${tabKey}`} className="btn--primary">
                     Tickets History
                   </Link>

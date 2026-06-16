@@ -87,12 +87,12 @@ export default function AccountPage({
             Verify Profile
           </Link>
         }
-        {isVerified == 1 && 
+        {/* {isVerified == 1 && 
           <div className="verified-status d-flex align-items-center">
             <i className="fas fa-check-circle chk fs-5" />
             <span className="ps-2">Verified</span>
           </div>
-        }
+        } */}
         {isVerified == 2 && 
           <div className="verified-status d-flex align-items-center">
             {/* pending verification  */}
@@ -103,7 +103,7 @@ export default function AccountPage({
       </div>
 
       <div className="account-form-box-items">
-        <ProfileCard profile={profile} />
+        <ProfileCard profile={profile} isVerified={isVerified} />
         <BalanceCard
           isVerified={isVerified}
           balance={balance}
@@ -133,13 +133,23 @@ export default function AccountPage({
 
 // ─── ProfileCard ──────────────────────────────────────────────────────────────
 
-function ProfileCard({ profile }: { profile: Profile; }) {
+function ProfileCard({ profile, isVerified }: { profile: Profile; isVerified: number; }) {
   return (
     <div className="user-profile-card">
       <div className="user-header">
-        <div className="avatar">
-          <Image src={profile.avatarSrc} alt="User" width={56} height={56} />
-        </div>
+        <div className=" position-relative">
+        <Image
+          src={profile.avatarSrc}
+          alt="User"
+          width={56}
+          height={56}
+          className="rounded-circle"
+        />
+
+        <i
+          className="fas fa-check-circle chk fs-5 position-absolute bottom-0 end-0 z_index_99"
+        />
+      </div>
         <div className="user-name-wrapper">
           <h4 className="username">User ID: <span className="text-base change-link">{profile.user_id}</span></h4>
           <div className=" text-xl">
