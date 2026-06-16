@@ -18,7 +18,6 @@ type RawInvestment = {
   closed_at: string | null;
   status: string;
   created_at: string;
-  code_no?: string;
   investment: {
     id: number;
     name: string;
@@ -87,31 +86,6 @@ function SectionTitle({ title, description }: { title: string; description: stri
 
 // ─── Countdown component (self-ticking) ───────────────────────────────────────
 
-
-// function TimerRow({ endedAt }: { endedAt: string }) {
-
-//   const [timer, setTimer] = useState(getCountdown(endedAt));
-
-//   useEffect(() => {
-//     const id = setInterval(() => setTimer(getCountdown(endedAt)), 1000);
-//     return () => clearInterval(id);
-//   }, [endedAt]);
-
-//   const boxes = [
-//     { val: timer.days, label: "D" },
-//     { val: timer.hours, label: "H" },
-//     { val: timer.minutes, label: "M" },
-//     { val: timer.seconds, label: "S" },
-//   ];
-
-//   return (
-//     <div className="timer-container">
-//       {boxes.map((b) => (
-//         <div className="time-box">{b.val}{b.label}</div>
-//       ))}
-//     </div>
-//   );
-// }
 function getCountdownNew(endedAt: string) {
   // Parse backend UTC time and compare with current local time
   const end = new Date(endedAt.endsWith('Z') ? endedAt : endedAt + 'Z') // ensure treated as UTC
@@ -209,8 +183,6 @@ function InvestmentCard({
           await handleCancel();
         }
   };
-
-  console.log('investment ==', investment);
   
 
   return (
@@ -273,12 +245,12 @@ function InvestmentCard({
         {investment.investment && (
           <ul>
             <li>
-              <span>Serial No</span>
-              <span>#{investment?.id}</span>
+              <span>Code No</span>
+              <span>{investment?.id}</span>
             </li>
             <li>
-              <span>Code No</span>
-              <span>#{investment?.code_no}</span>
+              <span>Serial No</span>
+              <span>#{investment?.id}</span>
             </li>
             <li>
               <span>Start Date</span>
@@ -297,9 +269,9 @@ function InvestmentCard({
       </div>
 
       {/* Timer */}
-       <TimerRow endedAt={investment.ended_at} />
+      {/* {investment.ended_at ? <TimerRow endedAt={investment.ended_at} /> : null} */}
 
-      <div className="text-center d-flex gap-2 justify-content-center">
+      <div className="text-center d-flex gap-2 justify-content-center pt-4">
         <button className="btn--primary py-2 text-sm d-flex align-items-center justify-content-center" disabled>
           {isActive
             ? "Active"
@@ -311,7 +283,7 @@ function InvestmentCard({
   );
 }
 
-export default function MyInvestmentSection({
+export default function CompletedInvestmentSection({
   bannerSrc,
   title,
   description,
@@ -359,7 +331,7 @@ export default function MyInvestmentSection({
         <div className="row g-4">
           {investments.map((inv, idx) => (
             <>
-              {inv?.status === 'active' && (
+              {inv?.status === "completed" && (
                 <div key={idx} className="col-xxl-4 col-xl-6 col-lg-4 col-md-6">
                   <InvestmentCard investment={inv} index={idx} fetchInvestments={fetchInvestments} />
                 </div>

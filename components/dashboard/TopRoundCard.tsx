@@ -58,7 +58,7 @@ type ApiResponse = {
 
 const PrizeAmount = ({ prize = 0 }: { prize?: number }) => {
   const { count } = useCountUp(prize, 2000, 60000); // resets every 10s
-  return <>{count}</>;
+  return <>${count}</>;
 };
 
 // ── Main Component ───────────────────────────────────────────────────────────

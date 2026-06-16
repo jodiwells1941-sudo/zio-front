@@ -1284,6 +1284,9 @@ span {
 .z_index {
   z-index: 9999 !important;
 }
+.z_index_99 {
+  z-index: 99 !important;
+}
 
 /* ==== 
  --------- (3.04) scroll porgress button styles end ---------

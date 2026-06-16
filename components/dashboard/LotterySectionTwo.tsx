@@ -59,7 +59,7 @@ type LotteryCardProps = {
 
 const PrizeDisplay = ({ prize }: { prize: number }) => {
   const { count } = useCountUp(prize, 2000, 60000); // resets every 10s
-  return count
+  return <>${count}</>;
 };
 
 // ── single card ──────────────────────────────────────────────────────────────
