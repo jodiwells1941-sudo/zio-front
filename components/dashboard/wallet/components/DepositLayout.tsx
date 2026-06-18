@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DepositModal from './DepositModel';
 import DepositSubmitProcessingModel from "./DepositSubmitProcessingModel";
 import { TabKey } from '../types';
 import Swal from 'sweetalert2';
-import { SubmitInitialDepositApi } from '@/app/api/wallet';
+import { SubmitInitialDepositApi, VerifyDepositApi } from '@/app/api/wallet';
 
 export default function DepositLayout({
   title,
@@ -83,6 +83,29 @@ export default function DepositLayout({
       await createDiposit();
     }
   };
+
+  useEffect(() => {
+    if (!depositInfo.token) return;
+
+    const interval = setInterval(async () => {
+      const res = await VerifyDepositApi({
+        token: depositInfo.token
+      });
+
+      if (res.data.verified) {
+        clearInterval(interval);
+
+        Swal.fire({
+          icon: "success",
+          title: "Deposit Successful",
+        });
+
+        setDepositModalOpen(false);
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [depositInfo.token]);
   
   return (
     <>
