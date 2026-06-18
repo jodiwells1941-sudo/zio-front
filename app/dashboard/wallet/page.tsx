@@ -8,7 +8,7 @@ import SummaryGrid from '@/components/dashboard/wallet/components/SummaryGrid';
 import TabButton from '@/components/dashboard/wallet/components/TabButton';
 import TransactionHistory from '@/components/dashboard/wallet/components/TransactionHistory';
 import TransferLayout from '@/components/dashboard/wallet/components/TransferLayout';
-import { amountPreset, p2pCards, paymentMethods, transferRows } from '@/components/dashboard/wallet/data';
+import { amountPreset, paymentMethods, transferRows } from '@/components/dashboard/wallet/data';
 import { P2PTabKey, TabKey } from '@/components/dashboard/wallet/types';
 import WithdrawLayout from '@/components/dashboard/wallet/components/WithdrawLayout';
 
