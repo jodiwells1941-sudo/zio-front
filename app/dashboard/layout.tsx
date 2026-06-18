@@ -17,13 +17,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [rightOpen, setRightOpen] = useState(false)
   const { user } = useAuth();
 
-
   // page reload after 3 minuts
   const pathname = usePathname()
 
   useEffect(() => {
     const allowedRoutes = [
-      "/dashboard",
+      // "/dashboard",
       "/dashboard/lottery",
       "/dashboard/lottery-winner",
       "/dashboard/ticket-history",
