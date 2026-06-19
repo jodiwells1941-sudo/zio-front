@@ -42,7 +42,7 @@ export default function DepositLayout({
     setIsLoading(true);
 
     const data = {
-        amount: Number(selectedAmount),
+        amount: 0,
     };
 
     try {
@@ -137,7 +137,7 @@ export default function DepositLayout({
         <div className="deposit-card">
           <h2>{title}</h2>
 
-          <div className="amount-head">
+          {/* <div className="amount-head">
             <span>Amount</span>
             <small>Instant | Min: 20 - Max: 4,000</small>
           </div>
@@ -165,13 +165,28 @@ export default function DepositLayout({
               }}
             />
             <span>EUR</span>
+          </div> */}
+
+          {/* Coin */}
+          <div className="form-group-custom mt-3">
+            <label>Select Coin: <small className="text-danger fs-4">*</small></label>
+            <select
+              className="select-custom form-control-custom rounded-4"
+              required
+              // value={formData.coin}
+              // onChange={(e) => handleChange('coin', e.target.value)}
+              >
+              {/* <option value="">Select Coin</option> */}
+              <option value="USDT">USDT</option>
+            </select>
+            {/* {errors.coin && <small className="text-danger d-block">{errors.coin}</small>} */}
           </div>
 
           <div className="form-group-custom mt-3">
             <label>
             Select Network:
             </label>
-            <select
+            <select required
               className="select-custom form-control-custom rounded-4"
               // value={formData.withFlat}
               // onChange={(e) => handleFlatChange(e.target.value)}
