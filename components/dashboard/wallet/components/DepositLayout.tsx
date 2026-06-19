@@ -199,7 +199,7 @@ export default function DepositLayout({
             {actionLabel} {selectedAmount} USD
           </button> */}
           <button type="button" className="deposit-btn" onClick={()=>handleDiposit()} disabled={selectedAmount <= 0}>
-            {actionLabel} {selectedAmount} USD
+            {actionLabel} USD
           </button>
         </div>
       </div>
@@ -209,10 +209,6 @@ export default function DepositLayout({
           depositInfo={depositInfo}
           setDepositInfo={setDepositInfo}
           onClose={() => setDepositModalOpen(false)}
-          // onSubmitDeposit={() => {
-          //   setDepositModalOpen(false);
-          //   setSubmitDeposit(true);
-          // }}
         />
       )}
 
