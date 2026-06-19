@@ -148,8 +148,8 @@ export default function DepositModal({depositInfo, setDepositInfo, onClose }: Pr
               {/* RIGHT PANEL */}
               <div className="right">
 
-                  <p className="text-center text-lg">Send USDT Ammount:</p>
-                  <span className="text-warning fw-7 text-xxl text-center">$ {depositInfo.amount}</span>
+                  {/* <p className="text-center text-lg">Send USDT Ammount:</p>
+                  <span className="text-warning fw-7 text-xxl text-center">$ {depositInfo.amount}</span> */}
                   <div className="d-flex align-items-center justify-content-center">
                       <Image src={depositInfo.qr_code} className="rounded" width={200} height={200} alt={'QR'} />
                   </div>
