@@ -4,6 +4,7 @@ import DepositSubmitProcessingModel from "./DepositSubmitProcessingModel";
 import { TabKey } from '../types';
 import Swal from 'sweetalert2';
 import { SubmitInitialDepositApi, VerifyDepositApi } from '@/app/api/wallet';
+import { toast } from 'react-toastify';
 
 export default function DepositLayout({
   title,
@@ -29,6 +30,7 @@ export default function DepositLayout({
 
   const [depositModalOpen, setDepositModalOpen] = useState<boolean>(false);
   const [submitDeposit, setSubmitDeposit] = useState<boolean>(false); 
+  const [depositAmount, setDepositAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [depositInfo, setDepositInfo] = useState({
         amount: "",
@@ -39,37 +41,68 @@ export default function DepositLayout({
     });
 
   const createDiposit = async () => {
+    const amount = Number(depositAmount);
+
+    if (isNaN(amount)) {
+        toast.error("Please enter a valid amount.");
+        return;
+    }
+
+    if (amount <= 0) {
+        toast.error("Amount must be greater than 0.");
+        return;
+    }
+
+    // Optional: minimum amount
+    // if (amount < 100) {
+    //     toast.error("Minimum deposit amount is 100.");
+    //     return;
+    // }
+
     setIsLoading(true);
 
-    const data = {
-        amount: 0,
-    };
-
     try {
-        const response = await SubmitInitialDepositApi(data);
+        const response = await SubmitInitialDepositApi({
+            amount,
+        });
 
         if (!response.error) {
             setDepositInfo(response.data);
             setDepositModalOpen(true);
         } else {
             Swal.fire(
-                'Failed',
-                response.message || 'Transaction failed. Please try again.',
-                'error'
+                "Failed",
+                response.message || "Transaction failed. Please try again.",
+                "error"
             );
         }
     } catch (error) {
-        Swal.fire('Error', 'A network error occurred during submission.', 'error');
+        Swal.fire(
+            "Error",
+            "A network error occurred during submission.",
+            "error"
+        );
     } finally {
         setIsLoading(false);
     }
   };
 
   const handleDiposit = async () => {
+
+    if (isNaN(depositAmount)) {
+        toast.error("Please enter a valid amount.");
+        return;
+    }
+
+    if (depositAmount <= 0) {
+        toast.error("Amount must be greater than 0.");
+        return;
+    }
+
     const result = await Swal.fire({
       title: "Deposit Confirmation",
       icon: "info",
-      html: ` Are you sure you want to deposit <strong>${selectedAmount} USD</strong>?`,
+      html: ` Are you sure you want to deposit <strong>${depositAmount} USD</strong>?`,
       showCloseButton: true,
       showCancelButton: true,
       focusConfirm: false,
@@ -137,12 +170,12 @@ export default function DepositLayout({
         <div className="deposit-card">
           <h2>{title}</h2>
 
-          {/* <div className="amount-head">
-            <span>Amount</span>
+          <div className="amount-head">
+            <span>Amount <small className="text-danger fs-4">*</small></span>
             <small>Instant | Min: 20 - Max: 4,000</small>
           </div>
 
-          <div className="amount-select">
+          {/* <div className="amount-select">
             {amountPreset.map((n) => (
               <button
                 key={n}
@@ -153,19 +186,20 @@ export default function DepositLayout({
                 {n}
               </button>
             ))}
-          </div>
+          </div> */}
 
           <div className="amount-input mb-2">
             <input
               type="text"
-              value={String(selectedAmount)}
+              // value={String(selectedAmount)}
+              required
               onChange={(e) => {
                 const v = Number(e.target.value.replace(/[^\d.]/g, ''));
-                if (!Number.isNaN(v)) setSelectedAmount(v);
+                if (!Number.isNaN(v)) setDepositAmount(v);
               }}
             />
             <span>EUR</span>
-          </div> */}
+          </div>
 
           {/* Coin */}
           <div className="form-group-custom mt-3">
@@ -185,6 +219,7 @@ export default function DepositLayout({
           <div className="form-group-custom mt-3">
             <label>
             Select Network:
+             <small className="text-danger fs-4">*</small>
             </label>
             <select required
               className="select-custom form-control-custom rounded-4"
