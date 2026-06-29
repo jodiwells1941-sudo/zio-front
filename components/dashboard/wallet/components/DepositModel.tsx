@@ -99,7 +99,7 @@ export default function DepositModal({depositInfo, setDepositInfo, onClose }: Pr
 
         <div className="rt-modal bg-dark overflow-auto mt-200 mt-md-0">
           <div className="rt-modal-head">
-            <h6 className="rt-modal-title">Deposit Model</h6>
+            <h6 className="rt-modal-title">Deposit</h6>
             <button type="button" className="rt-modal-x" onClick={onClose} aria-label="Close">
               ✕
             </button>
@@ -148,8 +148,8 @@ export default function DepositModal({depositInfo, setDepositInfo, onClose }: Pr
               {/* RIGHT PANEL */}
               <div className="right">
 
-                  {/* <p className="text-center text-lg">Send USDT Ammount:</p>
-                  <span className="text-warning fw-7 text-xxl text-center">$ {depositInfo.amount}</span> */}
+                  <p className="text-center text-lg">Send USDT Ammount:</p>
+                  <span className="text-warning fw-7 text-xxl text-center">$ {depositInfo.amount}</span>
                   <div className="d-flex align-items-center justify-content-center">
                       <Image src={depositInfo.qr_code} className="rounded" width={200} height={200} alt={'QR'} />
                   </div>
