@@ -19,6 +19,14 @@ type DepositInfo = {
 
 type StepKey = 1 | 2 | 3 | 4;
 
+const COIN_OPTIONS = [
+  { id: "USDT", label: "USDT (Tether)", badge: "T", className: "usdt" },
+];
+
+const NETWORK_OPTIONS = [
+  { id: "TRC20", label: "TRX Tron (TRC20)", badge: "⟁", className: "trx" },
+];
+
 export default function DepositLayout({
   title,
   actionLabel,
@@ -40,14 +48,24 @@ export default function DepositLayout({
   setSelectedAmount: (v: number) => void;
   setActiveTabValue: (v: TabKey) => void;
 }) {
-  const [depositAmount, setDepositAmount] = useState<number>(0);
+  const defaultAmount = amountPreset?.[0] ?? 0;
+
+  const [depositAmount, setDepositAmount] = useState<number>(defaultAmount);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [depositInfo, setDepositInfo] = useState<DepositInfo | null>(null);
   const [status, setStatus] = useState<"idle" | "waiting" | "completed" | "expired">("idle");
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
+  const [selectedCoin, setSelectedCoin] = useState<string>(COIN_OPTIONS[0].id);
+  const [selectedNetwork, setSelectedNetwork] = useState<string>(NETWORK_OPTIONS[0].id);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Keep the parent in sync with the default/selected amount.
+  useEffect(() => {
+    setSelectedAmount(depositAmount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositAmount]);
 
   const currentStep: StepKey = useMemo(() => {
     if (status === "completed") return 4;
@@ -61,7 +79,7 @@ export default function DepositLayout({
       toast.error("Please enter a valid amount.");
       return false;
     }
-    if (depositAmount < 1) {
+    if (depositAmount < 5) {
       toast.error("Minimum deposit amount is 5 USD.");
       return false;
     }
@@ -77,7 +95,11 @@ export default function DepositLayout({
 
     setIsLoading(true);
     try {
-      const response = await SubmitInitialDepositApi({ amount: depositAmount });
+      const response = await SubmitInitialDepositApi({
+        amount: depositAmount,
+        coin: selectedCoin,
+        network: selectedNetwork,
+      });
 
       if (!response.error) {
         const info: DepositInfo = response.data;
@@ -107,7 +129,7 @@ export default function DepositLayout({
     const result = await Swal.fire({
       title: "Deposit Confirmation",
       icon: "info",
-      html: `Are you sure you want to deposit <strong>${depositAmount} USD</strong>?`,
+      html: `Are you sure you want to deposit <strong>${depositAmount} USD</strong> in <strong>${selectedCoin}</strong> on <strong>${selectedNetwork}</strong>?`,
       showCloseButton: true,
       showCancelButton: true,
       focusConfirm: false,
@@ -175,7 +197,7 @@ export default function DepositLayout({
     setDepositInfo(null);
     setStatus("idle");
     setSecondsLeft(0);
-    setDepositAmount(0);
+    setDepositAmount(defaultAmount);
   };
 
   const copyText = (text: string, label: string) => {
@@ -197,6 +219,8 @@ export default function DepositLayout({
     { key: 3, label: "Make Payment", sub: "Send to address" },
     { key: 4, label: "Complete", sub: "Balance will be added" },
   ];
+
+  const isLocked = status === "waiting" || status === "completed";
 
   return (
     <div className="dl-wrapper">
@@ -221,42 +245,91 @@ export default function DepositLayout({
         <div className="dl-form-grid deposit-wrapper">
           <div>
             <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
+
             <div className="amount-input mb-2">
               <input
                 type="text"
                 inputMode="decimal"
-                placeholder="0"
+                placeholder="Amount"
                 value={depositAmount || ""}
                 required
+                disabled={isLocked}
                 onChange={(e) => {
                   const v = Number(e.target.value.replace(/[^\d.]/g, ""));
                   if (!Number.isNaN(v)) setDepositAmount(v);
                 }}
               />
-              <span>USD</span>
+              <span>USDT</span>
             </div>
+
+            {amountPreset?.length > 0 && (
+              <div className="dl-amount-presets">
+                {amountPreset.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    disabled={isLocked}
+                    className={`dl-preset-btn ${depositAmount === n ? "active" : ""}`}
+                    onClick={() => setDepositAmount(n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <small className="dl-hint text-danger">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
           </div>
 
           <div>
-             <label> 1. Select Network: <small className="text-danger fs-4">*</small></label>
-            <div className="form-group-custom mt-8">
-              <select required
-                className="select-custom form-control-custom rounded-4"
-                // value={formData.withFlat}
-                // onChange={(e) => handleFlatChange(e.target.value)}
-              >
-                <option>TRX Tron (TRC20)</option>
-              </select>
+            <label> 2. Select Coin &amp; Network: <small className="text-danger fs-4">*</small></label>
+
+            <div className="dl-select-row pt-2">
+              <div className="dl-dropdown">
+                <span className={`dl-coin-badge dl-coin-badge--${COIN_OPTIONS.find((c) => c.id === selectedCoin)?.className}`}>
+                  {COIN_OPTIONS.find((c) => c.id === selectedCoin)?.badge}
+                </span>
+                <select
+                  disabled={isLocked}
+                  value={selectedCoin}
+                  onChange={(e) => setSelectedCoin(e.target.value)}
+                  aria-label="Select coin"
+                >
+                  {COIN_OPTIONS.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
+              </div>
+
+              <div className="dl-dropdown">
+                <span className={`dl-coin-badge dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
+                  {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.badge}
+                </span>
+                <select
+                  disabled={isLocked}
+                  value={selectedNetwork}
+                  onChange={(e) => setSelectedNetwork(e.target.value)}
+                  aria-label="Select network"
+                >
+                  {NETWORK_OPTIONS.map((n) => (
+                    <option key={n.id} value={n.id}>
+                      {n.label}
+                    </option>
+                  ))}
+                </select>
+                <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
+              </div>
             </div>
           </div>
-
         </div>
 
         <button
           type="button"
           className="dl-cta"
-          disabled={isLoading || depositAmount <= 0 || status === "waiting" || status === "completed"}
+          disabled={isLoading || depositAmount <= 0 || isLocked}
           onClick={handleCreateDeposit}
         >
           {isLoading ? "Creating..." : `Create Deposit`} <span aria-hidden>→</span>
@@ -316,7 +389,10 @@ export default function DepositLayout({
 
               {depositInfo.qr_code && (
                 <div className="dl-block">
-                  <span className="dl-block-head"><span>QR Code</span></span>
+                  {/* <span className="dl-block-head"><span>QR Code</span></span> */}
+                  <div className="text-center mb-2">
+                    <span className="dl-exact-amount mb-3 fs-4"><b>{ depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
+                  </div>
                   <div className="dl-qr-wrap">
                     <Image src={depositInfo.qr_code} width={170} height={170} alt="Deposit QR code" className="rounded" />
                   </div>
@@ -536,22 +612,82 @@ export default function DepositLayout({
           font-size: 12px;
         }
 
+        /* Amount presets */
+        .dl-amount-presets {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .dl-preset-btn {
+          background: #161b29;
+          border: 1px solid #262c40;
+          color: #c8cee0;
+          font-weight: 600;
+          font-size: 13px;
+          padding: 6px 14px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .dl-preset-btn:hover {
+          border-color: #3a4255;
+        }
+        .dl-preset-btn.active {
+          background: linear-gradient(90deg, #9cecfe, #9cecfe);
+          color: #222e48;
+          border-color: transparent;
+        }
+        .dl-preset-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
         .dl-select-row {
           display: flex;
           flex-direction: column;
           gap: 10px;
         }
-        .dl-select-fake {
+        .dl-dropdown {
           display: flex;
           align-items: center;
           gap: 10px;
           background: #161b29;
           border: 1px solid #262c40;
           border-radius: 10px;
-          padding: 12px 16px;
+          padding: 0 14px;
+          position: relative;
+          transition: border-color 0.15s ease;
+        }
+        .dl-dropdown:focus-within {
+          border-color: #1fae5c;
+          box-shadow: 0 0 0 1px rgba(31, 174, 92, 0.4);
+        }
+        .dl-dropdown select {
+          flex: 1;
+          appearance: none;
+          -webkit-appearance: none;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: #f2f4f8;
           font-weight: 600;
           font-size: 14px;
+          padding: 12px 0;
+          cursor: pointer;
+        }
+        .dl-dropdown select:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+        .dl-dropdown select option {
+          background: #161b29;
           color: #f2f4f8;
+        }
+        .dl-dropdown-caret {
+          color: #7c8499;
+          font-size: 11px;
+          pointer-events: none;
         }
 
         .dl-coin-badge {
@@ -564,6 +700,7 @@ export default function DepositLayout({
           font-size: 12px;
           font-weight: 700;
           color: #fff;
+          flex-shrink: 0;
         }
         .dl-coin-badge--usdt {
           background: #1fae5c;
