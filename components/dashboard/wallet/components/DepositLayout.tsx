@@ -6,9 +6,11 @@ import { TabKey } from "../types";
 import Swal from "sweetalert2";
 import { SubmitInitialDepositApi, VerifyDepositApi } from "@/app/api/wallet";
 import { toast } from "react-toastify";
+import DepositSupportModal from "./DepositSupportModal";
 
 type DepositInfo = {
   amount: string;
+  deposit_id: string;
   coin: string;
   token: string;
   address: string;
@@ -55,8 +57,10 @@ export default function DepositLayout({
   const [depositInfo, setDepositInfo] = useState<DepositInfo | null>(null);
   const [status, setStatus] = useState<"idle" | "waiting" | "completed" | "expired">("idle");
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
+  const [totalSeconds, setTotalSeconds] = useState<number>(30 * 60);
   const [selectedCoin, setSelectedCoin] = useState<string>(COIN_OPTIONS[0].id);
   const [selectedNetwork, setSelectedNetwork] = useState<string>(NETWORK_OPTIONS[0].id);
+  const [showSupport, setShowSupport] = useState<boolean>(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -108,10 +112,13 @@ export default function DepositLayout({
 
         if (info.expires_at) {
           const ms = new Date(info.expires_at).getTime() - Date.now();
-          setSecondsLeft(Math.max(0, Math.floor(ms / 1000)));
+          const secs = Math.max(0, Math.floor(ms / 1000));
+          setSecondsLeft(secs);
+          setTotalSeconds(secs > 0 ? secs : 30 * 60);
         } else {
           // Fallback if backend hasn't been updated yet — 30 min default
           setSecondsLeft(30 * 60);
+          setTotalSeconds(30 * 60);
         }
       } else {
         Swal.fire("Failed", response.message || "Transaction failed. Please try again.", "error");
@@ -207,10 +214,10 @@ export default function DepositLayout({
       .catch(() => toast.error(`Failed to copy ${label.toLowerCase()}.`));
   };
 
-  const formatTime = (totalSeconds: number) => {
-    const m = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
-    const s = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
+  const formatTime = (totalSecondsLeft: number) => {
+    const m = Math.floor(totalSecondsLeft / 60).toString().padStart(2, "0");
+    const s = Math.floor(totalSecondsLeft % 60).toString().padStart(2, "0");
+    return { m, s };
   };
 
   const steps: { key: StepKey; label: string; sub: string }[] = [
@@ -221,6 +228,12 @@ export default function DepositLayout({
   ];
 
   const isLocked = status === "waiting" || status === "completed";
+
+  const { m: minutesLabel, s: secondsLabel } = formatTime(status === "expired" ? 0 : secondsLeft);
+  const ringProgress = totalSeconds > 0 ? Math.max(0, Math.min(1, secondsLeft / totalSeconds)) : 0;
+  const RING_RADIUS = 52;
+  const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+  const ringOffset = RING_CIRCUMFERENCE * (1 - ringProgress);
 
   return (
     <div className="dl-wrapper">
@@ -242,7 +255,7 @@ export default function DepositLayout({
 
       {/* Form card */}
       <div className="dl-card dl-form-card bg-light-dark">
-        <div className="dl-form-grid deposit-wrapper">
+        <div className="dl-form-grid deposit-wrapper mt-0">
           <div>
             <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
 
@@ -282,7 +295,7 @@ export default function DepositLayout({
           </div>
 
           <div>
-            <label> 2. Select Coin &amp; Network: <small className="text-danger fs-4">*</small></label>
+            <label> 2. Select Coin: <small className="text-danger fs-4">*</small></label>
 
             <div className="dl-select-row pt-2">
               <div className="dl-dropdown">
@@ -304,6 +317,7 @@ export default function DepositLayout({
                 <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
               </div>
 
+              <label> 3. Select Network: <small className="text-danger fs-4">*</small></label>
               <div className="dl-dropdown">
                 <span className={`dl-coin-badge dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
                   {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.badge}
@@ -326,14 +340,16 @@ export default function DepositLayout({
           </div>
         </div>
 
-        <button
-          type="button"
-          className="dl-cta"
-          disabled={isLoading || depositAmount <= 0 || isLocked}
-          onClick={handleCreateDeposit}
-        >
-          {isLoading ? "Creating..." : `Create Deposit`} <span aria-hidden>→</span>
-        </button>
+        <div className="d-flex justify-content-end pt-2">
+          <button
+            type="button"
+            className="dl-cta w-50"
+            disabled={isLoading || depositAmount <= 0 || isLocked}
+            onClick={handleCreateDeposit}
+          >
+            {isLoading ? "Creating..." : `Create Deposit`} <span aria-hidden>→</span>
+          </button>
+        </div>
       </div>
 
       {/* Deposit details */}
@@ -372,10 +388,10 @@ export default function DepositLayout({
                 </div>
               </div>
 
-              <div className="dl-block">
+              <div className="dl-block border-bottom border-dark-light">
                 <span className="dl-block-head"><span>Send Exact Amount</span></span>
                 <div className="dl-exact-row">
-                  <span className="dl-exact-amount"><b>{ depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
+                  <span className="dl-exact-amount fs-2"><b>{ depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
                   <button
                     type="button"
                     className="dl-icon-btn"
@@ -389,10 +405,8 @@ export default function DepositLayout({
 
               {depositInfo.qr_code && (
                 <div className="dl-block">
-                  {/* <span className="dl-block-head"><span>QR Code</span></span> */}
-                  <div className="text-center mb-2">
-                    <span className="dl-exact-amount mb-3 fs-4"><b>{ depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
-                  </div>
+                  <span className="dl-block-head"><span>QR Code</span></span>
+                  
                   <div className="dl-qr-wrap">
                     <Image src={depositInfo.qr_code} width={170} height={170} alt="Deposit QR code" className="rounded" />
                   </div>
@@ -402,10 +416,39 @@ export default function DepositLayout({
 
             <div className="dl-side-col">
               <div className="dl-card dl-timer-card bg-light-dark">
-                <span className="dl-side-label"><i className="fa-regular fa-clock" /> Time Left</span>
-                <div className={`dl-timer ${secondsLeft <= 60 ? "dl-timer--danger" : ""}`}>
-                  {status === "expired" ? "00:00" : formatTime(secondsLeft)}
+                <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
+
+                <div className="dl-ring-wrap">
+                  <svg className="dl-ring-svg" viewBox="0 0 120 120">
+                    <defs>
+                      <linearGradient id="dlRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FCE38A" />
+                        <stop offset="50%" stopColor="#F9C74F" />
+                        <stop offset="100%" stopColor="#F8961E" />
+                      </linearGradient>
+                    </defs>
+                    <circle className="dl-ring-track" cx="60" cy="60" r={RING_RADIUS} />
+                    <circle
+                      className={`dl-ring-progress ${secondsLeft <= 60 && status === "waiting" ? "dl-ring-progress--danger" : ""}`}
+                      cx="60"
+                      cy="60"
+                      r={RING_RADIUS}
+                      strokeDasharray={RING_CIRCUMFERENCE}
+                      strokeDashoffset={status === "expired" ? RING_CIRCUMFERENCE : ringOffset}
+                    />
+                  </svg>
+
+                  <div className="dl-ring-center">
+                    <span className="dl-ring-time">
+                      {status === "expired" ? "00:00" : `${minutesLabel}:${secondsLabel}`}
+                    </span>
+                    <div className="dl-ring-units pt-1">
+                      <span className="fs-9">Minutes</span>
+                      <span className="fs-9">Seconds</span>
+                    </div>
+                  </div>
                 </div>
+
                 <small className="dl-side-sub">
                   {status === "expired"
                     ? "This deposit request has expired"
@@ -462,6 +505,14 @@ export default function DepositLayout({
             </div>
           </div>
 
+          <div className="dl-card dl-form-card bg-light-dark mt-3">
+            <div className="d-flex justify-content-center pt-2">
+              <button type="button" className="dl-cta dl-cta--secondary text-warning" onClick={()=>setShowSupport(true)}>
+                <i className="fa-solid fa-headset" /> Contact Support
+              </button>
+            </div>
+          </div>
+
           <div className="dl-notice">
             <div className="dl-notice-title">⚠ Important Notice</div>
             <ul>
@@ -473,6 +524,30 @@ export default function DepositLayout({
             </ul>
           </div>
         </div>
+      )}
+
+      <div className="dl-card dl-form-card bg-light-dark">
+        <div className=" mt-0">
+          <div className="">
+            <h6>Recent Submitted Deposit List</h6>
+
+          {/* No data found  */}
+          <div className="text-center w-100 pt-3 text-warning">No recent deposits found.</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Show deposit support modal  */}
+      {showSupport && (
+        <DepositSupportModal
+          depositId={depositInfo?.deposit_id ?? ''}
+          // defaultAmount={depositInfo.amount}
+          coinLabel="USDT"
+          onClose={() => setShowSupport(false)}
+          onSuccess={() => {
+            // optional: refresh recent deposits list, etc.
+          }}
+        />
       )}
 
       <style jsx>{`
@@ -787,12 +862,15 @@ export default function DepositLayout({
           padding: 2px 8px;
           border-radius: 999px;
         }
+        .dl-address-row{
+          background: #161b29;
+        }
+
         .dl-address-row,
         .dl-exact-row {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: #161b29;
           border: 1px solid #262c40;
           border-radius: 10px;
           padding: 12px 14px;
@@ -847,16 +925,81 @@ export default function DepositLayout({
           align-items: center;
           gap: 6px;
         }
+        .dl-side-label--center {
+          justify-content: center;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          font-weight: 700;
+          color: #c8cee0;
+          font-size: 11px;
+        }
         .dl-timer-card {
           text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 14px;
         }
-        .dl-timer {
-          font-size: 32px;
+
+        /* Circular countdown ring */
+        .dl-ring-wrap {
+          position: relative;
+          width: 168px;
+          height: 168px;
+        }
+        .dl-ring-svg {
+          width: 100%;
+          height: 100%;
+          transform: rotate(-90deg);
+        }
+        .dl-ring-track {
+          fill: none;
+          stroke: #1c2236;
+          stroke-width: 6;
+        }
+        .dl-ring-progress {
+          fill: none;
+          stroke: url(#dlRingGradient);
+          stroke-width: 6;
+          stroke-linecap: round;
+          transition: stroke-dashoffset 1s linear;
+        }
+        .dl-ring-progress--danger {
+          animation: dl-ring-pulse 1s ease-in-out infinite;
+        }
+        @keyframes dl-ring-pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.55;
+          }
+        }
+        .dl-ring-center {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+        .dl-ring-time {
+          font-size: 28px;
           font-weight: 800;
-          color: #2bd073;
-          margin: 8px 0 4px;
+          color: #fff;
           font-variant-numeric: tabular-nums;
+          letter-spacing: 0.02em;
         }
+        .dl-ring-units {
+          display: flex;
+          gap: 16px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #7c8499;
+          font-weight: 700;
+        }
+
         .dl-timer--danger {
           color: #ef4060;
         }
@@ -886,7 +1029,7 @@ export default function DepositLayout({
           color: #2bd073;
         }
         .dl-status-pill--expired {
-          background: #3a151c;
+          background: #3a3715;
           color: #ef4060;
         }
         .dl-status-visual {
@@ -902,9 +1045,9 @@ export default function DepositLayout({
           align-items: center;
           justify-content: center;
           font-size: 26px;
-          background: radial-gradient(circle, rgba(60, 110, 240, 0.18), transparent 70%);
-          border: 2px solid #2a3b6e;
-          color: #6f8af0;
+          background: radial-gradient(circle, rgba(240, 192, 60, 0.18), transparent 70%);
+          border: 2px solid #6e5d2a;
+          color: #f0bc6f;
         }
         .dl-status-ring--completed {
           border-color: #1fae5c;
