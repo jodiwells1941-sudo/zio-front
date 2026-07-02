@@ -41,4 +41,9 @@ export const depositSupportApi = async (payload: {
   return res.data; // { error, message, data }
 };
 
+export const depositListApi = async () => {
+    return (await apiClient.get("/user/binance/deposit/list")).data;
+};
+
+
 
