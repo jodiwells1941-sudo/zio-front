@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { TabKey } from "../types";
 import Swal from "sweetalert2";
 import { SubmitInitialDepositApi, VerifyDepositApi } from "@/app/api/wallet";
+import { depositListApi } from "@/app/api/wallet";
 import { toast } from "react-toastify";
 import DepositSupportModal from "./DepositSupportModal";
+import PaginationControls from "../../PaginationControls";
 
 type DepositInfo = {
   amount: string;
@@ -15,8 +17,26 @@ type DepositInfo = {
   token: string;
   address: string;
   qr_code: string;
-  expires_at?: string;     // ISO timestamp from backend, e.g. "2026-06-30T10:30:00Z"
+  expires_at?: string;
   status?: "pending" | "completed" | "expired" | "failed";
+};
+
+type DepositRow = {
+  id: number;
+  deposit_id: string;
+  amount: string;
+  network: string;
+  status: number; // 1 pending, 2 completed, 3 failed, 4 expired
+  created_at: string;
+};
+
+type Pagination = {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  next_page_url: string | null;
+  prev_page_url: string | null;
 };
 
 type StepKey = 1 | 2 | 3 | 4;
@@ -28,6 +48,13 @@ const COIN_OPTIONS = [
 const NETWORK_OPTIONS = [
   { id: "TRC20", label: "TRX Tron (TRC20)", badge: "⟁", className: "trx" },
 ];
+
+const STATUS_MAP: Record<number, { label: string; cls: string }> = {
+  1: { label: "Pending",   cls: "status-pending" },
+  2: { label: "Completed", cls: "status-confirmed" },
+  3: { label: "Failed",    cls: "status-cancelled" },
+  4: { label: "Expired",   cls: "status-cancelled" },
+};
 
 export default function DepositLayout({
   title,
@@ -52,6 +79,7 @@ export default function DepositLayout({
 }) {
   const defaultAmount = amountPreset?.[0] ?? 0;
 
+  // ── deposit form state ──────────────────────────────────────────────────────
   const [depositAmount, setDepositAmount] = useState<number>(defaultAmount);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [depositInfo, setDepositInfo] = useState<DepositInfo | null>(null);
@@ -62,41 +90,78 @@ export default function DepositLayout({
   const [selectedNetwork, setSelectedNetwork] = useState<string>(NETWORK_OPTIONS[0].id);
   const [showSupport, setShowSupport] = useState<boolean>(false);
 
+  // ── deposit list state ──────────────────────────────────────────────────────
+  const [depositList, setDepositList] = useState<DepositRow[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    current_page: 1, last_page: 1, per_page: 10, total: 0,
+    next_page_url: null, prev_page_url: null,
+  });
+  const [isListLoading, setIsListLoading] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Keep the parent in sync with the default/selected amount.
+  // ── sync parent ─────────────────────────────────────────────────────────────
   useEffect(() => {
     setSelectedAmount(depositAmount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depositAmount]);
 
+  // ── fetch deposit list ──────────────────────────────────────────────────────
+  const fetchDepositList = useCallback(async (page = 1, initial = false) => {
+    if (initial) setIsListLoading(true);
+    else setIsFetching(true);
+
+    try {
+      // depositListApi does not accept arguments; call without page
+      const res = await depositListApi();
+
+      console.log('res ==', res);
+      
+      if (!res.error) {
+        setDepositList(res.data.data ?? []);
+        setPagination({
+          current_page: res.data.current_page,
+          last_page:    res.data.last_page,
+          per_page:     res.data.per_page,
+          total:        res.data.total,
+          next_page_url: res.data.next_page_url,
+          prev_page_url: res.data.prev_page_url,
+        });
+      }
+    } catch {
+      // silently ignore — list is non-critical
+    } finally {
+      setIsListLoading(false);
+      setIsFetching(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDepositList(1, true); }, [fetchDepositList]);
+
+  const handlePageChange = (page: number) => fetchDepositList(page);
+
+  const slOffset = (pagination.current_page - 1) * pagination.per_page;
+
+  // ── step indicator ──────────────────────────────────────────────────────────
   const currentStep: StepKey = useMemo(() => {
     if (status === "completed") return 4;
     if (status === "waiting" || status === "expired") return 3;
     return depositAmount > 0 ? 2 : 1;
   }, [status, depositAmount]);
 
-  // ---- Create deposit ----
+  // ── validation ──────────────────────────────────────────────────────────────
   const validateAmount = () => {
-    if (isNaN(depositAmount)) {
-      toast.error("Please enter a valid amount.");
-      return false;
-    }
-    if (depositAmount < 5) {
-      toast.error("Minimum deposit amount is 5 USD.");
-      return false;
-    }
-    if (depositAmount > 5000) {
-      toast.error("Maximum deposit amount is 5,000 USD.");
-      return false;
-    }
+    if (isNaN(depositAmount)) { toast.error("Please enter a valid amount."); return false; }
+    if (depositAmount < 5)    { toast.error("Minimum deposit amount is 5 USD."); return false; }
+    if (depositAmount > 5000) { toast.error("Maximum deposit amount is 5,000 USD."); return false; }
     return true;
   };
 
+  // ── create deposit ──────────────────────────────────────────────────────────
   const createDeposit = async () => {
     if (!validateAmount()) return;
-
     setIsLoading(true);
     try {
       const response = await SubmitInitialDepositApi({
@@ -111,19 +176,20 @@ export default function DepositLayout({
         setStatus("expired" === info.status ? "expired" : "waiting");
 
         if (info.expires_at) {
-          const ms = new Date(info.expires_at).getTime() - Date.now();
-          const secs = Math.max(0, Math.floor(ms / 1000));
+          const secs = Math.max(0, Math.floor((new Date(info.expires_at).getTime() - Date.now()) / 1000));
           setSecondsLeft(secs);
           setTotalSeconds(secs > 0 ? secs : 30 * 60);
         } else {
-          // Fallback if backend hasn't been updated yet — 30 min default
           setSecondsLeft(30 * 60);
           setTotalSeconds(30 * 60);
         }
+
+        // refresh list so new pending row shows immediately
+        fetchDepositList(1);
       } else {
         Swal.fire("Failed", response.message || "Transaction failed. Please try again.", "error");
       }
-    } catch (error) {
+    } catch {
       Swal.fire("Error", "A network error occurred during submission.", "error");
     } finally {
       setIsLoading(false);
@@ -132,111 +198,87 @@ export default function DepositLayout({
 
   const handleCreateDeposit = async () => {
     if (!validateAmount()) return;
-
     const result = await Swal.fire({
       title: "Deposit Confirmation",
       icon: "info",
       html: `Are you sure you want to deposit <strong>${depositAmount} USD</strong> in <strong>${selectedCoin}</strong> on <strong>${selectedNetwork}</strong>?`,
-      showCloseButton: true,
-      showCancelButton: true,
-      focusConfirm: false,
-      confirmButtonAriaLabel: "Thumbs up, great!",
-      cancelButtonText: "No, Cancel!",
-      confirmButtonText: "Yes, Deposit!",
-      cancelButtonAriaLabel: "Thumbs down",
+      showCloseButton: true, showCancelButton: true, focusConfirm: false,
+      cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
     });
-
-    if (result.isConfirmed) {
-      await createDeposit();
-    }
+    if (result.isConfirmed) await createDeposit();
   };
 
-  // ---- Countdown timer ----
+  // ── countdown ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (status !== "waiting") return;
-
     tickRef.current = setInterval(() => {
       setSecondsLeft((s) => {
-        if (s <= 1) {
-          setStatus("expired");
-          if (tickRef.current) clearInterval(tickRef.current);
-          return 0;
-        }
+        if (s <= 1) { setStatus("expired"); if (tickRef.current) clearInterval(tickRef.current); return 0; }
         return s - 1;
       });
     }, 1000);
-
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current);
-    };
+    return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, [status]);
 
-  // ---- Poll for verification while waiting ----
+  // ── poll verify ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (status !== "waiting" || !depositInfo?.token) return;
-
     pollRef.current = setInterval(async () => {
       try {
         const res = await VerifyDepositApi({ token: depositInfo.token });
-
         if (res?.data?.verified) {
           if (pollRef.current) clearInterval(pollRef.current);
           if (tickRef.current) clearInterval(tickRef.current);
           setStatus("completed");
-
           Swal.fire({ icon: "success", title: "Deposit Successful" });
+          fetchDepositList(1); // refresh list on success
         } else if (res?.data?.expired) {
           if (pollRef.current) clearInterval(pollRef.current);
           setStatus("expired");
         }
-      } catch (err) {
-        console.error("Verify poll failed", err);
-        // transient network error — just let the next tick try again
-      }
+      } catch (err) { console.error("Verify poll failed", err); }
     }, 8000);
-
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [status, depositInfo?.token]);
 
+  // ── helpers ─────────────────────────────────────────────────────────────────
   const resetFlow = () => {
-    setDepositInfo(null);
-    setStatus("idle");
-    setSecondsLeft(0);
-    setDepositAmount(defaultAmount);
+    setDepositInfo(null); setStatus("idle");
+    setSecondsLeft(0); setDepositAmount(defaultAmount);
   };
 
   const copyText = (text: string, label: string) => {
-    navigator.clipboard
-      .writeText(text)
+    navigator.clipboard.writeText(text)
       .then(() => toast.success(`${label} copied to clipboard!`))
       .catch(() => toast.error(`Failed to copy ${label.toLowerCase()}.`));
   };
 
-  const formatTime = (totalSecondsLeft: number) => {
-    const m = Math.floor(totalSecondsLeft / 60).toString().padStart(2, "0");
-    const s = Math.floor(totalSecondsLeft % 60).toString().padStart(2, "0");
-    return { m, s };
-  };
+  const formatTime = (s: number) => ({
+    m: Math.floor(s / 60).toString().padStart(2, "0"),
+    s: Math.floor(s % 60).toString().padStart(2, "0"),
+  });
 
-  const steps: { key: StepKey; label: string; sub: string }[] = [
-    { key: 1, label: "Enter Amount", sub: "Enter deposit amount" },
-    { key: 2, label: "Select Coin", sub: "Choose cryptocurrency" },
-    { key: 3, label: "Make Payment", sub: "Send to address" },
-    { key: 4, label: "Complete", sub: "Balance will be added" },
-  ];
+  const formatDate = (dt: string) =>
+    new Date(dt).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   const isLocked = status === "waiting" || status === "completed";
-
   const { m: minutesLabel, s: secondsLabel } = formatTime(status === "expired" ? 0 : secondsLeft);
-  const ringProgress = totalSeconds > 0 ? Math.max(0, Math.min(1, secondsLeft / totalSeconds)) : 0;
   const RING_RADIUS = 52;
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+  const ringProgress = totalSeconds > 0 ? Math.max(0, Math.min(1, secondsLeft / totalSeconds)) : 0;
   const ringOffset = RING_CIRCUMFERENCE * (1 - ringProgress);
 
+  const steps: { key: StepKey; label: string; sub: string }[] = [
+    { key: 1, label: "Enter Amount",   sub: "Enter deposit amount" },
+    { key: 2, label: "Select Coin",    sub: "Choose cryptocurrency" },
+    { key: 3, label: "Make Payment",   sub: "Send to address" },
+    { key: 4, label: "Complete",       sub: "Balance will be added" },
+  ];
+
+  // ── render ──────────────────────────────────────────────────────────────────
   return (
     <div className="dl-wrapper">
+
       {/* Step indicator */}
       <div className="dl-steps bg-light-dark mt-3">
         {steps.map((s, idx) => (
@@ -258,15 +300,10 @@ export default function DepositLayout({
         <div className="dl-form-grid deposit-wrapper mt-0">
           <div>
             <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
-
             <div className="amount-input mb-2">
               <input
-                type="text"
-                inputMode="decimal"
-                placeholder="Amount"
-                value={depositAmount || ""}
-                required
-                disabled={isLocked}
+                type="text" inputMode="decimal" placeholder="Amount"
+                value={depositAmount || ""} required disabled={isLocked}
                 onChange={(e) => {
                   const v = Number(e.target.value.replace(/[^\d.]/g, ""));
                   if (!Number.isNaN(v)) setDepositAmount(v);
@@ -274,65 +311,37 @@ export default function DepositLayout({
               />
               <span>USDT</span>
             </div>
-
             {amountPreset?.length > 0 && (
               <div className="dl-amount-presets">
                 {amountPreset.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    disabled={isLocked}
+                  <button key={n} type="button" disabled={isLocked}
                     className={`dl-preset-btn ${depositAmount === n ? "active" : ""}`}
-                    onClick={() => setDepositAmount(n)}
-                  >
-                    {n}
-                  </button>
+                    onClick={() => setDepositAmount(n)}>{n}</button>
                 ))}
               </div>
             )}
-
             <small className="dl-hint text-danger">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
           </div>
 
           <div>
-            <label> 2. Select Coin: <small className="text-danger fs-4">*</small></label>
-
+            <label>2. Select Coin: <small className="text-danger fs-4">*</small></label>
             <div className="dl-select-row pt-2">
               <div className="dl-dropdown">
                 <span className={`dl-coin-badge dl-coin-badge--${COIN_OPTIONS.find((c) => c.id === selectedCoin)?.className}`}>
                   {COIN_OPTIONS.find((c) => c.id === selectedCoin)?.badge}
                 </span>
-                <select
-                  disabled={isLocked}
-                  value={selectedCoin}
-                  onChange={(e) => setSelectedCoin(e.target.value)}
-                  aria-label="Select coin"
-                >
-                  {COIN_OPTIONS.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.label}
-                    </option>
-                  ))}
+                <select disabled={isLocked} value={selectedCoin} onChange={(e) => setSelectedCoin(e.target.value)} aria-label="Select coin">
+                  {COIN_OPTIONS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
                 </select>
                 <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
               </div>
-
-              <label> 3. Select Network: <small className="text-danger fs-4">*</small></label>
+              <label>3. Select Network: <small className="text-danger fs-4">*</small></label>
               <div className="dl-dropdown">
                 <span className={`dl-coin-badge dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
                   {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.badge}
                 </span>
-                <select
-                  disabled={isLocked}
-                  value={selectedNetwork}
-                  onChange={(e) => setSelectedNetwork(e.target.value)}
-                  aria-label="Select network"
-                >
-                  {NETWORK_OPTIONS.map((n) => (
-                    <option key={n.id} value={n.id}>
-                      {n.label}
-                    </option>
-                  ))}
+                <select disabled={isLocked} value={selectedNetwork} onChange={(e) => setSelectedNetwork(e.target.value)} aria-label="Select network">
+                  {NETWORK_OPTIONS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
                 </select>
                 <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
               </div>
@@ -341,13 +350,10 @@ export default function DepositLayout({
         </div>
 
         <div className="d-flex justify-content-end pt-2">
-          <button
-            type="button"
-            className="dl-cta w-50"
+          <button type="button" className="dl-cta w-50"
             disabled={isLoading || depositAmount <= 0 || isLocked}
-            onClick={handleCreateDeposit}
-          >
-            {isLoading ? "Creating..." : `Create Deposit`} <span aria-hidden>→</span>
+            onClick={handleCreateDeposit}>
+            {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
           </button>
         </div>
       </div>
@@ -358,24 +364,20 @@ export default function DepositLayout({
           <h3 className="dl-details-title">Deposit Details</h3>
 
           <div className="dl-details-grid">
+            {/* left: info card */}
             <div className="dl-card dl-info-card bg-light-dark">
               <div className="dl-row">
                 <span className="dl-row-label">Coin</span>
-                <span className="dl-row-value">
-                  <span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT (Tether)
-                </span>
+                <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT (Tether)</span>
               </div>
               <div className="dl-row">
                 <span className="dl-row-label">Network</span>
-                <span className="dl-row-value">
-                  <span className="dl-coin-badge dl-coin-badge--trx">⟁</span> TRC20 (Tron)
-                </span>
+                <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--trx">⟁</span> TRC20 (Tron)</span>
               </div>
 
               <div className="dl-block">
                 <div className="dl-block-head">
-                  <span>Deposit Address</span>
-                  <span className="dl-pill">TRC20</span>
+                  <span>Deposit Address</span><span className="dl-pill">TRC20</span>
                 </div>
                 <div className="dl-address-row">
                   <code className="dl-address">{depositInfo.address}</code>
@@ -391,13 +393,8 @@ export default function DepositLayout({
               <div className="dl-block border-bottom border-dark-light">
                 <span className="dl-block-head"><span>Send Exact Amount</span></span>
                 <div className="dl-exact-row">
-                  <span className="dl-exact-amount fs-2"><b>{ depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
-                  <button
-                    type="button"
-                    className="dl-icon-btn"
-                    onClick={() => copyText( depositInfo.amount, "Amount")}
-                    aria-label="Copy amount"
-                  >
+                  <span className="dl-exact-amount fs-2"><b>{depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
+                  <button type="button" className="dl-icon-btn" onClick={() => copyText(depositInfo.amount, "Amount")} aria-label="Copy amount">
                     <i className="fa-solid fa-copy" />
                   </button>
                 </div>
@@ -406,7 +403,6 @@ export default function DepositLayout({
               {depositInfo.qr_code && (
                 <div className="dl-block">
                   <span className="dl-block-head"><span>QR Code</span></span>
-                  
                   <div className="dl-qr-wrap">
                     <Image src={depositInfo.qr_code} width={170} height={170} alt="Deposit QR code" className="rounded" />
                   </div>
@@ -414,45 +410,38 @@ export default function DepositLayout({
               )}
             </div>
 
+            {/* right: timer + status */}
             <div className="dl-side-col">
               <div className="dl-card dl-timer-card bg-light-dark">
                 <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
-
                 <div className="dl-ring-wrap">
                   <svg className="dl-ring-svg" viewBox="0 0 120 120">
                     <defs>
                       <linearGradient id="dlRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#FCE38A" />
-                        <stop offset="50%" stopColor="#F9C74F" />
+                        <stop offset="0%"   stopColor="#FCE38A" />
+                        <stop offset="50%"  stopColor="#F9C74F" />
                         <stop offset="100%" stopColor="#F8961E" />
                       </linearGradient>
                     </defs>
                     <circle className="dl-ring-track" cx="60" cy="60" r={RING_RADIUS} />
                     <circle
                       className={`dl-ring-progress ${secondsLeft <= 60 && status === "waiting" ? "dl-ring-progress--danger" : ""}`}
-                      cx="60"
-                      cy="60"
-                      r={RING_RADIUS}
+                      cx="60" cy="60" r={RING_RADIUS}
                       strokeDasharray={RING_CIRCUMFERENCE}
                       strokeDashoffset={status === "expired" ? RING_CIRCUMFERENCE : ringOffset}
                     />
                   </svg>
-
                   <div className="dl-ring-center">
                     <span className="dl-ring-time">
                       {status === "expired" ? "00:00" : `${minutesLabel}:${secondsLabel}`}
                     </span>
                     <div className="dl-ring-units pt-1">
-                      <span className="fs-9">Minutes</span>
-                      <span className="fs-9">Seconds</span>
+                      <span>Minutes</span><span>Seconds</span>
                     </div>
                   </div>
                 </div>
-
                 <small className="dl-side-sub">
-                  {status === "expired"
-                    ? "This deposit request has expired"
-                    : "This deposit request will expire soon"}
+                  {status === "expired" ? "This deposit request has expired" : "This deposit request will expire soon"}
                 </small>
               </div>
 
@@ -465,39 +454,23 @@ export default function DepositLayout({
                     {status === "expired" && "Expired"}
                   </span>
                 </div>
-
                 <div className="dl-status-visual">
                   <div className={`dl-status-ring dl-status-ring--${status}`}>
-                    <i
-                      className={
-                        status === "completed"
-                          ? "fa-solid fa-check"
-                          : status === "expired"
-                          ? "fa-solid fa-xmark"
-                          : "fa-regular fa-hourglass-half"
-                      }
-                    />
+                    <i className={status === "completed" ? "fa-solid fa-check" : status === "expired" ? "fa-solid fa-xmark" : "fa-regular fa-hourglass-half"} />
                   </div>
                 </div>
-
                 <p className="dl-status-text">
-                  {status === "waiting" && "Waiting for payment... Once we receive your payment, your balance will be updated automatically."}
+                  {status === "waiting"   && "Waiting for payment... Once we receive your payment, your balance will be updated automatically."}
                   {status === "completed" && "Payment received. Your balance has been updated."}
-                  {status === "expired" && "This request expired before payment was detected. Please create a new deposit."}
+                  {status === "expired"   && "This request expired before payment was detected. Please create a new deposit."}
                 </p>
-
                 {status === "expired" && (
                   <button type="button" className="dl-cta dl-cta--secondary mt-3 text-white" onClick={resetFlow}>
                     Create New Deposit
                   </button>
                 )}
-
                 {status === "completed" && (
-                  <button
-                    type="button"
-                    className="dl-cta mt-3"
-                    onClick={() => setActiveTabValue("tab6" as TabKey)}
-                  >
+                  <button type="button" className="dl-cta mt-3" onClick={() => setActiveTabValue("tab6" as TabKey)}>
                     View Transaction Details
                   </button>
                 )}
@@ -505,9 +478,10 @@ export default function DepositLayout({
             </div>
           </div>
 
+          {/* Contact support */}
           <div className="dl-card dl-form-card bg-light-dark mt-3">
             <div className="d-flex justify-content-center pt-2">
-              <button type="button" className="dl-cta dl-cta--secondary text-warning" onClick={()=>setShowSupport(true)}>
+              <button type="button" className="dl-cta dl-cta--secondary text-warning" onClick={() => setShowSupport(true)}>
                 <i className="fa-solid fa-headset" /> Contact Support
               </button>
             </div>
@@ -526,27 +500,109 @@ export default function DepositLayout({
         </div>
       )}
 
-      <div className="dl-card dl-form-card bg-light-dark">
-        <div className=" mt-0">
-          <div className="">
-            <h6>Recent Submitted Deposit List</h6>
-
-          {/* No data found  */}
-          <div className="text-center w-100 pt-3 text-warning">No recent deposits found.</div>
-          </div>
+      {/* ── Recent Deposit List ────────────────────────────────────────────── */}
+      <div className="dl-card bg-light-dark transaction-details wallet-main-wrapprr">
+        <div className="dl-list-head">
+          <h6 className="dl-list-title">Recent Submitted Deposit List</h6>
+          <button type="button" className="dl-refresh-btn" onClick={() => fetchDepositList(pagination.current_page)} disabled={isFetching}>
+            <i className={`fa-solid fa-rotate-right ${isFetching ? "dl-spin" : ""}`} />
+          </button>
         </div>
+
+        {/* Desktop table */}
+        <div className="table-responsive d-none d-md-block mt-3">
+          <table>
+            <thead>
+              <tr>
+                <th>Sl #</th>
+                <th>Deposit ID</th>
+                <th>Amount</th>
+                <th>Network</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isListLoading ? (
+                <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr>
+              ) : depositList.length > 0 ? (
+                depositList.map((r, index) => {
+                  const s = STATUS_MAP[r.status] ?? { label: "Unknown", cls: "status-failed" };
+                  return (
+                    <tr key={r.id}>
+                      <td>{slOffset + index + 1}</td>
+                      <td><code className="dl-deposit-id">#{r.deposit_id}</code></td>
+                      <td>$ {Number(r.amount).toFixed(4)} <small className="text-warning">USDT</small></td>
+                      <td>{r.network ?? "TRC20"}</td>
+                      <td>{formatDate(r.created_at)}</td>
+                      <td><span className={s.cls}>{s.label}</span></td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr><td colSpan={6} className="text-center py-4 text-warning">No recent deposits found.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="d-block d-md-none mt-3">
+          {isListLoading ? (
+            <div className="text-center py-4">Loading...</div>
+          ) : depositList.length > 0 ? (
+            depositList.map((r, index) => {
+              const s = STATUS_MAP[r.status] ?? { label: "Unknown", cls: "status-failed" };
+              return (
+                <div key={r.id} className="dl-mobile-row">
+                  <div className="dl-mobile-row-top">
+                    <span className="dl-mobile-num">#{slOffset + index + 1}</span>
+                    <span className={s.cls}>{s.label}</span>
+                  </div>
+                  <div className="dl-mobile-row-body">
+                    <div className="dl-mobile-field">
+                      <small>Deposit ID</small>
+                      <code>#{r.deposit_id}</code>
+                    </div>
+                    <div className="dl-mobile-field">
+                      <small>Amount</small>
+                      <span>$ {Number(r.amount).toFixed(2)} <b className="text-warning">USDT</b></span>
+                    </div>
+                    <div className="dl-mobile-field">
+                      <small>Network</small>
+                      <span>{r.network ?? "TRC20"}</span>
+                    </div>
+                    <div className="dl-mobile-field">
+                      <small>Date</small>
+                      <span>{formatDate(r.created_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-4 text-warning">No recent deposits found.</div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <PaginationControls
+            pagination={pagination}
+            currentPage={pagination.current_page}
+            pageLoading={isFetching}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
 
-      {/* Show deposit support modal  */}
+      {/* Support modal */}
       {showSupport && (
         <DepositSupportModal
-          depositId={depositInfo?.deposit_id ?? ''}
-          // defaultAmount={depositInfo.amount}
+          depositId={depositInfo?.deposit_id ?? ""}
           coinLabel="USDT"
           onClose={() => setShowSupport(false)}
-          onSuccess={() => {
-            // optional: refresh recent deposits list, etc.
-          }}
+          onSuccess={() => fetchDepositList(1)}
         />
       )}
 
@@ -562,7 +618,6 @@ export default function DepositLayout({
         .dl-steps {
           display: flex;
           align-items: center;
-          /* background: #11151f; */
           border: 1px solid #1f2433;
           border-radius: 14px;
           padding: 18px 22px;
@@ -573,595 +628,191 @@ export default function DepositLayout({
           gap: 10px;
           opacity: 0.55;
         }
-        .dl-step--done,
-        .dl-step--active {
-          opacity: 1;
-        }
+        .dl-step--done, .dl-step--active { opacity: 1; }
         .dl-step-dot {
-          width: 30px;
-          height: 30px;
-          flex-shrink: 0;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 13px;
-          font-weight: 700;
-          background: #1c2133;
-          color: #9aa4ba;
+          width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 700; background: #1c2133; color: #9aa4ba;
         }
-        .dl-step--done .dl-step-dot {
-          background: #1fae5c;
-          color: #fff;
-        }
-        .dl-step--active .dl-step-dot {
-          background: #1fae5c;
-          color: #fff;
-          box-shadow: 0 0 0 4px rgba(31, 174, 92, 0.18);
-        }
-        .dl-step-text {
-          display: flex;
-          flex-direction: column;
-          line-height: 1.2;
-        }
-        .dl-step-label {
-          font-size: 13px;
-          font-weight: 600;
-          color: #f2f4f8;
-        }
-        .dl-step-sub {
-          font-size: 11px;
-          color: #7c8499;
-        }
-        .dl-step-line {
-          flex: 1;
-          height: 1px;
-          background: #232838;
-          margin: 0 14px;
-        }
-        .dl-step-line--done {
-          background: #1fae5c;
-        }
+        .dl-step--done .dl-step-dot  { background: #1fae5c; color: #fff; }
+        .dl-step--active .dl-step-dot { background: #1fae5c; color: #fff; box-shadow: 0 0 0 4px rgba(31,174,92,.18); }
+        .dl-step-text { display: flex; flex-direction: column; line-height: 1.2; }
+        .dl-step-label { font-size: 13px; font-weight: 600; color: #f2f4f8; }
+        .dl-step-sub   { font-size: 11px; color: #7c8499; }
+        .dl-step-line  { flex: 1; height: 1px; background: #232838; margin: 0 14px; }
+        .dl-step-line--done { background: #1fae5c; }
         @media (max-width: 768px) {
-          .dl-steps {
-            overflow-x: auto;
-          }
-          .dl-step-sub {
-            display: none;
-          }
+          .dl-steps { overflow-x: auto; }
+          .dl-step-sub { display: none; }
         }
 
         /* Cards */
-        .dl-card {
-          border: 1px solid #1f2433;
-          border-radius: 14px;
-          padding: 20px;
-        }
+        .dl-card { border: 1px solid #1f2433; border-radius: 14px; padding: 20px; }
 
         .dl-form-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 18px;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 18px;
         }
-        @media (max-width: 700px) {
-          .dl-form-grid {
-            grid-template-columns: 1fr;
-          }
-        }
+        @media (max-width: 700px) { .dl-form-grid { grid-template-columns: 1fr; } }
 
-        .dl-label {
-          display: block;
-          font-size: 13px;
-          font-weight: 600;
-          color: #f2f4f8;
-          margin-bottom: 8px;
-        }
-
-        .dl-amount-input {
-          display: flex;
-          align-items: center;
-          background: #161b29;
-          border: 1px solid #262c40;
-          border-radius: 10px;
-          padding: 4px 16px;
-        }
-        .dl-amount-input input {
-          flex: 1;
-          background: transparent;
-          border: none;
-          outline: none;
-          color: #fff;
-          font-size: 22px;
-          font-weight: 700;
-          padding: 10px 0;
-        }
-        .dl-amount-input span {
-          color: #8d96ad;
-          font-weight: 600;
-        }
-        .dl-hint {
-          display: block;
-          margin-top: 6px;
-          color: #7c8499;
-          font-size: 12px;
-        }
+        .dl-label { display: block; font-size: 13px; font-weight: 600; color: #f2f4f8; margin-bottom: 8px; }
+        .dl-hint  { display: block; margin-top: 6px; font-size: 12px; }
 
         /* Amount presets */
-        .dl-amount-presets {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
+        .dl-amount-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .dl-preset-btn {
-          background: #161b29;
-          border: 1px solid #262c40;
-          color: #c8cee0;
-          font-weight: 600;
-          font-size: 13px;
-          padding: 6px 14px;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.15s ease;
+          background: #161b29; border: 1px solid #262c40; color: #c8cee0;
+          font-weight: 600; font-size: 13px; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+          transition: all .15s ease;
         }
-        .dl-preset-btn:hover {
-          border-color: #3a4255;
-        }
-        .dl-preset-btn.active {
-          background: linear-gradient(90deg, #9cecfe, #9cecfe);
-          color: #222e48;
-          border-color: transparent;
-        }
-        .dl-preset-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        .dl-preset-btn:hover { border-color: #3a4255; }
+        .dl-preset-btn.active { background: linear-gradient(90deg,#9cecfe,#9cecfe); color: #222e48; border-color: transparent; }
+        .dl-preset-btn:disabled { opacity: .5; cursor: not-allowed; }
 
-        .dl-select-row {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
+        /* Dropdowns */
+        .dl-select-row { display: flex; flex-direction: column; gap: 10px; }
         .dl-dropdown {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: #161b29;
-          border: 1px solid #262c40;
-          border-radius: 10px;
-          padding: 0 14px;
-          position: relative;
-          transition: border-color 0.15s ease;
+          display: flex; align-items: center; gap: 10px;
+          background: #161b29; border: 1px solid #262c40; border-radius: 10px; padding: 0 14px;
+          transition: border-color .15s ease;
         }
-        .dl-dropdown:focus-within {
-          border-color: #1fae5c;
-          box-shadow: 0 0 0 1px rgba(31, 174, 92, 0.4);
-        }
+        .dl-dropdown:focus-within { border-color: #1fae5c; box-shadow: 0 0 0 1px rgba(31,174,92,.4); }
         .dl-dropdown select {
-          flex: 1;
-          appearance: none;
-          -webkit-appearance: none;
-          background: transparent;
-          border: none;
-          outline: none;
-          color: #f2f4f8;
-          font-weight: 600;
-          font-size: 14px;
-          padding: 12px 0;
-          cursor: pointer;
+          flex: 1; appearance: none; -webkit-appearance: none;
+          background: transparent; border: none; outline: none;
+          color: #f2f4f8; font-weight: 600; font-size: 14px; padding: 12px 0; cursor: pointer;
         }
-        .dl-dropdown select:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-        .dl-dropdown select option {
-          background: #161b29;
-          color: #f2f4f8;
-        }
-        .dl-dropdown-caret {
-          color: #7c8499;
-          font-size: 11px;
-          pointer-events: none;
-        }
+        .dl-dropdown select:disabled { cursor: not-allowed; opacity: .5; }
+        .dl-dropdown select option { background: #161b29; color: #f2f4f8; }
+        .dl-dropdown-caret { color: #7c8499; font-size: 11px; pointer-events: none; }
 
         .dl-coin-badge {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: 700;
-          color: #fff;
-          flex-shrink: 0;
+          width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+          align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
         }
-        .dl-coin-badge--usdt {
-          background: #1fae5c;
-        }
-        .dl-coin-badge--trx {
-          background: #e2393c;
-        }
+        .dl-coin-badge--usdt { background: #1fae5c; }
+        .dl-coin-badge--trx  { background: #e2393c; }
 
+        /* CTA */
         .dl-cta {
-          width: 100%;
-          border: none;
-          border-radius: 50px;
-          padding: 14px 18px;
-          font-weight: 700;
-          font-size: 15px;
-          color: #222E48;
-          background: linear-gradient(90deg, #9CECFE, #9CECFE);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          cursor: pointer;
-          transition: opacity 0.15s ease;
+          width: 100%; border: none; border-radius: 50px; padding: 14px 18px;
+          font-weight: 700; font-size: 15px; color: #222E48;
+          background: linear-gradient(90deg,#9CECFE,#9CECFE);
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          cursor: pointer; transition: opacity .15s ease;
         }
-        .dl-cta:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .dl-cta--secondary {
-          background: #1c2133;
-        }
+        .dl-cta:disabled { opacity: .5; cursor: not-allowed; }
+        .dl-cta--secondary { background: #1c2133; }
 
-        /* Details */
-        .dl-details-title {
-          color: #2bd073;
-          font-weight: 700;
-          font-size: 16px;
-        }
-        .dl-details-grid {
-          display: grid;
-          grid-template-columns: 1.4fr 1fr;
-          gap: 18px;
-        }
-        @media (max-width: 860px) {
-          .dl-details-grid {
-            grid-template-columns: 1fr;
-          }
-        }
+        /* Deposit details */
+        .dl-details-title { color: #2bd073; font-weight: 700; font-size: 16px; }
+        .dl-details-grid  { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+        @media (max-width: 860px) { .dl-details-grid { grid-template-columns: 1fr; } }
 
-        .dl-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px solid #1c2133;
-          font-size: 14px;
-        }
-        .dl-row-label {
-          color: #8d96ad;
-        }
-        .dl-row-value {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 600;
-        }
+        .dl-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1c2133; font-size: 14px; }
+        .dl-row-label { color: #8d96ad; }
+        .dl-row-value { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 
-        .dl-block {
-          margin-top: 16px;
-        }
-        .dl-block-head {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          color: #8d96ad;
-          margin-bottom: 6px;
-        }
-        .dl-pill {
-          background: #16321f;
-          color: #2bd073;
-          font-size: 10px;
-          font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 999px;
-        }
-        .dl-address-row{
-          background: #161b29;
-        }
+        .dl-block { margin-top: 16px; }
+        .dl-block-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8d96ad; margin-bottom: 6px; }
+        .dl-pill { background: #16321f; color: #2bd073; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 
-        .dl-address-row,
-        .dl-exact-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          border: 1px solid #262c40;
-          border-radius: 10px;
-          padding: 12px 14px;
+        .dl-address-row { background: #161b29; }
+        .dl-address-row, .dl-exact-row {
+          display: flex; align-items: center; gap: 8px;
+          border: 1px solid #262c40; border-radius: 10px; padding: 12px 14px;
         }
-        .dl-address {
-          flex: 1;
-          font-size: 13px;
-          word-break: break-all;
-          color: #f2f4f8;
-        }
-        .dl-exact-amount {
-          flex: 1;
-          font-size: 18px;
-          font-weight: 700;
-          color: #2bd073;
-        }
+        .dl-address { flex: 1; font-size: 13px; word-break: break-all; color: #f2f4f8; }
+        .dl-exact-amount { flex: 1; font-size: 18px; font-weight: 700; color: #2bd073; }
         .dl-icon-btn {
-          background: #1c2133;
-          border: none;
-          color: #c8cee0;
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          flex-shrink: 0;
+          background: #1c2133; border: none; color: #c8cee0;
+          width: 32px; height: 32px; border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; flex-shrink: 0;
         }
-        .dl-icon-btn:hover {
-          background: #262c40;
-        }
-        .dl-qr-wrap {
-          display: flex;
-          justify-content: center;
-          background: #fff;
-          padding: 14px;
-          border-radius: 10px;
-          width: fit-content;
-          margin: 0 auto;
-        }
+        .dl-icon-btn:hover { background: #262c40; }
+        .dl-qr-wrap { display: flex; justify-content: center; background: #fff; padding: 14px; border-radius: 10px; width: fit-content; margin: 0 auto; }
 
-        .dl-side-col {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-        .dl-side-label {
-          font-size: 12px;
-          color: #8d96ad;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .dl-side-label--center {
-          justify-content: center;
-          text-transform: uppercase;
-          letter-spacing: 0.12em;
-          font-weight: 700;
-          color: #c8cee0;
-          font-size: 11px;
-        }
-        .dl-timer-card {
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 14px;
-        }
+        /* Timer card */
+        .dl-side-col { display: flex; flex-direction: column; gap: 18px; }
+        .dl-side-label { font-size: 12px; color: #8d96ad; display: flex; align-items: center; gap: 6px; }
+        .dl-side-label--center { justify-content: center; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: #c8cee0; font-size: 11px; }
+        .dl-timer-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
-        /* Circular countdown ring */
-        .dl-ring-wrap {
-          position: relative;
-          width: 168px;
-          height: 168px;
-        }
-        .dl-ring-svg {
-          width: 100%;
-          height: 100%;
-          transform: rotate(-90deg);
-        }
-        .dl-ring-track {
-          fill: none;
-          stroke: #1c2236;
-          stroke-width: 6;
-        }
-        .dl-ring-progress {
-          fill: none;
-          stroke: url(#dlRingGradient);
-          stroke-width: 6;
-          stroke-linecap: round;
-          transition: stroke-dashoffset 1s linear;
-        }
-        .dl-ring-progress--danger {
-          animation: dl-ring-pulse 1s ease-in-out infinite;
-        }
-        @keyframes dl-ring-pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.55;
-          }
-        }
-        .dl-ring-center {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-        }
-        .dl-ring-time {
-          font-size: 28px;
-          font-weight: 800;
-          color: #fff;
-          font-variant-numeric: tabular-nums;
-          letter-spacing: 0.02em;
-        }
-        .dl-ring-units {
-          display: flex;
-          gap: 16px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #7c8499;
-          font-weight: 700;
-        }
+        .dl-ring-wrap { position: relative; width: 168px; height: 168px; }
+        .dl-ring-svg  { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .dl-ring-track    { fill: none; stroke: #1c2236; stroke-width: 6; }
+        .dl-ring-progress { fill: none; stroke: url(#dlRingGradient); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+        .dl-ring-progress--danger { animation: dl-ring-pulse 1s ease-in-out infinite; }
+        @keyframes dl-ring-pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
 
-        .dl-timer--danger {
-          color: #ef4060;
-        }
-        .dl-side-sub {
-          color: #7c8499;
-          font-size: 12px;
-        }
+        .dl-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        .dl-ring-time   { font-size: 28px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+        .dl-ring-units  { display: flex; gap: 16px; letter-spacing: .1em; text-transform: uppercase; color: #7c8499; font-weight: 700; font-size: 9px; }
+        .dl-ring-units span  { font-size: 9px; }
 
-        .dl-side-label-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 14px;
-        }
-        .dl-status-pill {
-          font-size: 11px;
-          font-weight: 700;
-          padding: 3px 10px;
-          border-radius: 999px;
-        }
-        .dl-status-pill--waiting {
-          background: #3a2c12;
-          color: #f0b332;
-        }
-        .dl-status-pill--completed {
-          background: #16321f;
-          color: #2bd073;
-        }
-        .dl-status-pill--expired {
-          background: #3a3715;
-          color: #ef4060;
-        }
-        .dl-status-visual {
-          display: flex;
-          justify-content: center;
-          margin: 6px 0 14px;
-        }
+        .dl-side-sub { color: #7c8499; font-size: 12px; }
+
+        /* Status card */
+        .dl-side-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .dl-status-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+        .dl-status-pill--waiting   { background: #3a2c12; color: #f0b332; }
+        .dl-status-pill--completed { background: #16321f; color: #2bd073; }
+        .dl-status-pill--expired   { background: #3a3715; color: #ef4060; }
+
+        .dl-status-visual { display: flex; justify-content: center; margin: 6px 0 14px; }
         .dl-status-ring {
-          width: 86px;
-          height: 86px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 26px;
-          background: radial-gradient(circle, rgba(240, 192, 60, 0.18), transparent 70%);
-          border: 2px solid #6e5d2a;
-          color: #f0bc6f;
+          width: 86px; height: 86px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center; font-size: 26px;
+          background: radial-gradient(circle, rgba(240,192,60,.18), transparent 70%);
+          border: 2px solid #6e5d2a; color: #f0bc6f;
         }
-        .dl-status-ring--completed {
-          border-color: #1fae5c;
-          color: #2bd073;
-          background: radial-gradient(circle, rgba(31, 174, 92, 0.18), transparent 70%);
-        }
-        .dl-status-ring--expired {
-          border-color: #b3334a;
-          color: #ef4060;
-          background: radial-gradient(circle, rgba(239, 64, 96, 0.18), transparent 70%);
-        }
+        .dl-status-ring--completed { border-color: #1fae5c; color: #2bd073; background: radial-gradient(circle,rgba(31,174,92,.18),transparent 70%); }
+        .dl-status-ring--expired   { border-color: #b3334a; color: #ef4060; background: radial-gradient(circle,rgba(239,64,96,.18),transparent 70%); }
 
-        /* Icon animations — status ring only */
-        .dl-status-ring--waiting {
-          animation: dl-pulse-ring 1.8s ease-in-out infinite;
-        }
-        .dl-status-ring--waiting i {
-          animation: dl-hourglass-flip 1.8s ease-in-out infinite;
-          transform-origin: center;
-        }
-        .dl-status-ring--completed i {
-          animation: dl-check-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-        .dl-status-ring--expired i {
-          animation: dl-x-shake 0.5s ease-in-out both;
-        }
+        .dl-status-ring--waiting { animation: dl-pulse-ring 1.8s ease-in-out infinite; }
+        .dl-status-ring--waiting i { animation: dl-hourglass-flip 1.8s ease-in-out infinite; transform-origin: center; }
+        .dl-status-ring--completed i { animation: dl-check-pop .5s cubic-bezier(.34,1.56,.64,1) both; }
+        .dl-status-ring--expired   i { animation: dl-x-shake .5s ease-in-out both; }
 
-        @keyframes dl-pulse-ring {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(111, 138, 240, 0.35);
-          }
-          50% {
-            box-shadow: 0 0 0 10px rgba(111, 138, 240, 0);
-          }
-        }
-        @keyframes dl-hourglass-flip {
-          0%, 35% {
-            transform: rotate(0deg);
-          }
-          50%, 85% {
-            transform: rotate(180deg);
-          }
-          100% {
-            transform: rotate(180deg);
-          }
-        }
-        @keyframes dl-check-pop {
-          0% {
-            transform: scale(0.3);
-            opacity: 0;
-          }
-          60% {
-            transform: scale(1.25);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-        @keyframes dl-x-shake {
-          0%, 100% {
-            transform: translateX(0) scale(1);
-          }
-          20% {
-            transform: translateX(-4px) scale(1.1);
-          }
-          40% {
-            transform: translateX(4px) scale(1.1);
-          }
-          60% {
-            transform: translateX(-3px) scale(1.05);
-          }
-          80% {
-            transform: translateX(3px) scale(1.05);
-          }
-        }
+        @keyframes dl-pulse-ring    { 0%,100%{box-shadow:0 0 0 0 rgba(111,138,240,.35)} 50%{box-shadow:0 0 0 10px rgba(111,138,240,0)} }
+        @keyframes dl-hourglass-flip{ 0%,35%{transform:rotate(0deg)} 50%,85%{transform:rotate(180deg)} 100%{transform:rotate(180deg)} }
+        @keyframes dl-check-pop     { 0%{transform:scale(.3);opacity:0} 60%{transform:scale(1.25);opacity:1} 100%{transform:scale(1)} }
+        @keyframes dl-x-shake       { 0%,100%{transform:translateX(0) scale(1)} 20%{transform:translateX(-4px) scale(1.1)} 40%{transform:translateX(4px) scale(1.1)} 60%{transform:translateX(-3px) scale(1.05)} 80%{transform:translateX(3px) scale(1.05)} }
 
-        .dl-status-text {
-          text-align: center;
-          font-size: 13px;
-          color: #9aa4ba;
-          line-height: 1.5;
-          margin: 0;
-        }
+        .dl-status-text { text-align: center; font-size: 13px; color: #9aa4ba; line-height: 1.5; margin: 0; }
 
-        .dl-notice {
-          margin-top: 18px;
-          border: 1px dashed #5a4a1c;
-          background: #1d1908;
-          border-radius: 12px;
-          padding: 16px 18px;
+        /* Notice */
+        .dl-notice { margin-top: 18px; border: 1px dashed #5a4a1c; background: #1d1908; border-radius: 12px; padding: 16px 18px; }
+        .dl-notice-title { color: #f0b332; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+        .dl-notice ul { margin: 0; padding-left: 18px; color: #c8cee0; font-size: 13px; line-height: 1.8; }
+        .dl-accent-green { color: #2bd073; }
+        .dl-accent-red   { color: #ef4060; }
+        .dl-accent-amber { color: #f0b332; }
+
+        /* Deposit list */
+        .dl-list-head { display: flex; align-items: center; justify-content: space-between; }
+        .dl-list-title { color: #f2f4f8; font-weight: 700; font-size: 15px; margin: 0; }
+        .dl-refresh-btn {
+          background: #1c2133; border: 1px solid #262c40; color: #9aa4ba;
+          width: 32px; height: 32px; border-radius: 8px;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: background .15s ease;
         }
-        .dl-notice-title {
-          color: #f0b332;
-          font-weight: 700;
-          margin-bottom: 8px;
-          font-size: 14px;
-        }
-        .dl-notice ul {
-          margin: 0;
-          padding-left: 18px;
-          color: #c8cee0;
-          font-size: 13px;
-          line-height: 1.8;
-        }
-        .dl-accent-green {
-          color: #2bd073;
-        }
-        .dl-accent-red {
-          color: #ef4060;
-        }
-        .dl-accent-amber {
-          color: #f0b332;
-        }
+        .dl-refresh-btn:hover { background: #262c40; }
+        .dl-refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .dl-spin { animation: dl-spin 0.8s linear infinite; }
+        @keyframes dl-spin { to { transform: rotate(360deg); } }
+
+        .dl-deposit-id { font-size: 12px; color: #9cecfe; letter-spacing: .02em; }
+
+        /* Mobile list cards */
+        .dl-mobile-row { background: #161b29; border: 1px solid #262c40; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+        .dl-mobile-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .dl-mobile-num { font-size: 12px; color: #7c8499; }
+        .dl-mobile-row-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .dl-mobile-field { display: flex; flex-direction: column; gap: 2px; }
+        .dl-mobile-field small { font-size: 10px; color: #7c8499; text-transform: uppercase; letter-spacing: .06em; }
+        .dl-mobile-field span, .dl-mobile-field code { font-size: 13px; font-weight: 600; color: #f2f4f8; }
       `}</style>
     </div>
   );
