@@ -6,7 +6,8 @@ export const SubmitDepositWithdrawApi = async (data: unknown) => {
 };
 
 export const SubmitInitialDepositApi = async (data: unknown) => {
-    return (await apiClient.post("/user/binance/deposit/initiate", data)).data;
+  console.log('=== data ===', data);
+  return (await apiClient.post("/user/binance/deposit/initiate", data)).data;
 };
 
 export const VerifyDepositApi = async (data: unknown) => {
@@ -15,6 +16,10 @@ export const VerifyDepositApi = async (data: unknown) => {
 
 export const GetDepositInfoApi = async (token: string) => {
     return (await apiClient.get("/user/binance/deposit/info", { params: { token } })).data;
+};
+
+export const SubmitBinanceDepositApi = async (data: { binance_id: string; amount: number, payment_method: string  }) => {
+  return (await apiClient.post("/user/binance/deposit/initiate", data)).data;
 };
 
 export const depositWithdrawHistoryApi = async () => {
