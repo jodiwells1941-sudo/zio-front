@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { resendVerificationEmail, getResendStatus, verifyOtp } from "../api/auth";
+import { login } from "@/utils/auth";
 
 const RESEND_COOLDOWN = 60; // seconds — must match backend
 const OTP_LENGTH      = 4;
@@ -122,24 +123,68 @@ const EmailVerifySection = () => {
   };
 
   // ── Verify OTP ─────────────────────────────────────────────────────
+  // const handleVerify = async () => {
+  //   const code = otp.join("");
+  //   if (code.length < OTP_LENGTH) {
+  //     toast.error("Please enter the complete 4-digit code.");
+  //     return;
+  //   }
+  //   setVerifying(true);
+  //   try {
+  //     const res = await verifyOtp(code);
+  //     if (res?.status) {
+  //       toast.success(res?.message ?? "Email verified!");
+  //       router.push("/sign-in?verified=1");
+  //     } else {
+  //       toast.error(res?.message ?? "Invalid or expired code.");
+  //       resetOtpInputs();
+  //     }
+  //   } catch (err: any) {
+  //     toast.error(err?.response?.data?.message ?? "Verification failed.");
+  //     resetOtpInputs();
+  //   } finally {
+  //     setVerifying(false);
+  //   }
+  // };
   const handleVerify = async () => {
     const code = otp.join("");
-    if (code.length < OTP_LENGTH) {
+
+    if (code.length !== OTP_LENGTH) {
       toast.error("Please enter the complete 4-digit code.");
       return;
     }
+
     setVerifying(true);
+
     try {
       const res = await verifyOtp(code);
-      if (res?.status) {
-        toast.success(res?.message ?? "Email verified!");
-        router.push("/sign-in?verified=1");
-      } else {
-        toast.error(res?.message ?? "Invalid or expired code.");
-        resetOtpInputs();
+
+      if (!res?.error) {
+        const accessToken = res?.data?.access_token;
+        const user = res?.data?.user;
+
+        if (!accessToken || !user) {
+          toast.error("Login information was not returned.");
+          return;
+        }
+
+        login(accessToken, user);
+
+        toast.success(res?.message ?? "Email verified and login successful!");
+
+        window.location.href = "/dashboard";
+
+        return;
       }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Verification failed.");
+
+      toast.error(res?.message ?? "Invalid or expired code.");
+      resetOtpInputs();
+    } catch (err: unknown) {
+      const resp = err as { response?: { data?: { message?: string } } };
+      const message = resp?.response?.data?.message ?? (err instanceof Error ? err.message : undefined) ?? "Verification failed.";
+
+      toast.error(message);
+
       resetOtpInputs();
     } finally {
       setVerifying(false);
@@ -162,9 +207,11 @@ const EmailVerifySection = () => {
         // Server may return a retry_after even on error (rate-limit race)
         if (res?.retry_after) startCountdown(res.retry_after);
       }
-    } catch (err: any) {
-      const retryAfter = err?.response?.data?.retry_after;
-      toast.error(err?.response?.data?.message ?? "Failed to resend.");
+    } catch (err: unknown) {
+      const resp = err as { response?: { data?: { message?: string; retry_after?: number } } };
+      const retryAfter = resp?.response?.data?.retry_after;
+      const message = resp?.response?.data?.message ?? (err instanceof Error ? err.message : undefined) ?? "Failed to resend.";
+      toast.error(message);
       if (retryAfter) startCountdown(retryAfter);
     } finally {
       setResending(false);
