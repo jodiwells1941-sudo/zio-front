@@ -160,9 +160,10 @@ const RegisterForm = () => {
       } else {
         toast.error("Invalid registration response. Please try again.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // ── Map API validation errors onto fields if backend returns them ──
-      const apiErrors = err?.response?.data?.errors as Record<string, string[]> | undefined;
+      const axiosErr = err as any;
+      const apiErrors = axiosErr?.response?.data?.errors as Record<string, string[]> | undefined;
       if (apiErrors) {
         const mapped: Record<string, string> = {};
         Object.entries(apiErrors).forEach(([field, messages]) => {
@@ -170,7 +171,7 @@ const RegisterForm = () => {
         });
         setErrors(mapped);
       } else {
-        toast.error(err?.response?.data?.message ?? "Registration failed. Please try again.");
+        toast.error(axiosErr?.response?.data?.message ?? "Registration failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
