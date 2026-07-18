@@ -20,6 +20,11 @@ export const updateUserInfo = async (userData: unknown) => {
   return response.data;
 }
 
+export const updateVerificationUserData = async (userData: unknown) => {
+  const response = await apiClient.post('/auth/update-verification-user-data', userData);
+  return response.data;
+}
+
 export const updatePassword = async (params: unknown) => {
   const response = await apiClient.post('/auth/reset-password', params);
   return response.data;
