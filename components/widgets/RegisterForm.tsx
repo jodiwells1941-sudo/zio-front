@@ -181,7 +181,7 @@ const RegisterForm = () => {
     <form onSubmit={registerUser} noValidate>
 
       {/* ── Full Name ── */}
-      <div className="input-group-wrapper">
+      {/* <div className="input-group-wrapper">
         <div className={`input-wrapper ${errors.name ? "has-error" : ""}`}>
           <label htmlFor="authName">Full Name</label>
           <div className="input-single">
@@ -196,7 +196,7 @@ const RegisterForm = () => {
           </div>
           <FieldError message={errors.name} />
         </div>
-      </div>
+      </div> */}
 
       {/* ── Country ── */}
       {/* <div className={`input-wrapper mt-30 ${errors.country ? "has-error" : ""}`}>
