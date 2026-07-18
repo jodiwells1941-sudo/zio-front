@@ -498,7 +498,7 @@ export default function VerifyProfilePage() {
         </div>
 
         {/* Personal information — read-only summary */}
-        <div className="vp-card">
+        <div className="vp-card d-none d-md-block">
           <div className="vp-card-title"><i className="fas fa-info-circle" /> Personal Information</div>
           <div className="vp-info-grid">
             {[
