@@ -65,7 +65,7 @@ const STATUS_MAP: Record<number, { label: string; cls: string }> = {
 // ── payment methods ────────────────────────────────────────────────────────
 const PAYMENT_METHODS = [
   { id: "crypto",  label: "Crypto",         desc: "Pay with USDT (TRC20)",  icon: "fa-solid fa-coins" },
-  { id: "binance", label: "Binance Manual", desc: "Pay via Binance transfer", icon: "fa-solid fa-building-columns" },
+  { id: "binance", label: "Binance Pay Manual", desc: "Pay via Binance transfer", icon: "fa-brands fa-bitcoin" },
 ] as const;
 
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
@@ -367,8 +367,31 @@ export default function DepositLayout({
   return (
     <div className="dl-wrapper">
 
+      {/* Payment method selector */}
+      <div className="dl-card dl-method-card bg-light-dark mt-3">
+        <label className="dl-label mb-2 fs-5">Select Payment Method <small className="text-danger fs-4">*</small></label>
+        {/* dl-method-grid  */}
+        <div className="">
+          {PAYMENT_METHODS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`dl-method-btn bg-dark w-50 mt-3 ${paymentMethod === m.id ? "active" : ""}`}
+              disabled={isLocked || binanceSubmitted}
+              onClick={() => setPaymentMethod(m.id)}
+            >
+              <span className={` ${paymentMethod === m.id ? 'bg-warning' : 'bg-light-white'} dl-method-icon`}><i className={m.icon} /></span>
+              <span className="dl-method-text gap-0">
+                <span className="dl-method-label">{m.label}</span>
+                <small className="dl-method-sub">{m.desc}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Step indicator */}
-      <div className="dl-steps bg-light-dark mt-3">
+      <div className="dl-steps bg-light-dark mt-2">
         {steps.map((s, idx) => (
           <React.Fragment key={s.key}>
             <div className={`dl-step ${currentStep >= s.key ? "dl-step--done" : ""} ${currentStep === s.key ? "dl-step--active" : ""}`}>
@@ -381,28 +404,6 @@ export default function DepositLayout({
             {idx < steps.length - 1 && <div className={`dl-step-line ${currentStep > s.key ? "dl-step-line--done" : ""}`} />}
           </React.Fragment>
         ))}
-      </div>
-
-      {/* Payment method selector */}
-      <div className="dl-card dl-method-card bg-light-dark">
-        <label className="dl-label mb-2">Select Payment Method <small className="text-danger fs-4">*</small></label>
-        <div className="dl-method-grid">
-          {PAYMENT_METHODS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              className={`dl-method-btn bg-dark ${paymentMethod === m.id ? "active" : ""}`}
-              disabled={isLocked || binanceSubmitted}
-              onClick={() => setPaymentMethod(m.id)}
-            >
-              <span className={` ${paymentMethod === m.id ? 'bg-warning' : 'bg-light-white'} dl-method-icon`}><i className={m.icon} /></span>
-              <span className="dl-method-text">
-                <span className="dl-method-label">{m.label}</span>
-                <small className="dl-method-sub">{m.desc}</small>
-              </span>
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* ── CRYPTO FLOW (unchanged) ─────────────────────────────────────────── */}
