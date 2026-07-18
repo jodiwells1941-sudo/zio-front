@@ -703,7 +703,7 @@ export default function DepositLayout({
 
       {/* ── Contact Support + Important Notice (redesigned, shared) ─────────── */}
       <div className="dl-support-section">
-        {depositInfo && status !== "idle" || binanceSubmitted && (
+        {(depositInfo || status !== "idle" || binanceSubmitted) && (
           <div className="dl-support-grid bg-light-dark">
             <button type="button" className="dl-support-card bg-dark" onClick={() => setSupportModalMode("submit")}>
               <span className="dl-support-icon dl-support-icon--paid"><i className="fa-solid fa-receipt" /></span>
