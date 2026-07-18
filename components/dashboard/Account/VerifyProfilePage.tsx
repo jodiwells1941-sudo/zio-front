@@ -497,6 +497,52 @@ export default function VerifyProfilePage() {
           </div>
         </div>
 
+        {/* Personal information — read-only summary */}
+        <div className="vp-card">
+          <div className="vp-card-title"><i className="fas fa-info-circle" /> Personal Information</div>
+          <div className="vp-info-grid">
+            {[
+              { lbl: "Full Name",           val: user?.name  || "—",                      icon: null },
+              {
+                lbl: "Email",
+                val: user?.email || "—",
+                icon: !isEmailVerified ? <i className="fas fa-times-circle crs" /> : <i className="fas fa-check-circle chk" />,
+              },
+              {
+                lbl: "Phone",
+                val: user?.phone || "—",
+                icon: !user?.phone ? null : !user.phone_verified ? <i className="fas fa-times-circle crs" /> : <i className="fas fa-check-circle chk" />,
+              },
+              {
+                lbl: "Account Status",
+                val: user?.status === 1 ? "Active" : "Inactive",
+                icon: user?.status === 1
+                  ? <i className="fas fa-check-circle chk" />
+                  : <i className="fas fa-times-circle crs" />,
+              },
+              {
+                lbl: "Verification Status",
+                val: currentDocState?.status === "approved" ? "Verified"
+                   : currentDocState?.status === "rejected" ? "Rejected"
+                   : currentDocState?.status === "pending"  ? "Pending"
+                   : "Unverified",
+                icon: currentDocState?.status === "approved"
+                  ? <i className="fas fa-check-circle chk" />
+                  : currentDocState?.status === "rejected"
+                  ? <i className="fas fa-times-circle crs" />
+                  : <i className="fas fa-clock crs" />,
+              },
+            ].map((item) => (
+              <div key={item.lbl} className="vp-info-item">
+                <div className="vp-info-lbl">
+                  {item.lbl}
+                </div>
+                <div className="vp-info-val">{item.icon}{item.val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Personal information — editable */}
         <div className="vp-card">
           <div className="vp-card-title"><i className="fa-solid fa-file-pen" /> Personal Information</div>
@@ -545,52 +591,6 @@ export default function VerifyProfilePage() {
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* Personal information — read-only summary */}
-        <div className="vp-card">
-          <div className="vp-card-title"><i className="fas fa-info-circle" /> Personal Information</div>
-          <div className="vp-info-grid">
-            {[
-              { lbl: "Full Name",           val: user?.name  || "—",                      icon: null },
-              {
-                lbl: "Email",
-                val: user?.email || "—",
-                icon: !isEmailVerified ? <i className="fas fa-times-circle crs" /> : <i className="fas fa-check-circle chk" />,
-              },
-              {
-                lbl: "Phone",
-                val: user?.phone || "—",
-                icon: !user?.phone ? null : !user.phone_verified ? <i className="fas fa-times-circle crs" /> : <i className="fas fa-check-circle chk" />,
-              },
-              {
-                lbl: "Account Status",
-                val: user?.status === 1 ? "Active" : "Inactive",
-                icon: user?.status === 1
-                  ? <i className="fas fa-check-circle chk" />
-                  : <i className="fas fa-times-circle crs" />,
-              },
-              {
-                lbl: "Verification Status",
-                val: currentDocState?.status === "approved" ? "Verified"
-                   : currentDocState?.status === "rejected" ? "Rejected"
-                   : currentDocState?.status === "pending"  ? "Pending"
-                   : "Unverified",
-                icon: currentDocState?.status === "approved"
-                  ? <i className="fas fa-check-circle chk" />
-                  : currentDocState?.status === "rejected"
-                  ? <i className="fas fa-times-circle crs" />
-                  : <i className="fas fa-clock crs" />,
-              },
-            ].map((item) => (
-              <div key={item.lbl} className="vp-info-item">
-                <div className="vp-info-lbl">
-                  {item.lbl}
-                </div>
-                <div className="vp-info-val">{item.icon}{item.val}</div>
-              </div>
-            ))}
           </div>
         </div>
 
