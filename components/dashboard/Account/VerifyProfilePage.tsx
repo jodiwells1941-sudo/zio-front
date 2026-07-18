@@ -1,11 +1,32 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { profileVerificationApi, submitProfileVerificationApi } from "@/app/api/auth";
-import { useState, useRef, useEffect } from "react";
+import { profileVerificationApi, submitProfileVerificationApi, updateUserInfo, updateVerificationUserData } from "@/app/api/auth";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { EditableName } from "./EditableName";
 import { useRouter } from "next/navigation";
+import { login } from "@/utils/auth";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+
+function validateFields(fields: {
+  name: string;
+  country: string;
+}): Record<string, string> {
+  const errors: Record<string, string> = {};
+  return errors;
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="field-error" role="alert" aria-live="polite">
+      <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 5 }} />
+      {message}
+    </p>
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +49,15 @@ interface DocumentState {
 }
 
 type Side = "front" | "back";
+
+type Option = { label: string; value: string };
+type LoginUser = Parameters<typeof login>[1];
+type LoginResponse = {
+  data?: {
+    access_token?: string;
+    user?: LoginUser;
+  };
+};
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -110,9 +140,6 @@ const formatCurrency = (amount: number | undefined | null): string => {
 export default function VerifyProfilePage() {
   const { user } = useAuth();
 
-  console.log('user ==', user);
-  
-
   const userVerifyStatus = mapVerifyStatus(user?.verify_status);
   const isEmailVerified  = user?.email_verified_at;
 
@@ -122,8 +149,18 @@ export default function VerifyProfilePage() {
   const [loading,    setLoading]    = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const route = useRouter();
+  const options = useMemo(() => countryList().getData() as Option[], []);
 
   const docInputRef = useRef<HTMLInputElement>(null);
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [country, setCountry] = useState<Option | null>(null);
+  const [name, setName] = useState<string>(user?.name ?? "");
+
+  // Keep name in sync if user loads after mount
+  useEffect(() => {
+    if (user?.name) setName(user.name);
+  }, [user?.name]);
 
   // ── Load existing data ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -213,6 +250,55 @@ export default function VerifyProfilePage() {
     setTimeout(() => docInputRef.current?.click(), 0);
   };
 
+  // ── Update profile info (name / country) ────────────────────────────────────
+  const updateUser = async (): Promise<boolean> => {
+    const countryValue = country?.label ?? "";
+
+    // ── Client-side validation ────────────────────────────────────────────
+    const fieldErrors = validateFields({ name, country: countryValue });
+
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      return false;
+    }
+
+    setErrors({});
+
+    // ── API call ──────────────────────────────────────────────────────────
+    try {
+      const data = (await updateVerificationUserData({ name, country: countryValue })) as LoginResponse;
+      const responseData = data?.data;
+      console.log("responseData", responseData);
+      return true;
+    } catch (err: unknown) {
+      // ── Map API validation errors onto fields if backend returns them ──
+      let apiErrors: Record<string, string[]> | undefined;
+      let apiMessage: string | undefined;
+
+      if (typeof err === "object" && err !== null) {
+        const response = (err as Record<string, unknown>).response;
+        if (typeof response === "object" && response !== null) {
+          const data = (response as Record<string, unknown>).data;
+          if (typeof data === "object" && data !== null) {
+            apiErrors = (data as Record<string, unknown>).errors as Record<string, string[]> | undefined;
+            apiMessage = (data as Record<string, unknown>).message as string | undefined;
+          }
+        }
+      }
+
+      if (apiErrors) {
+        const mapped: Record<string, string> = {};
+        Object.entries(apiErrors).forEach(([field, messages]) => {
+          mapped[field] = messages[0]; // show first message per field
+        });
+        setErrors(mapped);
+      } else {
+        toast.error(apiMessage ?? "Update failed. Please try again.");
+      }
+      return false;
+    }
+  };
+
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     const hasNewFile = Object.values(documents).some(
@@ -222,6 +308,9 @@ export default function VerifyProfilePage() {
       toast.error("Please select at least one document image before submitting.");
       return;
     }
+
+    const profileOk = await updateUser();
+    if (!profileOk) return;
 
     setSubmitting(true);
     try {
@@ -238,13 +327,11 @@ export default function VerifyProfilePage() {
 
       const res = await submitProfileVerificationApi(formData);
       toast.success(res?.message ?? "Documents submitted successfully.");
-      // window.location.reload();
       route.push("/dashboard/account");
-      // reload page  
 
       if (res && res.document) {
         if (res.document.status == "pending") {
-          // update localStorage 
+          // update localStorage
           const userData = JSON.parse(localStorage.getItem("user") || "{}");
           userData.verify_status = 2; // pending
           localStorage.setItem("user", JSON.stringify(userData));
@@ -348,8 +435,6 @@ export default function VerifyProfilePage() {
           {[
             { n: 1, label: "Profile Info" },
             { n: 2, label: "Document" },
-            // { n: 3, label: "Under Review" },
-            // { n: 4, label: "Status" },
           ].map((s, i) => (
             <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div className={`vp-step ${stepState(s.n)}`}>
@@ -390,7 +475,6 @@ export default function VerifyProfilePage() {
             <div style={{ flex: 1 }}>
               <EditableName user={user} />
               <div className="vp-uid">User ID: {user?.uu_id || "—"}</div>
-              {/* is verified  */}
               {currentDocState?.status === "approved" && (
                 <div className="vp-verified">
                   <i className="fas fa-check-circle chk fs-6" />
@@ -413,7 +497,58 @@ export default function VerifyProfilePage() {
           </div>
         </div>
 
-        {/* Personal information */}
+        {/* Personal information — editable */}
+        <div className="vp-card">
+          <div className="vp-card-title"><i className="fa-solid fa-file-pen" /> Personal Information</div>
+
+          <div className="row">
+            <div className="col-md-6">
+              <div className="input-group-wrapper">
+                <div className={`input-wrapper ${errors.name ? "has-error" : ""}`}>
+                  <label htmlFor="authName">Full Name <span className="text-danger fs-4">*</span></label>
+                  <div className="input-single">
+                    <input
+                      type="text"
+                      name="name"
+                      id="authName"
+                      placeholder="Devon Lane"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                    <i className="fa-solid fa-user" />
+                  </div>
+                  <FieldError message={errors.name} />
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <div className={`input-wrapper pt-4 pt-md-0 ${errors.country ? "has-error" : ""}`}>
+                <label>Country <span className="text-danger fs-4">*</span></label>
+                <input type="hidden" name="auth-country" value={country?.label ?? ""} />
+                <div className="input-single">
+                  <Select
+                    instanceId="authCountry"
+                    options={options}
+                    value={country}
+                    onChange={(v) => {
+                      setCountry(v as Option);
+                    }}
+                    placeholder="Select Country"
+                    isSearchable
+                    className="w-100 fs-6"
+                    classNamePrefix="rs"
+                  />
+                  <i className="fa-solid fa-globe" />
+                </div>
+                <FieldError message={errors.country} />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Personal information — read-only summary */}
         <div className="vp-card">
           <div className="vp-card-title"><i className="fas fa-info-circle" /> Personal Information</div>
           <div className="vp-info-grid">
@@ -452,7 +587,6 @@ export default function VerifyProfilePage() {
               <div key={item.lbl} className="vp-info-item">
                 <div className="vp-info-lbl">
                   {item.lbl}
-                  {/* {item.icon && <span style={{ marginLeft: 6 }}>{item.icon}</span>} */}
                 </div>
                 <div className="vp-info-val">{item.icon}{item.val}</div>
               </div>
@@ -480,7 +614,6 @@ export default function VerifyProfilePage() {
                 }
                 onClick={() => setActiveDoc(tab.id)}
               >
-                {/* left dot — always visible, small */}
                 <span style={{
                   width: 7, height: 7, borderRadius: "50%",
                   background: activeDoc === tab.id ? tab.color : "rgba(255,255,255,0.2)",
@@ -489,7 +622,6 @@ export default function VerifyProfilePage() {
 
                 {tab.title}
 
-                {/* right dot — only on active, larger & glowing */}
                 {activeDoc === tab.id && (
                   <span style={{
                     width: 12, height: 12, borderRadius: "50%",
@@ -612,4 +744,3 @@ export default function VerifyProfilePage() {
     </>
   );
 }
-

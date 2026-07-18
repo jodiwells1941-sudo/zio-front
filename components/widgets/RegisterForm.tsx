@@ -24,22 +24,22 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,15}$
 
 function validateFields(fields: {
   name: string;
-  country: string;
+  // country: string;
   email: string;
   password: string;
   ref?: string;
 }): Record<string, string> {
   const errors: Record<string, string> = {};
 
-  if (!fields.name.trim()) {
-    errors.name = "Full name is required.";
-  } else if (fields.name.trim().length < 2) {
-    errors.name = "Name must be at least 2 characters.";
-  }
+  // if (!fields.name.trim()) {
+  //   errors.name = "Full name is required.";
+  // } else if (fields.name.trim().length < 2) {
+  //   errors.name = "Name must be at least 2 characters.";
+  // }
 
-  if (!fields.country) {
-    errors.country = "Please select your country.";
-  }
+  // if (!fields.country) {
+  //   errors.country = "Please select your country.";
+  // }
 
   if (!fields.email.trim()) {
     errors.email = "Email address is required.";
@@ -125,11 +125,12 @@ const RegisterForm = () => {
     const name     = (formData.get("name")     as string) ?? "";
     const email    = (formData.get("email")    as string) ?? "";
     const password = (formData.get("password") as string) ?? "";
-    const countryValue = country?.label ?? "";
+    // const countryValue = country?.label ?? "";
     const ref = partnerCode.trim() || undefined;
 
     // ── Client-side validation ────────────────────────────────────────────
-    const fieldErrors = validateFields({ name, country: countryValue, email, password, ref});
+    // const fieldErrors = validateFields({ name, country: countryValue, email, password, ref});
+    const fieldErrors = validateFields({ name, email, password, ref});
 
     if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors);
@@ -141,7 +142,7 @@ const RegisterForm = () => {
 
     // ── API call ──────────────────────────────────────────────────────────
     try {
-      const data = (await registerAPI({ name, country: countryValue, email, password, ref })) as LoginResponse;
+      const data = (await registerAPI({ name, email, password, ref })) as LoginResponse;
       const responseData = data?.data;
 
       if (responseData?.access_token && responseData?.user) {
@@ -198,7 +199,7 @@ const RegisterForm = () => {
       </div>
 
       {/* ── Country ── */}
-      <div className={`input-wrapper mt-30 ${errors.country ? "has-error" : ""}`}>
+      {/* <div className={`input-wrapper mt-30 ${errors.country ? "has-error" : ""}`}>
         <label>Country</label>
         <input type="hidden" name="auth-country" value={country?.label ?? ""} />
         <div className="input-single">
@@ -218,11 +219,11 @@ const RegisterForm = () => {
           <i className="fa-solid fa-globe" />
         </div>
         <FieldError message={errors.country} />
-      </div>
+      </div> */}
 
       {/* ── Email ── */}
       <div className={`input-wrapper mt-30 ${errors.email ? "has-error" : ""}`}>
-        <label htmlFor="authEmail">Your Email</label>
+        <label htmlFor="authEmail">Your Email <span className="text-danger fs-3">*</span></label>
         <div className="input-single">
           <input
             type="email"
@@ -238,7 +239,7 @@ const RegisterForm = () => {
 
       {/* ── Password ── */}
       <div className={`input-wrapper mt-30 password-group ${errors.password ? "has-error" : ""}`}>
-        <label htmlFor="authPassword">Your Password</label>
+        <label htmlFor="authPassword">Your Password <span className="text-danger fs-3">*</span></label>
         <div className="input-single">
           <input
             type={showPassword ? "text" : "password"}
