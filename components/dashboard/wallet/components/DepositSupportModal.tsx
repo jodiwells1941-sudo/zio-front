@@ -11,9 +11,10 @@ type Props = {
   depositAmount?: string;            // pre-fill from parent
   onClose: () => void;
   onSuccess: () => void;
+  paymentProofSubmit: () => void;
 };
 
-export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT", depositAmount = "", onClose, onSuccess }: Props) {
+export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT", depositAmount = "", onClose, onSuccess, paymentProofSubmit }: Props) {
   const [txId, setTxId]           = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>(depositAmount);
   const [note, setNote]           = useState<string>("");
@@ -60,6 +61,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
       toast.success(mode === "submit" ? "Payment details submitted!" : "Support request sent!");
       onSuccess();
       onClose();
+      paymentProofSubmit();
     } catch { toast.error("Submission failed. Please try again."); }
     finally { setIsLoading(false); }
   };
