@@ -730,24 +730,14 @@ export default function DepositLayout({
         </>
       )}
 
-      {/* ── BINANCE MANUAL FLOW ──────────────────────────────────────────────── */}
-      {paymentMethod === "binance" && (
+
+
+      {/* ── BINANCE MANUAL FLOW — step 1: form ───────────────────────────────── */}
+      {paymentMethod === "binance" && !binanceSubmitted && (
         <div className="dl-card dl-form-card bg-light-dark">
           <div className="dl-form-grid deposit-wrapper mt-0">
             <div>
-              <label className="dl-label">1. Your Binance ID <small className="text-danger fs-4">*</small></label>
-              <div className="amount-input mb-2">
-                <input
-                  type="text" placeholder="Enter your Binance ID"
-                  value={binanceUserId} disabled={binanceSubmitted}
-                  onChange={(e) => setBinanceUserId(e.target.value)}
-                />
-              </div>
-              <small className="dl-hint text-danger">This helps our team match your transfer faster.</small>
-            </div>
-
-            <div>
-              <label className="dl-label">2. Deposit Amount <small className="text-danger fs-4">*</small></label>
+              <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
               <div className="amount-input mb-2">
                 <input
                   type="text" inputMode="decimal" placeholder="Amount"
@@ -759,6 +749,7 @@ export default function DepositLayout({
                 />
                 <span>USD</span>
               </div>
+
               {amountPreset?.length > 0 && (
                 <div className="dl-amount-presets">
                   {amountPreset.map((n) => (
@@ -770,126 +761,286 @@ export default function DepositLayout({
               )}
               <small className="dl-hint text-danger">Min: 1 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
             </div>
-          </div>
 
-          <div className="row">
-            <div className="col-md-6">
-              <div className="dl-block">
-                <span className="dl-block-head"><span>Admin Binance QR Code</span></span>
-                <div className=" w-100">
-                   <span className="dl-qr-wrap w-100 bg-transparent">
-                    <Image src={'/images/admin-qr-code.png'} width={200} height={200} alt="Deposit QR code" className="rounded p-2 bg-white" />
-                   </span>
+            <div>
+                <label className="dl-label">2. Your Binance ID <small className="text-danger fs-4">*</small></label>
+                <div className="amount-input mb-2">
+                  <input
+                    type="text" placeholder="Enter your Binance ID"
+                    value={binanceUserId} disabled={binanceSubmitted}
+                    onChange={(e) => setBinanceUserId(e.target.value)}
+                  />
                 </div>
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <div className="dl-block">
-                <div className="dl-block-head"><span>Admin Binance Wallet Address</span><span className="dl-pill">Binance</span></div>
-                <div className="dl-address-row">
-                  <code className="dl-address">{adminBinance.wallet_address}</code>
-                  <button type="button" className="dl-icon-btn" onClick={() => copyText(adminBinance.wallet_address, "Wallet address")} aria-label="Copy wallet address">
-                    <i className="fa-solid fa-copy" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="dl-block">
-                <div className="dl-block-head"><span>Admin Binance ID</span></div>
-                <div className="dl-address-row">
-                  <code className="dl-address">{adminBinance.binance_id}</code>
-                  <button type="button" className="dl-icon-btn" onClick={() => copyText(adminBinance.binance_id, "Binance ID")} aria-label="Copy Binance ID">
-                    <i className="fa-solid fa-copy" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="d-flex justify-content-end pt-4">
-                <button type="button" className="dl-cta"
-                  disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
-                  onClick={handleBinanceSubmit}>
-                  {binanceSubmitting ? "Submitting..." : binanceSubmitted ? "Request Submitted" : "Create Deposit"} <span aria-hidden>→</span>
-                </button>
-              </div>
+                <small className="dl-hint text-danger">This helps our team match your transfer faster.</small>
+              
             </div>
           </div>
 
-          
-
-          {binanceSubmitted && (
-            <div className="dl-notice mt-3">
-              <div className="dl-binance-submitted">
-                <i className="fa-solid fa-circle-check" />
-                <div>
-                  <strong>Deposit request created.</strong>
-                  <p>Please complete the transfer to the address above, then use &quot;I&apos;ve Already Paid&quot; below to submit your payment details for review.</p>
-                </div>
-              </div>
-              <div className="d-flex justify-content-end pt-2">
-                <button type="button" className="dl-cta dl-cta--secondary text-white" onClick={resetBinanceFlow}>
-                  Create Another Deposit
-                </button>
-              </div>
-            </div>
-          )}
+          <div className="d-flex justify-content-end pt-2">
+            <button type="button" className="dl-cta w-50"
+              disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
+              onClick={handleBinanceSubmit}>
+              {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── Contact Support + Important Notice (redesigned, shared) ─────────── */}
-      <div className="dl-support-section">
-        {(depositInfo || status !== "idle" || binanceSubmitted) && (
-          <div className="dl-support-grid bg-light-dark">
-            <button type="button" className="dl-support-card bg-dark" onClick={() => setSupportModalMode("submit")}>
-              <span className="dl-support-icon dl-support-icon--paid"><i className="fa-solid fa-receipt" /></span>
-              <span className="dl-support-body">
-                <span className="dl-support-title">I&apos;ve Already Paid</span>
-                <span className="dl-support-desc">Already sent the payment? Submit your payment details for faster verification.</span>
-                <span className="dl-support-cta">Submit Payment Details <i className="fa-solid fa-arrow-right" /></span>
-              </span>
-            </button>
+      {/* ── BINANCE MANUAL FLOW — step 2: admin pay id / qr / detection ─────── */}
+      {paymentMethod === "binance" && binanceSubmitted && (
+        <div className="dl-details">
+          <div className="dl-details-grid dl-bp-grid">
+            {/* left: pay id / qr card */}
+            <div className="dl-card dl-info-card bg-light-dark">
 
-            <div className="dl-support-divider"><span>OR</span></div>
+              <div className="dl-bp-header pb-4">
+                <span className="dl-bp-badge">
+                  <i className="fa-solid fa-shield-halved" /> Secure • Fast • Instant
+                </span>
+                <h2 className="dl-bp-title">Deposit with <span>Binance Pay</span></h2>
+                <p className="dl-bp-subtitle">
+                  Send crypto using Binance Pay ID and it will be credited instantly after network confirmation.
+                </p>
+              </div>
 
-            <button type="button" className="dl-support-card bg-dark" onClick={() => route.push('/dashboard/support/')}>
-              <span className="dl-support-icon dl-support-icon--help"><i className="fa-solid fa-headset" /></span>
-              <span className="dl-support-body">
-                <span className="dl-support-title">Need Support?</span>
-                <span className="dl-support-desc">Facing any issue or didn&apos;t get your balance? Our support team is here to help you.</span>
-                <span className="dl-support-cta">Contact Support <i className="fa-solid fa-arrow-right" /></span>
-              </span>
+              <div className="dl-bp-step-head">
+                <span className="dl-bp-step-num">1</span>
+                <div>
+                  <strong>Send Payment to Binance Pay ID</strong>
+                  <p>Scan the QR code or copy the Binance Pay ID below to send your payment.</p>
+                </div>
+              </div>
+
+              <div className="dl-bp-qr-frame">
+                <div className="dl-qr-wrap dl-bp-qr">
+                  <Image src="/images/admin-qr-code.png" width={190} height={190} alt="Binance Pay QR code" className="rounded" />
+                </div>
+              </div>
+
+              <div className="text-center">
+                <span className="dl-bp-pill">Binance Pay ID</span>
+              </div>
+
+              <div className="dl-address-row dl-bp-id-row">
+                <code className="dl-address text-center">{adminBinance.binance_id}</code>
+                <button type="button" className="dl-icon-btn" onClick={() => copyText(adminBinance.binance_id, "Binance Pay ID")} aria-label="Copy Binance Pay ID">
+                  <i className="fa-solid fa-copy" />
+                </button>
+              </div>
+
+              <div className="text-center">
+                <span className="dl-bp-verified">
+                  <i className="fa-solid fa-circle-check" /> Verified Merchant
+                </span>
+              </div>
+
+              <div className="dl-bp-ministeps">
+                <div className="dl-bp-ministep">
+                  <span className="dl-bp-ministep-icon"><i className="fa-brands fa-google-play" /></span>
+                  <div>
+                    <strong>Open Binance App</strong>
+                    <small>Go to Binance App and tap on &quot;Pay&quot;</small>
+                  </div>
+                </div>
+                <i className="fa-solid fa-chevron-right dl-bp-arrow" />
+                <div className="dl-bp-ministep">
+                  <span className="dl-bp-ministep-icon"><i className="fa-solid fa-qrcode" /></span>
+                  <div>
+                    <strong>Scan or Paste</strong>
+                    <small>Scan QR code or paste Pay ID</small>
+                  </div>
+                </div>
+                <i className="fa-solid fa-chevron-right dl-bp-arrow" />
+                <div className="dl-bp-ministep">
+                  <span className="dl-bp-ministep-icon"><i className="fa-solid fa-paper-plane" /></span>
+                  <div>
+                    <strong>Send Payment</strong>
+                    <small>Enter the amount &amp; confirm payment</small>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dl-bp-notes">
+                <div className="dl-bp-notes-text">
+                  <div className="dl-bp-notes-head"><i className="fa-solid fa-circle-info" /> Important Notes</div>
+                  <ul>
+                    <li>Only USDT (TRC20, BEP20) payments are accepted.</li>
+                    <li>Send only the exact amount you want to deposit.</li>
+                    <li>Do not send from exchanges or smart contract wallets.</li>
+                    <li>Wrong payment may result in permanent loss.</li>
+                  </ul>
+                </div>
+                <span className="dl-bp-notes-icon"><i className="fa-solid fa-shield-halved" /></span>
+              </div>
+            </div>
+
+            {/* right: sidebar */}
+            <div className="dl-side-col">
+              <div className="dl-card bg-light-dark dl-bp-trust">
+                <span className="dl-bp-trust-icon"><i className="fa-solid fa-shield-halved" /></span>
+                <strong>Secure &amp; Trusted</strong>
+                <small>Your payment is protected by Binance Pay security standards.</small>
+              </div>
+
+              <div className="dl-card bg-light-dark">
+                <span className="dl-bp-card-title">Payment Details</span>
+                <div className="dl-row">
+                  <span className="dl-row-label">Currency</span>
+                  <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT</span>
+                </div>
+                <div className="dl-row">
+                  <span className="dl-row-label">Network</span>
+                  <span className="dl-pill">TRC20</span>
+                </div>
+                <div className="dl-row">
+                  <span className="dl-row-label">Min. Deposit</span>
+                  <span className="dl-row-value">1 USDT</span>
+                </div>
+                <div className="dl-row">
+                  <span className="dl-row-label">Confirmations</span>
+                  <span className="dl-row-value">1</span>
+                </div>
+                <div className="dl-row" style={{ borderBottom: "none" }}>
+                  <span className="dl-row-label">Estimated Credit</span>
+                  <span className="dl-row-value">1 - 5 Minutes</span>
+                </div>
+              </div>
+
+              <div className="dl-card bg-light-dark">
+                <span className="dl-bp-card-title">How It Works?</span>
+                <div className="dl-bp-howitworks">
+                  <div className="dl-bp-how-item">
+                    <span className="dl-bp-how-icon"><i className="fa-solid fa-id-badge" /></span>
+                    <div>
+                      <strong>Get Binance Pay ID</strong>
+                      <small>Use the Pay ID or QR code to send payment.</small>
+                    </div>
+                  </div>
+                  <div className="dl-bp-how-item">
+                    <span className="dl-bp-how-icon"><i className="fa-solid fa-coins" /></span>
+                    <div>
+                      <strong>Send Any Amount</strong>
+                      <small>Send any amount of USDT (TRC20) using Binance App.</small>
+                    </div>
+                  </div>
+                  <div className="dl-bp-how-item">
+                    <span className="dl-bp-how-icon"><i className="fa-solid fa-bolt" /></span>
+                    <div>
+                      <strong>Get Instant Credit</strong>
+                      <small>After confirmation, the amount will be credited instantly.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dl-card bg-light-dark">
+                <span className="dl-bp-card-title">Need Help?</span>
+                <div className="dl-bp-help-actions">
+                  <button type="button" className="dl-bp-help-btn" onClick={() => setSupportModalMode("submit")}>
+                    <i className="fa-solid fa-receipt" /> I&apos;ve Already Paid
+                  </button>
+                  <button type="button" className="dl-bp-help-btn dl-bp-help-btn--ghost" onClick={() => route.push('/dashboard/support/')}>
+                    <i className="fa-solid fa-headset" /> Contact Support
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment detection tracker */}
+          <div className="dl-card bg-light-dark dl-bp-detection">
+            <div className="dl-bp-step-head">
+              <span className="dl-bp-step-num">2</span>
+              <strong>Payment Detection</strong>
+            </div>
+
+            <div className="dl-bp-tracker">
+              <div className="dl-bp-tracker-step dl-bp-tracker-step--active">
+                <span className="dl-bp-tracker-dot"><i className="fa-regular fa-hourglass-half" /></span>
+                <span>Waiting for Payment</span>
+              </div>
+              <div className="dl-bp-tracker-line" />
+              <div className="dl-bp-tracker-step">
+                <span className="dl-bp-tracker-dot"><i className="fa-solid fa-arrow-down" /></span>
+                <span>Confirming</span>
+              </div>
+              <div className="dl-bp-tracker-line" />
+              <div className="dl-bp-tracker-step">
+                <span className="dl-bp-tracker-dot"><i className="fa-solid fa-arrow-down" /></span>
+                <span>Crediting</span>
+              </div>
+              <div className="dl-bp-tracker-line" />
+              <div className="dl-bp-tracker-step">
+                <span className="dl-bp-tracker-dot"><i className="fa-solid fa-check" /></span>
+                <span>Completed</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-end pt-2">
+            <button type="button" className="dl-cta dl-cta--secondary text-white" onClick={resetBinanceFlow}>
+              Create Another Deposit
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-        <div className="dl-notice-bar bg-dark">
-          <div className="dl-notice-head"><i className="fa-solid fa-triangle-exclamation" /> Important Notice</div>
-          <div className="dl-notice-items">
-            <div className="dl-notice-item">
-              <span className="dl-notice-icon dl-notice-icon--green"><i className="fa-solid fa-dollar-sign" /></span>
-              <span className="line-h-22">
-                Send only <strong className="dl-accent-green">USDT</strong> to the {activeNetworkLabel} address shown above.
-              </span>
+      {/* ── Contact Support + Important Notice (redesigned, shared — crypto/erc only) ── */}
+      {paymentMethod !== "binance" && (
+        <div className="dl-support-section">
+          {(depositInfo || status !== "idle") && (
+            <div className="dl-support-grid bg-light-dark">
+              <button type="button" className="dl-support-card bg-dark" onClick={() => setSupportModalMode("submit")}>
+                <span className="dl-support-icon dl-support-icon--paid"><i className="fa-solid fa-receipt" /></span>
+                <span className="dl-support-body">
+                  <span className="dl-support-title">I&apos;ve Already Paid</span>
+                  <span className="dl-support-desc">Already sent the payment? Submit your payment details for faster verification.</span>
+                  <span className="dl-support-cta">Submit Payment Details <i className="fa-solid fa-arrow-right" /></span>
+                </span>
+              </button>
+
+              <div className="dl-support-divider"><span>OR</span></div>
+
+              <button type="button" className="dl-support-card bg-dark" onClick={() => route.push('/dashboard/support/')}>
+                <span className="dl-support-icon dl-support-icon--help"><i className="fa-solid fa-headset" /></span>
+                <span className="dl-support-body">
+                  <span className="dl-support-title">Need Support?</span>
+                  <span className="dl-support-desc">Facing any issue or didn&apos;t get your balance? Our support team is here to help you.</span>
+                  <span className="dl-support-cta">Contact Support <i className="fa-solid fa-arrow-right" /></span>
+                </span>
+              </button>
             </div>
-            <div className="dl-notice-item">
-              <span className="dl-notice-icon dl-notice-icon--pink"><i className="fa-solid fa-scale-balanced" /></span>
-              <span className="line-h-22">Send <strong className="dl-accent-amber">exact amount</strong> as shown. Wrong amount may require manual review.</span>
-            </div>
-            <div className="dl-notice-item">
-              <span className="dl-notice-icon dl-notice-icon--amber"><i className="fa-solid fa-ban" /></span>
-              <span className="line-h-22">Do not send from an exchange (Binance, Coinbase, etc.) using an internal transfer.</span>
-            </div>
-            <div className="dl-notice-item">
-              <span className="dl-notice-icon dl-notice-icon--emerald"><i className="fa-solid fa-circle-check" /></span>
-              <span className="line-h-22">Your payment will be confirmed after 1 network confirmation.</span>
-            </div>
-            <div className="dl-notice-item">
-              <span className="dl-notice-icon dl-notice-icon--purple"><i className="fa-regular fa-clock" /></span>
-              <span className="line-h-22">This deposit request is valid for <strong className="dl-accent-amber">30 minutes</strong> only.</span>
+          )}
+
+          <div className="dl-notice-bar bg-dark">
+            <div className="dl-notice-head"><i className="fa-solid fa-triangle-exclamation" /> Important Notice</div>
+            <div className="dl-notice-items">
+              <div className="dl-notice-item">
+                <span className="dl-notice-icon dl-notice-icon--green"><i className="fa-solid fa-dollar-sign" /></span>
+                <span className="line-h-22">
+                  Send only <strong className="dl-accent-green">USDT</strong> to the {activeNetworkLabel} address shown above.
+                </span>
+              </div>
+              <div className="dl-notice-item">
+                <span className="dl-notice-icon dl-notice-icon--pink"><i className="fa-solid fa-scale-balanced" /></span>
+                <span className="line-h-22">Send <strong className="dl-accent-amber">exact amount</strong> as shown. Wrong amount may require manual review.</span>
+              </div>
+              <div className="dl-notice-item">
+                <span className="dl-notice-icon dl-notice-icon--amber"><i className="fa-solid fa-ban" /></span>
+                <span className="line-h-22">Do not send from an exchange (Binance, Coinbase, etc.) using an internal transfer.</span>
+              </div>
+              <div className="dl-notice-item">
+                <span className="dl-notice-icon dl-notice-icon--emerald"><i className="fa-solid fa-circle-check" /></span>
+                <span className="line-h-22">Your payment will be confirmed after 1 network confirmation.</span>
+              </div>
+              <div className="dl-notice-item">
+                <span className="dl-notice-icon dl-notice-icon--purple"><i className="fa-regular fa-clock" /></span>
+                <span className="line-h-22">This deposit request is valid for <strong className="dl-accent-amber">30 minutes</strong> only.</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Recent Deposit List ────────────────────────────────────────────── */}
       <div className="dl-card bg-light-dark transaction-details wallet-main-wrapprr">
@@ -1538,6 +1689,205 @@ export default function DepositLayout({
   .dl-method-sub {
     font-size: 10.5px;
   }
+}
+
+/* ── Binance Pay success screen ──────────────────────────────────────────── */
+.dl-bp-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.dl-bp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(43, 208, 115, 0.08);
+  border: 1px solid rgba(43, 208, 115, 0.25);
+  color: #2bd073;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dl-bp-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f5f7fb;
+}
+.dl-bp-title span { color: #f0b332; }
+
+.dl-bp-subtitle {
+  margin: 0;
+  color: #8d96ad;
+  font-size: 13.5px;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+.dl-bp-grid { align-items: start; }
+
+.dl-bp-step-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.dl-bp-step-num {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+  background: linear-gradient(135deg,#c026d3,#7c3aed);
+  color: #fff; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+.dl-bp-step-head strong { display: block; color: #f2f4f8; font-size: 15px; font-weight: 700; }
+.dl-bp-step-head p { margin: 4px 0 0; color: #8d96ad; font-size: 12.5px; line-height: 1.5; }
+
+.dl-bp-qr-frame {
+  display: flex; justify-content: center; margin-bottom: 14px;
+}
+.dl-bp-qr {
+  border: 3px solid #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+.dl-bp-pill {
+  display: inline-block;
+  background: linear-gradient(135deg,#c026d3,#7c3aed);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.dl-bp-id-row {
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.dl-bp-id-row .dl-address {
+  flex: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5f7fb;
+}
+
+.dl-bp-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2bd073;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(43, 208, 115, 0.08);
+  border: 1px solid rgba(43, 208, 115, 0.22);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 20px;
+}
+
+.dl-bp-ministeps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #161b29;
+  border: 1px solid #262c40;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.dl-bp-ministep { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.dl-bp-ministep-icon {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px;
+  background: #1c2133; border: 1px solid #2b3247;
+  display: flex; align-items: center; justify-content: center; color: #f0b332; font-size: 14px;
+}
+.dl-bp-ministep strong { display: block; font-size: 12px; color: #f2f4f8; font-weight: 700; }
+.dl-bp-ministep small { display: block; font-size: 10.5px; color: #7c8499; line-height: 1.4; margin-top: 2px; }
+.dl-bp-arrow { color: #3a4255; font-size: 12px; flex-shrink: 0; }
+@media (max-width: 640px) {
+  .dl-bp-ministeps { flex-direction: column; align-items: stretch; }
+  .dl-bp-arrow { display: none; }
+}
+
+.dl-bp-notes {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  background: rgba(124, 58, 237, 0.06);
+  border: 1px dashed #4c3a7a;
+  border-radius: 12px;
+  padding: 16px;
+}
+.dl-bp-notes-head { display: flex; align-items: center; gap: 8px; color: #a78bfa; font-weight: 700; font-size: 12.5px; margin-bottom: 8px; }
+.dl-bp-notes ul { margin: 0; padding-left: 18px; }
+.dl-bp-notes li { color: #c8cee0; font-size: 12px; line-height: 1.7; }
+.dl-bp-notes-icon {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px;
+  background: rgba(124, 58, 237, 0.12); border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #a78bfa; display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+.dl-bp-trust { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.dl-bp-trust-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg,#c026d3,#7c3aed);
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px;
+  margin-bottom: 4px;
+}
+.dl-bp-trust strong { color: #f2f4f8; font-size: 14px; }
+.dl-bp-trust small { color: #8d96ad; font-size: 12px; line-height: 1.5; }
+
+.dl-bp-card-title { display: block; color: #f2f4f8; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
+
+.dl-bp-howitworks { display: flex; flex-direction: column; gap: 14px; }
+.dl-bp-how-item { display: flex; align-items: flex-start; gap: 12px; }
+.dl-bp-how-icon {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px;
+  background: #1c2133; border: 1px solid #2b3247;
+  display: flex; align-items: center; justify-content: center; color: #f0b332; font-size: 13px;
+}
+.dl-bp-how-item strong { display: block; color: #9cecfe; font-size: 12.5px; font-weight: 700; }
+.dl-bp-how-item small { display: block; color: #8d96ad; font-size: 11.5px; line-height: 1.5; margin-top: 2px; }
+
+.dl-bp-help-actions { display: flex; flex-direction: column; gap: 10px; }
+.dl-bp-help-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; border-radius: 10px; padding: 11px 14px;
+  font-weight: 700; font-size: 13px; cursor: pointer;
+  background: linear-gradient(135deg,#c026d3,#7c3aed); color: #fff;
+  transition: opacity .15s ease;
+}
+.dl-bp-help-btn:hover { opacity: .9; }
+.dl-bp-help-btn--ghost { background: #1c2133; border: 1px solid #262c40; color: #c8cee0; }
+
+.dl-bp-detection { margin-top: 18px; }
+.dl-bp-tracker {
+  display: flex; align-items: center; gap: 0; margin-top: 14px;
+}
+.dl-bp-tracker-step {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: #7c8499; font-size: 12px; font-weight: 600; flex-shrink: 0;
+}
+.dl-bp-tracker-step--active { color: #a78bfa; }
+.dl-bp-tracker-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #161b29; border: 1px solid #262c40;
+  display: flex; align-items: center; justify-content: center; font-size: 15px; color: #7c8499;
+}
+.dl-bp-tracker-step--active .dl-bp-tracker-dot {
+  background: rgba(124, 58, 237, 0.15); border-color: #7c3aed; color: #a78bfa;
+}
+.dl-bp-tracker-line { flex: 1; height: 1px; background: #262c40; margin: 0 8px; margin-bottom: 22px; }
+@media (max-width: 640px) {
+  .dl-bp-tracker { overflow-x: auto; }
+  .dl-bp-tracker-step span:last-child { white-space: nowrap; }
 }
       `}</style>
     </div>
