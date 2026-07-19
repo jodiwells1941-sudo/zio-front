@@ -52,7 +52,18 @@ const COIN_OPTIONS = [
 ];
 
 const NETWORK_OPTIONS = [
-  { id: "TRC20", label: "TRX Tron (TRC20)", badge: "⟁", className: "trx" },
+  {
+    id: "TRC20",
+    label: "USDT - Tron (TRC20)",
+    badge: "₮",
+    className: "trx",
+  },
+  {
+    id: "ERC20",
+    label: "USDT - Ethereum (ERC20)",
+    badge: "₮",
+    className: "eth",
+  },
 ];
 
 const STATUS_MAP: Record<number, { label: string; cls: string }> = {
@@ -63,9 +74,45 @@ const STATUS_MAP: Record<number, { label: string; cls: string }> = {
 };
 
 // ── payment methods ────────────────────────────────────────────────────────
+// const PAYMENT_METHODS = [
+//   {
+//     id: "crypto",
+//     label: "Tether (USDT TRC20)",
+//     desc: `Processing Time: Instant – 15 Minutes`,
+//     rools: 'Transaction Limit: 10 – 200,000 USD',
+//     icon: '/images/payment/usdt-trc20.png',
+//   },
+//   {
+//     id: "binance",
+//     label: "Binance Pay Manual",
+//     desc: `Processing Time: Instant – 6 Hours`,
+//     rools: 'Transaction Limit: 10 – 200,000 USD',
+//     icon: '/images/payment/binance.png',
+//   },
+// ] as const;
+
 const PAYMENT_METHODS = [
-  { id: "crypto",  label: "Crypto",         desc: "Pay with USDT (TRC20)",  icon: "fa-solid fa-coins" },
-  { id: "binance", label: "Binance Pay Manual", desc: "Pay via Binance transfer", icon: "fa-brands fa-bitcoin" },
+  {
+    id: "crypto",
+    label: "Tether (USDT TRC20)",
+    desc: "Processing Time: Instant – 15 Minutes",
+    rools: "Transaction Limit: 10 – 200,000 USD",
+    icon: "/images/payment/usdt-trc20.png",
+  },
+  {
+    id: "binance",
+    label: "Binance Pay Manual",
+    desc: "Processing Time: Instant – 6 Hours",
+    rools: "Transaction Limit: 10 – 200,000 USD",
+    icon: "/images/payment/binance.png",
+  },
+  {
+    id: "erc",
+    label: "Tether (USDT ERC20)",
+    desc: "Processing Time: Instant – 15 Minutes",
+    rools: "Transaction Limit: 10 – 200,000 USD",
+    icon: "/images/payment/usdt-erc20.png",
+  },
 ] as const;
 
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
@@ -93,7 +140,7 @@ export default function DepositLayout({
 }) {
   const defaultAmount = amountPreset?.[0] ?? 0;
 
-  // ── payment method selection (Crypto / Binance Manual) ──────────────────────
+  // ── payment method selection (Crypto / Binance Manual / ERC20) ──────────────
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("crypto");
   const route = useRouter();
   const [adminBinance, setAdminBinance] = useState({
@@ -138,6 +185,15 @@ export default function DepositLayout({
     setSelectedAmount(depositAmount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depositAmount]);
+
+  // ── auto-select network based on payment method ─────────────────────────────
+  useEffect(() => {
+    if (paymentMethod === "erc") {
+      setSelectedNetwork("ERC20");
+    } else if (paymentMethod === "crypto") {
+      setSelectedNetwork("TRC20");
+    }
+  }, [paymentMethod]);
 
   // ── fetch deposit list ──────────────────────────────────────────────────────
   const fetchDepositList = useCallback(async (page = 1, initial = false) => {
@@ -359,35 +415,98 @@ export default function DepositLayout({
   ];
 
   // ── shared support modal props ───────────────────────────────────────────────
-  const supportDepositId = paymentMethod === "crypto" ? (depositInfo?.deposit_id ?? "") : binanceDepositId;
-  const supportDepositAmount = paymentMethod === "crypto" ? (depositInfo?.amount ?? "") : (binanceAmount ? String(binanceAmount) : "");
-  const supportCoinLabel = paymentMethod === "crypto" ? "USDT" : "USD";
+  const supportDepositId = paymentMethod === "binance" ? binanceDepositId : (depositInfo?.deposit_id ?? "");
+  const supportDepositAmount = paymentMethod === "binance" ? (binanceAmount ? String(binanceAmount) : "") : (depositInfo?.amount ?? "");
+  const supportCoinLabel = paymentMethod === "binance" ? "USD" : "USDT";
+
+  // ── current network display info (used in Deposit Details / notice) ─────────
+  const activeNetwork = NETWORK_OPTIONS.find((n) => n.id === selectedNetwork) ?? NETWORK_OPTIONS[0];
+  const activeNetworkLabel = selectedNetwork === "ERC20" ? "ERC20 (Ethereum)" : "TRC20 (Tron)";
 
   // ── render ──────────────────────────────────────────────────────────────────
   return (
     <div className="dl-wrapper">
 
       {/* Payment method selector */}
-      <div className="dl-card dl-method-card bg-light-dark mt-3">
-        <label className="dl-label mb-2 fs-5">Select Payment Method <small className="text-danger fs-4">*</small></label>
-        {/* dl-method-grid  */}
-        <div className="">
-          {PAYMENT_METHODS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              className={`dl-method-btn bg-dark w-50 mt-3 ${paymentMethod === m.id ? "active" : ""}`}
-              disabled={isLocked || binanceSubmitted}
-              onClick={() => setPaymentMethod(m.id)}
-            >
-              <span className={` ${paymentMethod === m.id ? 'bg-warning' : 'bg-light-white'} dl-method-icon`}><i className={m.icon} /></span>
-              <span className="dl-method-text gap-0">
-                <span className="dl-method-label">{m.label}</span>
-                <small className="dl-method-sub">{m.desc}</small>
-              </span>
-            </button>
-          ))}
+      <div className="dl-card dl-method-card bg-light-dark">
+        <div className="dl-method-header">
+          <div>
+            <label className="dl-label dl-method-title">
+              Select Payment Method
+              <span className="text-danger ms-1">*</span>
+            </label>
+
+            <p className="dl-method-description">
+              Choose your preferred deposit method
+            </p>
+          </div>
+
+          <span className="dl-method-secure">
+            <i className="fa-solid fa-shield-halved" />
+            Secure payment
+          </span>
         </div>
+
+
+        {/* dl-method-grid */}
+        <div className="mt-3 row">
+          {PAYMENT_METHODS.map((method) => {
+            const isActive = paymentMethod === method.id;
+
+            return (
+              <div className="col-md-4" key={method.id} >
+                <button
+                  type="button"
+                  className={`dl-method-btn mt-3 ${
+                    isActive ? "active" : ""
+                  }`}
+                  disabled={isLocked || binanceSubmitted}
+                  onClick={() => setPaymentMethod(method.id)}
+                  aria-pressed={isActive}
+                >
+                  <span className="dl-method-icon">
+                    <Image
+                      src={method.icon}
+                      alt={method.label}
+                      width={36}
+                      height={36}
+                      className="dl-method-image"
+                    />
+                  </span>
+
+                  <span className="dl-method-content">
+                    <span className="dl-method-top">
+                      <span className="dl-method-label">
+                        {method.label}
+                      </span>
+
+                      {isActive && (
+                        <span className="dl-method-selected">
+                          <i className="fa-solid fa-check" />
+                        </span>
+                      )}
+                    </span>
+
+                    <span className="dl-method-info">
+                      <small className="dl-method-sub">
+                        <i className="fa-solid fa-bolt" />
+                        {method.desc}
+                      </small>
+
+                      {method.rools && (
+                        <small className="dl-method-sub">
+                          <i className="fa-solid fa-chart-simple" />
+                          {method.rools}
+                        </small>
+                      )}
+                    </span>
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
       </div>
 
       {/* Step indicator */}
@@ -406,8 +525,8 @@ export default function DepositLayout({
         ))}
       </div>
 
-      {/* ── CRYPTO FLOW (unchanged) ─────────────────────────────────────────── */}
-      {paymentMethod === "crypto" && (
+      {/* ── CRYPTO FLOW (shared by TRC20 "crypto" and ERC20 "erc" methods) ──── */}
+      {(paymentMethod === "crypto" || paymentMethod === "erc") && (
         <>
           {/* Form card */}
           <div className="dl-card dl-form-card bg-light-dark">
@@ -454,11 +573,21 @@ export default function DepositLayout({
                     <span className={`dl-coin-badge dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
                       {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.badge}
                     </span>
-                    <select disabled={isLocked} value={selectedNetwork} onChange={(e) => setSelectedNetwork(e.target.value)} aria-label="Select network">
+                    <select
+                      disabled={isLocked || paymentMethod === "erc"}
+                      value={selectedNetwork}
+                      onChange={(e) => setSelectedNetwork(e.target.value)}
+                      aria-label="Select network"
+                    >
                       {NETWORK_OPTIONS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
                     </select>
                     <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
                   </div>
+                  {paymentMethod === "erc" && (
+                    <small className="dl-hint text-warning">
+                      Network is locked to ERC20 (Ethereum) for this payment method.
+                    </small>
+                  )}
                 </div>
               </div>
             </div>
@@ -486,12 +615,17 @@ export default function DepositLayout({
                   </div>
                   <div className="dl-row">
                     <span className="dl-row-label">Network</span>
-                    <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--trx">⟁</span> TRC20 (Tron)</span>
+                    <span className="dl-row-value">
+                      <span className={`dl-coin-badge dl-coin-badge--${activeNetwork.className}`}>
+                        {activeNetwork.className === "eth" ? "Ξ" : "⟁"}
+                      </span>
+                      {activeNetworkLabel}
+                    </span>
                   </div>
 
                   <div className="dl-block">
                     <div className="dl-block-head">
-                      <span>Deposit Address</span><span className="dl-pill">TRC20</span>
+                      <span>Deposit Address</span><span className="dl-pill">{selectedNetwork}</span>
                     </div>
                     <div className="dl-address-row">
                       <code className="dl-address">{depositInfo.address}</code>
@@ -733,7 +867,9 @@ export default function DepositLayout({
           <div className="dl-notice-items">
             <div className="dl-notice-item">
               <span className="dl-notice-icon dl-notice-icon--green"><i className="fa-solid fa-dollar-sign" /></span>
-              <span className="line-h-22">Send only <strong className="dl-accent-green">USDT</strong> to the TRC20 (Tron) address shown above.</span>
+              <span className="line-h-22">
+                Send only <strong className="dl-accent-green">USDT</strong> to the {activeNetworkLabel} address shown above.
+              </span>
             </div>
             <div className="dl-notice-item">
               <span className="dl-notice-icon dl-notice-icon--pink"><i className="fa-solid fa-scale-balanced" /></span>
@@ -913,7 +1049,7 @@ export default function DepositLayout({
         @media (max-width: 700px) { .dl-method-grid { grid-template-columns: 1fr; } }
         .dl-method-btn {
           display: flex; align-items: center; gap: 12px; text-align: left;
-          background: #161b29; border: 1.5px solid #262c40; border-radius: 12px; padding: 14px 16px;
+          background: #161b29; border: 1.5px solid #262c40; border-radius: 12px; padding: 10px 16px;
           cursor: pointer; transition: border-color .15s ease, background .15s ease;
         }
         .dl-method-btn:hover { border-color: #3a4255; }
@@ -970,6 +1106,7 @@ export default function DepositLayout({
         }
         .dl-coin-badge--usdt { background: #1fae5c; }
         .dl-coin-badge--trx  { background: #e2393c; }
+        .dl-coin-badge--eth  { background: #627eea; }
 
         /* CTA */
         .dl-cta {
@@ -1156,8 +1293,253 @@ export default function DepositLayout({
         .dl-mobile-field { display: flex; flex-direction: column; gap: 2px; }
         .dl-mobile-field small { font-size: 10px; color: #7c8499; text-transform: uppercase; letter-spacing: .06em; }
         .dl-mobile-field span, .dl-mobile-field code { font-size: 13px; font-weight: 600; color: #f2f4f8; }
+
+
+
+        .dl-method-card {
+  padding: 24px;
+  border: 1px solid #252b3a;
+  border-radius: 16px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(240, 179, 50, 0.06),
+      transparent 32%
+    ),
+    #20242d;
+}
+
+.dl-method-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dl-method-title {
+  margin: 0;
+  color: #f5f7fb;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.dl-method-description {
+  margin: 5px 0 0;
+  color: #7f899f;
+  font-size: 13px;
+}
+
+.dl-method-secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid rgba(43, 208, 115, 0.22);
+  border-radius: 999px;
+  background: rgba(43, 208, 115, 0.07);
+  color: #2bd073;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dl-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dl-method-btn {
+  position: relative;
+  width: 100%;
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px;
+  overflow: hidden;
+  text-align: left;
+  border: 1px solid #303747;
+  border-radius: 14px;
+  background: #191e27;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dl-method-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.dl-method-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #495164;
+  background: #1d232d;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.dl-method-btn.active {
+  border-color: #f0b332;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(240, 179, 50, 0.09),
+      rgba(240, 179, 50, 0.02)
+    ),
+    #1b2028;
+  box-shadow:
+    0 0 0 1px rgba(240, 179, 50, 0.08),
+    0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.dl-method-btn.active::before {
+  background: #f0b332;
+}
+
+.dl-method-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dl-method-icon {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #343b4b;
+  border-radius: 14px;
+  background: #f5f6f8;
+}
+
+.dl-method-btn.active .dl-method-icon {
+  border-color: rgba(240, 179, 50, 0.45);
+  box-shadow: 0 0 0 4px rgba(240, 179, 50, 0.07);
+}
+
+.dl-method-image {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.dl-method-content {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.dl-method-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dl-method-label {
+  color: #f5f7fb;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.dl-method-selected {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f0b332;
+  color: #151922;
+  font-size: 10px;
+}
+
+.dl-method-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dl-method-sub {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #8791a7;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.dl-method-sub i {
+  width: 13px;
+  color: #f0b332;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .dl-method-card {
+    padding: 18px;
+  }
+
+  .dl-method-header {
+    flex-direction: column;
+  }
+
+  .dl-method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dl-method-btn {
+    min-height: 96px;
+    padding: 14px;
+  }
+
+  .dl-method-icon {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+  }
+
+  .dl-method-image {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 420px) {
+  .dl-method-secure {
+    display: none;
+  }
+
+  .dl-method-btn {
+    gap: 12px;
+  }
+
+  .dl-method-label {
+    font-size: 13px;
+  }
+
+  .dl-method-sub {
+    font-size: 10.5px;
+  }
+}
       `}</style>
     </div>
   );
 }
-

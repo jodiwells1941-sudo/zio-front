@@ -78,7 +78,7 @@ export default function WalletPage(): JSX.Element {
             </div>
 
             <div className={`tab-content ${activeTab === 'tab2' ? 'active' : ''}`} id="tab2">
-              <span className="d-none d-md-block"><SummaryGrid /></span>
+              {/* <span className="d-none d-md-block"><SummaryGrid /></span> */}
               <DepositLayout
                 title="Deposit Details"
                 actionLabel="Deposit"
@@ -93,12 +93,12 @@ export default function WalletPage(): JSX.Element {
             </div>
 
             <div className={`tab-content ${activeTab === 'tab3' ? 'active' : ''}`} id="tab3">
-              <span className="d-none d-md-block"><SummaryGrid /></span>
+              {/* <span className="d-none d-md-block"><SummaryGrid /></span> */}
               <P2PLayout activeP2PTab={activeP2PTab} setActiveP2PTab={setActiveP2PTab} />
             </div>
 
             <div className={`tab-content ${activeTab === 'tab4' ? 'active' : ''}`} id="tab4">
-              <span className="d-none d-md-block"><SummaryGrid /></span>
+              {/* <span className="d-none d-md-block"><SummaryGrid /></span> */}
               <TransferLayout
                 amountPreset={amountPreset}
                 selectedAmount={selectedAmount}
@@ -108,7 +108,7 @@ export default function WalletPage(): JSX.Element {
             </div>
 
             <div className={`tab-content ${activeTab === 'tab5' ? 'active' : ''}`} id="tab5">
-              <span className="d-none d-md-block"><SummaryGrid /></span>
+              {/* <span className="d-none d-md-block"><SummaryGrid /></span> */}
               <WithdrawLayout
                 title="Binance Withdraw Details"
                 actionLabel="Withdraw"
