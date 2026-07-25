@@ -11,9 +11,10 @@ type Props = {
   depositAmount?: string;            // pre-fill from parent
   onClose: () => void;
   onSuccess: () => void;
+  paymentProofSubmit: () => void;
 };
 
-export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT", depositAmount = "", onClose, onSuccess }: Props) {
+export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT", depositAmount = "", onClose, onSuccess, paymentProofSubmit }: Props) {
   const [txId, setTxId]           = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>(depositAmount);
   const [note, setNote]           = useState<string>("");
@@ -21,7 +22,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);  
 
   // close on Escape
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
       toast.success(mode === "submit" ? "Payment details submitted!" : "Support request sent!");
       onSuccess();
       onClose();
+      paymentProofSubmit();
     } catch { toast.error("Submission failed. Please try again."); }
     finally { setIsLoading(false); }
   };
@@ -70,7 +72,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
     <div className="dsm-overlay z_index">
       <button className="dsm-backdrop" type="button" onClick={onClose} aria-label="Close" />
 
-      <div className="dsm-sheet">
+      <div className={`${ mode === 'submit' ? 'dsm-sheet' : "dsm-sheet-2"}`}>
         {/* Header */}
         <div className="dsm-header">
           <div className="dsm-header-left">
@@ -110,7 +112,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
         )}
 
         {/* Body: two columns */}
-        <div className="dsm-body">
+        <div className={`${ mode === 'submit' ? 'dsm-body' : ""}`}>
           {/* LEFT: form */}
           <div className="dsm-form-col">
             <div className="dsm-form-head">
@@ -207,67 +209,70 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
           </div>
 
           {/* RIGHT: summary + help */}
-          <div className="dsm-info-col">
-            {/* Deposit summary */}
-            {depositId && (
-              <div className="dsm-summary-card">
-                <div className="dsm-summary-head">
-                  <i className="fa-solid fa-file-invoice" style={{color:"#9cecfe"}} />
-                  <span>DEPOSIT SUMMARY</span>
+          {mode === 'submit' && (
+            <div className="dsm-info-col">
+              {/* Deposit summary */}
+              {depositId && (
+                <div className="dsm-summary-card">
+                  <div className="dsm-summary-head">
+                    <i className="fa-solid fa-file-invoice" style={{color:"#9cecfe"}} />
+                    <span>DEPOSIT SUMMARY</span>
+                  </div>
+                  <div className="dsm-summary-rows">
+                    <div className="dsm-summary-row">
+                      <span>Expected Amount</span>
+                      <span className="dsm-summary-val">{depositAmount || "—"} {coinLabel}</span>
+                    </div>
+                    <div className="dsm-summary-row">
+                      <span>Network</span>
+                      <span className="dsm-summary-val"><span style={{color:"#dd9b0e"}}>⟁</span> TRC20 (Tron)</span>
+                    </div>
+                    <div className="dsm-summary-row">
+                      <span>Status</span>
+                      <span className="dsm-status-badge">PENDING</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="dsm-summary-rows">
-                  <div className="dsm-summary-row">
-                    <span>Expected Amount</span>
-                    <span className="dsm-summary-val">{depositAmount || "—"} {coinLabel}</span>
-                  </div>
-                  <div className="dsm-summary-row">
-                    <span>Network</span>
-                    <span className="dsm-summary-val"><span style={{color:"#dd9b0e"}}>⟁</span> TRC20 (Tron)</span>
-                  </div>
-                  <div className="dsm-summary-row">
-                    <span>Status</span>
-                    <span className="dsm-status-badge">PENDING</span>
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* Need help */}
-            <div className="dsm-help-card">
-              <div className="dsm-summary-head"><i className="fa-solid fa-circle-question" style={{color:"#9cecfe"}} /> NEED HELP?</div>
-              <p style={{fontSize:13,color:"#8d96ad",marginBottom:14}}>If you have any issue or need assistance, our support team is ready to help you.</p>
-              <div className="dsm-help-action bg-warning">
-                <i className="fa-solid fa-headset" style={{color:"#0d1120"}} />
-                <span className="text-black">Contact Support</span>
+              {/* Need help */}
+              <div className="dsm-help-card">
+                <div className="dsm-summary-head"><i className="fa-solid fa-circle-question" style={{color:"#9cecfe"}} /> NEED HELP?</div>
+                <p style={{fontSize:13,color:"#8d96ad",marginBottom:14}}>If you have any issue or need assistance, our support team is ready to help you.</p>
+                <div className="dsm-help-action bg-warning">
+                  <i className="fa-solid fa-headset" style={{color:"#0d1120"}} />
+                  <span className="text-black">Contact Support</span>
+                </div>
+                <div className="dsm-help-row">
+                  <div className="dsm-help-icon"><i className="fa-regular fa-comment-dots" /></div>
+                  <div><div className="dsm-help-label">Live Chat</div><small>Available 24/7</small></div>
+                </div>
+                <div className="dsm-help-row">
+                  <div className="dsm-help-icon"><i className="fa-regular fa-envelope" /></div>
+                  <div><div className="dsm-help-label">Support Email</div><small>support@example.com</small></div>
+                </div>
               </div>
-              <div className="dsm-help-row">
-                <div className="dsm-help-icon"><i className="fa-regular fa-comment-dots" /></div>
-                <div><div className="dsm-help-label">Live Chat</div><small>Available 24/7</small></div>
-              </div>
-              <div className="dsm-help-row">
-                <div className="dsm-help-icon"><i className="fa-regular fa-envelope" /></div>
-                <div><div className="dsm-help-label">Support Email</div><small>support@example.com</small></div>
+
+              {/* How it works */}
+              <div className="dsm-how-card">
+                <div className="dsm-summary-head"><i className="fa-solid fa-lightbulb" style={{color:"#dd9b0e"}} /> HOW IT WORKS?</div>
+                {[
+                  { n: 1, title: "Submit your payment details", body: "Fill the form with TXID, amount and screenshot (if any)." },
+                  { n: 2, title: "Our admin will review",       body: "We will check your payment on the blockchain." },
+                  { n: 3, title: "Get notified",                body: "You will receive an update once the review is complete." },
+                ].map((s) => (
+                  <div key={s.n} className="dsm-how-row">
+                    <div className="dsm-how-dot">{s.n}</div>
+                    <div>
+                      <div className="dsm-how-title">{s.title}</div>
+                      <small>{s.body}</small>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* How it works */}
-            <div className="dsm-how-card">
-              <div className="dsm-summary-head"><i className="fa-solid fa-lightbulb" style={{color:"#dd9b0e"}} /> HOW IT WORKS?</div>
-              {[
-                { n: 1, title: "Submit your payment details", body: "Fill the form with TXID, amount and screenshot (if any)." },
-                { n: 2, title: "Our admin will review",       body: "We will check your payment on the blockchain." },
-                { n: 3, title: "Get notified",                body: "You will receive an update once the review is complete." },
-              ].map((s) => (
-                <div key={s.n} className="dsm-how-row">
-                  <div className="dsm-how-dot">{s.n}</div>
-                  <div>
-                    <div className="dsm-how-title">{s.title}</div>
-                    <small>{s.body}</small>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -282,6 +287,12 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
         }
         .dsm-sheet {
           position: relative; z-index: 1; width: 100%; max-width: 900px;
+          background: #0e1322; border: 1px solid #1f2433; border-radius: 18px; overflow: hidden;
+          box-shadow: 0 24px 80px rgba(0,0,0,.6);
+        }
+
+        .dsm-sheet-2 {
+          position: relative; z-index: 1; width: 100%; max-width: 600px;
           background: #0e1322; border: 1px solid #1f2433; border-radius: 18px; overflow: hidden;
           box-shadow: 0 24px 80px rgba(0,0,0,.6);
         }
