@@ -192,11 +192,7 @@ export default function DepositLayout({
     else setIsFetching(true);
 
     try {
-      // NOTE: depositListApi is assumed to accept an optional page argument.
-      // If your API client doesn't support this yet, update depositListApi's
-      // signature to forward `page` as a query param — otherwise every page
-      // click will silently re-fetch the same (first) page.
-      const res = await depositListApi(page);
+      const res = await depositListApi();
 
       if (!res.error) {
         setDepositList(res.data.data ?? []);
@@ -1050,7 +1046,7 @@ export default function DepositLayout({
               <div className="dl-card bg-light-dark">
                 <span className="dl-bp-card-title">Submit Payment Information: </span>
                 <div className="dl-bp-help-actions">
-                  <button type="button" className="dl-bp-help-btn" onClick={() => setSupportModalMode("submit")}>
+                  <button type="button" className="dl-bp-help-btn" onClick={() => setSupportModalMode("support")}>
                     <i className="fa-solid fa-receipt" /> Submit Your Payment Proof
                   </button>
                   <button type="button" className="dl-bp-help-btn dl-bp-help-btn--ghost" onClick={() => route.push('/dashboard/support/')}>
