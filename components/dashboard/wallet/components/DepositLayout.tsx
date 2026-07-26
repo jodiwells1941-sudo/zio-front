@@ -229,7 +229,7 @@ export default function DepositLayout({
   // ── validation (crypto) ───────────────────────────────────────────────────────
   const validateAmount = () => {
     if (isNaN(depositAmount)) { toast.error("Please enter a valid amount."); return false; }
-    if (depositAmount < 5)    { toast.error("Minimum deposit amount is 5 USD."); return false; }
+    // if (depositAmount < 5)    { toast.error("Minimum deposit amount is 5 USD."); return false; }
     if (depositAmount > 5000) { toast.error("Maximum deposit amount is 5,000 USD."); return false; }
     return true;
   };
