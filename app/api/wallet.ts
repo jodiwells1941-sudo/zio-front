@@ -6,7 +6,6 @@ export const SubmitDepositWithdrawApi = async (data: unknown) => {
 };
 
 export const SubmitInitialDepositApi = async (data: unknown) => {
-  console.log('=== data ===', data);
   return (await apiClient.post("/user/binance/deposit/initiate", data)).data;
 };
 
