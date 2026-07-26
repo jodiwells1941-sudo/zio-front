@@ -30,9 +30,9 @@ function validateAmount(
   if (isNaN(num) || !/^\d+(\.\d{1,2})?$/.test(trimmed)) {
     return "Please enter a valid amount.";
   }
-  if (num < MIN_AMOUNT) {
-    return `Minimum deposit amount is $${MIN_AMOUNT.toFixed(2)}.`;
-  }
+  // if (num < MIN_AMOUNT) {
+  //   return `Minimum deposit amount is $${MIN_AMOUNT.toFixed(2)}.`;
+  // }
   if (num > walletBalance) {
     return "Amount exceeds your available wallet balance.";
   }
