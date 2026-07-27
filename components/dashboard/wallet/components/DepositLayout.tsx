@@ -8,6 +8,7 @@ import {
   SubmitInitialDepositApi,
   VerifyDepositApi,
   SubmitBinanceDepositApi,
+  cancelDeposit,
 } from "@/app/api/wallet";
 import { depositListApi } from "@/app/api/wallet";
 import { toast } from "react-toastify";
@@ -72,6 +73,7 @@ const STATUS_MAP: Record<number, { label: string; cls: string }> = {
   2: { label: "Completed", cls: "status-confirmed" },
   3: { label: "Failed",    cls: "status-cancelled" },
   4: { label: "Expired",   cls: "status-cancelled" },
+  5: { label: "Cancel",   cls: "status-cancelled" },
 };
 
 // ── payment methods ────────────────────────────────────────────────────────
@@ -141,7 +143,7 @@ export default function DepositLayout({
   const [totalSeconds, setTotalSeconds] = useState<number>(30 * 60);
   const [selectedCoin, setSelectedCoin] = useState<string>(COIN_OPTIONS[0].id);
   const [selectedNetwork, setSelectedNetwork] = useState<string>(NETWORK_OPTIONS[0].id);
-  const [isPaymentProffSubmit, setPaymentProofSubmit] = useState<boolean>(false);
+  const [isPaymentProffSubmit, setPaymentProofSubmit] = useState<boolean>(false);  
 
   // ── deposit form state (binance manual) ─────────────────────────────────────
   const [binanceUserId, setBinanceUserId] = useState<string>("");
@@ -153,6 +155,7 @@ export default function DepositLayout({
   const [binanceStatus, setBinanceStatus] = useState<FlowStatus>("idle");
   const [binanceSecondsLeft, setBinanceSecondsLeft] = useState<number>(0);
   const [binanceTotalSeconds, setBinanceTotalSeconds] = useState<number>(30 * 60);
+  const [selectedListRow, setSelectedListRow] = useState<DepositRow | null>(null);
 
   // ── support modal state (shared) ─────────────────────────────────────────────
   const [supportModalMode, setSupportModalMode] = useState<"submit" | "support" | null>(null);
@@ -170,6 +173,12 @@ export default function DepositLayout({
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const binancePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const binanceTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const depositSectionRef = useRef<HTMLDivElement>(null);
+
+  const openRowSupportModal = (row: DepositRow) => {
+    setSelectedListRow(row);
+    setSupportModalMode("submit");
+  };
 
   // ── sync parent (tracks whichever flow is active) ────────────────────────────
   useEffect(() => {
@@ -256,6 +265,11 @@ export default function DepositLayout({
         setDepositInfo(info);
         setStatus("expired" === info.status ? "expired" : "waiting");
 
+          depositSectionRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+
         if (info.expires_at) {
           const secs = Math.max(0, Math.floor((new Date(info.expires_at).getTime() - Date.now()) / 1000));
           setSecondsLeft(secs);
@@ -325,6 +339,12 @@ export default function DepositLayout({
         setBinanceSubmitted(true);
         setBinanceDepositId(info?.deposit_id ?? "");
         setBinanceStatus("expired" === info?.status ? "expired" : "waiting");
+        setDepositInfo(info);
+
+        depositSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
 
         if (info?.expires_at) {
           const secs = Math.max(0, Math.floor((new Date(info.expires_at).getTime() - Date.now()) / 1000));
@@ -348,15 +368,107 @@ export default function DepositLayout({
     }
   };
 
-  const resetBinanceFlow = () => {
-    setBinanceSubmitted(false);
-    setBinanceDepositId("");
-    setBinanceUserId("");
-    setBinanceAmount(defaultAmount);
-    setBinanceInfo(null);
-    setBinanceStatus("idle");
-    setBinanceSecondsLeft(0);
-    setBinanceTotalSeconds(30 * 60);
+  const cancelPayment = async (): Promise<boolean> => {
+
+    if (!depositInfo?.token) {
+      return false;
+    }    
+
+    try {
+      const res = await cancelDeposit({
+        token: depositInfo.token,
+      });
+
+      console.log('res ==', res);
+      
+
+      if (!res?.error) {
+        toast.success(res?.message ?? 'Deposit cancelled successfully.');
+        fetchDepositList(1);
+        return true;
+      }
+
+      toast.error(res?.message ?? 'Failed to cancel deposit.');
+      return false;
+    } catch (error: unknown) {
+      console.error('Cancel deposit failed:', error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong while cancelling the deposit.'
+      );
+      return false;
+    }
+  };
+
+  // const resetBinanceFlow = () => {
+
+  //   const result = await Swal.fire({
+  //     title: "Deposit Confirmation",
+  //     icon: "info",
+  //     html: `Are you sure you want to deposit <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
+  //     showCloseButton: true, showCancelButton: true, focusConfirm: false,
+  //     cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
+  //   });
+  //   if (!result.isConfirmed) return;
+
+  //   setBinanceSubmitted(false);
+  //   setBinanceDepositId("");
+  //   setBinanceUserId("");
+  //   setBinanceAmount(defaultAmount);
+  //   setBinanceInfo(null);
+  //   setBinanceStatus("idle");
+  //   setBinanceSecondsLeft(0);
+  //   setBinanceTotalSeconds(30 * 60);
+  //   // cancel payment
+  //   cancelPayment();
+  // };
+
+  const resetBinanceFlow = async () => {
+    
+    if (!depositInfo?.token) {
+      toast.error('Deposit token not found.');
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Cancel Deposit?',
+      icon: 'warning',
+      html: `Are you sure you want to cancel the deposit of <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
+      showCloseButton: true,
+      showCancelButton: true,
+      focusConfirm: false,
+      cancelButtonText: 'No, Keep It',
+      confirmButtonText: 'Yes, Cancel Deposit',
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const cancelled = await cancelPayment();
+
+      if (!cancelled) {
+        return;
+      }
+
+      setBinanceSubmitted(false);
+      setBinanceDepositId('');
+      setBinanceUserId('');
+      setBinanceAmount(defaultAmount);
+      setBinanceInfo(null);
+      setBinanceStatus('idle');
+      setBinanceSecondsLeft(0);
+      setBinanceTotalSeconds(30 * 60);
+
+      await fetchDepositList(1);
+    } catch (error) {
+      console.error('Reset Binance flow failed:', error);
+      toast.error('Failed to cancel the deposit.');
+    }
   };
 
   // ── countdown (crypto) ───────────────────────────────────────────────────────
@@ -465,9 +577,27 @@ export default function DepositLayout({
   ];
 
   // ── shared support modal props ───────────────────────────────────────────────
-  const supportDepositId = paymentMethod === "binance" ? binanceDepositId : (depositInfo?.deposit_id ?? "");
-  const supportDepositAmount = paymentMethod === "binance" ? (binanceAmount ? String(binanceAmount) : "") : (depositInfo?.amount ?? "");
-  const supportCoinLabel = paymentMethod === "binance" ? "USD" : "USDT";
+  const supportDepositId = selectedListRow
+    ? selectedListRow.deposit_id
+    : paymentMethod === "binance"
+    ? binanceDepositId
+    : depositInfo?.deposit_id ?? "";
+
+  const supportDepositAmount = selectedListRow
+    ? String(selectedListRow.amount)
+    : paymentMethod === "binance"
+    ? binanceAmount
+      ? String(binanceAmount)
+      : ""
+    : depositInfo?.amount ?? "";
+
+  const supportCoinLabel = selectedListRow
+    ? selectedListRow.payment_method === "binance"
+      ? "USD"
+      : "USDT"
+    : paymentMethod === "binance"
+    ? "USD"
+    : "USDT";
 
   // ── current network display info (used in Deposit Details / notice) ─────────
   const activeNetwork = NETWORK_OPTIONS.find((n) => n.id === selectedNetwork) ?? NETWORK_OPTIONS[0];
@@ -478,7 +608,7 @@ export default function DepositLayout({
 
   // ── render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="dl-wrapper">
+    <div className="dl-wrapper" ref={depositSectionRef}>
 
       {/* Payment method selector */}
       <div className="dl-card dl-method-card bg-light-dark">
@@ -625,12 +755,23 @@ export default function DepositLayout({
                       {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.badge}
                     </span>
                     <select
-                      disabled={isLocked || paymentMethod === "erc" || paymentMethod === "crypto"}
+                      // disabled={isLocked || paymentMethod === "erc" || paymentMethod === "crypto"}
                       value={selectedNetwork}
                       onChange={(e) => setSelectedNetwork(e.target.value)}
                       aria-label="Select network"
                     >
-                      {NETWORK_OPTIONS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
+                      {/* {NETWORK_OPTIONS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)} */}
+                      {NETWORK_OPTIONS.filter((n) =>
+                          paymentMethod === "crypto"
+                            ? n.id === "TRC20"
+                            : paymentMethod === "erc"
+                            ? n.id === "ERC20"
+                            : true
+                        ).map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {n.label}
+                          </option>
+                        ))}
                     </select>
                     <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
                   </div>
@@ -1063,7 +1204,7 @@ export default function DepositLayout({
 
           <div className="d-flex justify-content-end pt-2">
             <button type="button" className="dl-cta dl-cta--secondary text-white" onClick={resetBinanceFlow}>
-              Create Another Deposit
+              Cancel Deposit
             </button>
           </div>
         </div>
@@ -1135,7 +1276,7 @@ export default function DepositLayout({
           </button>
         </div>
 
-        {/* Desktop table */}
+        {/* Desktop deposit list table */}
         <div className="table-responsive d-none d-md-block mt-3">
           <table>
             <thead>
@@ -1147,6 +1288,7 @@ export default function DepositLayout({
                 <th>Date</th>
                 <th>Payment Method</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -1159,11 +1301,38 @@ export default function DepositLayout({
                     <tr key={r.id}>
                       <td>{slOffset + index + 1}</td>
                       <td><code className="dl-deposit-id">#{r.deposit_id}</code></td>
-                      <td>$ {Number(r.amount).toFixed(2)} <small className="text-warning">USDT</small></td>
-                      <td>{r.network ?? "TRC20"}</td>
+                      <td>$ {Number(r.amount).toFixed(2)}</td>
+                      <td>
+                      <span
+                        className={
+                          r.network === "ETH"
+                            ? "text-primary fw-semibold"
+                            : r.network === "TRX"
+                            ? "text-success fw-semibold"
+                            : "text-light"
+                        }
+                      >
+                        {r.network === "ETH"
+                          ? "ERC-20"
+                          : r.network === "TRX"
+                          ? "TRC-20"
+                          : "Binance Pay"}
+                      </span>
+                    </td>
                       <td>{formatDate(r.created_at)}</td>
-                      <td><span className={`${ r.payment_method === 'binance' ? 'text-warning' : 'text-info'}`}>{r.payment_method}</span></td>
+                      <td><span className={`${ r.payment_method === 'binance' ? 'text-warning' : 'text-info'}`}>{r.payment_method == 'binance' ? 'Binance' : 'crypto'}</span></td>
                       <td><span className={s.cls}>{s.label}</span></td>
+                      <td>
+                        <button
+                          type="button"
+                          className="dl-icon-btn"
+                          onClick={() => {openRowSupportModal(r); setSelectedNetwork(r.network === "ETH" ? 'ERC20' : r.network === "TRX" ? 'TRC20' : 'Binance'); setSupportModalMode(r.network ? 'submit' : 'support')}}
+                          aria-label="Submit payment proof"
+                          title="Submit payment proof"
+                        >
+                          <i className="fa-solid fa-receipt" />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })
@@ -1227,11 +1396,15 @@ export default function DepositLayout({
       {/* Support modal (shared for both payment methods) */}
       {supportModalMode && (
         <DepositSupportModal
+          selectedNetwork={selectedNetwork}
           mode={supportModalMode}
           depositId={supportDepositId}
           coinLabel={supportCoinLabel}
           depositAmount={supportDepositAmount}
-          onClose={() => setSupportModalMode(null)}
+          onClose={() => {
+            setSupportModalMode(null);
+            setSelectedListRow(null);
+          }}
           onSuccess={() => fetchDepositList(1)}
           paymentProofSubmit={() => setPaymentProofSubmit(true)}
         />

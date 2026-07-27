@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { depositSupportApi } from "@/app/api/wallet";
 
 type Props = {
+  selectedNetwork: string,
   mode: "submit" | "support";        // submit = "I've Already Paid"; support = "Contact Support"
   depositId: string;
   coinLabel?: string;
@@ -14,7 +15,7 @@ type Props = {
   paymentProofSubmit: () => void;
 };
 
-export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT", depositAmount = "", onClose, onSuccess, paymentProofSubmit }: Props) {
+export default function DepositSupportModal({ selectedNetwork, mode, depositId, coinLabel = "USDT", depositAmount = "", onClose, onSuccess, paymentProofSubmit }: Props) {
   const [txId, setTxId]           = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>(depositAmount);
   const [note, setNote]           = useState<string>("");
@@ -52,7 +53,6 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
 
   const handleSubmit = async () => {
     if (mode === "submit") {
-      if (!txId.trim())      { toast.error("Please enter a Transaction ID."); return; }
       if (!paidAmount.trim()){ toast.error("Please enter the paid amount."); return; }
     }
     setIsLoading(true);
@@ -90,7 +90,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
         </div>
 
         {/* Mini stepper */}
-        {isSubmitMode && (
+        {/* {isSubmitMode && (
           <div className="dsm-stepper">
             {[
               { n: 1, label: "Submit Details", sub: "Fill payment information" },
@@ -109,26 +109,26 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
               </React.Fragment>
             ))}
           </div>
-        )}
+        )} */}
 
         {/* Body: two columns */}
         <div className={`${ mode === 'submit' ? 'dsm-body' : ""}`}>
           {/* LEFT: form */}
           <div className="dsm-form-col">
-            <div className="dsm-form-head">
+            {/* <div className="dsm-form-head">
               <i className="fa-solid fa-sparkles" style={{color:"#9cecfe"}} />
               <span>SUBMIT PAYMENT DETAILS</span>
             </div>
-            <p className="dsm-form-sub">Please provide accurate information for faster review</p>
+            <p className="dsm-form-sub">Please provide accurate information for faster review</p> */}
 
             {/* Deposit ID (auto-filled) */}
-            <div className="dsm-field">
+            {/* <div className="dsm-field">
               <label>Deposit Request ID</label>
               <div className="dsm-input dsm-input--readonly">
                 <input type="text" value={`#${depositId || "DP0000000"}`} readOnly />
               </div>
               <small>Your deposit request ID (auto-filled)</small>
-            </div>
+            </div> */}
 
             {/* TXID */}
             {isSubmitMode && (
@@ -147,7 +147,8 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
                 <label>Paid Amount</label>
                 <div className="dsm-amount-row">
                   <div className="dsm-input dsm-input--flex">
-                    <input type="text" inputMode="decimal" placeholder="0.000000" value={paidAmount}
+                    <input type="text" inputMode="decimal" placeholder="0.000000" 
+                    // value={paidAmount}
                       onChange={(e) => setPaidAmount(e.target.value.replace(/[^\d.]/g, ""))} />
                   </div>
                   <div className="dsm-coin-badge"><span className="dl-coin-badge dl-coin-badge--usdt" style={{width:22,height:22}}>T</span> {coinLabel}</div>
@@ -197,7 +198,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
 
             {/* Submit — uses the shared btn--primary class, no custom color overrides */}
             <button type="button" className="dsm-submit-btn btn--primary" disabled={isLoading} onClick={handleSubmit}>
-              {isLoading ? "Submitting..." : isSubmitMode ? "Submit for Review" : "Send Message"}
+              {isLoading ? "Submitting..." : isSubmitMode ? "Submit Proof" : "Submit Proof"}
               <i className={isLoading ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-paper-plane"} />
             </button>
 
@@ -225,7 +226,7 @@ export default function DepositSupportModal({ mode, depositId, coinLabel = "USDT
                     </div>
                     <div className="dsm-summary-row">
                       <span>Network</span>
-                      <span className="dsm-summary-val"><span style={{color:"#dd9b0e"}}>⟁</span> TRC20 (Tron)</span>
+                      <span className="dsm-summary-val"><span style={{color:"#dd9b0e"}}>⟁</span> {selectedNetwork} (Tron)</span>
                     </div>
                     <div className="dsm-summary-row">
                       <span>Status</span>
