@@ -133,7 +133,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
             {/* TXID */}
             {isSubmitMode && (
               <div className="dsm-field">
-                <label>Transaction ID (TXID)</label>
+                <label className="d-flex gap-3">Transaction ID (TXID) <small>(Optional)</small></label>
                 <div className="dsm-input">
                   <input type="text" placeholder="Enter transaction ID / TXID" value={txId} onChange={(e) => setTxId(e.target.value)} />
                 </div>
