@@ -1,4 +1,16 @@
 import apiClient from "@/utils/apiClient";
+type CancelDepositPayload = {
+  token: string;
+};
+
+type CancelDepositResponse = {
+  error: boolean;
+  message: string;
+  data?: {
+    status: number;
+    token: string;
+  } | null;
+};
 
 export const SubmitDepositWithdrawApi = async (data: unknown) => {
     const response = await apiClient.post("/user/binance", data);
@@ -20,6 +32,19 @@ export const GetDepositInfoApi = async (token: string) => {
 export const SubmitBinanceDepositApi = async (data: { binance_id: string; amount: number, payment_method: string  }) => {
   return (await apiClient.post("/user/binance/deposit/initiate", data)).data;
 };
+
+// cancelPayment 
+export const cancelDeposit = async (
+  data: CancelDepositPayload
+): Promise<CancelDepositResponse> => {
+  const response = await apiClient.post<CancelDepositResponse>(
+    '/user/binance/deposit/cancel',
+    data
+  );
+
+  return response.data;
+};
+
 
 export const depositWithdrawHistoryApi = async () => {
     return (await apiClient.get("/user/binance/list")).data;
