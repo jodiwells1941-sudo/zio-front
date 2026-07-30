@@ -199,7 +199,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
             {/* Submit — uses the shared btn--primary class, no custom color overrides */}
             <button type="button" className="dsm-submit-btn btn--primary" disabled={isLoading} onClick={handleSubmit}>
               {isLoading ? "Submitting..." : isSubmitMode ? "Submit Proof" : "Submit Proof"}
-              <i className={isLoading ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-paper-plane"} />
+              {/* <i className={isLoading ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-paper-plane"} /> */}
             </button>
 
             {/* Important */}
