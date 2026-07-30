@@ -391,7 +391,6 @@ export default function DepositLayout({
       toast.error(res?.message ?? 'Failed to cancel deposit.');
       return false;
     } catch (error: unknown) {
-      console.error('Cancel deposit failed:', error);
 
       toast.error(
         error instanceof Error
@@ -402,30 +401,7 @@ export default function DepositLayout({
     }
   };
 
-  // const resetBinanceFlow = () => {
-
-  //   const result = await Swal.fire({
-  //     title: "Deposit Confirmation",
-  //     icon: "info",
-  //     html: `Are you sure you want to deposit <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
-  //     showCloseButton: true, showCancelButton: true, focusConfirm: false,
-  //     cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
-  //   });
-  //   if (!result.isConfirmed) return;
-
-  //   setBinanceSubmitted(false);
-  //   setBinanceDepositId("");
-  //   setBinanceUserId("");
-  //   setBinanceAmount(defaultAmount);
-  //   setBinanceInfo(null);
-  //   setBinanceStatus("idle");
-  //   setBinanceSecondsLeft(0);
-  //   setBinanceTotalSeconds(30 * 60);
-  //   // cancel payment
-  //   cancelPayment();
-  // };
-
-  const resetBinanceFlow = async () => {
+  const resetBinanceFlowOld = async () => {
     
     if (!depositInfo?.token) {
       toast.error('Deposit token not found.');
@@ -467,6 +443,71 @@ export default function DepositLayout({
       await fetchDepositList(1);
     } catch (error) {
       console.error('Reset Binance flow failed:', error);
+      toast.error('Failed to cancel the deposit.');
+    }
+  };
+
+  // ── unified cancel/reset — used by BOTH the crypto/erc flow and the binance flow ──
+  const resetBinanceFlow = async () => {
+
+    if (!depositInfo?.token) {
+      toast.error('Deposit token not found.');
+      return;
+    }
+
+    const isBinance = paymentMethod === 'binance';
+    const amountForPrompt = isBinance ? binanceAmount : depositAmount;
+    const methodLabel = isBinance ? 'Binance' : selectedCoin;
+
+    const result = await Swal.fire({
+      title: 'Cancel Deposit?',
+      icon: 'warning',
+      html: `Are you sure you want to cancel the deposit of <strong>${amountForPrompt} USD</strong> via <strong>${methodLabel}</strong>?`,
+      showCloseButton: true,
+      showCancelButton: true,
+      focusConfirm: false,
+      cancelButtonText: 'No, Keep It',
+      confirmButtonText: 'Yes, Cancel Deposit',
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const cancelled = await cancelPayment(); // API call
+
+      if (!cancelled) {
+        return;
+      }
+
+      // ── reset crypto/erc flow state ──
+      setDepositInfo(null);
+      setStatus('idle');
+      setSecondsLeft(0);
+      setTotalSeconds(30 * 60);
+      setDepositAmount(defaultAmount);
+      setSelectedCoin(COIN_OPTIONS[0].id);
+      setSelectedNetwork(NETWORK_OPTIONS[0].id);
+
+      // ── reset binance flow state ──
+      setBinanceSubmitted(false);
+      setBinanceDepositId('');
+      setBinanceUserId('');
+      setBinanceAmount(defaultAmount);
+      setBinanceInfo(null);
+      setBinanceStatus('idle');
+      setBinanceSecondsLeft(0);
+      setBinanceTotalSeconds(30 * 60);
+      setPaymentProofSubmit(false);
+
+      // ── reset payment method selector back to default ──
+      setPaymentMethod('crypto');
+
+      await fetchDepositList(1);
+    } catch (error) {
+      console.error('Reset flow failed:', error);
       toast.error('Failed to cancel the deposit.');
     }
   };
@@ -912,6 +953,12 @@ export default function DepositLayout({
                         View Transaction Details
                       </button>
                     )}
+
+                    <div className="d-flex justify-content-end pt-4">
+                      <button type="button" className="dl-cta dl-cta--secondary text-white bg-danger" onClick={resetBinanceFlow}>
+                        Cancel Deposit
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1199,13 +1246,13 @@ export default function DepositLayout({
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="d-flex justify-content-end pt-2">
-            <button type="button" className="dl-cta dl-cta--secondary text-white" onClick={resetBinanceFlow}>
-              Cancel Deposit
-            </button>
+              <div className="d-flex justify-content-end pt-2">
+                <button type="button" className="dl-cta dl-cta--secondary bg-danger text-white" onClick={resetBinanceFlow}>
+                  Cancel Deposit
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1323,15 +1370,18 @@ export default function DepositLayout({
                       <td><span className={`${ r.payment_method === 'binance' ? 'text-warning' : 'text-info'}`}>{r.payment_method == 'binance' ? 'Binance' : 'crypto'}</span></td>
                       <td><span className={s.cls}>{s.label}</span></td>
                       <td>
-                        <button
-                          type="button"
-                          className="dl-icon-btn"
-                          onClick={() => {openRowSupportModal(r); setSelectedNetwork(r.network === "ETH" ? 'ERC20' : r.network === "TRX" ? 'TRC20' : 'Binance'); setSupportModalMode(r.network ? 'submit' : 'support')}}
-                          aria-label="Submit payment proof"
-                          title="Submit payment proof"
-                        >
-                          <i className="fa-solid fa-receipt" />
-                        </button>
+                        { r.status === 2 ? <span className="text-info">Done</span>
+                        :
+                          <button
+                            type="button"
+                            className="btn btn-info text-warning-emphasis"
+                            onClick={() => {openRowSupportModal(r); setSelectedNetwork(r.network === "ETH" ? 'ERC20' : r.network === "TRX" ? 'TRC20' : 'Binance'); setSupportModalMode(r.network ? 'submit' : 'support')}}
+                            aria-label="Submit payment proof"
+                            title="Submit payment proof"
+                          >
+                            Submit Proof
+                          </button>
+                        }
                       </td>
                     </tr>
                   );
