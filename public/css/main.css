@@ -10089,8 +10089,18 @@ span {
   color: #ff9d00 !important;
 }
 
-.hover-text-red:hover {
-  color: #ff1a1a !important;
+.hover-text-white:hover {
+  color: #fff !important;
+}
+
+.cancel-btn-red {
+  border: 1px solid #ff4747;
+  color: #ff4747;
+  border-radius: 20px;
+}
+
+.cancel-btn-red:hover {
+  background: #ff4747 !important;
 }
 
 .right-sidebar-btn {
@@ -14738,3 +14748,333 @@ span {
   padding: 0.6rem 1rem;
   font-size: 0.875rem;
 }
+
+
+/* =============Deposit popup design start===============  */
+.payment-failed-popup {
+  width: min(620px, calc(100% - 30px)) !important;
+  padding: 32px 54px 24px !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  color: #081c3f !important;
+  box-shadow: 0 24px 80px rgba(7, 18, 40, 0.24) !important;
+}
+
+.payment-failed-html {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.payment-failed-modal {
+  width: 100%;
+  text-align: center;
+}
+
+/* Top error icon */
+
+.payment-failed-icon {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 10px solid rgba(239, 52, 62, 0.08);
+  border-radius: 50%;
+  background: #ef343e;
+  box-shadow:
+    0 0 0 8px rgba(239, 52, 62, 0.07),
+    0 10px 25px rgba(239, 52, 62, 0.2);
+}
+
+.payment-failed-icon span {
+  color: #ffffff;
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+/* Heading */
+
+.payment-failed-title {
+  margin: 0;
+  color: #071d42;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1px;
+}
+
+.payment-failed-title-line {
+  width: 68px;
+  height: 3px;
+  margin: 12px auto 14px;
+  border-radius: 20px;
+  background: #ef343e;
+}
+
+.payment-failed-description {
+  margin: 0 0 24px;
+  color: #4c5362;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+/* Information cards */
+
+.payment-info-card {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  width: 100%;
+  padding: 19px 24px;
+  border: 1px solid #dde3ed;
+  border-radius: 13px;
+  text-align: left;
+}
+
+.payment-info-card + .payment-info-card {
+  margin-top: 12px;
+}
+
+.payment-info-card--blue {
+  background: #f7f9fd;
+}
+
+.payment-info-card--green {
+  background: #f8faf8;
+}
+
+.payment-info-icon {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 31px;
+}
+
+.payment-info-icon--blue {
+  color: #2775d8;
+  background: rgba(39, 117, 216, 0.08);
+  box-shadow: 0 0 0 7px rgba(39, 117, 216, 0.04);
+}
+
+.payment-info-icon--green {
+  color: #3e954d;
+  background: rgba(62, 149, 77, 0.08);
+  box-shadow: 0 0 0 7px rgba(62, 149, 77, 0.04);
+}
+
+.payment-info-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  width: 21px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #2775d8;
+  border-radius: 50%;
+  background: #f7f9fd;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.payment-info-content {
+  color: #151b27;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.payment-appeal-text {
+  color: #d92731;
+  font-weight: 800;
+}
+
+.payment-hours {
+  color: #318443;
+  font-weight: 800;
+}
+
+/* Buttons */
+
+.payment-failed-actions {
+  width: 100% !important;
+  margin: 16px 0 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.payment-failed-confirm {
+  width: 100% !important;
+  min-height: 64px;
+  margin: 0 !important;
+  padding: 0 26px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #123d82 0%, #06265d 100%) !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 10px 20px rgba(8, 44, 102, 0.2) !important;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease !important;
+}
+
+.payment-failed-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 13px 26px rgba(8, 44, 102, 0.27) !important;
+}
+
+.payment-confirm-content {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-confirm-content > i:first-child {
+  font-size: 26px;
+}
+
+.payment-confirm-arrow {
+  font-size: 14px;
+  justify-self: end;
+}
+
+.payment-failed-cancel {
+  margin: 0 !important;
+  padding: 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #697386 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.payment-failed-cancel:hover {
+  color: #dc3545 !important;
+  text-decoration: underline;
+}
+
+/* Close button */
+
+.payment-failed-close {
+  top: 18px !important;
+  right: 18px !important;
+  width: 40px !important;
+  height: 40px !important;
+  border: 1px solid #e2e6ed !important;
+  border-radius: 50% !important;
+  color: #29354a !important;
+  font-size: 31px !important;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease !important;
+}
+
+.payment-failed-close:hover {
+  border-color: #ef343e !important;
+  background: rgba(239, 52, 62, 0.06) !important;
+  color: #ef343e !important;
+}
+
+/* Secure message */
+
+.payment-secure-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 13px;
+  color: #6d7483;
+  font-size: 13px;
+}
+
+.payment-secure-text i {
+  color: #758096;
+  font-size: 16px;
+}
+
+/* SweetAlert background overlay */
+
+.swal2-container.swal2-backdrop-show {
+  background: rgba(14, 22, 38, 0.78) !important;
+  backdrop-filter: blur(3px);
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .payment-failed-popup {
+    padding: 28px 20px 22px !important;
+    border-radius: 17px !important;
+  }
+
+  .payment-failed-icon {
+    width: 76px;
+    height: 76px;
+    border-width: 8px;
+  }
+
+  .payment-failed-icon span {
+    font-size: 52px;
+  }
+
+  .payment-failed-title {
+    font-size: 30px;
+  }
+
+  .payment-failed-description {
+    font-size: 15px;
+  }
+
+  .payment-info-card {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .payment-info-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    font-size: 25px;
+  }
+
+  .payment-info-content {
+    font-size: 13px;
+  }
+
+  .payment-failed-confirm {
+    min-height: 56px;
+    padding: 0 16px !important;
+    font-size: 15px !important;
+  }
+
+  .payment-confirm-content {
+    grid-template-columns: 27px 1fr 27px;
+  }
+
+  .payment-confirm-content > i:first-child {
+    font-size: 21px;
+  }
+
+  .payment-secure-text {
+    font-size: 11px;
+  }
+}
+/* =============Deposit popup design end===============  */
