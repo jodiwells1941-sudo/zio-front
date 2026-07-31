@@ -2269,7 +2269,7 @@ const handleBinanceSubmit = async () => {
           text-align: left;
           border: 1px solid #303747;
           border-radius: 14px;
-          background: #191e27;
+          background: #1D1E24;
           color: inherit;
           cursor: pointer;
           transition:
