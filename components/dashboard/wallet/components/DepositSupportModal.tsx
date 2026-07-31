@@ -74,13 +74,13 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
 
       <div className={`${ mode === 'submit' ? 'dsm-sheet' : "dsm-sheet-2"}`}>
         {/* Header */}
-        <div className="dsm-header">
+        <div className="dsm-header bg-dark">
           <div className="dsm-header-left">
             <div className="dsm-header-icon bg-warning">
               <i className={isSubmitMode ? "fa-solid fa-receipt" : "fa-solid fa-headset"} />
             </div>
             <div>
-              <h5 className="dsm-title">{isSubmitMode ? <><span style={{color:"#fff"}}>ADMIN</span> <span style={{color:"#9cecfe"}}>REVIEW</span></> : "NEED HELP?"}</h5>
+              <h5 className="dsm-title ">{isSubmitMode ? "WRONG PAYMENT APPEAL" : "NEED HELP?"}</h5>
               <p className="dsm-subtitle">{isSubmitMode ? "We're here to help! Submit your payment details and our team will review it shortly." : "Facing any issue? Our support team is ready to help you."}</p>
             </div>
           </div>
@@ -89,46 +89,10 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
           </button>
         </div>
 
-        {/* Mini stepper */}
-        {/* {isSubmitMode && (
-          <div className="dsm-stepper">
-            {[
-              { n: 1, label: "Submit Details", sub: "Fill payment information" },
-              { n: 2, label: "Admin Review",   sub: "Our team will check" },
-              { n: 3, label: "Get Update",     sub: "We will notify you" },
-            ].map((s, i, arr) => (
-              <React.Fragment key={s.n}>
-                <div className={`dsm-step ${s.n === 1 ? "dsm-step--active" : ""}`}>
-                  <div className="dsm-step-dot">{s.n}</div>
-                  <div>
-                    <div className="dsm-step-label">{s.label}</div>
-                    <div className="dsm-step-sub">{s.sub}</div>
-                  </div>
-                </div>
-                {i < arr.length - 1 && <i className="fa-solid fa-arrow-right dsm-step-arrow" />}
-              </React.Fragment>
-            ))}
-          </div>
-        )} */}
-
         {/* Body: two columns */}
         <div className={`${ mode === 'submit' ? 'dsm-body' : ""}`}>
           {/* LEFT: form */}
-          <div className="dsm-form-col">
-            {/* <div className="dsm-form-head">
-              <i className="fa-solid fa-sparkles" style={{color:"#9cecfe"}} />
-              <span>SUBMIT PAYMENT DETAILS</span>
-            </div>
-            <p className="dsm-form-sub">Please provide accurate information for faster review</p> */}
-
-            {/* Deposit ID (auto-filled) */}
-            {/* <div className="dsm-field">
-              <label>Deposit Request ID</label>
-              <div className="dsm-input dsm-input--readonly">
-                <input type="text" value={`#${depositId || "DP0000000"}`} readOnly />
-              </div>
-              <small>Your deposit request ID (auto-filled)</small>
-            </div> */}
+          <div className="dsm-form-col bg-dark border-dark-light">
 
             {/* TXID */}
             {isSubmitMode && (
@@ -201,20 +165,14 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
               {isLoading ? "Submitting..." : isSubmitMode ? "Submit Proof" : "Submit Proof"}
               {/* <i className={isLoading ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-paper-plane"} /> */}
             </button>
-
-            {/* Important */}
-            <div className="dsm-important">
-              <div className="dsm-important-head"><i className="fa-solid fa-circle-exclamation" /> Important</div>
-              <p>Please ensure all information is correct. Wrong details may cause delay in review.</p>
-            </div>
           </div>
 
           {/* RIGHT: summary + help */}
           {mode === 'submit' && (
-            <div className="dsm-info-col">
+            <div className="dsm-info-col bg-dark">
               {/* Deposit summary */}
               {depositId && (
-                <div className="dsm-summary-card">
+                <div className="dsm-summary-card bg-dark border border-secondary">
                   <div className="dsm-summary-head">
                     <i className="fa-solid fa-file-invoice" style={{color:"#9cecfe"}} />
                     <span>DEPOSIT SUMMARY</span>
@@ -237,7 +195,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
               )}
 
               {/* Need help */}
-              <div className="dsm-help-card">
+              <div className="dsm-help-card bg-dark border border-secondary">
                 <div className="dsm-summary-head"><i className="fa-solid fa-circle-question" style={{color:"#9cecfe"}} /> NEED HELP?</div>
                 <p style={{fontSize:13,color:"#8d96ad",marginBottom:14}}>If you have any issue or need assistance, our support team is ready to help you.</p>
                 <div className="dsm-help-action bg-warning">
@@ -255,7 +213,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
               </div>
 
               {/* How it works */}
-              <div className="dsm-how-card">
+              <div className="dsm-how-card bg-dark border border-secondary">
                 <div className="dsm-summary-head"><i className="fa-solid fa-lightbulb" style={{color:"#dd9b0e"}} /> HOW IT WORKS?</div>
                 {[
                   { n: 1, title: "Submit your payment details", body: "Fill the form with TXID, amount and screenshot (if any)." },
@@ -284,7 +242,21 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
           overflow-y: auto; padding: 24px 16px;
         }
         .dsm-backdrop {
-          position: fixed; inset: 0; background: rgba(5,8,20,.85); backdrop-filter: blur(4px); border: none; cursor: default;
+          position: fixed;
+          inset: 0;
+          background: rgba(9, 16, 32, 0.82);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          animation: fadeBackdrop .25s ease;
+        }
+
+        @keyframes fadeBackdrop {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
         .dsm-sheet {
           position: relative; z-index: 1; width: 100%; max-width: 900px;
@@ -302,7 +274,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
         .dsm-header {
           display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
           padding: 24px 28px; border-bottom: 1px solid #1f2433;
-          background: linear-gradient(135deg,#0e1322 0%,#131a2e 100%);
+          /* background: linear-gradient(135deg,#1f2433 0%,#1f2433 100%); */
         }
         .dsm-header-left { display: flex; align-items: flex-start; gap: 16px; }
         .dsm-header-icon {
@@ -349,7 +321,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
         .dsm-field small { display: block; margin-top: 5px; font-size: 11px; color: #5a6278; }
 
         .dsm-input {
-          background: #161b29; border: 1px solid #262c40; border-radius: 10px;
+          background: #191a1f; border: 1px solid #262c40; border-radius: 10px;
           display: flex; align-items: center; padding: 0 14px;
           transition: border-color .15s ease;
         }
@@ -361,7 +333,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
 
         .dsm-amount-row { display: flex; align-items: center; gap: 10px; }
         .dsm-coin-badge {
-          display: flex; align-items: center; gap: 6px; background: #161b29; border: 1px solid #262c40;
+          display: flex; align-items: center; gap: 6px; background: #191a1f; border: 1px solid #262c40;
           border-radius: 10px; padding: 10px 14px; white-space: nowrap; font-weight: 600; font-size: 14px; color: #f2f4f8; flex-shrink: 0;
         }
         .dl-coin-badge { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
@@ -372,6 +344,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
           display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
           cursor: pointer; transition: border-color .15s ease; min-height: 110px; text-align: center;
           color: #7c8499; font-size: 13px;
+          background: #191a1f;
         }
         .dsm-upload:hover, .dsm-upload--drag { border-color: #dd9b0e; background: rgba(221,155,14,.06); }
         .dsm-upload-icon { font-size: 26px; color: #5a6278; margin-bottom: 4px; }
@@ -386,7 +359,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
         }
 
         .dsm-textarea {
-          width: 100%; background: #161b29; border: 1px solid #262c40; border-radius: 10px;
+          width: 100%; background: #191a1f; border: 1px solid #262c40; border-radius: 10px;
           color: #f2f4f8; font-size: 13px; padding: 12px 14px; resize: vertical; outline: none;
           transition: border-color .15s ease; font-family: inherit;
         }
@@ -403,7 +376,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
         .dsm-submit-btn:disabled { opacity: .5; cursor: not-allowed; }
 
         .dsm-important {
-          margin-top: 14px; background: #1d1908; border: 1px solid #5a4a1c;
+          margin-top: 14px; background: #191a1f; border: 1px solid #5a4a1c;
           border-radius: 10px; padding: 12px 14px;
         }
         .dsm-important-head { display: flex; align-items: center; gap: 6px; color: #dd9b0e; font-weight: 700; font-size: 13px; margin-bottom: 6px; }
@@ -413,7 +386,7 @@ export default function DepositSupportModal({ selectedNetwork, mode, depositId, 
         .dsm-info-col { padding: 24px 24px; display: flex; flex-direction: column; gap: 16px; background: #0b1020; }
 
         .dsm-summary-card, .dsm-help-card, .dsm-how-card {
-          background: #0e1322; border: 1px solid #1f2433; border-radius: 12px; padding: 16px 18px;
+          background: #191a1f; border: 1px solid #1f2433; border-radius: 12px; padding: 16px 18px;
         }
         .dsm-summary-head { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .1em; color: #e9ecf3; margin-bottom: 14px; }
         .dsm-summary-rows { display: flex; flex-direction: column; gap: 0; }

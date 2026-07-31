@@ -247,10 +247,7 @@ export default function DepositLayout({
 
   // ── create deposit (crypto) ─────────────────────────────────────────────────
   const createDeposit = async () => {
-    // if (!validateAmount()) return;
-
-    console.log('depositAmount = ', depositAmount);
-    
+    // if (!validateAmount()) return;    
 
     setIsLoading(true);
     try {
@@ -292,82 +289,264 @@ export default function DepositLayout({
     }
   };
 
-  const handleCreateDeposit = async () => {
-    if (!validateAmount()) return;
-    const result = await Swal.fire({
-      title: "Deposit Confirmation",
-      icon: "info",
-      html: `Are you sure you want to deposit <strong>${depositAmount} USD</strong> in <strong>${selectedCoin}</strong> on <strong>${selectedNetwork}</strong>?`,
-      showCloseButton: true, showCancelButton: true, focusConfirm: false,
-      cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
+  // const handleCreateDeposit = async () => {
+  //   if (!validateAmount()) return;
+  //   const result = await Swal.fire({
+  //     title: "Deposit Confirmation",
+  //     icon: "info",
+  //     html: `Are you sure you want to deposit <strong>${depositAmount} USD</strong> in <strong>${selectedCoin}</strong> on <strong>${selectedNetwork}</strong>?`,
+  //     showCloseButton: true, showCancelButton: true, focusConfirm: false,
+  //     cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
+  //   });
+  //   if (result.isConfirmed) await createDeposit();
+  // };
+
+  // // ── validation + submit (binance manual) ─────────────────────────────────────
+  // const validateBinanceAmount = () => {
+  //   if (isNaN(binanceAmount)) { toast.error("Please enter a valid amount."); return false; }
+  //   if (binanceAmount < 1)    { toast.error("Minimum deposit amount is 1 USD."); return false; }
+  //   if (binanceAmount > 5000) { toast.error("Maximum deposit amount is 5,000 USD."); return false; }
+  //   return true;
+  // };
+
+  // const handleBinanceSubmit = async () => {
+  //   if (!binanceUserId.trim()) { toast.error("Please enter your Binance ID."); return; }
+  //   if (!validateBinanceAmount()) return;
+
+  //   const result = await Swal.fire({
+  //     title: "Deposit Confirmation",
+  //     icon: "info",
+  //     html: `Are you sure you want to deposit <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
+  //     showCloseButton: true, showCancelButton: true, focusConfirm: false,
+  //     cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
+  //   });
+  //   if (!result.isConfirmed) return;
+
+  //   setBinanceSubmitting(true);
+
+  //   try {
+  //     const response = await SubmitBinanceDepositApi({
+  //       binance_id: binanceUserId.trim(),
+  //       amount: binanceAmount,
+  //       payment_method: paymentMethod,
+  //     });
+
+  //     if (!response.error) {
+  //       const info: DepositInfo = response.data;
+  //       setBinanceInfo(info);
+  //       setBinanceSubmitted(true);
+  //       setBinanceDepositId(info?.deposit_id ?? "");
+  //       setBinanceStatus("expired" === info?.status ? "expired" : "waiting");
+  //       setDepositInfo(info);
+
+  //       depositSectionRef.current?.scrollIntoView({
+  //         behavior: "smooth",
+  //         block: "center",
+  //       });
+
+  //       if (info?.expires_at) {
+  //         const secs = Math.max(0, Math.floor((new Date(info.expires_at).getTime() - Date.now()) / 1000));
+  //         setBinanceSecondsLeft(secs);
+  //         setBinanceTotalSeconds(secs > 0 ? secs : 30 * 60);
+  //       } else {
+  //         setBinanceSecondsLeft(30 * 60);
+  //         setBinanceTotalSeconds(30 * 60);
+  //       }
+
+  //       toast.success("Deposit request submitted. Please complete the transfer, then submit your payment details for review.");
+  //       fetchDepositList(1);
+  //     } else {
+  //       // Do NOT populate binanceInfo/binanceSubmitted on failure.
+  //       Swal.fire("Failed", response.message || "Transaction failed. Please try again.", "error");
+  //     }
+  //   } catch {
+  //     Swal.fire("Error", "A network error occurred during submission.", "error");
+  //   } finally {
+  //     setBinanceSubmitting(false);
+  //   }
+  // };
+
+  const showDepositConfirmation = async ({
+  amount,
+  method,
+}: {
+  amount: number | string;
+  method: string;
+}) => {
+  return Swal.fire({
+    html: `
+      <div class="deposit-confirmation-content">
+        <div class="deposit-confirmation-icon">
+          <span>i</span>
+        </div>
+
+        <h2 class="deposit-confirmation-title">
+          Deposit Confirmation
+        </h2>
+
+        <div class="deposit-confirmation-line"></div>
+
+        <p class="deposit-confirmation-message">
+          Are you sure you want to deposit
+          <strong>${amount} USD</strong>
+          via <span>${method}</span>?
+        </p>
+      </div>
+    `,
+
+    showCloseButton: true,
+    showCancelButton: true,
+    showConfirmButton: true,
+    focusConfirm: false,
+    buttonsStyling: false,
+
+    confirmButtonText: `
+      <span class="deposit-button-content">
+        <i class="fa-regular fa-circle-check"></i>
+        <span>Yes, Deposit!</span>
+      </span>
+    `,
+
+    cancelButtonText: `
+      <span class="deposit-button-content">
+        <i class="fa-regular fa-circle-xmark"></i>
+        <span>No, Cancel!</span>
+      </span>
+    `,
+
+    customClass: {
+      popup: "deposit-confirmation-popup",
+      htmlContainer: "deposit-confirmation-html",
+      actions: "deposit-confirmation-actions",
+      confirmButton: "deposit-confirm-button",
+      cancelButton: "deposit-cancel-button",
+      closeButton: "deposit-confirmation-close",
+    },
+  });
+};
+
+
+const handleCreateDeposit = async () => {
+  if (!validateAmount()) return;
+
+  const result = await showDepositConfirmation({
+    amount: depositAmount,
+    method: `${selectedCoin} on ${selectedNetwork}`,
+  });
+
+  if (!result.isConfirmed) return;
+
+  await createDeposit();
+};
+
+// ── validation + submit (binance manual) ─────────────────────────────────────
+const validateBinanceAmount = () => {
+  if (isNaN(binanceAmount)) {
+    toast.error("Please enter a valid amount.");
+    return false;
+  }
+
+  if (binanceAmount < 1) {
+    toast.error("Minimum deposit amount is 1 USD.");
+    return false;
+  }
+
+  if (binanceAmount > 5000) {
+    toast.error("Maximum deposit amount is 5,000 USD.");
+    return false;
+  }
+
+  return true;
+};
+
+const handleBinanceSubmit = async () => {
+  if (!binanceUserId.trim()) {
+    toast.error("Please enter your Binance ID.");
+    return;
+  }
+
+  if (!validateBinanceAmount()) return;
+
+  const result = await showDepositConfirmation({
+    amount: binanceAmount,
+    method: "Binance",
+  });
+
+  if (!result.isConfirmed) return;
+
+  setBinanceSubmitting(true);
+
+  try {
+    const response = await SubmitBinanceDepositApi({
+      binance_id: binanceUserId.trim(),
+      amount: binanceAmount,
+      payment_method: paymentMethod,
     });
-    if (result.isConfirmed) await createDeposit();
-  };
 
-  // ── validation + submit (binance manual) ─────────────────────────────────────
-  const validateBinanceAmount = () => {
-    if (isNaN(binanceAmount)) { toast.error("Please enter a valid amount."); return false; }
-    if (binanceAmount < 1)    { toast.error("Minimum deposit amount is 1 USD."); return false; }
-    if (binanceAmount > 5000) { toast.error("Maximum deposit amount is 5,000 USD."); return false; }
-    return true;
-  };
+    if (!response.error) {
+      const info: DepositInfo = response.data;
 
-  const handleBinanceSubmit = async () => {
-    if (!binanceUserId.trim()) { toast.error("Please enter your Binance ID."); return; }
-    if (!validateBinanceAmount()) return;
+      setBinanceInfo(info);
+      setBinanceSubmitted(true);
+      setBinanceDepositId(info?.deposit_id ?? "");
+      setBinanceStatus(info?.status === "expired" ? "expired" : "waiting");
+      setDepositInfo(info);
 
-    const result = await Swal.fire({
-      title: "Deposit Confirmation",
-      icon: "info",
-      html: `Are you sure you want to deposit <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
-      showCloseButton: true, showCancelButton: true, focusConfirm: false,
-      cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
-    });
-    if (!result.isConfirmed) return;
-
-    setBinanceSubmitting(true);
-
-    try {
-      const response = await SubmitBinanceDepositApi({
-        binance_id: binanceUserId.trim(),
-        amount: binanceAmount,
-        payment_method: paymentMethod,
+      depositSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
       });
 
-      if (!response.error) {
-        const info: DepositInfo = response.data;
-        setBinanceInfo(info);
-        setBinanceSubmitted(true);
-        setBinanceDepositId(info?.deposit_id ?? "");
-        setBinanceStatus("expired" === info?.status ? "expired" : "waiting");
-        setDepositInfo(info);
+      if (info?.expires_at) {
+        const expiresAt = new Date(info.expires_at).getTime();
+        const secondsRemaining = Math.max(
+          0,
+          Math.floor((expiresAt - Date.now()) / 1000)
+        );
 
-        depositSectionRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-
-        if (info?.expires_at) {
-          const secs = Math.max(0, Math.floor((new Date(info.expires_at).getTime() - Date.now()) / 1000));
-          setBinanceSecondsLeft(secs);
-          setBinanceTotalSeconds(secs > 0 ? secs : 30 * 60);
-        } else {
-          setBinanceSecondsLeft(30 * 60);
-          setBinanceTotalSeconds(30 * 60);
-        }
-
-        toast.success("Deposit request submitted. Please complete the transfer, then submit your payment details for review.");
-        fetchDepositList(1);
+        setBinanceSecondsLeft(secondsRemaining);
+        setBinanceTotalSeconds(
+          secondsRemaining > 0 ? secondsRemaining : 30 * 60
+        );
       } else {
-        // Do NOT populate binanceInfo/binanceSubmitted on failure.
-        Swal.fire("Failed", response.message || "Transaction failed. Please try again.", "error");
+        setBinanceSecondsLeft(30 * 60);
+        setBinanceTotalSeconds(30 * 60);
       }
-    } catch {
-      Swal.fire("Error", "A network error occurred during submission.", "error");
-    } finally {
-      setBinanceSubmitting(false);
+
+      toast.success(
+        "Deposit request submitted. Please complete the transfer, then submit your payment details for review."
+      );
+
+      fetchDepositList(1);
+    } else {
+      Swal.fire({
+        title: "Deposit Failed",
+        text:
+          response.message ||
+          "Transaction failed. Please try again.",
+        icon: "error",
+        confirmButtonText: "Try Again",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Binance deposit submission error:", error);
+
+    Swal.fire({
+      title: "Network Error",
+      text: "A network error occurred during submission.",
+      icon: "error",
+      confirmButtonText: "Close",
+    });
+  } finally {
+    setBinanceSubmitting(false);
+  }
+};
+
+
+
+
+
+
 
   const cancelPayment = async (): Promise<boolean> => {
 
@@ -1632,7 +1811,7 @@ export default function DepositLayout({
         /* Amount presets */
         .dl-amount-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .dl-preset-btn {
-          background: #161b29; border: 1px solid #262c40; color: #c8cee0;
+          background: #1D1E24; border: 1px solid #262c40; color: #c8cee0;
           font-weight: 600; font-size: 13px; padding: 6px 14px; border-radius: 8px; cursor: pointer;
           transition: all .15s ease;
         }
@@ -1644,7 +1823,7 @@ export default function DepositLayout({
         .dl-select-row { display: flex; flex-direction: column; gap: 10px; }
         .dl-dropdown {
           display: flex; align-items: center; gap: 10px;
-          background: #161b29; border: 1px solid #262c40; border-radius: 10px; padding: 0 14px;
+          background: #1D1E24; border: 1px solid #262c40; border-radius: 10px; padding: 0 14px;
           transition: border-color .15s ease;
         }
         .dl-dropdown:focus-within { border-color: #1fae5c; box-shadow: 0 0 0 1px rgba(31,174,92,.4); }
