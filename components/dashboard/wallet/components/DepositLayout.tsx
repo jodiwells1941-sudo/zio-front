@@ -216,6 +216,20 @@ export default function DepositLayout({
   const [binanceTotalSeconds, setBinanceTotalSeconds] = useState<number>(30 * 60);
   const [selectedListRow, setSelectedListRow] = useState<DepositRow | null>(null);
 
+  // ── mobile "show more" collapsibles (desktop is unaffected via CSS) ─────────
+  const [expandedMethodIds, setExpandedMethodIds] = useState<Set<string>>(new Set());
+  const [bpDetailsExpanded, setBpDetailsExpanded] = useState<boolean>(false);
+
+  const toggleMethodDetails = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpandedMethodIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   // ── support modal state (shared) ─────────────────────────────────────────────
   const [supportModalMode, setSupportModalMode] = useState<"submit" | "support" | null>(null);
 
@@ -946,6 +960,7 @@ const handleBinanceSubmit = async () => {
         <div className="mt-3 row">
           {PAYMENT_METHODS.map((method) => {
             const isActive = paymentMethod === method.id;
+            const isDetailsOpen = expandedMethodIds.has(method.id);
 
             return (
               <div className="col-md-4" key={method.id} >
@@ -981,7 +996,7 @@ const handleBinanceSubmit = async () => {
                       )}
                     </span>
 
-                    <span className="dl-method-info">
+                    <span className={`dl-method-info d-none d-md-flex ${isDetailsOpen ? "dl-method-info--open" : ""}`}>
                       <small className="dl-method-sub">
                         <i className="fa-solid fa-bolt" />
                         {method.desc}
@@ -993,6 +1008,34 @@ const handleBinanceSubmit = async () => {
                           {method.rools}
                         </small>
                       )}
+                    </span>
+
+                    {/* Mobile-only collapsible details */}
+                    <span className={`dl-method-info d-flex d-md-none ${isDetailsOpen ? "dl-method-info--open" : "dl-method-info--closed"}`}>
+                      <small className="dl-method-sub">
+                        <i className="fa-solid fa-bolt" />
+                        {method.desc}
+                      </small>
+
+                      {method.rools && (
+                        <small className="dl-method-sub">
+                          <i className="fa-solid fa-chart-simple" />
+                          {method.rools}
+                        </small>
+                      )}
+                    </span>
+
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className="dl-method-toggle d-inline-flex d-md-none"
+                      onClick={(e) => toggleMethodDetails(method.id, e)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") toggleMethodDetails(method.id, e as unknown as React.MouseEvent);
+                      }}
+                    >
+                      {isDetailsOpen ? "Show less" : "Show details"}
+                      <i className={`fa-solid fa-chevron-${isDetailsOpen ? "up" : "down"}`} />
                     </span>
                   </span>
                 </button>
@@ -1337,7 +1380,7 @@ const handleBinanceSubmit = async () => {
                     <Image src="/images/admin-qr-code.png" width={190} height={190} alt="Binance Pay QR code" className="rounded" />
                   </div>
                 </div>
-                <div className="text-center position-absolute" style={{left: "266px", bottom: "-23px"}}>
+                <div className="text-center position-absolute d-none d-md-block" style={{left: "266px", bottom: "-23px"}}>
                   <span className="dl-bp-pill">Binance Pay ID</span>
                 </div>
               </div>
@@ -1355,43 +1398,59 @@ const handleBinanceSubmit = async () => {
                 </span>
               </div>
 
-              <div className="dl-bp-ministeps">
-                <div className="dl-bp-ministep">
-                  <span className="dl-bp-ministep-icon"><i className="fa-brands fa-google-play" /></span>
-                  <div>
-                    <strong>Open Binance App</strong>
-                    <small>Go to Binance App and tap on &quot;Pay&quot;</small>
-                  </div>
-                </div>
-                <i className="fa-solid fa-chevron-right dl-bp-arrow" />
-                <div className="dl-bp-ministep">
-                  <span className="dl-bp-ministep-icon"><i className="fa-solid fa-qrcode" /></span>
-                  <div>
-                    <strong>Scan or Paste</strong>
-                    <small>Scan QR code or paste Pay ID</small>
-                  </div>
-                </div>
-                <i className="fa-solid fa-chevron-right dl-bp-arrow" />
-                <div className="dl-bp-ministep">
-                  <span className="dl-bp-ministep-icon"><i className="fa-solid fa-paper-plane" /></span>
-                  <div>
-                    <strong>Send Payment</strong>
-                    <small>Enter the amount &amp; confirm payment</small>
-                  </div>
-                </div>
-              </div>
+              {/* Mobile-only toggle for the how-to steps + important notes */}
+              <button
+                type="button"
+                className="dl-bp-toggle d-flex d-md-none"
+                onClick={() => setBpDetailsExpanded((v) => !v)}
+                aria-expanded={bpDetailsExpanded}
+              >
+                <span>
+                  <i className="fa-solid fa-circle-info" />
+                  {bpDetailsExpanded ? "Hide payment steps & notes" : "Show payment steps & notes"}
+                </span>
+                <i className={`fa-solid fa-chevron-${bpDetailsExpanded ? "up" : "down"}`} />
+              </button>
 
-              <div className="dl-bp-notes">
-                <div className="dl-bp-notes-text">
-                  <div className="dl-bp-notes-head"><i className="fa-solid fa-circle-info" /> Important Notes</div>
-                  <ul>
-                    <li>Only USDT (TRC20, BEP20) payments are accepted.</li>
-                    <li>Send only the exact amount you want to deposit.</li>
-                    <li>Do not send from exchanges or smart contract wallets.</li>
-                    <li>Wrong payment may result in permanent loss.</li>
-                  </ul>
+              <div className={`dl-bp-collapsible ${bpDetailsExpanded ? "dl-bp-collapsible--open" : ""}`}>
+                <div className="dl-bp-ministeps">
+                  <div className="dl-bp-ministep">
+                    <span className="dl-bp-ministep-icon"><i className="fa-brands fa-google-play" /></span>
+                    <div>
+                      <strong>Open Binance App</strong>
+                      <small>Go to Binance App and tap on &quot;Pay&quot;</small>
+                    </div>
+                  </div>
+                  <i className="fa-solid fa-chevron-right dl-bp-arrow" />
+                  <div className="dl-bp-ministep">
+                    <span className="dl-bp-ministep-icon"><i className="fa-solid fa-qrcode" /></span>
+                    <div>
+                      <strong>Scan or Paste</strong>
+                      <small>Scan QR code or paste Pay ID</small>
+                    </div>
+                  </div>
+                  <i className="fa-solid fa-chevron-right dl-bp-arrow" />
+                  <div className="dl-bp-ministep">
+                    <span className="dl-bp-ministep-icon"><i className="fa-solid fa-paper-plane" /></span>
+                    <div>
+                      <strong>Send Payment</strong>
+                      <small>Enter the amount &amp; confirm payment</small>
+                    </div>
+                  </div>
                 </div>
-                <span className="dl-bp-notes-icon"><i className="fa-solid fa-shield-halved" /></span>
+
+                <div className="dl-bp-notes">
+                  <div className="dl-bp-notes-text">
+                    <div className="dl-bp-notes-head"><i className="fa-solid fa-circle-info" /> Important Notes</div>
+                    <ul>
+                      <li>Only USDT (TRC20, BEP20) payments are accepted.</li>
+                      <li>Send only the exact amount you want to deposit.</li>
+                      <li>Do not send from exchanges or smart contract wallets.</li>
+                      <li>Wrong payment may result in permanent loss.</li>
+                    </ul>
+                  </div>
+                  <span className="dl-bp-notes-icon"><i className="fa-solid fa-shield-halved" /></span>
+                </div>
               </div>
             </div>
 
@@ -1708,6 +1767,22 @@ const handleBinanceSubmit = async () => {
                 <div key={r.id} className="dl-mobile-row">
                   <div className="dl-mobile-row-top">
                     <span className="dl-mobile-num">#{slOffset + index + 1}</span>
+                    <div className="">
+                      { r?.deposit_support ? <span className="text-info">Review</span>
+                        : <>
+                        { (r.status != 2 && r.status != 5) && 
+                          <button
+                            type="button"
+                            className="btn btn-info text-warning-emphasis"
+                            onClick={() => {openRowSupportModal(r); setSelectedNetwork(r.network === "ETH" ? 'ERC20' : r.network === "TRX" ? 'TRC20' : 'Binance'); setSupportModalMode(r.network ? 'submit' : 'support')}}
+                            aria-label="Submit payment proof"
+                            title="Submit payment proof"
+                          >
+                            Submit Proof
+                          </button>
+                        }
+                        </>}
+                    </div>
                     <span className={s.cls}>{s.label}</span>
                   </div>
                   <div className="dl-mobile-row-body">
@@ -2407,6 +2482,32 @@ const handleBinanceSubmit = async () => {
           text-align: center;
         }
 
+        /* ── Mobile collapsible details on payment method cards ─────────────── */
+        .dl-method-info--closed {
+          max-height: 0;
+          gap: 0;
+          overflow: hidden;
+          opacity: 0;
+          transition: max-height .25s ease, opacity .2s ease;
+        }
+        .dl-method-info--open {
+          max-height: 120px;
+          opacity: 1;
+          margin-top: 2px;
+          transition: max-height .3s ease, opacity .25s ease;
+        }
+        .dl-method-toggle {
+          align-items: center;
+          gap: 6px;
+          margin-top: 4px;
+          color: #f0b332;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .dl-method-toggle i { font-size: 9px; }
+
         @media (max-width: 767px) {
           .dl-method-card {
             padding: 18px;
@@ -2417,7 +2518,7 @@ const handleBinanceSubmit = async () => {
           }
 
           .dl-method-btn {
-            min-height: 96px;
+            min-height: unset;
             padding: 14px;
           }
 
@@ -2551,6 +2652,36 @@ const handleBinanceSubmit = async () => {
           border-radius: 999px;
           padding: 4px 12px;
           margin-bottom: 20px;
+        }
+
+        /* ── Mobile "Show payment steps & notes" toggle ──────────────────────── */
+        .dl-bp-toggle {
+          width: 100%;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: #1D1E24;
+          border: 1px solid #262c40;
+          border-radius: 10px;
+          padding: 12px 14px;
+          color: #f0b332;
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+          margin-bottom: 14px;
+        }
+        .dl-bp-toggle span { display: inline-flex; align-items: center; gap: 8px; }
+
+        .dl-bp-collapsible {
+          display: none;
+        }
+        .dl-bp-collapsible--open {
+          display: block;
+        }
+        @media (min-width: 768px) {
+          .dl-bp-collapsible {
+            display: block !important;
+          }
         }
 
         .dl-bp-ministeps {
