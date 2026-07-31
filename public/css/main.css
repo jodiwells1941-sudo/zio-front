@@ -15480,4 +15480,51 @@ span {
     padding: 16px !important;
   }
 }
+
+
+.dl-coin-badge {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+
+  overflow: hidden;
+}
+
+.dl-coin-badge svg {
+  width: 27px;
+  height: 27px;
+  display: block;
+}
+
+/* Ethereum */
+
+.dl-coin-badge--eth {
+  background: #f4f5fa;
+  border-color: rgba(98, 104, 143, 0.2);
+}
+
+.dl-coin-badge--eth svg {
+  width: 23px;
+  height: 30px;
+}
+
+/* Tron */
+
+.dl-coin-badge--trx {
+  background: #fff4f5;
+  border-color: rgba(239, 0, 39, 0.18);
+}
+
+.dl-coin-badge--trx svg {
+  width: 29px;
+  height: 29px;
+}
 /* =============Deposit popup design end===============  */
