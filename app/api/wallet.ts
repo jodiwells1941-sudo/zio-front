@@ -71,7 +71,7 @@ export const depositSupportApi = async (payload: {
 };
 
 export const depositListApi = async () => {
-    return (await apiClient.get("/user/binance/deposit/list")).data;
+  return (await apiClient.get("/user/binance/deposit/list")).data;
 };
 
 

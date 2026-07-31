@@ -35,6 +35,7 @@ type DepositRow = {
   status: number; // 1 pending, 2 completed, 3 failed, 4 expired
   created_at: string;
   payment_method: string;
+  deposit_support?: object;
 };
 
 type Pagination = {
@@ -201,7 +202,7 @@ export default function DepositLayout({
     else setIsFetching(true);
 
     try {
-      const res = await depositListApi();
+      const res = await depositListApi();      
 
       if (!res.error) {
         setDepositList(res.data.data ?? []);
@@ -398,52 +399,6 @@ export default function DepositLayout({
           : 'Something went wrong while cancelling the deposit.'
       );
       return false;
-    }
-  };
-
-  const resetBinanceFlowOld = async () => {
-    
-    if (!depositInfo?.token) {
-      toast.error('Deposit token not found.');
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: 'Cancel Deposit?',
-      icon: 'warning',
-      html: `Are you sure you want to cancel the deposit of <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
-      showCloseButton: true,
-      showCancelButton: true,
-      focusConfirm: false,
-      cancelButtonText: 'No, Keep It',
-      confirmButtonText: 'Yes, Cancel Deposit',
-      reverseButtons: true,
-    });
-
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    try {
-      const cancelled = await cancelPayment();
-
-      if (!cancelled) {
-        return;
-      }
-
-      setBinanceSubmitted(false);
-      setBinanceDepositId('');
-      setBinanceUserId('');
-      setBinanceAmount(defaultAmount);
-      setBinanceInfo(null);
-      setBinanceStatus('idle');
-      setBinanceSecondsLeft(0);
-      setBinanceTotalSeconds(30 * 60);
-
-      await fetchDepositList(1);
-    } catch (error) {
-      console.error('Reset Binance flow failed:', error);
-      toast.error('Failed to cancel the deposit.');
     }
   };
 
@@ -892,6 +847,11 @@ export default function DepositLayout({
                 {/* right: timer + status */}
                 <div className="dl-side-col">
                   <div className="dl-card dl-timer-card bg-light-dark">
+                    <div className="d-flex w-full justify-content-end pb-2">
+                      <button type="button" className="text-white hover-text-red" onClick={resetBinanceFlow}>
+                        Cancel Deposit
+                      </button>
+                    </div>
                     <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
                     <div className="dl-ring-wrap">
                       <svg className="dl-ring-svg" viewBox="0 0 120 120">
@@ -954,11 +914,6 @@ export default function DepositLayout({
                       </button>
                     )}
 
-                    <div className="d-flex justify-content-end pt-4">
-                      <button type="button" className="dl-cta dl-cta--secondary text-white bg-danger" onClick={resetBinanceFlow}>
-                        Cancel Deposit
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1164,6 +1119,11 @@ export default function DepositLayout({
                   {/* Binance timer — now driven by its own binanceStatus/binanceSecondsLeft state */}
                   {!isPaymentProffSubmit && (
                     <div className="dl-card dl-timer-card bg-light-dark">
+                      <div className="d-flex w-full justify-content-end pb-2">
+                        <button type="button" className="text-white hover-text-red" onClick={resetBinanceFlow}>
+                          Cancel Deposit
+                        </button>
+                      </div>
                       <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
                       <div className="dl-ring-wrap">
                         <svg className="dl-ring-svg" viewBox="0 0 120 120">
@@ -1246,12 +1206,6 @@ export default function DepositLayout({
                   </button>
                 </div>
               </div>
-
-              <div className="d-flex justify-content-end pt-2">
-                <button type="button" className="dl-cta dl-cta--secondary bg-danger text-white" onClick={resetBinanceFlow}>
-                  Cancel Deposit
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -1290,24 +1244,24 @@ export default function DepositLayout({
               <div className="dl-notice-item">
                 <span className="dl-notice-icon dl-notice-icon--green"><i className="fa-solid fa-dollar-sign" /></span>
                 <span className="line-h-22">
-                  Send only <strong className="dl-accent-green">USDT</strong> to the {activeNetworkLabel} address shown above.
+                  <strong className="dl-accent-green">USDT</strong> {activeNetworkLabel} only.
                 </span>
               </div>
               <div className="dl-notice-item">
                 <span className="dl-notice-icon dl-notice-icon--pink"><i className="fa-solid fa-scale-balanced" /></span>
-                <span className="line-h-22">Send <strong className="dl-accent-amber">exact amount</strong> as shown. Wrong amount may require manual review.</span>
+                <span className="line-h-22">Send <strong className="dl-accent-amber">the exact amount</strong> to the address above.</span>
               </div>
               <div className="dl-notice-item">
                 <span className="dl-notice-icon dl-notice-icon--amber"><i className="fa-solid fa-ban" /></span>
-                <span className="line-h-22">Do not send from an exchange (Binance, Coinbase, etc.) using an internal transfer.</span>
+                <span className="line-h-22">No exchange internal transfers.</span>
               </div>
               <div className="dl-notice-item">
                 <span className="dl-notice-icon dl-notice-icon--emerald"><i className="fa-solid fa-circle-check" /></span>
-                <span className="line-h-22">Your payment will be confirmed after 1 network confirmation.</span>
+                <span className="line-h-22">Confirmed after 1 confirmation.</span>
               </div>
               <div className="dl-notice-item">
                 <span className="dl-notice-icon dl-notice-icon--purple"><i className="fa-regular fa-clock" /></span>
-                <span className="line-h-22">This deposit request is valid for <strong className="dl-accent-amber">30 minutes</strong> only.</span>
+                <span className="line-h-22">Expires in <strong className="dl-accent-amber">30 minutes</strong> only.</span>
               </div>
             </div>
           </div>
@@ -1370,7 +1324,7 @@ export default function DepositLayout({
                       <td><span className={`${ r.payment_method === 'binance' ? 'text-warning' : 'text-info'}`}>{r.payment_method == 'binance' ? 'Binance' : 'crypto'}</span></td>
                       <td><span className={s.cls}>{s.label}</span></td>
                       <td>
-                        { r.status === 2 ? <span className="text-info">Done</span>
+                        { r?.deposit_support ? <span className="text-info">Review</span>
                         :
                           <button
                             type="button"

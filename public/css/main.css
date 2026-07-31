@@ -10089,6 +10089,10 @@ span {
   color: #ff9d00 !important;
 }
 
+.hover-text-red:hover {
+  color: #ff1a1a !important;
+}
+
 .right-sidebar-btn {
   width: 48px;
   height: 48px;
