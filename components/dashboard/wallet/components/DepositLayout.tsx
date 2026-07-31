@@ -289,141 +289,65 @@ export default function DepositLayout({
     }
   };
 
-  // const handleCreateDeposit = async () => {
-  //   if (!validateAmount()) return;
-  //   const result = await Swal.fire({
-  //     title: "Deposit Confirmation",
-  //     icon: "info",
-  //     html: `Are you sure you want to deposit <strong>${depositAmount} USD</strong> in <strong>${selectedCoin}</strong> on <strong>${selectedNetwork}</strong>?`,
-  //     showCloseButton: true, showCancelButton: true, focusConfirm: false,
-  //     cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
-  //   });
-  //   if (result.isConfirmed) await createDeposit();
-  // };
-
-  // // ── validation + submit (binance manual) ─────────────────────────────────────
-  // const validateBinanceAmount = () => {
-  //   if (isNaN(binanceAmount)) { toast.error("Please enter a valid amount."); return false; }
-  //   if (binanceAmount < 1)    { toast.error("Minimum deposit amount is 1 USD."); return false; }
-  //   if (binanceAmount > 5000) { toast.error("Maximum deposit amount is 5,000 USD."); return false; }
-  //   return true;
-  // };
-
-  // const handleBinanceSubmit = async () => {
-  //   if (!binanceUserId.trim()) { toast.error("Please enter your Binance ID."); return; }
-  //   if (!validateBinanceAmount()) return;
-
-  //   const result = await Swal.fire({
-  //     title: "Deposit Confirmation",
-  //     icon: "info",
-  //     html: `Are you sure you want to deposit <strong>${binanceAmount} USD</strong> via <strong>Binance</strong>?`,
-  //     showCloseButton: true, showCancelButton: true, focusConfirm: false,
-  //     cancelButtonText: "No, Cancel!", confirmButtonText: "Yes, Deposit!",
-  //   });
-  //   if (!result.isConfirmed) return;
-
-  //   setBinanceSubmitting(true);
-
-  //   try {
-  //     const response = await SubmitBinanceDepositApi({
-  //       binance_id: binanceUserId.trim(),
-  //       amount: binanceAmount,
-  //       payment_method: paymentMethod,
-  //     });
-
-  //     if (!response.error) {
-  //       const info: DepositInfo = response.data;
-  //       setBinanceInfo(info);
-  //       setBinanceSubmitted(true);
-  //       setBinanceDepositId(info?.deposit_id ?? "");
-  //       setBinanceStatus("expired" === info?.status ? "expired" : "waiting");
-  //       setDepositInfo(info);
-
-  //       depositSectionRef.current?.scrollIntoView({
-  //         behavior: "smooth",
-  //         block: "center",
-  //       });
-
-  //       if (info?.expires_at) {
-  //         const secs = Math.max(0, Math.floor((new Date(info.expires_at).getTime() - Date.now()) / 1000));
-  //         setBinanceSecondsLeft(secs);
-  //         setBinanceTotalSeconds(secs > 0 ? secs : 30 * 60);
-  //       } else {
-  //         setBinanceSecondsLeft(30 * 60);
-  //         setBinanceTotalSeconds(30 * 60);
-  //       }
-
-  //       toast.success("Deposit request submitted. Please complete the transfer, then submit your payment details for review.");
-  //       fetchDepositList(1);
-  //     } else {
-  //       // Do NOT populate binanceInfo/binanceSubmitted on failure.
-  //       Swal.fire("Failed", response.message || "Transaction failed. Please try again.", "error");
-  //     }
-  //   } catch {
-  //     Swal.fire("Error", "A network error occurred during submission.", "error");
-  //   } finally {
-  //     setBinanceSubmitting(false);
-  //   }
-  // };
-
   const showDepositConfirmation = async ({
-  amount,
-  method,
-}: {
-  amount: number | string;
-  method: string;
-}) => {
-  return Swal.fire({
-    html: `
-      <div class="deposit-confirmation-content">
-        <div class="deposit-confirmation-icon">
-          <span>i</span>
+    amount,
+    method,
+  }: {
+    amount: number | string;
+    method: string;
+  }) => {
+    return Swal.fire({
+      html: `
+        <div class="deposit-confirmation-content">
+          <div class="deposit-confirmation-icon">
+            <span>i</span>
+          </div>
+
+          <h2 class="deposit-confirmation-title">
+            Deposit Confirmation
+          </h2>
+
+          <div class="deposit-confirmation-line"></div>
+
+          <p class="deposit-confirmation-message">
+            Are you sure you want to deposit
+            <strong>${amount} USD</strong>
+            via <span>${method}</span>?
+          </p>
         </div>
+      `,
 
-        <h2 class="deposit-confirmation-title">
-          Deposit Confirmation
-        </h2>
+      showCloseButton: true,
+      showCancelButton: true,
+      showConfirmButton: true,
+      focusConfirm: false,
+      buttonsStyling: false,
+      reverseButtons: true, 
 
-        <div class="deposit-confirmation-line"></div>
+      cancelButtonText: `
+        <span class="deposit-button-content">
+          <i class="fa-regular fa-circle-xmark"></i>
+          <span>No, Cancel!</span>
+        </span>
+      `,
 
-        <p class="deposit-confirmation-message">
-          Are you sure you want to deposit
-          <strong>${amount} USD</strong>
-          via <span>${method}</span>?
-        </p>
-      </div>
-    `,
+      confirmButtonText: `
+        <span class="deposit-button-content">
+          <i class="fa-regular fa-circle-check"></i>
+          <span>Yes, Deposit!</span>
+        </span>
+      `,
 
-    showCloseButton: true,
-    showCancelButton: true,
-    showConfirmButton: true,
-    focusConfirm: false,
-    buttonsStyling: false,
-
-    confirmButtonText: `
-      <span class="deposit-button-content">
-        <i class="fa-regular fa-circle-check"></i>
-        <span>Yes, Deposit!</span>
-      </span>
-    `,
-
-    cancelButtonText: `
-      <span class="deposit-button-content">
-        <i class="fa-regular fa-circle-xmark"></i>
-        <span>No, Cancel!</span>
-      </span>
-    `,
-
-    customClass: {
-      popup: "deposit-confirmation-popup",
-      htmlContainer: "deposit-confirmation-html",
-      actions: "deposit-confirmation-actions",
-      confirmButton: "deposit-confirm-button",
-      cancelButton: "deposit-cancel-button",
-      closeButton: "deposit-confirmation-close",
-    },
-  });
-};
+      customClass: {
+        popup: "deposit-confirmation-popup",
+        htmlContainer: "deposit-confirmation-html",
+        actions: "deposit-confirmation-actions",
+        cancelButton: "deposit-cancel-button",
+        confirmButton: "deposit-confirm-button",
+        closeButton: "deposit-confirmation-close",
+      },
+    });
+  };
 
 
 const handleCreateDeposit = async () => {
