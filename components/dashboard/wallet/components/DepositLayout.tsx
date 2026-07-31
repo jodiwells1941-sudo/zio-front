@@ -602,6 +602,137 @@ export default function DepositLayout({
   // ── are method buttons disabled (either flow mid-flight) ─────────────────────
   const methodSwitchDisabled = isLocked || binanceSubmitted || binanceSubmitting;
 
+
+
+
+  // id="dl-wrong-payment-appeal" 
+  const showExpiredPaymentAlert = (resetDepositFlow: () => void) => {
+    Swal.fire({
+      html: `
+        <div class="payment-failed-modal">
+          <div class="payment-failed-icon">
+            <span>!</span>
+          </div>
+
+          <h2 class="payment-failed-title">Payment Failed</h2>
+          <div class="payment-failed-title-line"></div>
+
+          <p class="payment-failed-description">
+            The payment amount does not match,<br />
+            so the order has expired.
+          </p>
+
+          <div class="payment-info-card payment-info-card--blue">
+            <div class="payment-info-icon payment-info-icon--blue">
+              <i class="fa-regular fa-clipboard"></i>
+              <span class="payment-info-badge">!</span>
+            </div>
+
+            <div class="payment-info-content">
+              If you have already made the payment,<br />
+              please click
+              <strong id="dl-wrong-payment-appeal-bin" class="payment-appeal-text">
+                "Wrong Payment Appeal"
+              </strong>
+              <br />
+              and submit your payment details.
+            </div>
+          </div>
+
+          <div class="payment-info-card payment-info-card--green">
+            <div class="payment-info-icon payment-info-icon--green">
+              <i class="fa-regular fa-clock"></i>
+            </div>
+
+            <div class="payment-info-content">
+              Our team will review your appeal<br />
+              within <strong class="payment-hours">24 hours.</strong>
+            </div>
+          </div>
+        </div>
+      `,
+
+      showCloseButton: true,
+      showConfirmButton: true,
+      showCancelButton: true,
+
+      confirmButtonText: `
+        <span class="payment-confirm-content">
+          <i class="fa-regular fa-file-lines"></i>
+          <span>Wrong Payment Appeal</span>
+          <i class="fa-solid fa-chevron-right payment-confirm-arrow"></i>
+        </span>
+      `,
+
+      cancelButtonText: "Create New Deposit",
+
+      focusConfirm: false,
+      reverseButtons: false,
+      buttonsStyling: false,
+
+      customClass: {
+        popup: "payment-failed-popup",
+        htmlContainer: "payment-failed-html",
+        actions: "payment-failed-actions",
+        confirmButton: "payment-failed-confirm",
+        cancelButton: "payment-failed-cancel",
+        closeButton: "payment-failed-close",
+      },
+
+      didOpen: () => {
+        const popup = Swal.getPopup();
+
+        if (!popup) return;
+
+        const secureText = document.createElement("div");
+
+        secureText.className = "payment-secure-text";
+        secureText.innerHTML = `
+          <i class="fa-solid fa-shield-halved"></i>
+          <span class="text-dark">Your information is secure and protected.</span>
+        `;
+
+        popup.appendChild(secureText);
+
+        // ── make the inline "Wrong Payment Appeal" text clickable ──
+        const appealLink = popup.querySelector<HTMLElement>(
+          "#dl-wrong-payment-appeal-bin"
+        );
+        if (appealLink) {
+          appealLink.style.cursor = "pointer";
+          appealLink.addEventListener("click", () => {
+            setSupportModalMode("submit");
+            Swal.close();
+          });
+        }
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setSupportModalMode("submit");
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        resetDepositFlow();
+      }
+    });
+  };
+
+  // Crypto/ERC expiry
+  useEffect(() => {
+    if (status !== "expired") return;
+
+    showExpiredPaymentAlert(resetFlow);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // Binance expiry
+  useEffect(() => {
+    if (binanceStatus !== "expired") return;
+
+    showExpiredPaymentAlert(resetBinanceFlow);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [binanceStatus]);
+
   // ── render ──────────────────────────────────────────────────────────────────
   return (
     <div className="dl-wrapper" ref={depositSectionRef}>
@@ -848,9 +979,7 @@ export default function DepositLayout({
                 <div className="dl-side-col">
                   <div className="dl-card dl-timer-card bg-light-dark">
                     <div className="d-flex w-full justify-content-end pb-2">
-                      <button type="button" className="text-white hover-text-red" onClick={resetBinanceFlow}>
-                        Cancel Deposit
-                      </button>
+                      <button type="button" className="px-3 py-2 hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
                     </div>
                     <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
                     <div className="dl-ring-wrap">
@@ -1120,9 +1249,7 @@ export default function DepositLayout({
                   {!isPaymentProffSubmit && (
                     <div className="dl-card dl-timer-card bg-light-dark">
                       <div className="d-flex w-full justify-content-end pb-2">
-                        <button type="button" className="text-white hover-text-red" onClick={resetBinanceFlow}>
-                          Cancel Deposit
-                        </button>
+                        <button type="button" className="px-3 py-2 hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
                       </div>
                       <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
                       <div className="dl-ring-wrap">
@@ -1219,7 +1346,7 @@ export default function DepositLayout({
               <button type="button" className="dl-support-card bg-dark" onClick={() => setSupportModalMode("submit")}>
                 <span className="dl-support-icon dl-support-icon--paid"><i className="fa-solid fa-receipt" /></span>
                 <span className="dl-support-body">
-                  <span className="dl-support-title">I&apos;ve Already Paid</span>
+                  <span className="dl-support-title">Wrong Payment Appeal</span>
                   <span className="dl-support-desc">Already sent the payment? Submit your payment details for faster verification.</span>
                   <span className="dl-support-cta">Submit Payment Details <i className="fa-solid fa-arrow-right" /></span>
                 </span>
@@ -1239,32 +1366,67 @@ export default function DepositLayout({
           )}
 
           <div className="dl-notice-bar bg-dark">
-            <div className="dl-notice-head"><i className="fa-solid fa-triangle-exclamation" /> Important Notice</div>
+            <div className="dl-notice-head">
+              <i className="fa-solid fa-triangle-exclamation" />
+              <span>IMPORTANT NOTICE</span>
+            </div>
+
             <div className="dl-notice-items">
               <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--green"><i className="fa-solid fa-dollar-sign" /></span>
-                <span className="line-h-22">
-                  <strong className="dl-accent-green">USDT</strong> {activeNetworkLabel} only.
+                <span className="dl-notice-icon dl-notice-icon--blue">
+                  <i className="fa-solid fa-coins" />
+                </span>
+
+                <span className="dl-notice-text">
+                  Send only <strong className="dl-accent-green">USDT</strong> to the{" "}
+                  {activeNetworkLabel} address shown above.
                 </span>
               </div>
+
               <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--pink"><i className="fa-solid fa-scale-balanced" /></span>
-                <span className="line-h-22">Send <strong className="dl-accent-amber">the exact amount</strong> to the address above.</span>
+                <span className="dl-notice-icon dl-notice-icon--pink">
+                  <i className="fa-solid fa-scale-balanced" />
+                </span>
+
+                <span className="dl-notice-text">
+                  Send exact amount as shown. Wrong amount may require manual review.
+                </span>
               </div>
+
               <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--amber"><i className="fa-solid fa-ban" /></span>
-                <span className="line-h-22">No exchange internal transfers.</span>
+                <span className="dl-notice-icon dl-notice-icon--amber">
+                  <i className="fa-solid fa-ban" />
+                </span>
+
+                <span className="dl-notice-text">
+                  Do not send from exchange Binance, Coinbase, etc.
+                </span>
               </div>
+
               <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--emerald"><i className="fa-solid fa-circle-check" /></span>
-                <span className="line-h-22">Confirmed after 1 confirmation.</span>
+                <span className="dl-notice-icon dl-notice-icon--green">
+                  <i className="fa-solid fa-check" />
+                </span>
+
+                <span className="dl-notice-text">
+                  Your payment will be confirmed after 1 network confirmation.
+                </span>
               </div>
+
               <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--purple"><i className="fa-regular fa-clock" /></span>
-                <span className="line-h-22">Expires in <strong className="dl-accent-amber">30 minutes</strong> only.</span>
+                <span className="dl-notice-icon dl-notice-icon--purple">
+                  <i className="fa-regular fa-clock" />
+                </span>
+
+                <span className="dl-notice-text">
+                  This deposit request is valid for{" "}
+                  <strong className="dl-accent-amber">30 minutes</strong> only.
+                </span>
               </div>
             </div>
           </div>
+
+
         </div>
       )}
 
@@ -1325,7 +1487,8 @@ export default function DepositLayout({
                       <td><span className={s.cls}>{s.label}</span></td>
                       <td>
                         { r?.deposit_support ? <span className="text-info">Review</span>
-                        :
+                        : <>
+                        { (r.status != 2 && r.status != 5) && 
                           <button
                             type="button"
                             className="btn btn-info text-warning-emphasis"
@@ -1336,6 +1499,7 @@ export default function DepositLayout({
                             Submit Proof
                           </button>
                         }
+                        </>}
                       </td>
                     </tr>
                   );
@@ -1638,25 +1802,209 @@ export default function DepositLayout({
         }
         .dl-support-divider span { position: relative; }
 
-        .dl-notice-bar { border: 1px dashed #3a3352; border-radius: 14px; padding: 18px 20px; }
-        .dl-notice-head { display: flex; align-items: center; gap: 8px; color: #f0b332; font-weight: 700; font-size: 13px; margin-bottom: 14px; }
-        .dl-notice-items { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-        @media (max-width: 980px) { .dl-notice-items { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 520px) { .dl-notice-items { grid-template-columns: 1fr; } }
-        .dl-notice-item { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-size: 12px; color: #c8cee0; line-height: 1.5; }
-        .dl-notice-icon {
-          width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center; font-size: 20px;
-          background: #1c2133; border: 1px solid #2b3247;
-        }
-        .dl-notice-icon--green   { color: #2bd073; }
-        .dl-notice-icon--pink    { color: #ec4899; }
-        .dl-notice-icon--amber   { color: #f0b332; }
-        .dl-notice-icon--emerald { color: #34d399; }
-        .dl-notice-icon--purple  { color: #a78bfa; }
-        .dl-accent-green { color: #2bd073; }
-        .dl-accent-red   { color: #ef4060; }
-        .dl-accent-amber { color: #f0b332; }
+        .dl-notice-bar {
+            width: 100%;
+            padding: 18px 20px 16px;
+            border: 1px solid rgba(82, 92, 135, 0.28);
+            border-radius: 14px;
+            /* background:
+              linear-gradient(
+                135deg,
+                rgba(9, 13, 34, 0.51),
+                rgba(5, 10, 29, 0.57)
+              ); */
+            box-shadow:
+              inset 0 0 20px rgba(70, 56, 145, 0.05),
+              0 8px 30px rgba(0, 0, 0, 0.18);
+          }
+
+          .dl-notice-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: #f2f3f8;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+          }
+
+          .dl-notice-head i {
+            color: #8b3cf6;
+            font-size: 24px;
+            filter: drop-shadow(0 0 7px rgba(139, 60, 246, 0.55));
+          }
+
+          .dl-notice-items {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            align-items: stretch;
+          }
+
+          .dl-notice-item {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            min-width: 0;
+            padding: 4px 28px;
+          }
+
+          .dl-notice-item:first-child {
+            padding-left: 0;
+          }
+
+          .dl-notice-item:last-child {
+            padding-right: 0;
+          }
+
+          /* Vertical divider between sections */
+          .dl-notice-item:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(
+              to bottom,
+              transparent,
+              rgba(91, 101, 143, 0.45) 15%,
+              rgba(91, 101, 143, 0.45) 85%,
+              transparent
+            );
+          }
+
+          .dl-notice-icon {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            background: rgba(6, 11, 29, 0.7);
+            font-size: 16px;
+          }
+
+          .dl-notice-text {
+            display: block;
+            color: #b8bfd1;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.55;
+          }
+
+          .dl-notice-icon--blue {
+            color: #18a9e6;
+            box-shadow: 0 0 10px rgba(24, 169, 230, 0.15);
+          }
+
+          .dl-notice-icon--pink {
+            color: #e82d9a;
+            box-shadow: 0 0 10px rgba(232, 45, 154, 0.15);
+          }
+
+          .dl-notice-icon--amber {
+            color: #f2a72c;
+            box-shadow: 0 0 10px rgba(242, 167, 44, 0.15);
+          }
+
+          .dl-notice-icon--green {
+            color: #28d98b;
+            box-shadow: 0 0 10px rgba(40, 217, 139, 0.15);
+          }
+
+          .dl-notice-icon--purple {
+            color: #b647ef;
+            box-shadow: 0 0 10px rgba(182, 71, 239, 0.15);
+          }
+
+          .dl-accent-green {
+            color: #2bd073;
+          }
+
+          .dl-accent-amber {
+            color: #f0b332;
+          }
+
+          /* Tablet */
+          @media (max-width: 1100px) {
+            .dl-notice-items {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 18px 0;
+            }
+
+            .dl-notice-item {
+              padding: 6px 22px;
+            }
+
+            .dl-notice-item:nth-child(2n) {
+              padding-right: 0;
+            }
+
+            .dl-notice-item:nth-child(2n)::after {
+              display: none;
+            }
+
+            .dl-notice-item:nth-child(odd) {
+              padding-left: 0;
+            }
+          }
+
+          /* Mobile */
+          @media (max-width: 600px) {
+            .dl-notice-bar {
+              padding: 16px;
+            }
+
+            .dl-notice-head {
+              margin-bottom: 16px;
+              font-size: 14px;
+            }
+
+            .dl-notice-items {
+              display: flex;
+              flex-direction: column;
+              gap: 0;
+            }
+
+            .dl-notice-item,
+            .dl-notice-item:first-child,
+            .dl-notice-item:last-child {
+              padding: 14px 0;
+            }
+
+            .dl-notice-item:not(:last-child)::after {
+              top: auto;
+              right: auto;
+              bottom: 0;
+              left: 0;
+              width: 100%;
+              height: 1px;
+              background: linear-gradient(
+                to right,
+                transparent,
+                rgba(91, 101, 143, 0.4),
+                transparent
+              );
+            }
+
+            .dl-notice-icon {
+              width: 36px;
+              height: 36px;
+              flex-basis: 36px;
+              font-size: 15px;
+            }
+
+            .dl-notice-text {
+              font-size: 12px;
+            }
+          }
+
+
 
         /* Deposit list */
         .dl-list-head { display: flex; align-items: center; justify-content: space-between; }
