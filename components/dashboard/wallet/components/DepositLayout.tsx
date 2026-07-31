@@ -54,17 +54,75 @@ const COIN_OPTIONS = [
   { id: "USDT", label: "USDT (Tether)", badge: "T", className: "usdt" },
 ];
 
+const EthereumIcon = () => (
+  <svg viewBox="0 0 256 417" xmlns="http://www.w3.org/2000/svg">
+    <polygon
+      fill="#fff"
+      points="127.9,0 125.1,9.5 125.1,279.1 127.9,281.9 255.8,206.3"
+    />
+    <polygon
+      fill="#D1D5DB"
+      points="127.9,0 0,206.3 127.9,281.9 127.9,154.1"
+    />
+    <polygon
+      fill="#D1D5DB"
+      points="127.9,306.1 126.3,308.1 126.3,406.3 127.9,411 255.9,230.6"
+    />
+    <polygon
+      fill="#fff"
+      points="127.9,411 127.9,306.1 0,230.6"
+    />
+    <polygon
+      fill="#fff"
+      points="127.9,281.9 255.8,206.3 127.9,154.1"
+    />
+    <polygon
+      fill="#D1D5DB"
+      points="0,206.3 127.9,281.9 127.9,154.1"
+    />
+  </svg>
+);
+
+const TronIcon = () => (
+  <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fill="none"
+      stroke="#FFFFFF"
+      strokeWidth="18"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M22 24L224 62L106 224L22 24Z"
+    />
+    <path
+      fill="none"
+      stroke="#FFFFFF"
+      strokeWidth="18"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M22 24L108 92L224 62"
+    />
+    <path
+      fill="none"
+      stroke="#FFFFFF"
+      strokeWidth="18"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M108 92L106 224"
+    />
+  </svg>
+);
+
 const NETWORK_OPTIONS = [
   {
     id: "TRC20",
-    label: "USDT - Tron (TRC20)",
-    badge: "₮",
+    label: "TRX - Tron (TRC20)",
+    icon: <TronIcon />,
     className: "trx",
   },
   {
     id: "ERC20",
-    label: "USDT - Ethereum (ERC20)",
-    badge: "₮",
+    label: "ETH - Ethereum (ERC20)",
+    icon: <EthereumIcon />,
     className: "eth",
   },
 ];
@@ -197,31 +255,56 @@ export default function DepositLayout({
   }, [paymentMethod]);
 
   // ── fetch deposit list ──────────────────────────────────────────────────────
-  const fetchDepositList = useCallback(async (page = 1, initial = false) => {
-    if (initial) setIsListLoading(true);
-    else setIsFetching(true);
-
-    try {
-      const res = await depositListApi();      
-
-      if (!res.error) {
-        setDepositList(res.data.data ?? []);
-        setPagination({
-          current_page: res.data.current_page,
-          last_page:    res.data.last_page,
-          per_page:     res.data.per_page,
-          total:        res.data.total,
-          next_page_url: res.data.next_page_url,
-          prev_page_url: res.data.prev_page_url,
-        });
+  const fetchDepositList = useCallback(
+    async (page: number = 1, initial: boolean = false) => {
+      if (initial) {
+        setIsListLoading(true);
+      } else {
+        setIsFetching(true);
       }
-    } catch {
-      // silently ignore — list is non-critical
-    } finally {
-      setIsListLoading(false);
-      setIsFetching(false);
-    }
-  }, []);
+
+      try {
+        type DepositListApiResponse = {
+          data: {
+            error: boolean;
+            message: string;
+            data: {
+              data: DepositRow[];
+              current_page: number;
+              last_page: number;
+              per_page: number;
+              total: number;
+              next_page_url: string | null;
+              prev_page_url: string | null;
+            };
+          }
+        };
+
+        const res = (await depositListApi(page)) as unknown as DepositListApiResponse;
+
+        if (!res.data.error) {
+          const responseData = res.data;
+
+          setDepositList(responseData?.data?.data ?? []);
+
+          setPagination({
+            current_page: Number(responseData?.data?.current_page),
+            last_page: Number(responseData?.data?.last_page),
+            per_page: Number(responseData?.data?.per_page),
+            total: Number(responseData?.data?.total),
+            next_page_url: responseData?.data?.next_page_url,
+            prev_page_url: responseData?.data?.prev_page_url,
+          });
+        }
+      } catch (error) {
+        console.error("Deposit list error:", error);
+      } finally {
+        setIsListLoading(false);
+        setIsFetching(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => { fetchDepositList(1, true); }, [fetchDepositList]);
 
@@ -981,8 +1064,8 @@ const handleBinanceSubmit = async () => {
                   </div>
                   <label>3. Select Network: <small className="text-danger fs-4">*</small></label>
                   <div className="dl-dropdown">
-                    <span className={`dl-coin-badge dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
-                      {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.badge}
+                    <span className={`dl-coin-badge p-1 dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
+                      {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.icon}
                     </span>
                     <select
                       // disabled={isLocked || paymentMethod === "erc" || paymentMethod === "crypto"}
@@ -1761,7 +1844,7 @@ const handleBinanceSubmit = async () => {
         .dl-dropdown-caret { color: #7c8499; font-size: 11px; pointer-events: none; }
 
         .dl-coin-badge {
-          width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+          width: 24px; height: 24px; border-radius: 50%; display: inline-flex;
           align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
         }
         .dl-coin-badge--usdt { background: #1fae5c; }
