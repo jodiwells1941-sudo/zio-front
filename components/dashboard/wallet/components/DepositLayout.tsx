@@ -1777,7 +1777,7 @@ const handleBinanceSubmit = async () => {
           cursor: pointer; transition: opacity .15s ease;
         }
         .dl-cta:disabled { opacity: .5; cursor: not-allowed; }
-        .dl-cta--secondary { background: #1c2133; }
+        .dl-cta--secondary { background: #1D1E24; }
         .line-h-22{
           line-height: 22px;
         }
@@ -1795,7 +1795,7 @@ const handleBinanceSubmit = async () => {
         .dl-block-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8d96ad; margin-bottom: 6px; }
         .dl-pill { background: #16321f; color: #2bd073; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 
-        .dl-address-row { background: #161b29; }
+        .dl-address-row { background: #1D1E24; }
         .dl-address-row, .dl-exact-row {
           display: flex; align-items: center; gap: 8px;
           border: 1px solid #262c40; border-radius: 10px; padding: 12px 14px;
@@ -2475,7 +2475,7 @@ const handleBinanceSubmit = async () => {
           align-items: center;
           justify-content: space-between;
           gap: 8px;
-          background: #161b29;
+          background: #1D1E24;
           border: 1px solid #262c40;
           border-radius: 12px;
           padding: 14px;
@@ -2532,7 +2532,7 @@ const handleBinanceSubmit = async () => {
           transition: opacity .15s ease;
         }
         .dl-bp-help-btn:hover { opacity: .9; }
-        .dl-bp-help-btn--ghost { background: #1c2133; border: 1px solid #262c40; color: #c8cee0; }
+        .dl-bp-help-btn--ghost { background: #1D1E24; border: 1px solid #262c40; color: #c8cee0; }
       `}</style>
     </div>
   );
