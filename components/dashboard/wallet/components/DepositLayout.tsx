@@ -979,7 +979,7 @@ export default function DepositLayout({
                 <div className="dl-side-col">
                   <div className="dl-card dl-timer-card bg-light-dark">
                     <div className="d-flex w-full justify-content-end pb-2">
-                      <button type="button" className="px-3 py-2 hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
+                      <button type="button" className="hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
                     </div>
                     <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
                     <div className="dl-ring-wrap">
@@ -1212,6 +1212,9 @@ export default function DepositLayout({
             {/* right: sidebar */}
             <div className="dl-side-col">
               <div className="dl-card bg-light-dark dl-bp-trust">
+                <div className="d-flex w-full justify-content-end pb-4">
+                  <button type="button" className="hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
+                </div>
                 <span className="dl-bp-trust-icon"><i className="fa-solid fa-shield-halved" /></span>
                 <strong>Secure &amp; Trusted</strong>
                 <small>Your payment is protected by Binance Pay security standards.</small>
@@ -1248,9 +1251,6 @@ export default function DepositLayout({
                   {/* Binance timer — now driven by its own binanceStatus/binanceSecondsLeft state */}
                   {!isPaymentProffSubmit && (
                     <div className="dl-card dl-timer-card bg-light-dark">
-                      <div className="d-flex w-full justify-content-end pb-2">
-                        <button type="button" className="px-3 py-2 hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
-                      </div>
                       <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
                       <div className="dl-ring-wrap">
                         <svg className="dl-ring-svg" viewBox="0 0 120 120">
