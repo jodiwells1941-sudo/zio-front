@@ -802,6 +802,14 @@ const handleBinanceSubmit = async () => {
   // ── are method buttons disabled (either flow mid-flight) ─────────────────────
   const methodSwitchDisabled = isLocked || binanceSubmitted || binanceSubmitting;
 
+  // ── mobile-only: hide the "Select Payment Method" card while a deposit is
+  //    actively waiting on payment; it reopens automatically once the deposit
+  //    expires, completes, or is cancelled/reset (status/binanceStatus leaves "waiting") ──
+  const hideMethodCardOnMobile =
+    paymentMethod === "binance"
+      ? binanceSubmitted && binanceStatus === "waiting"
+      : status === "waiting";
+
 
 
 
@@ -938,7 +946,7 @@ const handleBinanceSubmit = async () => {
     <div className="dl-wrapper" ref={depositSectionRef}>
 
       {/* Payment method selector */}
-      <div className="dl-card dl-method-card bg-light-dark">
+      <div className={`dl-card dl-method-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
         <div className="dl-method-header">
           <div>
             <label className="dl-label dl-method-title">
@@ -957,6 +965,7 @@ const handleBinanceSubmit = async () => {
           </span>
         </div>
 
+        {/* payment method option design start */}
         <div className="mt-3 row">
           {PAYMENT_METHODS.map((method) => {
             const isActive = paymentMethod === method.id;
@@ -1043,6 +1052,7 @@ const handleBinanceSubmit = async () => {
             );
           })}
         </div>
+        {/* payment method option design end */}
 
       </div>
 
@@ -1670,7 +1680,6 @@ const handleBinanceSubmit = async () => {
               </div>
             </div>
           </div>
-
 
         </div>
       )}
@@ -2303,6 +2312,14 @@ const handleBinanceSubmit = async () => {
               transparent 32%
             ),
             #20242d;
+        }
+
+        /* ── Mobile-only: fully hide the payment method card while a deposit is
+             actively waiting on payment. Desktop layout is never affected. ──── */
+        @media (max-width: 768px) {
+          .dl-method-card--mobile-hidden {
+            display: none;
+          }
         }
 
         .dl-method-header {
