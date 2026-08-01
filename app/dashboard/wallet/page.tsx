@@ -8,7 +8,7 @@ import SummaryGrid from '@/components/dashboard/wallet/components/SummaryGrid';
 import TabButton from '@/components/dashboard/wallet/components/TabButton';
 import TransactionHistory from '@/components/dashboard/wallet/components/TransactionHistory';
 import TransferLayout from '@/components/dashboard/wallet/components/TransferLayout';
-import { amountPreset, paymentMethods, transferRows } from '@/components/dashboard/wallet/data';
+import { amountPreset, transferRows } from '@/components/dashboard/wallet/data';
 import { P2PTabKey, TabKey } from '@/components/dashboard/wallet/types';
 import WithdrawLayout from '@/components/dashboard/wallet/components/WithdrawLayout';
 
@@ -19,7 +19,7 @@ export default function WalletPage(): JSX.Element {
 
   const [activeTab, setActiveTab] = useState<TabKey>('tab1');
   const [activeP2PTab, setActiveP2PTab] = useState<P2PTabKey>('wallet-balance');
-  const [selectedPayment, setSelectedPayment] = useState<string>('BINANCE');
+  const [selectedPayment, setSelectedPayment] = useState<string>('crypto');
   const [selectedAmount, setSelectedAmount] = useState<number>(25);
 
   // Read ?tab= from URL and set active tab on mount or param change
@@ -80,13 +80,7 @@ export default function WalletPage(): JSX.Element {
             <div className={`tab-content ${activeTab === 'tab2' ? 'active' : ''}`} id="tab2">
               {/* <span className="d-none d-md-block"><SummaryGrid /></span> */}
               <DepositLayout
-                title="Deposit Details"
-                actionLabel="Deposit"
-                paymentMethods={paymentMethods}
                 amountPreset={amountPreset}
-                selectedPayment={selectedPayment}
-                setSelectedPayment={setSelectedPayment}
-                selectedAmount={selectedAmount}
                 setSelectedAmount={setSelectedAmount}
                 setActiveTabValue={setActiveTab}
               />
@@ -112,13 +106,11 @@ export default function WalletPage(): JSX.Element {
               <WithdrawLayout
                 title="Binance Withdraw Details"
                 actionLabel="Withdraw"
-                paymentMethods={paymentMethods}
                 amountPreset={amountPreset}
                 selectedPayment={selectedPayment}
                 setSelectedPayment={setSelectedPayment}
                 selectedAmount={selectedAmount}
                 setSelectedAmount={setSelectedAmount}
-                setActiveTabValue={setActiveTab}
               />
             </div>
 

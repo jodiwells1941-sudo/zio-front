@@ -163,23 +163,11 @@ const PAYMENT_METHODS = [
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 
 export default function DepositLayout({
-  title,
-  actionLabel,
-  paymentMethods,
   amountPreset,
-  selectedPayment,
-  setSelectedPayment,
-  selectedAmount,
   setSelectedAmount,
   setActiveTabValue,
 }: {
-  title: string;
-  actionLabel: string;
-  paymentMethods: string[];
   amountPreset: number[];
-  selectedPayment: string;
-  setSelectedPayment: (v: string) => void;
-  selectedAmount: number;
   setSelectedAmount: (v: number) => void;
   setActiveTabValue: (v: TabKey) => void;
 }) {
@@ -1005,7 +993,7 @@ const handleBinanceSubmit = async () => {
                       )}
                     </span>
 
-                    <span className={`dl-method-info d-none d-md-flex ${isDetailsOpen ? "dl-method-info--open" : ""}`}>
+                    <span className={`dl-method-info d-flex ${isDetailsOpen ? "dl-method-info--open" : ""}`}>
                       <small className="dl-method-sub">
                         <i className="fa-solid fa-bolt" />
                         {method.desc}
@@ -1017,34 +1005,6 @@ const handleBinanceSubmit = async () => {
                           {method.rools}
                         </small>
                       )}
-                    </span>
-
-                    {/* Mobile-only collapsible details */}
-                    <span className={`dl-method-info d-flex d-md-none ${isDetailsOpen ? "dl-method-info--open" : "dl-method-info--closed"}`}>
-                      <small className="dl-method-sub">
-                        <i className="fa-solid fa-bolt" />
-                        {method.desc}
-                      </small>
-
-                      {method.rools && (
-                        <small className="dl-method-sub">
-                          <i className="fa-solid fa-chart-simple" />
-                          {method.rools}
-                        </small>
-                      )}
-                    </span>
-
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      className="dl-method-toggle d-inline-flex d-md-none"
-                      onClick={(e) => toggleMethodDetails(method.id, e)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") toggleMethodDetails(method.id, e as unknown as React.MouseEvent);
-                      }}
-                    >
-                      {isDetailsOpen ? "Show less" : "Show details"}
-                      <i className={`fa-solid fa-chevron-${isDetailsOpen ? "up" : "down"}`} />
                     </span>
                   </span>
                 </button>
@@ -1057,7 +1017,7 @@ const handleBinanceSubmit = async () => {
       </div>
 
       {/* Step indicator */}
-      <div className="dl-steps bg-light-dark mt-2">
+      <div className={`dl-steps bg-light-dark mt-2 ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
         {steps.map((s, idx) => (
           <React.Fragment key={s.key}>
             <div className={`dl-step ${currentStep >= s.key ? "dl-step--done" : ""} ${currentStep === s.key ? "dl-step--active" : ""}`}>
@@ -1076,7 +1036,7 @@ const handleBinanceSubmit = async () => {
       {(paymentMethod === "crypto" || paymentMethod === "erc") && (
         <>
           {/* Form card */}
-          <div className="dl-card dl-form-card bg-light-dark">
+          <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
             <div className="dl-form-grid deposit-wrapper mt-0">
               <div>
                 <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
@@ -1290,11 +1250,9 @@ const handleBinanceSubmit = async () => {
         </>
       )}
 
-
-
       {/* ── BINANCE MANUAL FLOW — step 1: form ───────────────────────────────── */}
       {paymentMethod === "binance" && !binanceSubmitted && (
-        <div className="dl-card dl-form-card bg-light-dark">
+        <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
           <div className="dl-form-grid deposit-wrapper mt-0">
             <div>
               <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
@@ -2052,7 +2010,7 @@ const handleBinanceSubmit = async () => {
           width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px;
           display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff;
         }
-        .dl-support-icon--paid { background: linear-gradient(135deg,#c026d3,#7c3aed); }
+        .dl-support-icon--paid { background: linear-gradient(135deg,#fbbf24, #f59e0b); }
         .dl-support-icon--help { background: linear-gradient(135deg,#2563eb,#1d4ed8); }
         .dl-support-body { display: flex; flex-direction: column; gap: 6px; }
         .dl-support-title { font-size: 15px; font-weight: 700; color: #f2f4f8; }
@@ -2620,7 +2578,7 @@ const handleBinanceSubmit = async () => {
         }
         .dl-bp-step-num {
           width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
-          background: linear-gradient(135deg,#c026d3,#7c3aed);
+          background: linear-gradient(135deg,#fbbf24, #f59e0b);
           color: #fff; font-weight: 700; font-size: 13px;
           display: flex; align-items: center; justify-content: center;
         }
@@ -2631,13 +2589,13 @@ const handleBinanceSubmit = async () => {
           display: flex; justify-content: center; margin-bottom: 14px;
         }
         .dl-bp-qr {
-          border: 3px solid #8b5cf6;
+          border: 3px solid #fbbf24;
           box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
         }
 
         .dl-bp-pill {
           display: inline-block;
-          background: linear-gradient(135deg,#c026d3,#7c3aed);
+          background: linear-gradient(135deg,#fbbf24, #f59e0b);
           color: #fff;
           font-size: 11px;
           font-weight: 700;
@@ -2745,7 +2703,7 @@ const handleBinanceSubmit = async () => {
         .dl-bp-trust { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .dl-bp-trust-icon {
           width: 52px; height: 52px; border-radius: 14px;
-          background: linear-gradient(135deg,#c026d3,#7c3aed);
+          background: linear-gradient(135deg,#fbbf24, #f59e0b);
           display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px;
           margin-bottom: 4px;
         }
@@ -2759,7 +2717,7 @@ const handleBinanceSubmit = async () => {
           display: flex; align-items: center; justify-content: center; gap: 8px;
           border: none; border-radius: 10px; padding: 11px 14px;
           font-weight: 700; font-size: 13px; cursor: pointer;
-          background: linear-gradient(135deg,#c026d3,#7c3aed); color: #fff;
+          background: linear-gradient(135deg,#fbbf24, #f59e0b); color: #fff;
           transition: opacity .15s ease;
         }
         .dl-bp-help-btn:hover { opacity: .9; }

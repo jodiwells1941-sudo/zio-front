@@ -1,14 +1,29 @@
 import type { P2PCard, SummaryItem, TransferRow } from './types';
 
-// export const summaryItems: SummaryItem[] = [
-//   { imgSrc: '/images/new/total.png', label: 'Total', price: '$2000.00' },
-//   { imgSrc: '/images/new/available.png', label: 'Available for withdrawal', price: '$0' },
-//   { imgSrc: '/images/new/bonuses.png', label: 'Total', price: '$0' },
-// ];
 
 export const paymentMethods = [
-  'BINANCE',
-];
+  {
+    id: "crypto",
+    label: "Tether (USDT TRC20)",
+    desc: "Processing Time: Instant – 15 Minutes",
+    rools: "Transaction Limit: 10 – 200,000 USD",
+    icon: "/images/payment/usdt-trc20.png",
+  },
+  {
+    id: "binance",
+    label: "Binance Pay Manual",
+    desc: "Processing Time: Instant – 6 Hours",
+    rools: "Transaction Limit: 10 – 200,000 USD",
+    icon: "/images/payment/binance.png",
+  },
+  {
+    id: "erc",
+    label: "Tether (USDT ERC20)",
+    desc: "Processing Time: Instant – 15 Minutes",
+    rools: "Transaction Limit: 10 – 200,000 USD",
+    icon: "/images/payment/usdt-erc20.png",
+  },
+] as const;
 
 export const amountPreset = [25, 50, 100, 200, 500];
 
