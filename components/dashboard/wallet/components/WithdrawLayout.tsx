@@ -305,139 +305,222 @@ export default function WithdrawLayout({
     }
   };
 
+  const withdrawalCharge = selectedAmount * 0.03;
+  const receiveAmount = selectedAmount - withdrawalCharge;
+
   return (
     <div className="wl-wrapper">
 
-      {/* ── Payment method selector (same design system as DepositLayout) ── */}
-      <div className="wl-card wl-method-card bg-light-dark">
-        <div className="wl-method-header">
-          <div>
-            <label className="wl-label wl-method-title">
-              Select Payment Method
-              <span className="text-danger ms-1">*</span>
-            </label>
+      {/* ── Withdraw form card ── */}
+      <div className="">
 
-            <p className="wl-method-description">
-              Choose your preferred withdrawal method
-            </p>
+        <div className="wl-form-grid mt-2 deposit-wrapper">
+          <div className="wl-card wl-form-card bg-light-dark p-0">
+            {/* ── Payment method selector (same design system as DepositLayout) ── */}
+            <div className="wl-card wl-method-card bg-light-dark">
+              <div className="wl-method-header">
+                <div>
+                  <label className="wl-label wl-method-title">
+                    Select Payment Method
+                    <span className="text-danger ms-1">*</span>
+                  </label>
+
+                  <p className="wl-method-description">
+                    Choose your preferred withdrawal method
+                  </p>
+                </div>
+
+                <span className="wl-method-secure">
+                  <i className="fa-solid fa-shield-halved" />
+                  Secure withdrawal
+                </span>
+              </div>
+
+              <div className="mt-2">
+                {PAYMENT_METHODS.map((method) => {
+                  const isActive = selectedPayment === method.id;
+
+                  return (
+                    <div className="col-12" key={method.id}>
+                      <button
+                        type="button"
+                        className={`wl-method-btn mt-3 ${isActive ? 'active' : ''}`}
+                        disabled={loading}
+                        onClick={() => setSelectedPayment(method.id)}
+                        aria-pressed={isActive}
+                      >
+                        <span className="wl-method-icon">
+                          <Image
+                            src={method.icon}
+                            alt={method.label}
+                            width={36}
+                            height={36}
+                            className="wl-method-image"
+                          />
+                        </span>
+
+                        <span className="wl-method-content">
+                          <span className="wl-method-top">
+                            <span className="wl-method-label">{method.label}</span>
+
+                            {isActive && (
+                              <span className="wl-method-selected">
+                                <i className="fa-solid fa-check" />
+                              </span>
+                            )}
+                          </span>
+
+                          <span className="wl-method-info d-flex">
+                            <small className="wl-method-sub">
+                              <i className="fa-solid fa-bolt" />
+                              {method.desc}
+                            </small>
+
+                            {method.rools && (
+                              <small className="wl-method-sub">
+                                <i className="fa-solid fa-chart-simple" />
+                                {method.rools}
+                              </small>
+                            )}
+                          </span>
+                        </span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
+          
+          <div className='wl-card wl-form-card bg-light-dark'>
+            <h2 className="wl-form-title">{title}</h2>
 
-          <span className="wl-method-secure">
-            <i className="fa-solid fa-shield-halved" />
-            Secure withdrawal
-          </span>
+            {/* Amount */}
+            <div>
+              <label className="wl-label">
+                1. Amount <small className="text-danger fs-4">*</small>
+              </label>
+
+              <div className="amount-input mb-2">
+                <input
+                  type="text"
+                  value={String(selectedAmount)}
+                  onChange={(e) => {
+                    const v = Number(e.target.value.replace(/[^\d.]/g, ''));
+                    if (!Number.isNaN(v)) {
+                      setSelectedAmount(v);
+                      setErrors((err) => ({ ...err, amount: undefined }));
+                    }
+                  }}
+                />
+                <span>USDT</span>
+              </div>
+
+              {selectedAmount > 0 && (
+  <div className="withdraw-summary mt-3 mb-2 p-3 rounded-4 bg-light-white">
+    <div className="d-flex align-items-center justify-content-between mb-3">
+      <div className="d-flex align-items-center gap-2">
+        <div className="summary-icon">
+          <i className="fas fa-wallet"></i>
         </div>
 
-        <div className="mt-2 row">
-          {PAYMENT_METHODS.map((method) => {
-            const isActive = selectedPayment === method.id;
-
-            return (
-              <div className="col-md-4" key={method.id}>
-                <button
-                  type="button"
-                  className={`wl-method-btn mt-3 ${isActive ? 'active' : ''}`}
-                  disabled={loading}
-                  onClick={() => setSelectedPayment(method.id)}
-                  aria-pressed={isActive}
-                >
-                  <span className="wl-method-icon">
-                    <Image
-                      src={method.icon}
-                      alt={method.label}
-                      width={36}
-                      height={36}
-                      className="wl-method-image"
-                    />
-                  </span>
-
-                  <span className="wl-method-content">
-                    <span className="wl-method-top">
-                      <span className="wl-method-label">{method.label}</span>
-
-                      {isActive && (
-                        <span className="wl-method-selected">
-                          <i className="fa-solid fa-check" />
-                        </span>
-                      )}
-                    </span>
-
-                    <span className="wl-method-info d-flex">
-                      <small className="wl-method-sub">
-                        <i className="fa-solid fa-bolt" />
-                        {method.desc}
-                      </small>
-
-                      {method.rools && (
-                        <small className="wl-method-sub">
-                          <i className="fa-solid fa-chart-simple" />
-                          {method.rools}
-                        </small>
-                      )}
-                    </span>
-                  </span>
-                </button>
-              </div>
-            );
-          })}
+        <div>
+          <h6 className="mb-0 text-white fw-bold">
+            Withdrawal Summary
+          </h6>
+          <small className="text-secondary">
+            Review your withdrawal details
+          </small>
         </div>
       </div>
 
-      {/* ── Withdraw form card ── */}
-      <div className="wl-card wl-form-card bg-light-dark">
-        <h2 className="wl-form-title">{title}</h2>
+      <span className="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-2">
+        USDT
+      </span>
+    </div>
 
-        <div className="wl-form-grid mt-2 deposit-wrapper">
-          {/* Amount */}
-          <div>
-            <label className="wl-label">
-              1. Amount <small className="text-danger fs-4">*</small>
-            </label>
-            <div className="amount-input mb-2">
-              <input
-                type="text"
-                value={String(selectedAmount)}
-                onChange={(e) => {
-                  const v = Number(e.target.value.replace(/[^\d.]/g, ''));
-                  if (!Number.isNaN(v)) {
-                    setSelectedAmount(v);
-                    setErrors((err) => ({ ...err, amount: undefined }));
-                  }
-                }}
-              />
-              <span>USDT</span>
-            </div>
-            {errors.amount && <small className="text-danger d-block">{errors.amount}</small>}
+    <div className="summary-row d-flex justify-content-between align-items-center py-2">
+      <div className="d-flex align-items-center gap-2">
+        <i className="fas fa-coins text-secondary"></i>
+        <span className="text-secondary">Withdrawal Amount</span>
+      </div>
 
-            {amountPreset?.length > 0 && (
-              <div className="wl-amount-presets">
-                {amountPreset.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`wl-preset-btn ${selectedAmount === n ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedAmount(n);
-                      setErrors((e) => ({ ...e, amount: undefined }));
-                    }}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            )}
+      <span className="fw-semibold text-white">
+        {selectedAmount.toFixed(2)} USDT
+      </span>
+    </div>
 
-            {errors.amount ? (
-              <small className="wl-hint text-danger">{errors.amount}</small>
-            ) : (
-              <small className="wl-hint text-danger">Min: 20 USD &nbsp;•&nbsp; Max: 4,000 USD</small>
-            )}
+    <div className="summary-row d-flex justify-content-between align-items-center py-2">
+      <div className="d-flex align-items-center gap-2">
+        <i className="fas fa-percent text-warning"></i>
+        <span className="text-secondary">Withdrawal Fee</span>
+        <span className="badge bg-warning bg-opacity-10 text-warning">
+          3%
+        </span>
+      </div>
+
+      <span className="fw-semibold text-danger">
+        -{withdrawalCharge.toFixed(2)} USDT
+      </span>
+    </div>
+
+    <div className="border-top border-secondary border-opacity-25 mt-2 pt-3">
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <div className="text-white fw-bold">
+            You'll Receive
           </div>
 
-          {/* Everything below Amount depends on the selected payment method:
-              - Binance Pay Manual  -> only "Binance ID"
-              - Crypto (TRC20/ERC20) -> Coin + Network + Deposit Address       */}
-          <div>
+          <small className="text-secondary">
+            Amount after fee deduction
+          </small>
+        </div>
+
+        <div className="receive-amount text-end px-3 py-2 rounded-3">
+          <small className="d-block text-success opacity-75">
+            Final Amount
+          </small>
+
+          <span className="fs-5 fw-bold text-success">
+            {receiveAmount.toFixed(2)} USDT
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+              {errors.amount && (
+                <small className="text-danger d-block">{errors.amount}</small>
+              )}
+
+              {amountPreset?.length > 0 && (
+                <div className="wl-amount-presets">
+                  {amountPreset.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`wl-preset-btn ${selectedAmount === n ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedAmount(n);
+                        setErrors((e) => ({ ...e, amount: undefined }));
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {errors.amount ? (
+                <small className="wl-hint text-danger">{errors.amount}</small>
+              ) : (
+                <small className="wl-hint text-danger">Min: 20 USD &nbsp;•&nbsp; Max: 4,000 USD</small>
+              )}
+            </div>
+
+
+
             {isBinanceMethod ? (
               /* ── Binance Pay Manual: only Binance ID ── */
               <div className="wl-full-field">
@@ -549,11 +632,65 @@ export default function WithdrawLayout({
             </div>
           </div>
 
-
         </div>
       </div>
 
       <style jsx>{`
+      .withdraw-summary {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transition: all 0.25s ease;
+      }
+
+      .withdraw-summary:hover {
+        border-color: rgba(255, 255, 255, 0.14);
+        transform: translateY(-1px);
+      }
+
+      .summary-icon {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        color: #0dcaf0;
+        background: rgba(13, 202, 240, 0.1);
+        border: 1px solid rgba(13, 202, 240, 0.15);
+      }
+
+      .summary-row {
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+      }
+
+      .receive-amount {
+        min-width: 150px;
+        background: rgba(25, 135, 84, 0.1);
+        border: 1px solid rgba(25, 135, 84, 0.2);
+      }
+
+      @media (max-width: 480px) {
+        .withdraw-summary {
+          padding: 14px !important;
+        }
+
+        .summary-row {
+          gap: 12px;
+        }
+
+        .summary-row span {
+          font-size: 13px;
+        }
+
+        .receive-amount {
+          min-width: auto;
+          padding: 8px 10px !important;
+        }
+
+        .receive-amount .fs-5 {
+          font-size: 16px !important;
+        }
+      }
         .wl-wrapper {
           display: flex;
           flex-direction: column;
