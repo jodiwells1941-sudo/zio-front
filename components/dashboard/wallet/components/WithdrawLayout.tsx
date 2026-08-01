@@ -145,6 +145,9 @@ export default function WithdrawLayout({
     binanceId: '',
   });
 
+  // ── is the "Binance Pay Manual" method selected? ─────────────────────────────
+  const isBinanceMethod = selectedPayment === 'binance';
+
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -164,6 +167,21 @@ export default function WithdrawLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPayment]);
 
+  // ── when switching to Binance, clear out the crypto-only fields + their errors
+  //    so stale coin/network/address data never gets submitted with a Binance
+  //    withdrawal ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (isBinanceMethod) {
+      setFormData((prev) =>
+        prev.coin === '' && prev.depositAddress === ''
+          ? prev
+          : { ...prev, coin: '', depositAddress: '' }
+      );
+      setErrors((prev) => ({ ...prev, coin: undefined, network: undefined, depositAddress: undefined }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBinanceMethod]);
+
   const activeNetwork = NETWORK_OPTIONS.find((n) => n.id === formData.network) ?? NETWORK_OPTIONS[0];
   const activeNetworkLabel = formData.network === 'ERC20' ? 'ERC20 (Ethereum)' : 'TRC20 (Tron)';
 
@@ -177,18 +195,27 @@ export default function WithdrawLayout({
       newErrors.amount = 'Maximum withdrawal amount is 4,000 USD.';
     }
 
-    if (!formData.coin) {
-      newErrors.coin = 'Please select a coin.';
-    }
+    if (isBinanceMethod) {
+      // Binance Pay Manual: only Amount + Binance ID are shown/required
+      if (!formData.binanceId.trim()) {
+        newErrors.binanceId = 'Please enter your Binance ID.';
+      }
+    } else {
+      // Crypto (TRC20 / ERC20): Coin is always required, then either a
+      // Binance ID OR a Network + Deposit Address must be provided
+      if (!formData.coin) {
+        newErrors.coin = 'Please select a coin.';
+      }
 
-    const hasBinance = formData.binanceId.trim() !== '';
-    const hasWallet = formData.network.trim() !== '' && formData.depositAddress.trim() !== '';
+      const hasBinance = formData.binanceId.trim() !== '';
+      const hasWallet = formData.network.trim() !== '' && formData.depositAddress.trim() !== '';
 
-    if (!hasBinance && !hasWallet) {
-      if (!formData.network) newErrors.network = 'Select a network.';
-      if (!formData.depositAddress) newErrors.depositAddress = 'Enter deposit address.';
-      if (!formData.network && !formData.depositAddress) {
-        newErrors.binanceId = 'Provide either a Binance ID or wallet address + network.';
+      if (!hasBinance && !hasWallet) {
+        if (!formData.network) newErrors.network = 'Select a network.';
+        if (!formData.depositAddress.trim()) newErrors.depositAddress = 'Enter deposit address.';
+        if (!formData.network && !formData.depositAddress.trim()) {
+          newErrors.binanceId = 'Provide either a Binance ID or wallet address + network.';
+        }
       }
     }
 
@@ -222,15 +249,19 @@ export default function WithdrawLayout({
       const payload: Record<string, unknown> = {
         type: 'withdraw',
         amount: selectedAmount,
-        coin: formData.coin,
+        payment_method: selectedPayment,
       };
 
-      if (formData.binanceId.trim()) {
+      if (isBinanceMethod) {
         payload.binance_id = formData.binanceId.trim();
-      } 
-      payload.network = formData.network;
-      payload.wallet_address = formData.depositAddress;
-      payload.payment_method = selectedPayment;
+      } else {
+        payload.coin = formData.coin;
+        if (formData.binanceId.trim()) {
+          payload.binance_id = formData.binanceId.trim();
+        }
+        payload.network = formData.network;
+        payload.wallet_address = formData.depositAddress;
+      }
 
       const res = await SubmitDepositWithdrawApi(payload);
 
@@ -246,10 +277,21 @@ export default function WithdrawLayout({
       const data = err?.response?.data;
 
       // Laravel field-level validation errors
+      // Laravel returns snake_case keys; our form state is camelCase.
+      const BACKEND_FIELD_MAP: Record<string, keyof FormErrors> = {
+        amount: 'amount',
+        coin: 'coin',
+        network: 'network',
+        wallet_address: 'depositAddress',
+        binance_id: 'binanceId',
+      };
+
       if (data?.errors) {
         const serverErrors: FormErrors = {};
         Object.entries(data.errors).forEach(([key, msgs]) => {
-          serverErrors[key as keyof FormErrors] = Array.isArray(msgs)
+          const mappedKey = BACKEND_FIELD_MAP[key];
+          if (!mappedKey) return; // ignore fields we don't render (e.g. trx_id, type)
+          serverErrors[mappedKey] = Array.isArray(msgs)
             ? (msgs as string[])[0]
             : String(msgs);
         });
@@ -265,14 +307,6 @@ export default function WithdrawLayout({
 
   return (
     <div className="wl-wrapper">
-
-      {/* ── Balance card ─────────────────────────────────────────────────── */}
-      <div className="wl-card wl-balance-card bg-light-dark">
-        <div className="wl-balance-row">
-          <span className="wl-balance-label">Available Balance</span>
-          <span className="wl-balance-value">0 EUR ▾</span>
-        </div>
-      </div>
 
       {/* ── Payment method selector (same design system as DepositLayout) ── */}
       <div className="wl-card wl-method-card bg-light-dark">
@@ -400,101 +434,122 @@ export default function WithdrawLayout({
             )}
           </div>
 
-          {/* Coin */}
+          {/* Everything below Amount depends on the selected payment method:
+              - Binance Pay Manual  -> only "Binance ID"
+              - Crypto (TRC20/ERC20) -> Coin + Network + Deposit Address       */}
           <div>
-            <label className="wl-label">
-              2. Select Coin <small className="text-danger fs-4">*</small>
-            </label>
-            <div className="wl-dropdown">
-              <span className="wl-coin-badge wl-coin-badge--usdt">T</span>
-              <select
-                value={formData.coin}
-                onChange={(e) => handleChange('coin', e.target.value)}
-                aria-label="Select coin"
-              >
-                <option value="">Select Coin</option>
-                <option value="USDT">USDT</option>
-              </select>
-              <i className="fa-solid fa-chevron-down wl-dropdown-caret" />
-            </div>
-            {errors.coin && <small className="wl-hint text-danger">{errors.coin}</small>}
-          </div>
-
-          {/* Network — options depend on the selected payment method */}
-          <div>
-            <label className="wl-label">
-              3. Select Network <small className="text-danger fs-4">*</small>
-            </label>
-            <div className="wl-dropdown">
-              <span className={`wl-coin-badge p-1 wl-coin-badge--${activeNetwork.className}`}>
-                {activeNetwork.icon}
-              </span>
-              <select
-                value={formData.network}
-                onChange={(e) => handleChange('network', e.target.value)}
-                aria-label="Select network"
-              >
-                {availableNetworks.map((n) => (
-                  <option key={n.id} value={n.id}>{n.label}</option>
-                ))}
-              </select>
-              <i className="fa-solid fa-chevron-down wl-dropdown-caret" />
-            </div>
-            <small className="wl-hint text-warning">
-              Network is locked to {activeNetworkLabel} for this payment method.
-            </small>
-            {errors.network && <small className="wl-hint text-danger">{errors.network}</small>}
-          </div>
-
-          {/* Deposit Address */}
-          <div>
-            <label className="wl-label">
-              4. Deposit Address <small className="text-danger fs-4">*</small>
-            </label>
-            <div className="amount-input mb-1">
-              <input
-                type="text"
-                placeholder="Enter wallet address"
-                value={formData.depositAddress}
-                onChange={(e) => handleChange('depositAddress', e.target.value)}
-              />
-            </div>
-            {errors.depositAddress && (
-              <small className="wl-hint text-danger">{errors.depositAddress}</small>
-            )}
-          </div>
-
-          {/* Binance ID — full width */}
-          <div className="wl-full-field mt-1">
-            <div className="">
-              <label className="wl-label">
-                5. Binance ID <small className="text-danger fs-4">*</small>
-              </label>
-              <div className="amount-input mb-1">
-                <input
-                  type="text"
-                  placeholder="Enter Binance ID"
-                  value={formData.binanceId}
-                  onChange={(e) => handleChange('binanceId', e.target.value)}
-                />
+            {isBinanceMethod ? (
+              /* ── Binance Pay Manual: only Binance ID ── */
+              <div className="wl-full-field">
+                <label className="wl-label">
+                  2. Binance ID <small className="text-danger fs-4">*</small>
+                </label>
+                <div className="amount-input mb-1">
+                  <input
+                    type="text"
+                    placeholder="Enter Binance ID"
+                    value={formData.binanceId}
+                    onChange={(e) => handleChange('binanceId', e.target.value)}
+                  />
+                </div>
+                {errors.binanceId && <small className="wl-hint text-danger">{errors.binanceId}</small>}
               </div>
-              {errors.binanceId && <small className="wl-hint text-danger">{errors.binanceId}</small>}
-              <small className="wl-hint text-warning">
-                Provide either a Binance ID, or a wallet address + network above.
-              </small>
+            ) : (
+              /* ── Crypto (TRC20 / ERC20): Coin + Network + Deposit Address ── */
+              <>
+                <label className="wl-label">
+                  2. Select Coin <small className="text-danger fs-4">*</small>
+                </label>
+                <div className="wl-dropdown">
+                  <span className="wl-coin-badge wl-coin-badge--usdt">T</span>
+                  <select
+                    value={formData.coin}
+                    onChange={(e) => handleChange('coin', e.target.value)}
+                    aria-label="Select coin"
+                  >
+                    <option value="">Select Coin</option>
+                    <option value="USDT">USDT</option>
+                  </select>
+                  <i className="fa-solid fa-chevron-down wl-dropdown-caret" />
+                </div>
+                {errors.coin && <small className="wl-hint text-danger">{errors.coin}</small>}
+
+                {/* Network — options depend on the selected payment method */}
+                <div className="mt-3">
+                  <label className="wl-label">
+                    3. Select Network <small className="text-danger fs-4">*</small>
+                  </label>
+                  <div className="wl-dropdown">
+                    <span className={`wl-coin-badge p-1 wl-coin-badge--${activeNetwork.className}`}>
+                      {activeNetwork.icon}
+                    </span>
+                    <select
+                      value={formData.network}
+                      onChange={(e) => handleChange('network', e.target.value)}
+                      aria-label="Select network"
+                    >
+                      {availableNetworks.map((n) => (
+                        <option key={n.id} value={n.id}>{n.label}</option>
+                      ))}
+                    </select>
+                    <i className="fa-solid fa-chevron-down wl-dropdown-caret" />
+                  </div>
+                  <small className="wl-hint text-warning">
+                    Network is locked to {activeNetworkLabel} for this payment method.
+                  </small>
+                  {errors.network && <small className="wl-hint text-danger">{errors.network}</small>}
+                </div>
+
+                {/* Deposit Address */}
+                <div>
+                  <label className="wl-label mt-3">
+                    4. Deposit Address <small className="text-danger fs-4">*</small>
+                  </label>
+                  <div className="amount-input mb-1">
+                    <input
+                      type="text"
+                      placeholder="Enter wallet address"
+                      value={formData.depositAddress}
+                      onChange={(e) => handleChange('depositAddress', e.target.value)}
+                    />
+                  </div>
+                  {errors.depositAddress && (
+                    <small className="wl-hint text-danger">{errors.depositAddress}</small>
+                  )}
+                </div>
+
+                {/* Binance ID — optional alternative to wallet address + network */}
+                <div className="wl-full-field mt-3">
+                  <label className="wl-label">5. Binance ID <small className="text-danger fs-4">*</small></label>
+                  <div className="amount-input mb-1">
+                    <input
+                      type="text"
+                      placeholder="Enter Binance ID"
+                      value={formData.binanceId}
+                      onChange={(e) => handleChange('binanceId', e.target.value)}
+                    />
+                  </div>
+                  {errors.binanceId && <small className="wl-hint text-danger">{errors.binanceId}</small>}
+                  <small className="wl-hint text-warning">
+                    Provide either a Binance ID, or a wallet address + network above.
+                  </small>
+                </div>
+              </>
+            )}
+
+            <div className="pt-4 mt-3">
+              <button
+                type="button"
+                className="wl-cta w-100"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? 'Processing…' : `${actionLabel} ${selectedAmount} USD`} <span aria-hidden>→</span>
+              </button>
             </div>
           </div>
 
-          <div className="pt-4 mt-3">
-            <button
-              type="button"
-              className="wl-cta w-100"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Processing…' : `${actionLabel} ${selectedAmount} USD`} <span aria-hidden>→</span>
-            </button>
-          </div>
+
         </div>
       </div>
 
