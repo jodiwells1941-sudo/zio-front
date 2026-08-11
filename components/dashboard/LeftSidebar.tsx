@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React, { useCallback, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type NavItem = {
   label: string;
@@ -111,6 +111,10 @@ export default function LeftSidebar({
   );
 
   const isWalletActive = isActive("/dashboard/wallet");
+  const searchParams = useSearchParams();
+
+  const tab = searchParams.get('tab');
+  
 
   const toggleSubMenu = useCallback((label: string) => {
     setOpenSubMenus((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -196,12 +200,25 @@ export default function LeftSidebar({
                   )}
 
                   {hasSubItems && (
-                    <ul className={`mx-2 nav-submenu mt-4 ${subOpen ? "submenu-open" : ""}`}>
-                      {item.subItems!.map((sub) => (
-                        <li key={sub.label} className={isActive(sub.href) ? "active" : ""}>
-                          <Link href={sub.href} onClick={onCloseMobile}>{sub.label}</Link>
-                        </li>
-                      ))}
+                    <ul
+                      className={`mx-2 nav-submenu mt-4 ${
+                        subOpen ? "submenu-open" : ""
+                      }`}
+                    >
+                      {item.subItems!.map((sub) => {
+                        const subTab = sub.href.split("tab=")[1];
+
+                        return (
+                          <li
+                            key={sub.label}
+                            className={tab === subTab ? "active" : ""}
+                          >
+                            <Link href={sub.href}>
+                              {sub.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </li>

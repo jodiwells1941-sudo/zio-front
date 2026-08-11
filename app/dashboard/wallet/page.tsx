@@ -19,7 +19,7 @@ export default function WalletPage(): JSX.Element {
 
   const [activeTab, setActiveTab] = useState<TabKey>('tab1');
   const [activeP2PTab, setActiveP2PTab] = useState<P2PTabKey>('wallet-balance');
-  const [selectedPayment, setSelectedPayment] = useState<string>('crypto');
+  const [selectedPayment, setSelectedPayment] = useState<string>('');
   const [selectedAmount, setSelectedAmount] = useState<number>(25);
 
   // Read ?tab= from URL and set active tab on mount or param change
@@ -61,7 +61,7 @@ export default function WalletPage(): JSX.Element {
         </div>
 
         <div className="custom-tabs">
-          <div className="d-none d-md-block">
+          {/* <div className="d-none d-md-block">
             <div className="tab-buttons">
               <TabButton tab="tab1" label="Balance"              activeTab={activeTab} onChange={setActiveTab} />
               <TabButton tab="tab2" label="Deposit"              activeTab={activeTab} onChange={setActiveTab} />
@@ -70,7 +70,7 @@ export default function WalletPage(): JSX.Element {
               <TabButton tab="tab5" label="Withdraw"             activeTab={activeTab} onChange={setActiveTab} />
               <TabButton tab="tab6" label="Transactions History" activeTab={activeTab} onChange={setActiveTab} />
             </div>
-          </div>
+          </div> */}
 
           <div className="tab-contents w-100">
             <div className={`tab-content h-screen ${activeTab === 'tab1' ? 'active' : ''}`} id="tab1">
