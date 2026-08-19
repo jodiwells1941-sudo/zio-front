@@ -30,10 +30,17 @@ export default function LeftSidebar({
       subItems: [
         { label: "Balance", href: "/dashboard/wallet?tab=tab1" },
         { label: "Deposit", href: "/dashboard/wallet?tab=tab2" },
-        { label: "P2P", href: "/dashboard/wallet?tab=tab3" },
         { label: "Transfer", href: "/dashboard/wallet?tab=tab4" },
         { label: "Withdraw", href: "/dashboard/wallet?tab=tab5" },
         { label: "Transactions History", href: "/dashboard/wallet?tab=tab6" },
+      ],
+    },
+    // { label: "P2P", href: "/dashboard/wallet?tab=tab3", iconClass: "fa-solid fa-handshake" },
+    {
+      label: "P2P", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake", 
+      subItems: [
+        { label: "P2P Buy & Sell", href: "/dashboard/wallet?tab=tab3" },
+        { label: "Merchant Account", href: "/dashboard/merchant" },
       ],
     },
     { label: "Lottery", href: "/dashboard/lottery", iconClass: "fa-regular fa-futbol" },

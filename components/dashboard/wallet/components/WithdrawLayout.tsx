@@ -176,10 +176,11 @@ export default function WithdrawLayout({
     selectedPayment === 'erc' ? n.id === 'ERC20' : n.id === 'TRC20'
   );
 
-  // ── auto-select the network whenever the payment method changes ─────────────
+  // ── reset network to empty whenever the payment method changes, so the
+  //    "Select Network" placeholder is shown first and the user must
+  //    explicitly choose a network (icon only appears after that choice) ─────
   useEffect(() => {
-    const defaultNetwork = selectedPayment === 'erc' ? 'ERC20' : 'TRC20';
-    setFormData((prev) => (prev.network === defaultNetwork ? prev : { ...prev, network: defaultNetwork }));
+    setFormData((prev) => (prev.network === '' ? prev : { ...prev, network: '' }));
     setErrors((prev) => ({ ...prev, network: undefined }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPayment]);
@@ -203,9 +204,8 @@ export default function WithdrawLayout({
   const activeNetworkLabel = formData.network === 'ERC20' ? 'ERC20 (Ethereum)' : 'TRC20 (Tron)';
 
   // ── Does this submission actually use a wallet address as the destination,
-  //    or a Binance ID? `formData.network` is always pre-filled by the effect
-  //    above (even under the Binance payment method), so we can't rely on it —
-  //    the real signal is whether a deposit address was typed in, and we're
+  //    or a Binance ID? `formData.network` is no longer auto-filled, so the
+  //    real signal is whether a deposit address was typed in, and we're
   //    not on the Binance payment method. This single flag drives the
   //    confirmation summary, the icon, and the submitted payload so they all
   //    agree with what the user actually entered. ─────────────────────────────
@@ -227,11 +227,14 @@ export default function WithdrawLayout({
         newErrors.binanceId = 'Please enter your Binance ID.';
       }
     } else {
-      // Crypto (TRC20 / ERC20): Coin is always required, then either a
-      // Binance ID OR a Deposit Address must be provided. Network is always
-      // pre-filled by the effect above, so it is never a missing-field case.
+      // Crypto (TRC20 / ERC20): Coin + Network are always required, then
+      // either a Binance ID OR a Deposit Address must be provided.
       if (!formData.coin) {
         newErrors.coin = 'Please select a coin.';
+      }
+
+      if (!formData.network) {
+        newErrors.network = 'Please select a network.';
       }
 
       const hasBinance = formData.binanceId.trim() !== '';
@@ -717,7 +720,7 @@ export default function WithdrawLayout({
                   <small className="text-danger d-block">{errors.amount}</small>
                 )}
 
-                {amountPreset?.length > 0 && (
+                {/* {amountPreset?.length > 0 && (
                   <div className="wl-amount-presets">
                     {amountPreset.map((n) => (
                       <button
@@ -733,7 +736,7 @@ export default function WithdrawLayout({
                       </button>
                     ))}
                   </div>
-                )}
+                )} */}
 
                 {errors.amount ? (
                   <small className="wl-hint text-danger">{errors.amount}</small>
@@ -741,49 +744,18 @@ export default function WithdrawLayout({
                   <small className="wl-hint text-danger">Min: 20 USD &nbsp;•&nbsp; Max: 4,000 USD</small>
                 )}
               </div>
+
               {selectedAmount > 0 && (
-                <div
-                  className="wl-fee-notice mb-2 bg-light-white"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '10px 12px',
-                    borderRadius: '12px',
-                  }}
-                >
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '30px',
-                      height: '30px',
-                      borderRadius: '50%',
-                      backgroundColor: '#e4efff',
-                      color: '#2356c9',
-                    }}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                    </svg>
-                  </span>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#2356c9' }}>
+                <div className="d-flex justify-content-between w-full">
+                    <div className='text-warning'>
                       Fees {withdrawalCharge.toFixed(2)} USDT
                     </div>
-                    <div className='text-warning'>
+                    <div style={{ fontWeight: 600, color: 'green', fontSize: '18px' }}>
                       You will receive {receiveAmount.toFixed(2)} USDT
                     </div>
-                  </div>
                 </div>
               )}
+              <div className="w-full border-bottom border-dark-light pt-2 mb-3"></div>
 
               {isBinanceMethod ? (
                 /* ── Binance Pay Manual: only Binance ID ── */
@@ -808,7 +780,9 @@ export default function WithdrawLayout({
                     2. Select Coin <small className="text-danger fs-4">*</small>
                   </label>
                   <div className="wl-dropdown">
-                    <span className="wl-coin-badge wl-coin-badge--usdt">T</span>
+                    { formData.coin === 'USDT' &&
+                      <span className="wl-coin-badge wl-coin-badge--usdt">T</span>
+                    }
                     <select
                       value={formData.coin}
                       onChange={(e) => handleChange('coin', e.target.value)}
@@ -821,20 +795,26 @@ export default function WithdrawLayout({
                   </div>
                   {errors.coin && <small className="wl-hint text-danger">{errors.coin}</small>}
 
-                  {/* Network — options depend on the selected payment method */}
+                  {/* Network — options depend on the selected payment method.
+                      Starts unselected ("Select Network"); the icon badge only
+                      appears once the user actually picks a network. */}
                   <div className="mt-3">
                     <label className="wl-label">
                       3. Select Network <small className="text-danger fs-4">*</small>
                     </label>
                     <div className="wl-dropdown">
-                      <span className={`wl-coin-badge p-1 wl-coin-badge--${activeNetwork.className}`}>
-                        {activeNetwork.icon}
-                      </span>
+                      {formData.network !== '' && formData.network === activeNetwork.id && (
+                        <span className={`wl-coin-badge p-1 wl-coin-badge--${activeNetwork.className}`}>
+                          {activeNetwork.icon}
+                        </span>
+                      )}
+
                       <select
                         value={formData.network}
                         onChange={(e) => handleChange('network', e.target.value)}
                         aria-label="Select network"
                       >
+                        <option value="">Select Network</option>
                         {availableNetworks.map((n) => (
                           <option key={n.id} value={n.id}>{n.label}</option>
                         ))}
@@ -842,7 +822,7 @@ export default function WithdrawLayout({
                       <i className="fa-solid fa-chevron-down wl-dropdown-caret" />
                     </div>
                     <small className="wl-hint text-warning">
-                      Network is locked to {activeNetworkLabel} for this payment method.
+                      Only {availableNetworks[0]?.label ?? activeNetworkLabel} is available for this payment method.
                     </small>
                     {errors.network && <small className="wl-hint text-danger">{errors.network}</small>}
                   </div>
