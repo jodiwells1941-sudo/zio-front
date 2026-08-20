@@ -34,7 +34,14 @@ export default function Page() {
   }, [fetchMerchantAccount]);
 
   const handleUpdate = useCallback(
-    async (payload: MerchantProfileUpdatePayload) => {
+    async (
+      section: "profile" | "business",
+      data: Record<string, any>
+    ) => {
+      const payload = {
+        [section]: data,
+      } as MerchantProfileUpdatePayload;
+
       const res = await updateMerchantApplicationApi(payload);
       // Prefer the fresh record the API returns; fall back to a full
       // refetch if the update endpoint doesn't echo it back.
