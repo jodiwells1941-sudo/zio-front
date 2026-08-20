@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const stats = [
@@ -123,6 +124,7 @@ const orders = [
 ];
 
 export default function MerchantDashboard() {
+  const router = useRouter();
   return (
     <section className="merchant-dashboard rounded">
 
@@ -139,11 +141,30 @@ export default function MerchantDashboard() {
           </div>
         </div>
 
-        <button className="dashboard-date">
-          <i className="fa-regular fa-calendar" />
-          Last 30 Days
-          <i className="fa-solid fa-chevron-down" />
-        </button>
+        <div className="dashboard-header-actions">
+
+          {/* Go To Profile */}
+          <button
+            type="button"
+            className="dashboard-profile-btn mb-2"
+            onClick={() => {router.push("/dashboard/merchant/profile");}}
+          >
+            <i className="fa-solid fa-user" />
+            <span>My Profile</span>
+            <i className="fa-solid fa-arrow-right profile-arrow" />
+          </button>
+
+          {/* Date Filter */}
+          <button
+            type="button"
+            className="dashboard-date"
+          >
+            <i className="fa-regular fa-calendar" />
+            <span>Last 30 Days</span>
+            <i className="fa-solid fa-chevron-down" />
+          </button>
+
+        </div>
       </div>
 
       {/* Stats */}

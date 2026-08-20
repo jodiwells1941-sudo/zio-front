@@ -21328,3 +21328,634 @@ span {
   }
 
 }
+
+/* =========================================
+   DASHBOARD HEADER ACTIONS
+========================================= */
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+/* =========================================
+   MY PROFILE BUTTON
+========================================= */
+
+.dashboard-profile-btn {
+  height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 0 14px;
+
+  border: 1px solid rgba(145, 42, 255, 0.55);
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(105, 22, 207, 0.18),
+      rgba(66, 12, 125, 0.08)
+    );
+
+  color: #d45cff;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    all 0.2s ease;
+}
+
+.dashboard-profile-btn > i:first-child {
+  font-size: 12px;
+}
+
+.dashboard-profile-btn .profile-arrow {
+  margin-left: 2px;
+
+  font-size: 9px;
+
+  opacity: 0.7;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.dashboard-profile-btn:hover {
+  color: #f0a1ff;
+
+  border-color: #a642ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(126, 31, 236, 0.28),
+      rgba(82, 18, 151, 0.15)
+    );
+
+  box-shadow:
+    0 0 18px rgba(127, 37, 255, 0.14);
+
+  transform: translateY(-1px);
+}
+
+.dashboard-profile-btn:hover .profile-arrow {
+  transform: translateX(3px);
+}
+
+
+/* =========================================
+   DATE BUTTON
+========================================= */
+
+.dashboard-date {
+  height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 0 14px;
+
+  border: 1px solid rgba(90, 127, 170, 0.25);
+  border-radius: 7px;
+
+  background:
+    rgba(5, 17, 32, 0.75);
+
+  color: #c5cdd9;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    all 0.2s ease;
+}
+
+.dashboard-date i:first-child {
+  color: #9aa7b8;
+
+  font-size: 12px;
+}
+
+.dashboard-date i:last-child {
+  margin-left: 3px;
+
+  color: #8a96a7;
+
+  font-size: 9px;
+}
+
+.dashboard-date:hover {
+  border-color:
+    rgba(122, 153, 194, 0.38);
+
+  background:
+    rgba(9, 26, 47, 0.9);
+
+  color: #edf1f7;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 767px) {
+
+  .dashboard-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 15px;
+  }
+
+  .dashboard-header-actions {
+    width: 100%;
+  }
+
+  .dashboard-profile-btn,
+  .dashboard-date {
+    flex: 1;
+  }
+}
+
+
+@media (max-width: 480px) {
+
+  .dashboard-header-actions {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    width: 100%;
+  }
+
+  .dashboard-profile-btn,
+  .dashboard-date {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   PENDING MERCHANT APPROVAL
+========================================================= */
+
+.pending-approval-card {
+  position: relative;
+  overflow: hidden;
+
+  width: 100%;
+
+  margin-bottom: 18px;
+  padding: 24px 26px;
+
+  border: 1px solid rgba(133, 64, 255, 0.28);
+  border-radius: 10px;
+
+  background:
+    radial-gradient(
+      circle at 8% 50%,
+      rgba(125, 39, 255, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(8, 19, 37, 0.98),
+      rgba(6, 15, 31, 0.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 8px 30px rgba(0, 0, 0, 0.12);
+
+  color: #fff;
+}
+
+
+/* Top subtle purple line */
+
+.pending-approval-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #7d2cff 25%,
+      #a84cff 50%,
+      #7d2cff 75%,
+      transparent
+    );
+
+  opacity: 0.85;
+}
+
+
+/* Background glow */
+
+.pending-approval-glow {
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  left: -100px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  border-radius: 50%;
+
+  background: rgba(115, 36, 255, 0.12);
+
+  filter: blur(60px);
+
+  pointer-events: none;
+}
+
+
+/* Main content */
+
+.pending-approval-content {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 18px;
+}
+
+
+/* Icon */
+
+.pending-approval-icon {
+  flex: 0 0 56px;
+
+  width: 56px;
+  height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(156, 65, 255, 0.45);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(126, 38, 255, 0.28),
+      rgba(71, 20, 130, 0.18)
+    );
+
+  box-shadow:
+    0 0 24px rgba(126, 38, 255, 0.13);
+}
+
+.pending-approval-icon i {
+  font-size: 22px;
+
+  color: #b55cff;
+
+  animation: pendingPulse 2s ease-in-out infinite;
+}
+
+
+/* Information */
+
+.pending-approval-info {
+  min-width: 0;
+  flex: 1;
+}
+
+
+/* Badge */
+
+.pending-approval-badge {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 8px;
+  padding: 5px 9px;
+
+  border-radius: 5px;
+
+  border: 1px solid rgba(181, 125, 30, 0.25);
+
+  background: rgba(139, 88, 0, 0.12);
+
+  color: #e7b64d;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  letter-spacing: 0.1px;
+}
+
+.pending-status-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #eab308;
+
+  box-shadow:
+    0 0 7px rgba(234, 179, 8, 0.65);
+}
+
+
+/* Heading */
+
+.pending-approval-info h2 {
+  margin: 0 0 7px;
+
+  color: #f4f6fb;
+
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 600;
+
+  letter-spacing: -0.15px;
+}
+
+
+/* Description */
+
+.pending-approval-info p {
+  max-width: 760px;
+
+  margin: 0;
+
+  color: #8f9bad;
+
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+
+/* Info note */
+
+.pending-approval-note {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 14px;
+  padding: 9px 11px;
+
+  width: fit-content;
+  max-width: 100%;
+
+  border-radius: 6px;
+
+  border: 1px solid rgba(113, 65, 193, 0.18);
+
+  background: rgba(75, 25, 140, 0.09);
+
+  color: #9ea8b8;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.pending-approval-note i {
+  flex-shrink: 0;
+
+  color: #a951ff;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   REVIEW PROGRESS
+========================================================= */
+
+.pending-approval-progress {
+  position: relative;
+  z-index: 1;
+
+  margin-top: 22px;
+  padding-top: 18px;
+
+  border-top: 1px solid rgba(89, 116, 151, 0.15);
+}
+
+
+.pending-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 9px;
+
+  color: #aeb8c8;
+
+  font-size: 12px;
+}
+
+.pending-progress-header strong {
+  color: #a952ff;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+/* Progress */
+
+.pending-progress-track {
+  width: 100%;
+  height: 5px;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: rgba(40, 54, 76, 0.7);
+}
+
+.pending-progress-fill {
+  width: 62%;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #6820d8,
+      #9b3cff,
+      #b65cff
+    );
+
+  box-shadow:
+    0 0 12px rgba(151, 54, 255, 0.4);
+
+  animation: pendingProgress 2s ease-out;
+}
+
+
+/* Progress steps */
+
+.pending-progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 11px;
+
+  color: #5f6c80;
+
+  font-size: 10px;
+}
+
+.pending-progress-steps span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+}
+
+.pending-progress-steps i {
+  font-size: 7px;
+}
+
+.pending-progress-steps .active {
+  color: #aeb7c7;
+}
+
+.pending-progress-steps .active i {
+  color: #8f38ff;
+}
+
+.pending-progress-steps .active:first-child i {
+  font-size: 8px;
+}
+
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes pendingPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes pendingProgress {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 62%;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 767px) {
+
+  .pending-approval-card {
+    padding: 20px;
+  }
+
+  .pending-approval-content {
+    gap: 13px;
+  }
+
+  .pending-approval-icon {
+    flex: 0 0 48px;
+
+    width: 48px;
+    height: 48px;
+
+    border-radius: 12px;
+  }
+
+  .pending-approval-icon i {
+    font-size: 18px;
+  }
+
+  .pending-approval-info h2 {
+    font-size: 16px;
+  }
+
+  .pending-approval-info p {
+    font-size: 12px;
+  }
+
+  .pending-progress-steps {
+    gap: 10px;
+    overflow-x: auto;
+  }
+
+  .pending-progress-steps span {
+    white-space: nowrap;
+  }
+}
+
+
+@media (max-width: 480px) {
+
+  .pending-approval-content {
+    flex-direction: column;
+  }
+
+  .pending-approval-note {
+    width: 100%;
+  }
+
+  .pending-progress-steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+}

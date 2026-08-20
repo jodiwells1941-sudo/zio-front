@@ -5,7 +5,6 @@ import {
   allCountries,
   type CountryTelephoneData,
 } from 'country-telephone-data';
-import { updateMerchantApplicationApi } from '@/app/api/merchant';
 
 /* =========================================================
    TYPES — mirrors the /merchant/account API response
@@ -84,24 +83,41 @@ export type MerchantStats = {
   xpTarget?: number;
 };
 
+// Fields the Personal Information card can edit.
+type ProfileDraft = Pick<
+  MerchantApplication,
+  'full_name' | 'phone_country_code' | 'phone' | 'city' | 'address' | 'language'
+>;
+
+// Fields the Business Information card can edit.
+type BusinessDraft = Pick<
+  MerchantApplication,
+  | 'business_name'
+  | 'business_email'
+  | 'business_phone_country_code'
+  | 'business_phone'
+  | 'business_address'
+  | 'operation_type'
+  | 'trade_coin'
+  | 'payment_methods'
+>;
+
+export type MerchantProfileUpdatePayload = Partial<ProfileDraft & BusinessDraft>;
+
 type MerchantProfileProps = {
   application: MerchantApplication | null;
   stats?: MerchantStats | null;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
-  // Called after a successful profile/business edit so the parent page can
-  // keep its own copy of the application in sync.
-  onUpdated?: (updated: MerchantApplication) => void;
+  // Called with only the fields that changed. Should resolve once the
+  // backend has confirmed the update (throwing on failure re-opens the
+  // form with the error shown inline).
+  onUpdate?: (
+    section: 'profile' | 'business',
+    data: MerchantProfileUpdatePayload
+  ) => Promise<void>;
 };
-
-const PAYMENT_METHOD_OPTIONS = ['Bank Transfer', 'bKash', 'Nagad', 'Rocket'];
-const BUSINESS_TYPE_OPTIONS = ['Individual', 'Company', 'Partnership'];
-const TRADE_COIN_OPTIONS = ['USDT', 'USDC', 'BTC'];
-const OPERATION_TYPE_OPTIONS = [
-  'Manually (I will manage orders)',
-  'Automatically',
-];
 
 /* =========================================================
    HELPERS
@@ -141,14 +157,13 @@ function statusBadgeClass(status: MerchantApplicationStatus): string {
   return 'top-rated-badge status-pending';
 }
 
-function extractErrorMessage(err: any, fallback: string): string {
-  const apiMessage =
-    err?.response?.data?.message ||
-    (err?.response?.data?.errors &&
-      (Object.values(err.response.data.errors as Record<string, any>) as any)[0]?.[0]);
-
-  return apiMessage || fallback;
-}
+const PAYMENT_METHOD_OPTIONS = ['Bank Transfer', 'bKash', 'Nagad', 'Rocket'];
+const TRADE_COIN_OPTIONS = ['USDT', 'USDC', 'BTC'];
+const LANGUAGE_OPTIONS = ['English', 'Bangla', 'Hindi'];
+const OPERATION_TYPE_OPTIONS = [
+  'Manually (I will manage orders)',
+  'Automatically',
+];
 
 const quickActions = [
   { icon: 'fa-solid fa-paper-plane', title: 'Create Advertisement' },
@@ -157,56 +172,6 @@ const quickActions = [
   { icon: 'fa-solid fa-sliders', title: 'Earnings & Commission' },
   { icon: 'fa-solid fa-shield-halved', title: 'Security Deposit' },
 ];
-
-/* =========================================================
-   EDIT FORM STATE TYPES
-========================================================= */
-
-type ProfileFormState = {
-  full_name: string;
-  username: string;
-  phone_country_code: string;
-  phone: string;
-};
-
-type BusinessFormState = {
-  business_type: string;
-  business_name: string;
-  registration_number: string;
-  tax_id: string;
-  business_email: string;
-  business_phone_country_code: string;
-  business_phone: string;
-  business_address: string;
-  operation_type: string;
-  trade_coin: string;
-  payment_methods: string[];
-};
-
-function toProfileForm(app: MerchantApplication): ProfileFormState {
-  return {
-    full_name: app.full_name,
-    username: app.username,
-    phone_country_code: app.phone_country_code || '+880',
-    phone: app.phone,
-  };
-}
-
-function toBusinessForm(app: MerchantApplication): BusinessFormState {
-  return {
-    business_type: app.business_type,
-    business_name: app.business_name,
-    registration_number: app.registration_number,
-    tax_id: app.tax_id,
-    business_email: app.business_email,
-    business_phone_country_code: app.business_phone_country_code || '+880',
-    business_phone: app.business_phone,
-    business_address: app.business_address,
-    operation_type: app.operation_type,
-    trade_coin: app.trade_coin,
-    payment_methods: app.payment_methods || [],
-  };
-}
 
 /* =========================================================
    MAIN COMPONENT
@@ -218,144 +183,114 @@ export default function MerchantProfile({
   loading = false,
   error = null,
   onRetry,
-  onUpdated,
+  onUpdate,
 }: MerchantProfileProps) {
-  const [current, setCurrent] = useState<MerchantApplication | null>(application);
-
-  useEffect(() => {
-    setCurrent(application);
-  }, [application]);
-
   const handleAction = (action: string) => {
     console.log(`Navigate to: ${action}`);
   };
 
-  const applyUpdate = (updated: MerchantApplication) => {
-    setCurrent(updated);
-    onUpdated?.(updated);
-  };
+  const [editingSection, setEditingSection] =
+    useState<null | 'profile' | 'business'>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  /* ---------------- PROFILE EDIT ---------------- */
+  const [profileDraft, setProfileDraft] = useState<ProfileDraft>({
+    full_name: '',
+    phone_country_code: '+880',
+    phone: '',
+    city: '',
+    address: '',
+    language: 'English',
+  });
 
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState<ProfileFormState | null>(null);
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
+  const [businessDraft, setBusinessDraft] = useState<BusinessDraft>({
+    business_name: '',
+    business_email: '',
+    business_phone_country_code: '+880',
+    business_phone: '',
+    business_address: '',
+    operation_type: OPERATION_TYPE_OPTIONS[0],
+    trade_coin: TRADE_COIN_OPTIONS[0],
+    payment_methods: [],
+  });
 
-  const startEditingProfile = () => {
-    if (!current) return;
-    setProfileForm(toProfileForm(current));
-    setProfileError(null);
-    setEditingProfile(true);
-  };
+  // Keep the drafts in sync with the latest server data whenever we're
+  // not actively editing that section (e.g. after a refetch).
+  useEffect(() => {
+    if (application && editingSection !== 'profile') {
+      setProfileDraft({
+        full_name: application.full_name,
+        phone_country_code: application.phone_country_code,
+        phone: application.phone,
+        city: application.city,
+        address: application.address,
+        language: application.language,
+      });
+    }
+  }, [application, editingSection]);
 
-  const cancelEditingProfile = () => {
-    setEditingProfile(false);
-    setProfileError(null);
-  };
+  useEffect(() => {
+    if (application && editingSection !== 'business') {
+      setBusinessDraft({
+        business_name: application.business_name,
+        business_email: application.business_email,
+        business_phone_country_code: application.business_phone_country_code,
+        business_phone: application.business_phone,
+        business_address: application.business_address,
+        operation_type: application.operation_type,
+        trade_coin: application.trade_coin,
+        payment_methods: application.payment_methods ?? [],
+      });
+    }
+  }, [application, editingSection]);
 
-  const saveProfile = async () => {
-    if (!profileForm) return;
-
-    if (!profileForm.full_name || !profileForm.username || !profileForm.phone) {
-      setProfileError('Full name, username, and phone are required.');
+  const startEdit = (section: 'profile' | 'business') => {
+    if (!onUpdate) {
+      handleAction(section === 'profile' ? 'Edit Profile' : 'Edit Business');
       return;
     }
 
-    setProfileSaving(true);
-    setProfileError(null);
-
-    try {
-      const res = await updateMerchantApplicationApi(profileForm);
-      const updated = res?.data?.application;
-
-      if (updated) {
-        applyUpdate(updated);
-      } else if (current) {
-        applyUpdate({ ...current, ...profileForm });
-      }
-
-      setEditingProfile(false);
-    } catch (err: any) {
-      setProfileError(extractErrorMessage(err, 'Unable to save your profile. Please try again.'));
-    } finally {
-      setProfileSaving(false);
-    }
+    setSaveError(null);
+    setEditingSection(section);
   };
 
-  /* ---------------- BUSINESS EDIT ---------------- */
-
-  const [editingBusiness, setEditingBusiness] = useState(false);
-  const [businessForm, setBusinessForm] = useState<BusinessFormState | null>(null);
-  const [businessSaving, setBusinessSaving] = useState(false);
-  const [businessError, setBusinessError] = useState<string | null>(null);
-
-  const startEditingBusiness = () => {
-    if (!current) return;
-    setBusinessForm(toBusinessForm(current));
-    setBusinessError(null);
-    setEditingBusiness(true);
-  };
-
-  const cancelEditingBusiness = () => {
-    setEditingBusiness(false);
-    setBusinessError(null);
+  const cancelEdit = () => {
+    setSaveError(null);
+    setEditingSection(null);
   };
 
   const toggleBusinessPaymentMethod = (method: string) => {
-    setBusinessForm((prev) => {
-      if (!prev) return prev;
-
-      const exists = prev.payment_methods.includes(method);
+    setBusinessDraft((previous) => {
+      const exists = previous.payment_methods.includes(method);
 
       return {
-        ...prev,
+        ...previous,
         payment_methods: exists
-          ? prev.payment_methods.filter((item) => item !== method)
-          : [...prev.payment_methods, method],
+          ? previous.payment_methods.filter((item) => item !== method)
+          : [...previous.payment_methods, method],
       };
     });
   };
 
-  const saveBusiness = async () => {
-    if (!businessForm) return;
+  const saveSection = async (section: 'profile' | 'business') => {
+    if (!onUpdate) return;
 
-    if (
-      !businessForm.business_type ||
-      !businessForm.tax_id ||
-      !businessForm.business_email ||
-      !businessForm.business_phone ||
-      !businessForm.business_address ||
-      !businessForm.operation_type ||
-      !businessForm.trade_coin ||
-      businessForm.payment_methods.length === 0
-    ) {
-      setBusinessError('Please complete all required business fields.');
-      return;
-    }
-
-    setBusinessSaving(true);
-    setBusinessError(null);
+    setSaving(true);
+    setSaveError(null);
 
     try {
-      const res = await updateMerchantApplicationApi(businessForm);
-      const updated = res?.data?.application;
-
-      if (updated) {
-        applyUpdate(updated);
-      } else if (current) {
-        applyUpdate({ ...current, ...businessForm });
-      }
-
-      setEditingBusiness(false);
+      await onUpdate(section, section === 'profile' ? profileDraft : businessDraft);
+      setEditingSection(null);
     } catch (err: any) {
-      setBusinessError(extractErrorMessage(err, 'Unable to save your business information. Please try again.'));
+      setSaveError(
+        err?.response?.data?.message ||
+          err?.message ||
+          'Unable to save changes. Please try again.'
+      );
     } finally {
-      setBusinessSaving(false);
+      setSaving(false);
     }
   };
-
-  /* ---------------- RENDER STATES ---------------- */
 
   if (loading) {
     return (
@@ -389,7 +324,7 @@ export default function MerchantProfile({
     );
   }
 
-  if (!current) {
+  if (!application) {
     return (
       <div className="merchant-profile-page">
         <div className="merchant-profile-container">
@@ -407,10 +342,12 @@ export default function MerchantProfile({
     );
   }
 
-  const application = current;
-
   const merchantId = `#MER${String(application.id).padStart(6, '0')}`;
   const memberSince = formatDate(application.created_at);
+
+  const personalPhone = application.phone
+    ? `${application.phone_country_code} ${application.phone}`
+    : '-';
 
   const businessPhone = application.business_phone
     ? `${application.business_phone_country_code} ${application.business_phone}`
@@ -463,6 +400,14 @@ export default function MerchantProfile({
             <h1>Merchant Profile</h1>
             <p>Manage your profile, business info and account settings.</p>
           </div>
+
+          <button
+            className="merchant-outline-btn"
+            onClick={() => startEdit('profile')}
+          >
+            <i className="fa-solid fa-pen-to-square" />
+            Edit Profile
+          </button>
         </div>
 
         {application.status === 'rejected' && application.rejection_reason && (
@@ -483,237 +428,362 @@ export default function MerchantProfile({
             {/* PROFILE CARD */}
             <section className="merchant-card merchant-profile-card">
 
-              <div className="merchant-section-header">
-                <h3 style={{ display: 'none' }} />
-                {!editingProfile ? (
-                  <button
-                    className="merchant-small-edit ms-auto"
-                    onClick={startEditingProfile}
-                  >
-                    <i className="fa-solid fa-pen" />
-                    Edit
-                  </button>
-                ) : (
-                  <div className="d-flex gap-2 ms-auto">
-                    <button
-                      type="button"
-                      className="merchant-small-edit"
-                      onClick={cancelEditingProfile}
-                      disabled={profileSaving}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="merchant-outline-btn"
-                      onClick={saveProfile}
-                      disabled={profileSaving}
-                    >
-                      {profileSaving ? 'Saving...' : 'Save'}
-                    </button>
+              <div className="merchant-profile-top">
+
+                <div className="merchant-avatar-wrapper">
+                  <div className="merchant-avatar">
+                    <div className="merchant-avatar-fallback">
+                      <i className="fa-solid fa-user" />
+                    </div>
                   </div>
-                )}
+
+                  <span className={statusBadgeClass(application.status)}>
+                    <i
+                      className={
+                        application.status === 'approved'
+                          ? 'fa-solid fa-circle-check'
+                          : application.status === 'rejected'
+                          ? 'fa-solid fa-circle-xmark'
+                          : 'fa-solid fa-hourglass-half'
+                      }
+                    />
+                    {application.status === 'approved'
+                      ? 'Verified Merchant'
+                      : statusLabel(application.status)}
+                  </span>
+                </div>
+
+                <div className="merchant-profile-details">
+
+                  <div className="merchant-name-row">
+                    <h2>{application.full_name}</h2>
+                  </div>
+
+                  <div className="merchant-meta-grid">
+
+                    <div className="merchant-meta-item">
+                      <span>Merchant ID</span>
+                      <strong>{merchantId}</strong>
+                    </div>
+
+                    <div className="merchant-meta-item">
+                      <span>Username</span>
+                      <strong>{application.username}</strong>
+                    </div>
+
+                    <div className="merchant-meta-item">
+                      <span>Member Since</span>
+                      <strong>{memberSince}</strong>
+                    </div>
+
+                  </div>
+                </div>
               </div>
 
-              {profileError && (
-                <div className="application-error">
-                  <i className="fa-solid fa-circle-exclamation" />
-                  <span>{profileError}</span>
+              {/* PROFILE STATS */}
+              <div className="merchant-stats-row">
+
+                <div className="merchant-stat">
+                  <span>Total Orders</span>
+                  <strong>{stats?.totalOrders ?? '—'}</strong>
                 </div>
+
+                <div className="merchant-stat">
+                  <span>Completed Orders</span>
+                  <strong>
+                    {stats?.completedOrders ?? '—'}
+                    {stats?.completedPercent !== undefined && (
+                      <small> ({stats.completedPercent}%)</small>
+                    )}
+                  </strong>
+                </div>
+
+                <div className="merchant-stat">
+                  <span>Positive Feedback</span>
+                  <strong>
+                    {stats?.positiveFeedbackPercent !== undefined
+                      ? `${stats.positiveFeedbackPercent}%`
+                      : '—'}
+                  </strong>
+                </div>
+
+                <div className="merchant-stat">
+                  <span>Response Time</span>
+                  <strong>{stats?.responseTime ?? '—'}</strong>
+                </div>
+
+              </div>
+            </section>
+
+            {/* PERSONAL INFORMATION (editable) */}
+            <section className="merchant-card business-info-card">
+
+              <SectionHeader
+                title="Personal Information"
+                editing={editingSection === 'profile'}
+                saving={saving}
+                editable={Boolean(onUpdate)}
+                onEdit={() => startEdit('profile')}
+                onCancel={cancelEdit}
+                onSave={() => saveSection('profile')}
+              />
+
+              {editingSection === 'profile' && saveError && (
+                <FieldError message={saveError} />
               )}
 
-              {!editingProfile ? (
-                <>
-                  <div className="merchant-profile-top">
+              {editingSection === 'profile' ? (
+                <div className="business-info-grid">
+                  <div className="business-column">
 
-                    <div className="merchant-avatar-wrapper">
-                      <div className="merchant-avatar">
-                        <div className="merchant-avatar-fallback">
-                          <i className="fa-solid fa-user" />
-                        </div>
-                      </div>
+                    <EditInput
+                      label="Full Name"
+                      value={profileDraft.full_name}
+                      onChange={(value) =>
+                        setProfileDraft((p) => ({ ...p, full_name: value }))
+                      }
+                    />
 
-                      <span className={statusBadgeClass(application.status)}>
-                        <i
-                          className={
-                            application.status === 'approved'
-                              ? 'fa-solid fa-circle-check'
-                              : application.status === 'rejected'
-                              ? 'fa-solid fa-circle-xmark'
-                              : 'fa-solid fa-hourglass-half'
-                          }
-                        />
-                        {application.status === 'approved'
-                          ? 'Verified Merchant'
-                          : statusLabel(application.status)}
-                      </span>
-                    </div>
+                    <EditPhone
+                      label="Phone Number"
+                      countryCode={profileDraft.phone_country_code}
+                      phone={profileDraft.phone}
+                      onCountryCodeChange={(value) =>
+                        setProfileDraft((p) => ({
+                          ...p,
+                          phone_country_code: value,
+                        }))
+                      }
+                      onPhoneChange={(value) =>
+                        setProfileDraft((p) => ({ ...p, phone: value }))
+                      }
+                    />
 
-                    <div className="merchant-profile-details">
-
-                      <div className="merchant-name-row">
-                        <h2>{application.full_name}</h2>
-                      </div>
-
-                      <div className="merchant-meta-grid">
-
-                        <div className="merchant-meta-item">
-                          <span>Merchant ID</span>
-                          <strong>{merchantId}</strong>
-                        </div>
-
-                        <div className="merchant-meta-item">
-                          <span>Username</span>
-                          <strong>{application.username}</strong>
-                        </div>
-
-                        <div className="merchant-meta-item">
-                          <span>Phone</span>
-                          <strong>
-                            {application.phone
-                              ? `${application.phone_country_code} ${application.phone}`
-                              : '-'}
-                          </strong>
-                        </div>
-
-                        <div className="merchant-meta-item">
-                          <span>Member Since</span>
-                          <strong>{memberSince}</strong>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* PROFILE STATS */}
-                  <div className="merchant-stats-row">
-
-                    <div className="merchant-stat">
-                      <span>Total Orders</span>
-                      <strong>{stats?.totalOrders ?? '—'}</strong>
-                    </div>
-
-                    <div className="merchant-stat">
-                      <span>Completed Orders</span>
-                      <strong>
-                        {stats?.completedOrders ?? '—'}
-                        {stats?.completedPercent !== undefined && (
-                          <small> ({stats.completedPercent}%)</small>
-                        )}
-                      </strong>
-                    </div>
-
-                    <div className="merchant-stat">
-                      <span>Positive Feedback</span>
-                      <strong>
-                        {stats?.positiveFeedbackPercent !== undefined
-                          ? `${stats.positiveFeedbackPercent}%`
-                          : '—'}
-                      </strong>
-                    </div>
-
-                    <div className="merchant-stat">
-                      <span>Response Time</span>
-                      <strong>{stats?.responseTime ?? '—'}</strong>
-                    </div>
+                    <EditSelect
+                      label="Preferred Language"
+                      value={profileDraft.language}
+                      options={LANGUAGE_OPTIONS}
+                      onChange={(value) =>
+                        setProfileDraft((p) => ({ ...p, language: value }))
+                      }
+                    />
 
                   </div>
-                </>
+
+                  <div className="business-column">
+
+                    <EditInput
+                      label="City"
+                      value={profileDraft.city}
+                      onChange={(value) =>
+                        setProfileDraft((p) => ({ ...p, city: value }))
+                      }
+                    />
+
+                    <EditTextarea
+                      label="Address"
+                      value={profileDraft.address}
+                      onChange={(value) =>
+                        setProfileDraft((p) => ({ ...p, address: value }))
+                      }
+                    />
+
+                  </div>
+                </div>
               ) : (
-                profileForm && (
-                  <div className="row g-4">
-                    <div className="col-lg-6">
-                      <FormField
-                        label="Full Name"
-                        required
-                        value={profileForm.full_name}
-                        onChange={(value) =>
-                          setProfileForm((prev) => prev && { ...prev, full_name: value })
-                        }
-                      />
+                <div className="business-info-grid">
+                  <div className="business-column">
 
-                      <FormField
-                        label="Username"
-                        required
-                        value={profileForm.username}
-                        onChange={(value) =>
-                          setProfileForm((prev) => prev && { ...prev, username: value })
-                        }
-                      />
+                    <InfoItem
+                      icon="fa-solid fa-user"
+                      label="Full Name"
+                      value={application.full_name || '-'}
+                    />
 
-                      <FormField
-                        label="Email Address"
-                        value={application.email}
-                        disabled
-                        helper="Email cannot be changed here."
-                      />
-                    </div>
+                    <InfoItem
+                      icon="fa-regular fa-envelope"
+                      label="Email"
+                      value={application.email || '-'}
+                    />
 
-                    <div className="col-lg-6">
-                      <FormPhone
-                        label="Phone Number"
-                        required
-                        countryCode={profileForm.phone_country_code}
-                        phone={profileForm.phone}
-                        onCountryCodeChange={(value) =>
-                          setProfileForm((prev) => prev && { ...prev, phone_country_code: value })
-                        }
-                        onPhoneChange={(value) =>
-                          setProfileForm((prev) => prev && { ...prev, phone: value })
-                        }
-                      />
-                    </div>
+                    <InfoItem
+                      icon="fa-solid fa-phone"
+                      label="Phone"
+                      value={personalPhone}
+                    />
+
+                    <InfoItem
+                      icon="fa-solid fa-language"
+                      label="Preferred Language"
+                      value={application.language || '-'}
+                    />
+
                   </div>
-                )
+
+                  <div className="business-column">
+
+                    <InfoItem
+                      icon="fa-solid fa-earth-asia"
+                      label="Country"
+                      value={application.country || '-'}
+                    />
+
+                    <InfoItem
+                      icon="fa-solid fa-city"
+                      label="City"
+                      value={application.city || '-'}
+                    />
+
+                    <InfoItem
+                      icon="fa-solid fa-location-dot"
+                      label="Address"
+                      value={application.address || '-'}
+                      multiline
+                    />
+
+                  </div>
+                </div>
               )}
             </section>
 
-            {/* BUSINESS INFORMATION */}
+            {/* BUSINESS INFORMATION (editable) */}
             <section className="merchant-card business-info-card">
 
-              <div className="merchant-section-header">
-                <h3>Business Information</h3>
+              <SectionHeader
+                title="Business Information"
+                editing={editingSection === 'business'}
+                saving={saving}
+                editable={Boolean(onUpdate)}
+                onEdit={() => startEdit('business')}
+                onCancel={cancelEdit}
+                onSave={() => saveSection('business')}
+              />
 
-                {!editingBusiness ? (
-                  <button
-                    className="merchant-small-edit"
-                    onClick={startEditingBusiness}
-                  >
-                    <i className="fa-solid fa-pen" />
-                    Edit
-                  </button>
-                ) : (
-                  <div className="d-flex gap-2">
-                    <button
-                      type="button"
-                      className="merchant-small-edit"
-                      onClick={cancelEditingBusiness}
-                      disabled={businessSaving}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="merchant-outline-btn"
-                      onClick={saveBusiness}
-                      disabled={businessSaving}
-                    >
-                      {businessSaving ? 'Saving...' : 'Save'}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {businessError && (
-                <div className="application-error">
-                  <i className="fa-solid fa-circle-exclamation" />
-                  <span>{businessError}</span>
-                </div>
+              {editingSection === 'business' && saveError && (
+                <FieldError message={saveError} />
               )}
 
-              {!editingBusiness ? (
+              {editingSection === 'business' ? (
                 <div className="business-info-grid">
+                  <div className="business-column">
 
+                    {/* Business type, registration number and tax ID are tied
+                        to KYC review and aren't self-editable here. */}
+                    <InfoItem
+                      icon="fa-solid fa-building"
+                      label="Business Type"
+                      value={application.business_type || '-'}
+                    />
+
+                    <EditInput
+                      label="Business Name"
+                      value={businessDraft.business_name}
+                      onChange={(value) =>
+                        setBusinessDraft((p) => ({ ...p, business_name: value }))
+                      }
+                    />
+
+                    <EditInput
+                      label="Business Email"
+                      type="email"
+                      value={businessDraft.business_email}
+                      onChange={(value) =>
+                        setBusinessDraft((p) => ({
+                          ...p,
+                          business_email: value,
+                        }))
+                      }
+                    />
+
+                    <EditPhone
+                      label="Business Phone"
+                      countryCode={businessDraft.business_phone_country_code}
+                      phone={businessDraft.business_phone}
+                      onCountryCodeChange={(value) =>
+                        setBusinessDraft((p) => ({
+                          ...p,
+                          business_phone_country_code: value,
+                        }))
+                      }
+                      onPhoneChange={(value) =>
+                        setBusinessDraft((p) => ({
+                          ...p,
+                          business_phone: value,
+                        }))
+                      }
+                    />
+
+                  </div>
+
+                  <div className="business-column">
+
+                    <EditTextarea
+                      label="Business Address"
+                      value={businessDraft.business_address}
+                      onChange={(value) =>
+                        setBusinessDraft((p) => ({
+                          ...p,
+                          business_address: value,
+                        }))
+                      }
+                    />
+
+                    <InfoItem
+                      icon="fa-solid fa-file-invoice"
+                      label="Tax ID / NID"
+                      value={application.tax_id || '-'}
+                    />
+
+                    <EditSelect
+                      label="Preferred Coin"
+                      value={businessDraft.trade_coin}
+                      options={TRADE_COIN_OPTIONS}
+                      onChange={(value) =>
+                        setBusinessDraft((p) => ({ ...p, trade_coin: value }))
+                      }
+                    />
+
+                    <EditSelect
+                      label="Ad Operation Type"
+                      value={businessDraft.operation_type}
+                      options={OPERATION_TYPE_OPTIONS}
+                      onChange={(value) =>
+                        setBusinessDraft((p) => ({
+                          ...p,
+                          operation_type: value,
+                        }))
+                      }
+                    />
+
+                    <div className="field-group">
+                      <label className="field-label">Payment Methods</label>
+
+                      <div className="payment-methods">
+                        {PAYMENT_METHOD_OPTIONS.map((method) => (
+                          <button
+                            type="button"
+                            key={method}
+                            className={
+                              businessDraft.payment_methods.includes(method)
+                                ? 'selected'
+                                : ''
+                            }
+                            onClick={() => toggleBusinessPaymentMethod(method)}
+                          >
+                            {method}
+
+                            {businessDraft.payment_methods.includes(method) && (
+                              <i className="fa-solid fa-check" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              ) : (
+                <div className="business-info-grid">
                   <div className="business-column">
 
                     <InfoItem
@@ -776,133 +846,6 @@ export default function MerchantProfile({
                   </div>
 
                 </div>
-              ) : (
-                businessForm && (
-                  <div className="row g-4">
-
-                    <div className="col-lg-6">
-
-                      <FormSelect
-                        label="Business Type"
-                        required
-                        value={businessForm.business_type}
-                        options={BUSINESS_TYPE_OPTIONS}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, business_type: value })
-                        }
-                      />
-
-                      <FormField
-                        label="Business Name"
-                        value={businessForm.business_name}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, business_name: value })
-                        }
-                      />
-
-                      <FormField
-                        label="Business Registration Number"
-                        value={businessForm.registration_number}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, registration_number: value })
-                        }
-                      />
-
-                      <FormField
-                        label="Tax ID / NID Number"
-                        required
-                        value={businessForm.tax_id}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, tax_id: value })
-                        }
-                      />
-
-                      <FormField
-                        label="Business Contact Email"
-                        required
-                        type="email"
-                        value={businessForm.business_email}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, business_email: value })
-                        }
-                      />
-
-                    </div>
-
-                    <div className="col-lg-6">
-
-                      <FormPhone
-                        label="Business Contact Phone"
-                        required
-                        countryCode={businessForm.business_phone_country_code}
-                        phone={businessForm.business_phone}
-                        onCountryCodeChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, business_phone_country_code: value })
-                        }
-                        onPhoneChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, business_phone: value })
-                        }
-                      />
-
-                      <FormTextarea
-                        label="Business Address"
-                        required
-                        value={businessForm.business_address}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, business_address: value })
-                        }
-                      />
-
-                      <FormSelect
-                        label="How will you operate your ads?"
-                        required
-                        value={businessForm.operation_type}
-                        options={OPERATION_TYPE_OPTIONS}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, operation_type: value })
-                        }
-                      />
-
-                      <FormSelect
-                        label="Preferred Trade Coin"
-                        required
-                        value={businessForm.trade_coin}
-                        options={TRADE_COIN_OPTIONS}
-                        onChange={(value) =>
-                          setBusinessForm((prev) => prev && { ...prev, trade_coin: value })
-                        }
-                      />
-
-                      <div className="field-group">
-                        <label className="field-label">
-                          Preferred Payment Methods <b>*</b>
-                        </label>
-
-                        <div className="payment-methods">
-                          {PAYMENT_METHOD_OPTIONS.map((method) => (
-                            <button
-                              type="button"
-                              key={method}
-                              className={
-                                businessForm.payment_methods.includes(method)
-                                  ? 'selected'
-                                  : ''
-                              }
-                              onClick={() => toggleBusinessPaymentMethod(method)}
-                            >
-                              {method}
-                              {businessForm.payment_methods.includes(method) && (
-                                <i className="fa-solid fa-check" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                    </div>
-
-                  </div>
-                )
               )}
             </section>
 
@@ -1151,6 +1094,67 @@ export default function MerchantProfile({
   );
 }
 
+/* ================= SECTION HEADER (view/edit toggle) ================= */
+
+function SectionHeader({
+  title,
+  editing,
+  saving,
+  editable,
+  onEdit,
+  onCancel,
+  onSave,
+}: {
+  title: string;
+  editing: boolean;
+  saving: boolean;
+  editable: boolean;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="merchant-section-header">
+      <h3>{title}</h3>
+
+      {editing ? (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            className="merchant-small-edit"
+            type="button"
+            onClick={onCancel}
+            disabled={saving}
+          >
+            <i className="fa-solid fa-xmark" />
+            Cancel
+          </button>
+
+          <button
+            className="merchant-small-edit"
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <i className="fa-solid fa-circle-notch fa-spin" />
+            ) : (
+              <i className="fa-solid fa-check" />
+            )}
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      ) : (
+        editable && (
+          <button className="merchant-small-edit" type="button" onClick={onEdit}>
+            <i className="fa-solid fa-pen" />
+            Edit
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
 /* ================= DISPLAY COMPONENTS ================= */
 
 function InfoItem({
@@ -1208,63 +1212,56 @@ function PerformanceItem({
   );
 }
 
-/* ================= EDIT FORM COMPONENTS ================= */
+/* ================= EDIT COMPONENTS ================= */
 
-function FormField({
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="field-error" role="alert" aria-live="polite">
+      <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 5 }} />
+      {message}
+    </p>
+  );
+}
+
+function EditInput({
   label,
-  required,
   value,
-  type,
-  disabled,
-  helper,
+  type = 'text',
   onChange,
 }: {
   label: string;
-  required?: boolean;
   value: string;
   type?: string;
-  disabled?: boolean;
-  helper?: string;
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
 }) {
   return (
     <div className="field-group">
-      <label className="field-label">
-        {label}
-        {required && <b>*</b>}
-      </label>
+      <label className="field-label">{label}</label>
 
       <div className="field-input-wrapper">
         <input
-          type={type ?? 'text'}
+          type={type}
           value={value}
-          disabled={disabled}
-          onChange={(event) => onChange?.(event.target.value)}
+          onChange={(event) => onChange(event.target.value)}
         />
       </div>
-
-      {helper && <small className="field-helper">{helper}</small>}
     </div>
   );
 }
 
-function FormTextarea({
+function EditTextarea({
   label,
-  required,
   value,
   onChange,
 }: {
   label: string;
-  required?: boolean;
   value: string;
   onChange: (value: string) => void;
 }) {
   return (
     <div className="field-group">
-      <label className="field-label">
-        {label}
-        {required && <b>*</b>}
-      </label>
+      <label className="field-label">{label}</label>
 
       <textarea
         value={value}
@@ -1274,25 +1271,20 @@ function FormTextarea({
   );
 }
 
-function FormSelect({
+function EditSelect({
   label,
-  required,
   value,
   options,
   onChange,
 }: {
   label: string;
-  required?: boolean;
   value: string;
   options: string[];
   onChange: (value: string) => void;
 }) {
   return (
     <div className="field-group">
-      <label className="field-label">
-        {label}
-        {required && <b>*</b>}
-      </label>
+      <label className="field-label">{label}</label>
 
       <div className="select-input-wrapper">
         <select
@@ -1312,16 +1304,14 @@ function FormSelect({
   );
 }
 
-function FormPhone({
+function EditPhone({
   label,
-  required,
   countryCode,
   phone,
   onCountryCodeChange,
   onPhoneChange,
 }: {
   label: string;
-  required?: boolean;
   countryCode: string;
   phone: string;
   onCountryCodeChange: (value: string) => void;
@@ -1329,10 +1319,7 @@ function FormPhone({
 }) {
   return (
     <div className="field-group">
-      <label className="field-label">
-        {label}
-        {required && <b>*</b>}
-      </label>
+      <label className="field-label">{label}</label>
 
       <div className="phone-input-container">
         <div className="country-code">

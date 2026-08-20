@@ -1265,7 +1265,7 @@ function StepOne({
               label="Full Name"
               required
               value={data.fullName}
-              placeholder="Hori Shankar Rai"
+              placeholder="John Michael Smith"
               error={fieldErrors.fullName}
               onChange={(value) =>
                 updateData(
@@ -1279,7 +1279,7 @@ function StepOne({
               label="Username"
               required
               value={data.username}
-              placeholder="horirai99"
+              placeholder="johnsmith99"
               helper="This will be your merchant username."
               success
               error={fieldErrors.username}
@@ -1296,7 +1296,7 @@ function StepOne({
               required
               type="email"
               value={data.email}
-              placeholder="horirai99@gmail.com"
+              placeholder="johnsmith99@gmail.com"
               success
               error={fieldErrors.email}
               onChange={(value) =>
@@ -1326,7 +1326,7 @@ function StepOne({
               type={"date"}
               required
               value={data.dob}
-              placeholder="07-01-1999"
+              placeholder="MM/DD/YYYY"
               icon="fa-regular fa-calendar"
               error={fieldErrors.dob}
               onChange={(value) =>
@@ -1370,7 +1370,7 @@ function StepOne({
               label="City"
               required
               value={data.city}
-              placeholder="Rangpur"
+              placeholder="Los Angeles"
               error={fieldErrors.city}
               onChange={(value) =>
                 updateData(
@@ -1384,7 +1384,7 @@ function StepOne({
               label="Address"
               required
               value={data.address}
-              placeholder="House: 12, Road: 5, West Shalbagan"
+              placeholder="1234 Sunset Blvd, Apt 5B, Los Angeles, CA 90026"
               error={fieldErrors.address}
               onChange={(value) =>
                 updateData(
@@ -1513,7 +1513,7 @@ function StepTwo({
             <Input
               label="Business Name"
               value={data.businessName}
-              placeholder="Hori Trading"
+              placeholder="Smith Trading LLC"
               onChange={(value) =>
                 updateData(
                   "businessName",
@@ -1525,7 +1525,7 @@ function StepTwo({
             <Input
               label="Business Registration Number"
               value={data.registrationNumber}
-              placeholder="N/A"
+              placeholder="123456789"
               onChange={(value) =>
                 updateData(
                   "registrationNumber",
@@ -1539,7 +1539,7 @@ function StepTwo({
               type="number"
               required
               value={data.taxId}
-              placeholder="19991234567890123"
+              placeholder="12-3456789"
               success
               error={fieldErrors.taxId}
               onChange={(value) =>
@@ -1558,7 +1558,7 @@ function StepTwo({
               label="Business Contact Email"
               required
               value={data.businessEmail}
-              placeholder="horitrading@gmail.com"
+              placeholder="smithtrading@gmail.com"
               success
               error={fieldErrors.businessEmail}
               onChange={(value) =>
@@ -1587,7 +1587,7 @@ function StepTwo({
               label="Business Address"
               required
               value={data.businessAddress}
-              placeholder="House: 12, Road: 5, West Shalbagan"
+              placeholder="1234 Sunset Blvd, Apt 5B, Los Angeles, CA 90026"
               error={fieldErrors.businessAddress}
               onChange={(value) =>
                 updateData(
@@ -2265,7 +2265,7 @@ function StepFive({
               [
                 "Business Name",
                 data.businessName ||
-                  "Hori Trading",
+                  "Smith Trading LLC",
               ],
               [
                 "Tax ID / NID Number",
@@ -2745,7 +2745,7 @@ function PhoneInput({
         <input
           className="bg-transparent ps-2"
           type="text"
-          placeholder="Phone number"
+          placeholder="(555) 123-4567"
           value={phone}
           onChange={(event) =>
             onPhoneChange(event.target.value)
