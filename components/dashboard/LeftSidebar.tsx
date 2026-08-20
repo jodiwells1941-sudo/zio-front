@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React, { useCallback, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type NavItem = {
   label: string;
@@ -30,10 +30,17 @@ export default function LeftSidebar({
       subItems: [
         { label: "Balance", href: "/dashboard/wallet?tab=tab1" },
         { label: "Deposit", href: "/dashboard/wallet?tab=tab2" },
-        { label: "P2P", href: "/dashboard/wallet?tab=tab3" },
         { label: "Transfer", href: "/dashboard/wallet?tab=tab4" },
         { label: "Withdraw", href: "/dashboard/wallet?tab=tab5" },
         { label: "Transactions History", href: "/dashboard/wallet?tab=tab6" },
+      ],
+    },
+    // { label: "P2P", href: "/dashboard/wallet?tab=tab3", iconClass: "fa-solid fa-handshake" },
+    {
+      label: "P2P", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake", 
+      subItems: [
+        { label: "P2P Buy & Sell", href: "/dashboard/wallet?tab=tab3" },
+        { label: "Merchant Account", href: "/dashboard/merchant" },
       ],
     },
     { label: "Lottery", href: "/dashboard/lottery", iconClass: "fa-regular fa-futbol" },
@@ -111,6 +118,10 @@ export default function LeftSidebar({
   );
 
   const isWalletActive = isActive("/dashboard/wallet");
+  const searchParams = useSearchParams();
+
+  const tab = searchParams.get('tab');
+  
 
   const toggleSubMenu = useCallback((label: string) => {
     setOpenSubMenus((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -196,12 +207,25 @@ export default function LeftSidebar({
                   )}
 
                   {hasSubItems && (
-                    <ul className={`mx-2 nav-submenu mt-4 ${subOpen ? "submenu-open" : ""}`}>
-                      {item.subItems!.map((sub) => (
-                        <li key={sub.label} className={isActive(sub.href) ? "active" : ""}>
-                          <Link href={sub.href} onClick={onCloseMobile}>{sub.label}</Link>
-                        </li>
-                      ))}
+                    <ul
+                      className={`mx-2 nav-submenu mt-4 ${
+                        subOpen ? "submenu-open" : ""
+                      }`}
+                    >
+                      {item.subItems!.map((sub) => {
+                        const subTab = sub.href.split("tab=")[1];
+
+                        return (
+                          <li
+                            key={sub.label}
+                            className={tab === subTab ? "active" : ""}
+                          >
+                            <Link href={sub.href}>
+                              {sub.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </li>

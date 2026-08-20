@@ -174,7 +174,7 @@ export default function DepositLayout({
   const defaultAmount = amountPreset?.[0] ?? 0;
 
   // ── payment method selection (Crypto / Binance Manual / ERC20) ──────────────
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("crypto");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | ''>('');
   const route = useRouter();
   const [adminBinance, setAdminBinance] = useState({
     wallet_address: '',
@@ -1016,631 +1016,700 @@ const handleBinanceSubmit = async () => {
 
       </div>
 
-      {/* Step indicator */}
-      <div className={`dl-steps bg-light-dark mt-2 ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-        {steps.map((s, idx) => (
-          <React.Fragment key={s.key}>
-            <div className={`dl-step ${currentStep >= s.key ? "dl-step--done" : ""} ${currentStep === s.key ? "dl-step--active" : ""}`}>
-              <div className="dl-step-dot">{currentStep > s.key ? "✓" : s.key}</div>
-              <div className="dl-step-text">
-                <span className="dl-step-label">{s.label}</span>
-                <small className="dl-step-sub">{s.sub}</small>
-              </div>
-            </div>
-            {idx < steps.length - 1 && <div className={`dl-step-line ${currentStep > s.key ? "dl-step-line--done" : ""}`} />}
-          </React.Fragment>
-        ))}
-      </div>
 
-      {/* ── CRYPTO FLOW (shared by TRC20 "crypto" and ERC20 "erc" methods) ──── */}
-      {(paymentMethod === "crypto" || paymentMethod === "erc") && (
+      {paymentMethod !== "" && (
         <>
-          {/* Form card */}
-          <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-            <div className="dl-form-grid deposit-wrapper mt-0">
-              <div>
-                <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
-                <div className="amount-input mb-2">
-                  <input
-                    type="text" inputMode="decimal" placeholder="Amount"
-                    value={depositAmount || ""} required disabled={isLocked}
-                    onChange={(e) => {
-                      const v = Number(e.target.value.replace(/[^\d.]/g, ""));
-                      if (!Number.isNaN(v)) setDepositAmount(v);
-                    }}
-                  />
-                  <span>USDT</span>
+          {/* Step indicator */}
+          <div className={`dl-steps bg-light-dark mt-2 ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
+            {steps.map((s, idx) => (
+              <React.Fragment key={s.key}>
+                <div className={`dl-step ${currentStep >= s.key ? "dl-step--done" : ""} ${currentStep === s.key ? "dl-step--active" : ""}`}>
+                  <div className="dl-step-dot">{currentStep > s.key ? "✓" : s.key}</div>
+                  <div className="dl-step-text">
+                    <span className="dl-step-label">{s.label}</span>
+                    <small className="dl-step-sub">{s.sub}</small>
+                  </div>
                 </div>
-                {amountPreset?.length > 0 && (
-                  <div className="dl-amount-presets">
-                    {amountPreset.map((n) => (
-                      <button key={n} type="button" disabled={isLocked}
-                        className={`dl-preset-btn ${depositAmount === n ? "active" : ""}`}
-                        onClick={() => setDepositAmount(n)}>{n}</button>
-                    ))}
-                  </div>
-                )}
-                <small className="dl-hint text-danger">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
-              </div>
-
-              <div>
-                <label>2. Select Coin: <small className="text-danger fs-4">*</small></label>
-                <div className="dl-select-row pt-2">
-                  <div className="dl-dropdown">
-                    <span className={`dl-coin-badge dl-coin-badge--${COIN_OPTIONS.find((c) => c.id === selectedCoin)?.className}`}>
-                      {COIN_OPTIONS.find((c) => c.id === selectedCoin)?.badge}
-                    </span>
-                    <select disabled={isLocked} value={selectedCoin} onChange={(e) => setSelectedCoin(e.target.value)} aria-label="Select coin">
-                      {COIN_OPTIONS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-                    </select>
-                    <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
-                  </div>
-                  <label>3. Select Network: <small className="text-danger fs-4">*</small></label>
-                  <div className="dl-dropdown">
-                    <span className={`dl-coin-badge p-1 dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
-                      {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.icon}
-                    </span>
-                    <select
-                      // disabled={isLocked || paymentMethod === "erc" || paymentMethod === "crypto"}
-                      value={selectedNetwork}
-                      onChange={(e) => setSelectedNetwork(e.target.value)}
-                      aria-label="Select network"
-                    >
-                      {/* {NETWORK_OPTIONS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)} */}
-                      {NETWORK_OPTIONS.filter((n) =>
-                          paymentMethod === "crypto"
-                            ? n.id === "TRC20"
-                            : paymentMethod === "erc"
-                            ? n.id === "ERC20"
-                            : true
-                        ).map((n) => (
-                          <option key={n.id} value={n.id}>
-                            {n.label}
-                          </option>
-                        ))}
-                    </select>
-                    <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
-                  </div>
-                  <small className="dl-hint text-warning">
-                    Network is locked to {activeNetworkLabel} for this payment method.
-                  </small>
-                </div>
-              </div>
-            </div>
-
-            <div className="d-flex justify-content-end pt-2">
-              <button type="button" className="dl-cta w-50"
-                disabled={isLoading || depositAmount <= 0 || isLocked}
-                onClick={handleCreateDeposit}>
-                {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
-              </button>
-            </div>
+                {idx < steps.length - 1 && <div className={`dl-step-line ${currentStep > s.key ? "dl-step-line--done" : ""}`} />}
+              </React.Fragment>
+            ))}
           </div>
 
-          {/* Deposit details */}
-          {depositInfo && status !== "idle" && (
-            <div className="dl-details">
-              <h3 className="dl-details-title">Deposit Details</h3>
-
-              <div className="dl-details-grid">
-                {/* left: info card */}
-                <div className="dl-card dl-info-card bg-light-dark">
-                  <div className="dl-row">
-                    <span className="dl-row-label">Coin</span>
-                    <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT (Tether)</span>
+          {/* ── CRYPTO FLOW (shared by TRC20 "crypto" and ERC20 "erc" methods) ──── */}
+          {(paymentMethod === "crypto" || paymentMethod === "erc") && (
+            <>
+              {/* Form card */}
+              <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
+                <div className="dl-form-grid deposit-wrapper mt-0">
+                  <div>
+                    <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
+                    <div className="amount-input mb-2">
+                      <input
+                        type="text" inputMode="decimal" placeholder="Amount"
+                        value={depositAmount || ""} required disabled={isLocked}
+                        onChange={(e) => {
+                          const v = Number(e.target.value.replace(/[^\d.]/g, ""));
+                          if (!Number.isNaN(v)) setDepositAmount(v);
+                        }}
+                      />
+                      <span>USDT</span>
+                    </div>
+                    {amountPreset?.length > 0 && (
+                      <div className="dl-amount-presets">
+                        {amountPreset.map((n) => (
+                          <button key={n} type="button" disabled={isLocked}
+                            className={`dl-preset-btn ${depositAmount === n ? "active" : ""}`}
+                            onClick={() => setDepositAmount(n)}>{n}</button>
+                        ))}
+                      </div>
+                    )}
+                    <small className="dl-hint text-danger">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
                   </div>
-                  <div className="dl-row">
-                    <span className="dl-row-label">Network</span>
-                    <span className="dl-row-value">
-                      <span className={`dl-coin-badge dl-coin-badge--${activeNetwork.className}`}>
-                        {activeNetwork.className === "eth" ? "Ξ" : "⟁"}
-                      </span>
-                      {activeNetworkLabel}
+
+                  <div>
+                    <label>2. Select Coin: <small className="text-danger fs-4">*</small></label>
+                    <div className="dl-select-row pt-2">
+                      <div className="dl-dropdown">
+                        <span className={`dl-coin-badge dl-coin-badge--${COIN_OPTIONS.find((c) => c.id === selectedCoin)?.className}`}>
+                          {COIN_OPTIONS.find((c) => c.id === selectedCoin)?.badge}
+                        </span>
+                        <select disabled={isLocked} value={selectedCoin} onChange={(e) => setSelectedCoin(e.target.value)} aria-label="Select coin">
+                          {COIN_OPTIONS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                        </select>
+                        <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
+                      </div>
+                      <label>3. Select Network: <small className="text-danger fs-4">*</small></label>
+                      <div className="dl-dropdown">
+                        <span className={`dl-coin-badge p-1 dl-coin-badge--${NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.className}`}>
+                          {NETWORK_OPTIONS.find((n) => n.id === selectedNetwork)?.icon}
+                        </span>
+                        <select
+                          // disabled={isLocked || paymentMethod === "erc" || paymentMethod === "crypto"}
+                          value={selectedNetwork}
+                          onChange={(e) => setSelectedNetwork(e.target.value)}
+                          aria-label="Select network"
+                        >
+                          {/* {NETWORK_OPTIONS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)} */}
+                          {NETWORK_OPTIONS.filter((n) =>
+                              paymentMethod === "crypto"
+                                ? n.id === "TRC20"
+                                : paymentMethod === "erc"
+                                ? n.id === "ERC20"
+                                : true
+                            ).map((n) => (
+                              <option key={n.id} value={n.id}>
+                                {n.label}
+                              </option>
+                            ))}
+                        </select>
+                        <i className="fa-solid fa-chevron-down dl-dropdown-caret" />
+                      </div>
+                      <small className="dl-hint text-warning">
+                        Network is locked to {activeNetworkLabel} for this payment method.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-end pt-2">
+                  <button type="button" className="dl-cta w-50"
+                    disabled={isLoading || depositAmount <= 0 || isLocked}
+                    onClick={handleCreateDeposit}>
+                    {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Deposit details */}
+              {depositInfo && status !== "idle" && (
+                <div className="dl-details">
+                  <h3 className="dl-details-title">Deposit Details</h3>
+
+                  <div className="dl-details-grid">
+                    {/* left: info card */}
+                    <div className="dl-card dl-info-card bg-light-dark">
+                      <div className="dl-row">
+                        <span className="dl-row-label">Coin</span>
+                        <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT (Tether)</span>
+                      </div>
+                      <div className="dl-row">
+                        <span className="dl-row-label">Network</span>
+                        <span className="dl-row-value">
+                          <span className={`dl-coin-badge dl-coin-badge--${activeNetwork.className}`}>
+                            {activeNetwork.className === "eth" ? "Ξ" : "⟁"}
+                          </span>
+                          {activeNetworkLabel}
+                        </span>
+                      </div>
+
+                      <div className="dl-block">
+                        <div className="dl-block-head">
+                          <span>Deposit Address</span><span className="dl-pill">{selectedNetwork}</span>
+                        </div>
+                        <div className="dl-address-row">
+                          <code className="dl-address">{depositInfo.address}</code>
+                          <button type="button" className="dl-icon-btn" onClick={() => copyText(depositInfo.address, "Address")} aria-label="Copy address">
+                            <i className="fa-solid fa-copy" />
+                          </button>
+                          <button type="button" className="dl-icon-btn" aria-label="Show QR">
+                            <i className="fa-solid fa-qrcode" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="dl-block border-bottom border-dark-light">
+                        <span className="dl-block-head"><span>Send Exact Amount</span></span>
+                        <div className="dl-exact-row">
+                          <span className="dl-exact-amount fs-2"><b>{depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
+                          <button type="button" className="dl-icon-btn" onClick={() => copyText(depositInfo.amount, "Amount")} aria-label="Copy amount">
+                            <i className="fa-solid fa-copy" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {depositInfo.qr_code && (
+                        <div className="dl-block">
+                          <span className="dl-block-head"><span>QR Code</span></span>
+                          <div className="dl-qr-wrap">
+                            <Image src={depositInfo.qr_code} width={170} height={170} alt="Deposit QR code" className="rounded" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* right: timer + status */}
+                    <div className="dl-side-col">
+                      <div className="dl-card dl-timer-card bg-light-dark">
+                        <div className="d-flex w-full justify-content-end pb-2">
+                          <button type="button" className="hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
+                        </div>
+                        <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
+                        <div className="dl-ring-wrap">
+                          <svg className="dl-ring-svg" viewBox="0 0 120 120">
+                            <defs>
+                              <linearGradient id="dlRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%"   stopColor="#FCE38A" />
+                                <stop offset="50%"  stopColor="#F9C74F" />
+                                <stop offset="100%" stopColor="#F8961E" />
+                              </linearGradient>
+                            </defs>
+                            <circle className="dl-ring-track" cx="60" cy="60" r={RING_RADIUS} />
+                            <circle
+                              className={`dl-ring-progress ${secondsLeft <= 60 && status === "waiting" ? "dl-ring-progress--danger" : ""}`}
+                              cx="60" cy="60" r={RING_RADIUS}
+                              strokeDasharray={RING_CIRCUMFERENCE}
+                              strokeDashoffset={status === "expired" ? RING_CIRCUMFERENCE : ringOffset}
+                            />
+                          </svg>
+                          <div className="dl-ring-center">
+                            <span className="dl-ring-time">
+                              {status === "expired" ? "00:00" : `${minutesLabel}:${secondsLabel}`}
+                            </span>
+                            <div className="dl-ring-units pt-1">
+                              <span>Minutes</span><span>Seconds</span>
+                            </div>
+                          </div>
+                        </div>
+                        <small className="dl-side-sub">
+                          {status === "expired" ? "This deposit request has expired" : "This deposit request will expire soon"}
+                        </small>
+                      </div>
+
+                      <div className="dl-card dl-status-card bg-light-dark">
+                        <div className="dl-side-label-row">
+                          <span className="dl-side-label">⧖ Deposit Status</span>
+                          <span className={`dl-status-pill dl-status-pill--${status}`}>
+                            {status === "waiting" && "Waiting"}
+                            {status === "completed" && "Completed"}
+                            {status === "expired" && "Expired"}
+                          </span>
+                        </div>
+                        <div className="dl-status-visual">
+                          <div className={`dl-status-ring dl-status-ring--${status}`}>
+                            <i className={status === "completed" ? "fa-solid fa-check" : status === "expired" ? "fa-solid fa-xmark" : "fa-regular fa-hourglass-half"} />
+                          </div>
+                        </div>
+                        <p className="dl-status-text">
+                          {status === "waiting"   && "Waiting for payment... Once we receive your payment, your balance will be updated automatically."}
+                          {status === "completed" && "Payment received. Your balance has been updated."}
+                          {status === "expired"   && "This request expired before payment was detected. Please create a new deposit."}
+                        </p>
+                        {status === "expired" && (
+                          <button type="button" className="dl-cta dl-cta--secondary mt-3 text-white" onClick={resetFlow}>
+                            Create New Deposit
+                          </button>
+                        )}
+                        {status === "completed" && (
+                          <button type="button" className="dl-cta mt-3" onClick={() => setActiveTabValue("tab6" as TabKey)}>
+                            View Transaction Details
+                          </button>
+                        )}
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── BINANCE MANUAL FLOW — step 1: form ───────────────────────────────── */}
+          {paymentMethod === "binance" && !binanceSubmitted && (
+            <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
+              <div className="dl-form-grid deposit-wrapper mt-0">
+                <div>
+                  <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
+                  <div className="amount-input mb-2">
+                    <input
+                      type="text" inputMode="decimal" placeholder="Amount"
+                      value={binanceAmount || ""} disabled={binanceSubmitted}
+                      onChange={(e) => {
+                        const v = Number(e.target.value.replace(/[^\d.]/g, ""));
+                        if (!Number.isNaN(v)) setBinanceAmount(v);
+                      }}
+                    />
+                    <span>USD</span>
+                  </div>
+
+                  {amountPreset?.length > 0 && (
+                    <div className="dl-amount-presets">
+                      {amountPreset.map((n) => (
+                        <button key={n} type="button" disabled={binanceSubmitted}
+                          className={`dl-preset-btn ${binanceAmount === n ? "active" : ""}`}
+                          onClick={() => setBinanceAmount(n)}>{n}</button>
+                      ))}
+                    </div>
+                  )}
+                  <small className="dl-hint text-danger">Min: 1 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+                </div>
+
+                <div>
+                    <label className="dl-label">2. Your Binance ID <small className="text-danger fs-4">*</small></label>
+                    <div className="amount-input mb-2">
+                      <input
+                        type="text" placeholder="Enter your Binance ID"
+                        value={binanceUserId} disabled={binanceSubmitted}
+                        onChange={(e) => setBinanceUserId(e.target.value)}
+                      />
+                    </div>
+                    <small className="dl-hint text-danger">This helps our team match your transfer faster.</small>
+                  
+                </div>
+              </div>
+
+              <div className="d-flex justify-content-end pt-2">
+                <button type="button" className="dl-cta w-50"
+                  disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
+                  onClick={handleBinanceSubmit}>
+                  {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── BINANCE MANUAL FLOW — step 2: admin pay id / qr / detection ─────── */}
+          {paymentMethod === "binance" && binanceSubmitted && (
+            <div className="dl-details">
+              <div className="dl-details-grid dl-bp-grid">
+                {/* left: pay id / qr card */}
+                <div className="dl-card dl-info-card bg-light-dark">
+
+                  <div className="dl-bp-header pb-4">
+                    <span className="dl-bp-badge">
+                      <i className="fa-solid fa-shield-halved" /> Secure • Fast • Instant
+                    </span>
+                    <h2 className="dl-bp-title">Deposit with <span>Binance Pay</span></h2>
+                    <p className="dl-bp-subtitle">
+                      Send crypto using Binance Pay ID and it will be credited instantly after network confirmation.
+                    </p>
+                  </div>
+
+                  <div className="dl-bp-step-head">
+                    <span className="dl-bp-step-num">1</span>
+                    <div>
+                      <strong>Send Payment to Binance Pay ID</strong>
+                      <p>Scan the QR code or copy the Binance Pay ID below to send your payment.</p>
+                    </div>
+                  </div>
+
+                  {/* <div className="dl-exact-row text-center">
+                    <span className="dl-exact-amount fs-2 pb-2"><b className="text-warning ps-2">$</b><b>{binanceAmount}</b></span>
+                  </div> */}
+                  <div className="dl-block border-bottom border-dark-light mb-4">
+                    <span className="dl-block-head "><span>Send Exact Amount</span></span>
+                    <div className="dl-exact-row">
+                      <span className="dl-exact-amount fs-2"><b>{binanceAmount}</b> <b className="text-warning ps-2">USDT</b></span>
+                      <button type="button" className="dl-icon-btn" onClick={() => copyText(String(binanceAmount), "Amount")} aria-label="Copy amount">
+                        <i className="fa-solid fa-copy" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="position-relative">
+                    <div className="dl-bp-qr-frame">
+                      <div className="dl-qr-wrap-2 dl-bp-qr">
+                        <Image src="/images/admin-qr-code.png" width={190} height={190} alt="Binance Pay QR code" className="rounded" />
+                      </div>
+                    </div>
+                    <div className="text-center position-absolute d-none d-md-block" style={{left: "266px", bottom: "-23px"}}>
+                      <span className="dl-bp-pill">Binance Pay ID</span>
+                    </div>
+                  </div>
+
+                  <div className="d-flex gap-2 justify-center dl-bp-id-row mt-3 pt-2">
+                    <code className="dl-address text-center">{adminBinance.binance_id}</code>
+                    <button type="button" className="dl-icon-btn" onClick={() => copyText(adminBinance.binance_id, "Binance Pay ID")} aria-label="Copy Binance Pay ID">
+                      <i className="fa-solid fa-copy" />
+                    </button>
+                  </div>
+
+                  <div className="text-center">
+                    <span className="dl-bp-verified">
+                      <i className="fa-solid fa-circle-check" /> Verified Merchant
                     </span>
                   </div>
 
-                  <div className="dl-block">
-                    <div className="dl-block-head">
-                      <span>Deposit Address</span><span className="dl-pill">{selectedNetwork}</span>
-                    </div>
-                    <div className="dl-address-row">
-                      <code className="dl-address">{depositInfo.address}</code>
-                      <button type="button" className="dl-icon-btn" onClick={() => copyText(depositInfo.address, "Address")} aria-label="Copy address">
-                        <i className="fa-solid fa-copy" />
-                      </button>
-                      <button type="button" className="dl-icon-btn" aria-label="Show QR">
-                        <i className="fa-solid fa-qrcode" />
-                      </button>
-                    </div>
-                  </div>
+                  {/* Mobile-only toggle for the how-to steps + important notes */}
+                  <button
+                    type="button"
+                    className="dl-bp-toggle d-flex d-md-none"
+                    onClick={() => setBpDetailsExpanded((v) => !v)}
+                    aria-expanded={bpDetailsExpanded}
+                  >
+                    <span>
+                      <i className="fa-solid fa-circle-info" />
+                      {bpDetailsExpanded ? "Hide payment steps & notes" : "Show payment steps & notes"}
+                    </span>
+                    <i className={`fa-solid fa-chevron-${bpDetailsExpanded ? "up" : "down"}`} />
+                  </button>
 
-                  <div className="dl-block border-bottom border-dark-light">
-                    <span className="dl-block-head"><span>Send Exact Amount</span></span>
-                    <div className="dl-exact-row">
-                      <span className="dl-exact-amount fs-2"><b>{depositInfo.amount}</b> <b className="text-warning ps-2">USDT</b></span>
-                      <button type="button" className="dl-icon-btn" onClick={() => copyText(depositInfo.amount, "Amount")} aria-label="Copy amount">
-                        <i className="fa-solid fa-copy" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {depositInfo.qr_code && (
-                    <div className="dl-block">
-                      <span className="dl-block-head"><span>QR Code</span></span>
-                      <div className="dl-qr-wrap">
-                        <Image src={depositInfo.qr_code} width={170} height={170} alt="Deposit QR code" className="rounded" />
+                  <div className={`dl-bp-collapsible ${bpDetailsExpanded ? "dl-bp-collapsible--open" : ""}`}>
+                    <div className="dl-bp-ministeps">
+                      <div className="dl-bp-ministep">
+                        <span className="dl-bp-ministep-icon"><i className="fa-brands fa-google-play" /></span>
+                        <div>
+                          <strong>Open Binance App</strong>
+                          <small>Go to Binance App and tap on &quot;Pay&quot;</small>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* right: timer + status */}
-                <div className="dl-side-col">
-                  <div className="dl-card dl-timer-card bg-light-dark">
-                    <div className="d-flex w-full justify-content-end pb-2">
-                      <button type="button" className="hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
-                    </div>
-                    <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
-                    <div className="dl-ring-wrap">
-                      <svg className="dl-ring-svg" viewBox="0 0 120 120">
-                        <defs>
-                          <linearGradient id="dlRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%"   stopColor="#FCE38A" />
-                            <stop offset="50%"  stopColor="#F9C74F" />
-                            <stop offset="100%" stopColor="#F8961E" />
-                          </linearGradient>
-                        </defs>
-                        <circle className="dl-ring-track" cx="60" cy="60" r={RING_RADIUS} />
-                        <circle
-                          className={`dl-ring-progress ${secondsLeft <= 60 && status === "waiting" ? "dl-ring-progress--danger" : ""}`}
-                          cx="60" cy="60" r={RING_RADIUS}
-                          strokeDasharray={RING_CIRCUMFERENCE}
-                          strokeDashoffset={status === "expired" ? RING_CIRCUMFERENCE : ringOffset}
-                        />
-                      </svg>
-                      <div className="dl-ring-center">
-                        <span className="dl-ring-time">
-                          {status === "expired" ? "00:00" : `${minutesLabel}:${secondsLabel}`}
-                        </span>
-                        <div className="dl-ring-units pt-1">
-                          <span>Minutes</span><span>Seconds</span>
+                      <i className="fa-solid fa-chevron-right dl-bp-arrow" />
+                      <div className="dl-bp-ministep">
+                        <span className="dl-bp-ministep-icon"><i className="fa-solid fa-qrcode" /></span>
+                        <div>
+                          <strong>Scan or Paste</strong>
+                          <small>Scan QR code or paste Pay ID</small>
+                        </div>
+                      </div>
+                      <i className="fa-solid fa-chevron-right dl-bp-arrow" />
+                      <div className="dl-bp-ministep">
+                        <span className="dl-bp-ministep-icon"><i className="fa-solid fa-paper-plane" /></span>
+                        <div>
+                          <strong>Send Payment</strong>
+                          <small>Enter the amount &amp; confirm payment</small>
                         </div>
                       </div>
                     </div>
-                    <small className="dl-side-sub">
-                      {status === "expired" ? "This deposit request has expired" : "This deposit request will expire soon"}
-                    </small>
+
+                    <div className="dl-bp-notes">
+                      <div className="dl-bp-notes-text">
+                        <div className="dl-bp-notes-head"><i className="fa-solid fa-circle-info" /> Important Notes</div>
+                        <ul>
+                          <li>Only USDT (TRC20, BEP20) payments are accepted.</li>
+                          <li>Send only the exact amount you want to deposit.</li>
+                          <li>Do not send from exchanges or smart contract wallets.</li>
+                          <li>Wrong payment may result in permanent loss.</li>
+                        </ul>
+                      </div>
+                      <span className="dl-bp-notes-icon"><i className="fa-solid fa-shield-halved" /></span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* right: sidebar */}
+                <div className="dl-side-col">
+                  <div className="dl-card bg-light-dark dl-bp-trust">
+                    <div className="d-flex w-full justify-content-end pb-4">
+                      <button type="button" className="hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
+                    </div>
+                    <span className="dl-bp-trust-icon"><i className="fa-solid fa-shield-halved" /></span>
+                    <strong>Secure &amp; Trusted</strong>
+                    <small>Your payment is protected by Binance Pay security standards.</small>
                   </div>
 
-                  <div className="dl-card dl-status-card bg-light-dark">
-                    <div className="dl-side-label-row">
-                      <span className="dl-side-label">⧖ Deposit Status</span>
-                      <span className={`dl-status-pill dl-status-pill--${status}`}>
-                        {status === "waiting" && "Waiting"}
-                        {status === "completed" && "Completed"}
-                        {status === "expired" && "Expired"}
-                      </span>
+                  <div className="dl-card bg-light-dark">
+                    <span className="dl-bp-card-title">Payment Details</span>
+                    <div className="dl-row">
+                      <span className="dl-row-label">Currency</span>
+                      <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT</span>
                     </div>
-                    <div className="dl-status-visual">
-                      <div className={`dl-status-ring dl-status-ring--${status}`}>
-                        <i className={status === "completed" ? "fa-solid fa-check" : status === "expired" ? "fa-solid fa-xmark" : "fa-regular fa-hourglass-half"} />
-                      </div>
+                    <div className="dl-row">
+                      <span className="dl-row-label">Network</span>
+                      <span className="dl-pill">TRC20</span>
                     </div>
-                    <p className="dl-status-text">
-                      {status === "waiting"   && "Waiting for payment... Once we receive your payment, your balance will be updated automatically."}
-                      {status === "completed" && "Payment received. Your balance has been updated."}
-                      {status === "expired"   && "This request expired before payment was detected. Please create a new deposit."}
-                    </p>
-                    {status === "expired" && (
-                      <button type="button" className="dl-cta dl-cta--secondary mt-3 text-white" onClick={resetFlow}>
-                        Create New Deposit
-                      </button>
-                    )}
-                    {status === "completed" && (
-                      <button type="button" className="dl-cta mt-3" onClick={() => setActiveTabValue("tab6" as TabKey)}>
-                        View Transaction Details
-                      </button>
-                    )}
+                    <div className="dl-row">
+                      <span className="dl-row-label">Min. Deposit</span>
+                      <span className="dl-row-value">10 USDT</span>
+                    </div>
+                    <div className="dl-row">
+                      <span className="dl-row-label">Confirmations</span>
+                      <span className="dl-row-value">${binanceAmount}</span>
+                    </div>
+                    <div className="dl-row" style={{ borderBottom: "none" }}>
+                      <span className="dl-row-label">Estimated Credit</span>
+                      <span className="dl-row-value">1 - 5 Minutes</span>
+                    </div>
+                  </div>
 
+
+                  <div className="dl-details">
+                    <div className="dl-side-col">
+
+                      {/* Binance timer — now driven by its own binanceStatus/binanceSecondsLeft state */}
+                      {!isPaymentProffSubmit && (
+                        <div className="dl-card dl-timer-card bg-light-dark">
+                          <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
+                          <div className="dl-ring-wrap">
+                            <svg className="dl-ring-svg" viewBox="0 0 120 120">
+                              <defs>
+                                <linearGradient id="dlRingGradientBp" x1="0%" y1="0%" x2="100%" y2="100%">
+                                  <stop offset="0%"   stopColor="#FCE38A" />
+                                  <stop offset="50%"  stopColor="#F9C74F" />
+                                  <stop offset="100%" stopColor="#F8961E" />
+                                </linearGradient>
+                              </defs>
+                              <circle className="dl-ring-track" cx="60" cy="60" r={RING_RADIUS} />
+                              <circle
+                                className={`dl-ring-progress ${binanceSecondsLeft <= 60 && binanceStatus === "waiting" ? "dl-ring-progress--danger" : ""}`}
+                                cx="60" cy="60" r={RING_RADIUS}
+                                strokeDasharray={RING_CIRCUMFERENCE}
+                                strokeDashoffset={binanceStatus === "expired" ? RING_CIRCUMFERENCE : binRingOffset}
+                                style={{ stroke: "url(#dlRingGradientBp)" }}
+                              />
+                            </svg>
+                            <div className="dl-ring-center">
+                              <span className="dl-ring-time">
+                                {binanceStatus === "expired" ? "00:00" : `${binMinutesLabel}:${binSecondsLabel}`}
+                              </span>
+                              <div className="dl-ring-units pt-1">
+                                <span>Minutes</span><span>Seconds</span>
+                              </div>
+                            </div>
+                          </div>
+                          <small className="dl-side-sub">
+                            {binanceStatus === "expired" ? "This deposit request has expired" : "This deposit request will expire soon"}
+                          </small>
+                        </div>
+                      )}
+
+                      {/* Binance status — now driven by its own binanceStatus state */}
+                      {isPaymentProffSubmit && (
+                        <div className="dl-card dl-status-card bg-light-dark">
+                          <div className="dl-side-label-row">
+                            <span className="dl-side-label">⧖ Deposit Status</span>
+                            <span className={`dl-status-pill dl-status-pill--${binanceStatus}`}>
+                              {binanceStatus === "waiting" && "Waiting"}
+                              {binanceStatus === "completed" && "Completed"}
+                              {binanceStatus === "expired" && "Expired"}
+                            </span>
+                          </div>
+                          <div className="dl-status-visual">
+                            <div className={`dl-status-ring dl-status-ring--${binanceStatus}`}>
+                              <i className={binanceStatus === "completed" ? "fa-solid fa-check" : binanceStatus === "expired" ? "fa-solid fa-xmark" : "fa-regular fa-hourglass-half"} />
+                            </div>
+                          </div>
+                          <p className="dl-status-text">
+                            {binanceStatus === "waiting"   && "Waiting for payment... Once we receive your payment, your balance will be updated automatically."}
+                            {binanceStatus === "completed" && "Payment received. Your balance has been updated."}
+                            {binanceStatus === "expired"   && "This request expired before payment was detected. Please create a new deposit."}
+                          </p>
+                          {binanceStatus === "expired" && (
+                            <button type="button" className="dl-cta dl-cta--secondary mt-3 text-white" onClick={resetBinanceFlow}>
+                              Create New Deposit
+                            </button>
+                          )}
+                          {binanceStatus === "completed" && (
+                            <button type="button" className="dl-cta mt-3" onClick={() => setActiveTabValue("tab6" as TabKey)}>
+                              View Transaction Details
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  <div className="dl-card bg-light-dark">
+                    <span className="dl-bp-card-title">Submit Payment Information: </span>
+                    <div className="dl-bp-help-actions">
+                      <button type="button" className="dl-bp-help-btn" onClick={() => setSupportModalMode("support")}>
+                        <i className="fa-solid fa-receipt" /> Submit Your Payment Proof
+                      </button>
+                      <button type="button" className="dl-bp-help-btn dl-bp-help-btn--ghost" onClick={() => route.push('/dashboard/support/')}>
+                        <i className="fa-solid fa-headset" /> Contact Support
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ── Contact Support + Important Notice (redesigned, shared — crypto/erc only) ── */}
+          {paymentMethod !== "binance" && (
+            <div className="dl-support-section">
+              {(depositInfo || status !== "idle") && (
+                <div className="dl-support-grid bg-light-dark">
+                  <button type="button" className="dl-support-card bg-dark" onClick={() => setSupportModalMode("submit")}>
+                    <span className="dl-support-icon dl-support-icon--paid"><i className="fa-solid fa-receipt" /></span>
+                    <span className="dl-support-body">
+                      <span className="dl-support-title">Wrong Payment Appeal</span>
+                      <span className="dl-support-desc">Already sent the payment? Submit your payment details for faster verification.</span>
+                      <span className="dl-support-cta">Submit Payment Details <i className="fa-solid fa-arrow-right" /></span>
+                    </span>
+                  </button>
+
+                  <div className="dl-support-divider"><span>OR</span></div>
+
+                  <button type="button" className="dl-support-card bg-dark" onClick={() => route.push('/dashboard/support/')}>
+                    <span className="dl-support-icon dl-support-icon--help"><i className="fa-solid fa-headset" /></span>
+                    <span className="dl-support-body">
+                      <span className="dl-support-title">Need Support?</span>
+                      <span className="dl-support-desc">Facing any issue or didn&apos;t get your balance? Our support team is here to help you.</span>
+                      <span className="dl-support-cta">Contact Support <i className="fa-solid fa-arrow-right" /></span>
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              <div className="dl-notice-bar bg-dark">
+                <div className="dl-notice-head">
+                  <i className="fa-solid fa-triangle-exclamation" />
+                  <span>IMPORTANT NOTICE</span>
+                </div>
+
+                <div className="dl-notice-items">
+                  <div className="dl-notice-item">
+                    <span className="dl-notice-icon dl-notice-icon--blue">
+                      <i className="fa-solid fa-coins" />
+                    </span>
+
+                    <span className="dl-notice-text">
+                      Send only <strong className="dl-accent-green">USDT</strong> to the{" "}
+                      {activeNetworkLabel} address shown above.
+                    </span>
+                  </div>
+
+                  <div className="dl-notice-item">
+                    <span className="dl-notice-icon dl-notice-icon--pink">
+                      <i className="fa-solid fa-scale-balanced" />
+                    </span>
+
+                    <span className="dl-notice-text">
+                      Send exact amount as shown. Wrong amount may require manual review.
+                    </span>
+                  </div>
+
+                  <div className="dl-notice-item">
+                    <span className="dl-notice-icon dl-notice-icon--amber">
+                      <i className="fa-solid fa-ban" />
+                    </span>
+
+                    <span className="dl-notice-text">
+                      Do not send from exchange Binance, Coinbase, etc.
+                    </span>
+                  </div>
+
+                  <div className="dl-notice-item">
+                    <span className="dl-notice-icon dl-notice-icon--green">
+                      <i className="fa-solid fa-check" />
+                    </span>
+
+                    <span className="dl-notice-text">
+                      Your payment will be confirmed after 1 network confirmation.
+                    </span>
+                  </div>
+
+                  <div className="dl-notice-item">
+                    <span className="dl-notice-icon dl-notice-icon--purple">
+                      <i className="fa-regular fa-clock" />
+                    </span>
+
+                    <span className="dl-notice-text">
+                      This deposit request is valid for{" "}
+                      <strong className="dl-accent-amber">30 minutes</strong> only.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
         </>
       )}
 
-      {/* ── BINANCE MANUAL FLOW — step 1: form ───────────────────────────────── */}
-      {paymentMethod === "binance" && !binanceSubmitted && (
-        <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-          <div className="dl-form-grid deposit-wrapper mt-0">
-            <div>
-              <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
-              <div className="amount-input mb-2">
-                <input
-                  type="text" inputMode="decimal" placeholder="Amount"
-                  value={binanceAmount || ""} disabled={binanceSubmitted}
-                  onChange={(e) => {
-                    const v = Number(e.target.value.replace(/[^\d.]/g, ""));
-                    if (!Number.isNaN(v)) setBinanceAmount(v);
-                  }}
-                />
-                <span>USD</span>
-              </div>
+      {/* If no payment method is selected, show a placeholder message */}
+      {paymentMethod === "" && (
+        <div
+          className="wl-card wl-form-card bg-light-dark rounded-4 p-5 text-center position-relative overflow-hidden"
+          style={{
+            background:
+              "radial-gradient(circle at top, rgba(240,179,50,.08), transparent 70%), #0b0f17",
+          }}
+        >
+          {/* Glow */}
+          <div
+            className="position-absolute top-0 start-50 translate-middle rounded-circle"
+            style={{
+              width: "180px",
+              height: "180px",
+              background: "rgba(240,179,50,.08)",
+              filter: "blur(60px)",
+              pointerEvents: "none",
+            }}
+          />
 
-              {amountPreset?.length > 0 && (
-                <div className="dl-amount-presets">
-                  {amountPreset.map((n) => (
-                    <button key={n} type="button" disabled={binanceSubmitted}
-                      className={`dl-preset-btn ${binanceAmount === n ? "active" : ""}`}
-                      onClick={() => setBinanceAmount(n)}>{n}</button>
-                  ))}
-                </div>
-              )}
-              <small className="dl-hint text-danger">Min: 1 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
-            </div>
-
-            <div>
-                <label className="dl-label">2. Your Binance ID <small className="text-danger fs-4">*</small></label>
-                <div className="amount-input mb-2">
-                  <input
-                    type="text" placeholder="Enter your Binance ID"
-                    value={binanceUserId} disabled={binanceSubmitted}
-                    onChange={(e) => setBinanceUserId(e.target.value)}
-                  />
-                </div>
-                <small className="dl-hint text-danger">This helps our team match your transfer faster.</small>
-              
-            </div>
+          {/* Icon */}
+          <div
+            className="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle"
+            style={{
+              width: "80px",
+              height: "80px",
+              background: "rgba(240,179,50,.12)",
+              border: "2px solid rgba(240,179,50,.35)",
+              color: "#f0b332",
+              fontSize: "34px",
+            }}
+          >
+            <i className="fa-solid fa-wallet"></i>
           </div>
 
-          <div className="d-flex justify-content-end pt-2">
-            <button type="button" className="dl-cta w-50"
-              disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
-              onClick={handleBinanceSubmit}>
-              {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
-            </button>
-          </div>
-        </div>
-      )}
+          <h5 className="fw-bold text-white mb-2">
+            Select a Payment Method
+          </h5>
 
-      {/* ── BINANCE MANUAL FLOW — step 2: admin pay id / qr / detection ─────── */}
-      {paymentMethod === "binance" && binanceSubmitted && (
-        <div className="dl-details">
-          <div className="dl-details-grid dl-bp-grid">
-            {/* left: pay id / qr card */}
-            <div className="dl-card dl-info-card bg-light-dark">
+          <p
+            className="text-secondary mx-auto mb-0"
+            style={{ maxWidth: "420px", lineHeight: 1.7 }}
+          >
+            Please choose your preferred payment method to continue your withdrawal
+            request.
+          </p>
 
-              <div className="dl-bp-header pb-4">
-                <span className="dl-bp-badge">
-                  <i className="fa-solid fa-shield-halved" /> Secure • Fast • Instant
-                </span>
-                <h2 className="dl-bp-title">Deposit with <span>Binance Pay</span></h2>
-                <p className="dl-bp-subtitle">
-                  Send crypto using Binance Pay ID and it will be credited instantly after network confirmation.
-                </p>
-              </div>
-
-              <div className="dl-bp-step-head">
-                <span className="dl-bp-step-num">1</span>
-                <div>
-                  <strong>Send Payment to Binance Pay ID</strong>
-                  <p>Scan the QR code or copy the Binance Pay ID below to send your payment.</p>
-                </div>
-              </div>
-
-              {/* <div className="dl-exact-row text-center">
-                <span className="dl-exact-amount fs-2 pb-2"><b className="text-warning ps-2">$</b><b>{binanceAmount}</b></span>
-              </div> */}
-              <div className="dl-block border-bottom border-dark-light mb-4">
-                <span className="dl-block-head "><span>Send Exact Amount</span></span>
-                <div className="dl-exact-row">
-                  <span className="dl-exact-amount fs-2"><b>{binanceAmount}</b> <b className="text-warning ps-2">USDT</b></span>
-                  <button type="button" className="dl-icon-btn" onClick={() => copyText(String(binanceAmount), "Amount")} aria-label="Copy amount">
-                    <i className="fa-solid fa-copy" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="position-relative">
-                <div className="dl-bp-qr-frame">
-                  <div className="dl-qr-wrap-2 dl-bp-qr">
-                    <Image src="/images/admin-qr-code.png" width={190} height={190} alt="Binance Pay QR code" className="rounded" />
-                  </div>
-                </div>
-                <div className="text-center position-absolute d-none d-md-block" style={{left: "266px", bottom: "-23px"}}>
-                  <span className="dl-bp-pill">Binance Pay ID</span>
-                </div>
-              </div>
-
-              <div className="d-flex gap-2 justify-center dl-bp-id-row mt-3 pt-2">
-                <code className="dl-address text-center">{adminBinance.binance_id}</code>
-                <button type="button" className="dl-icon-btn" onClick={() => copyText(adminBinance.binance_id, "Binance Pay ID")} aria-label="Copy Binance Pay ID">
-                  <i className="fa-solid fa-copy" />
-                </button>
-              </div>
-
-              <div className="text-center">
-                <span className="dl-bp-verified">
-                  <i className="fa-solid fa-circle-check" /> Verified Merchant
-                </span>
-              </div>
-
-              {/* Mobile-only toggle for the how-to steps + important notes */}
-              <button
-                type="button"
-                className="dl-bp-toggle d-flex d-md-none"
-                onClick={() => setBpDetailsExpanded((v) => !v)}
-                aria-expanded={bpDetailsExpanded}
-              >
-                <span>
-                  <i className="fa-solid fa-circle-info" />
-                  {bpDetailsExpanded ? "Hide payment steps & notes" : "Show payment steps & notes"}
-                </span>
-                <i className={`fa-solid fa-chevron-${bpDetailsExpanded ? "up" : "down"}`} />
-              </button>
-
-              <div className={`dl-bp-collapsible ${bpDetailsExpanded ? "dl-bp-collapsible--open" : ""}`}>
-                <div className="dl-bp-ministeps">
-                  <div className="dl-bp-ministep">
-                    <span className="dl-bp-ministep-icon"><i className="fa-brands fa-google-play" /></span>
-                    <div>
-                      <strong>Open Binance App</strong>
-                      <small>Go to Binance App and tap on &quot;Pay&quot;</small>
-                    </div>
-                  </div>
-                  <i className="fa-solid fa-chevron-right dl-bp-arrow" />
-                  <div className="dl-bp-ministep">
-                    <span className="dl-bp-ministep-icon"><i className="fa-solid fa-qrcode" /></span>
-                    <div>
-                      <strong>Scan or Paste</strong>
-                      <small>Scan QR code or paste Pay ID</small>
-                    </div>
-                  </div>
-                  <i className="fa-solid fa-chevron-right dl-bp-arrow" />
-                  <div className="dl-bp-ministep">
-                    <span className="dl-bp-ministep-icon"><i className="fa-solid fa-paper-plane" /></span>
-                    <div>
-                      <strong>Send Payment</strong>
-                      <small>Enter the amount &amp; confirm payment</small>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="dl-bp-notes">
-                  <div className="dl-bp-notes-text">
-                    <div className="dl-bp-notes-head"><i className="fa-solid fa-circle-info" /> Important Notes</div>
-                    <ul>
-                      <li>Only USDT (TRC20, BEP20) payments are accepted.</li>
-                      <li>Send only the exact amount you want to deposit.</li>
-                      <li>Do not send from exchanges or smart contract wallets.</li>
-                      <li>Wrong payment may result in permanent loss.</li>
-                    </ul>
-                  </div>
-                  <span className="dl-bp-notes-icon"><i className="fa-solid fa-shield-halved" /></span>
-                </div>
-              </div>
-            </div>
-
-            {/* right: sidebar */}
-            <div className="dl-side-col">
-              <div className="dl-card bg-light-dark dl-bp-trust">
-                <div className="d-flex w-full justify-content-end pb-4">
-                  <button type="button" className="hover-text-white cancel-btn-red" onClick={resetBinanceFlow}>Cancel Deposit <i className="ti ti-x fs-5"></i></button>
-                </div>
-                <span className="dl-bp-trust-icon"><i className="fa-solid fa-shield-halved" /></span>
-                <strong>Secure &amp; Trusted</strong>
-                <small>Your payment is protected by Binance Pay security standards.</small>
-              </div>
-
-              <div className="dl-card bg-light-dark">
-                <span className="dl-bp-card-title">Payment Details</span>
-                <div className="dl-row">
-                  <span className="dl-row-label">Currency</span>
-                  <span className="dl-row-value"><span className="dl-coin-badge dl-coin-badge--usdt">T</span> USDT</span>
-                </div>
-                <div className="dl-row">
-                  <span className="dl-row-label">Network</span>
-                  <span className="dl-pill">TRC20</span>
-                </div>
-                <div className="dl-row">
-                  <span className="dl-row-label">Min. Deposit</span>
-                  <span className="dl-row-value">10 USDT</span>
-                </div>
-                <div className="dl-row">
-                  <span className="dl-row-label">Confirmations</span>
-                  <span className="dl-row-value">${binanceAmount}</span>
-                </div>
-                <div className="dl-row" style={{ borderBottom: "none" }}>
-                  <span className="dl-row-label">Estimated Credit</span>
-                  <span className="dl-row-value">1 - 5 Minutes</span>
-                </div>
-              </div>
-
-
-              <div className="dl-details">
-                <div className="dl-side-col">
-
-                  {/* Binance timer — now driven by its own binanceStatus/binanceSecondsLeft state */}
-                  {!isPaymentProffSubmit && (
-                    <div className="dl-card dl-timer-card bg-light-dark">
-                      <span className="dl-side-label dl-side-label--center">Payment Expires In</span>
-                      <div className="dl-ring-wrap">
-                        <svg className="dl-ring-svg" viewBox="0 0 120 120">
-                          <defs>
-                            <linearGradient id="dlRingGradientBp" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%"   stopColor="#FCE38A" />
-                              <stop offset="50%"  stopColor="#F9C74F" />
-                              <stop offset="100%" stopColor="#F8961E" />
-                            </linearGradient>
-                          </defs>
-                          <circle className="dl-ring-track" cx="60" cy="60" r={RING_RADIUS} />
-                          <circle
-                            className={`dl-ring-progress ${binanceSecondsLeft <= 60 && binanceStatus === "waiting" ? "dl-ring-progress--danger" : ""}`}
-                            cx="60" cy="60" r={RING_RADIUS}
-                            strokeDasharray={RING_CIRCUMFERENCE}
-                            strokeDashoffset={binanceStatus === "expired" ? RING_CIRCUMFERENCE : binRingOffset}
-                            style={{ stroke: "url(#dlRingGradientBp)" }}
-                          />
-                        </svg>
-                        <div className="dl-ring-center">
-                          <span className="dl-ring-time">
-                            {binanceStatus === "expired" ? "00:00" : `${binMinutesLabel}:${binSecondsLabel}`}
-                          </span>
-                          <div className="dl-ring-units pt-1">
-                            <span>Minutes</span><span>Seconds</span>
-                          </div>
-                        </div>
-                      </div>
-                      <small className="dl-side-sub">
-                        {binanceStatus === "expired" ? "This deposit request has expired" : "This deposit request will expire soon"}
-                      </small>
-                    </div>
-                  )}
-
-                  {/* Binance status — now driven by its own binanceStatus state */}
-                  {isPaymentProffSubmit && (
-                    <div className="dl-card dl-status-card bg-light-dark">
-                      <div className="dl-side-label-row">
-                        <span className="dl-side-label">⧖ Deposit Status</span>
-                        <span className={`dl-status-pill dl-status-pill--${binanceStatus}`}>
-                          {binanceStatus === "waiting" && "Waiting"}
-                          {binanceStatus === "completed" && "Completed"}
-                          {binanceStatus === "expired" && "Expired"}
-                        </span>
-                      </div>
-                      <div className="dl-status-visual">
-                        <div className={`dl-status-ring dl-status-ring--${binanceStatus}`}>
-                          <i className={binanceStatus === "completed" ? "fa-solid fa-check" : binanceStatus === "expired" ? "fa-solid fa-xmark" : "fa-regular fa-hourglass-half"} />
-                        </div>
-                      </div>
-                      <p className="dl-status-text">
-                        {binanceStatus === "waiting"   && "Waiting for payment... Once we receive your payment, your balance will be updated automatically."}
-                        {binanceStatus === "completed" && "Payment received. Your balance has been updated."}
-                        {binanceStatus === "expired"   && "This request expired before payment was detected. Please create a new deposit."}
-                      </p>
-                      {binanceStatus === "expired" && (
-                        <button type="button" className="dl-cta dl-cta--secondary mt-3 text-white" onClick={resetBinanceFlow}>
-                          Create New Deposit
-                        </button>
-                      )}
-                      {binanceStatus === "completed" && (
-                        <button type="button" className="dl-cta mt-3" onClick={() => setActiveTabValue("tab6" as TabKey)}>
-                          View Transaction Details
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                </div>
-              </div>
-
-              <div className="dl-card bg-light-dark">
-                <span className="dl-bp-card-title">Submit Payment Information: </span>
-                <div className="dl-bp-help-actions">
-                  <button type="button" className="dl-bp-help-btn" onClick={() => setSupportModalMode("support")}>
-                    <i className="fa-solid fa-receipt" /> Submit Your Payment Proof
-                  </button>
-                  <button type="button" className="dl-bp-help-btn dl-bp-help-btn--ghost" onClick={() => route.push('/dashboard/support/')}>
-                    <i className="fa-solid fa-headset" /> Contact Support
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div
+            className="d-inline-flex align-items-center gap-2 mt-4 px-3 py-2 rounded-pill"
+            style={{
+              background: "rgba(240,179,50,.12)",
+              color: "#f0b332",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
+          >
+            <i className="fa-solid fa-circle-info"></i>
+            Choose Binance or Crypto Wallet
           </div>
         </div>
       )}
 
-      {/* ── Contact Support + Important Notice (redesigned, shared — crypto/erc only) ── */}
-      {paymentMethod !== "binance" && (
-        <div className="dl-support-section">
-          {(depositInfo || status !== "idle") && (
-            <div className="dl-support-grid bg-light-dark">
-              <button type="button" className="dl-support-card bg-dark" onClick={() => setSupportModalMode("submit")}>
-                <span className="dl-support-icon dl-support-icon--paid"><i className="fa-solid fa-receipt" /></span>
-                <span className="dl-support-body">
-                  <span className="dl-support-title">Wrong Payment Appeal</span>
-                  <span className="dl-support-desc">Already sent the payment? Submit your payment details for faster verification.</span>
-                  <span className="dl-support-cta">Submit Payment Details <i className="fa-solid fa-arrow-right" /></span>
-                </span>
-              </button>
-
-              <div className="dl-support-divider"><span>OR</span></div>
-
-              <button type="button" className="dl-support-card bg-dark" onClick={() => route.push('/dashboard/support/')}>
-                <span className="dl-support-icon dl-support-icon--help"><i className="fa-solid fa-headset" /></span>
-                <span className="dl-support-body">
-                  <span className="dl-support-title">Need Support?</span>
-                  <span className="dl-support-desc">Facing any issue or didn&apos;t get your balance? Our support team is here to help you.</span>
-                  <span className="dl-support-cta">Contact Support <i className="fa-solid fa-arrow-right" /></span>
-                </span>
-              </button>
-            </div>
-          )}
-
-          <div className="dl-notice-bar bg-dark">
-            <div className="dl-notice-head">
-              <i className="fa-solid fa-triangle-exclamation" />
-              <span>IMPORTANT NOTICE</span>
-            </div>
-
-            <div className="dl-notice-items">
-              <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--blue">
-                  <i className="fa-solid fa-coins" />
-                </span>
-
-                <span className="dl-notice-text">
-                  Send only <strong className="dl-accent-green">USDT</strong> to the{" "}
-                  {activeNetworkLabel} address shown above.
-                </span>
-              </div>
-
-              <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--pink">
-                  <i className="fa-solid fa-scale-balanced" />
-                </span>
-
-                <span className="dl-notice-text">
-                  Send exact amount as shown. Wrong amount may require manual review.
-                </span>
-              </div>
-
-              <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--amber">
-                  <i className="fa-solid fa-ban" />
-                </span>
-
-                <span className="dl-notice-text">
-                  Do not send from exchange Binance, Coinbase, etc.
-                </span>
-              </div>
-
-              <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--green">
-                  <i className="fa-solid fa-check" />
-                </span>
-
-                <span className="dl-notice-text">
-                  Your payment will be confirmed after 1 network confirmation.
-                </span>
-              </div>
-
-              <div className="dl-notice-item">
-                <span className="dl-notice-icon dl-notice-icon--purple">
-                  <i className="fa-regular fa-clock" />
-                </span>
-
-                <span className="dl-notice-text">
-                  This deposit request is valid for{" "}
-                  <strong className="dl-accent-amber">30 minutes</strong> only.
-                </span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      )}
 
       {/* ── Recent Deposit List ────────────────────────────────────────────── */}
       <div className="dl-card bg-light-dark transaction-details wallet-main-wrapprr">

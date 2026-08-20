@@ -20,7 +20,6 @@ export default function Page() {
 
   interface WalletSettings {
     wallet?: Wallet;
-    // Add other wallet settings properties as needed
   }
 
   const [walletSettings, setWalletSettings] = useState<WalletSettings | null>(null);
