@@ -404,7 +404,7 @@ export default function MerchantApplication() {
         }
 
         if (hasSavedProgress) {
-          toast("Restored your previous progress.", { icon: "📝" });
+          toast("Restored your previous progress.");
         }
       }
     } catch {
