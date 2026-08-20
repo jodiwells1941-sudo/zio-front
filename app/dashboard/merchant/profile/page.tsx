@@ -2,8 +2,8 @@
 
 import { getMerchantAccount, updateMerchantApplicationApi } from "@/app/api/merchant";
 import MerchantProfile, {
+  type MerchantProfileUpdatePayload,
   type MerchantApplication,
-  type MerchantUpdatePayload,
 } from "@/components/dashboard/merchant/MerchantProfile";
 import { useCallback, useEffect, useState } from "react";
 
@@ -34,7 +34,7 @@ export default function Page() {
   }, [fetchMerchantAccount]);
 
   const handleUpdate = useCallback(
-    async (payload: MerchantUpdatePayload) => {
+    async (payload: MerchantProfileUpdatePayload) => {
       const res = await updateMerchantApplicationApi(payload);
       // Prefer the fresh record the API returns; fall back to a full
       // refetch if the update endpoint doesn't echo it back.
