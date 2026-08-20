@@ -836,7 +836,7 @@ export default function MerchantApplication() {
             type="button"
             onClick={() =>
               window.location.href =
-                "/merchant"
+                "/dashboard/merchant"
             }
             className="merchant-purple-btn"
           >
