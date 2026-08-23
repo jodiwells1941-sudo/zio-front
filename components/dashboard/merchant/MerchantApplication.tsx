@@ -1,7 +1,6 @@
 "use client";
 
 import React, {
-  ChangeEvent,
   FormEvent,
   useEffect,
   useMemo,
@@ -54,43 +53,21 @@ type ApplicationData = {
   email: string;
   phoneCountryCode: string;
   phone: string;
-  dob: string;
   country: string;
-  city: string;
   address: string;
-  language: string;
-  source: string;
 
   // Step 2
   businessType: string;
   businessName: string;
-  registrationNumber: string;
   taxId: string;
   businessEmail: string;
   businessPhoneCountryCode: string;
   businessPhone: string;
-  businessAddress: string;
   operationType: string;
 
   // Trading
   tradeCoin: string;
   paymentMethods: string[];
-  dailyVolume: string;
-  averageOrder: string;
-  tradingSource: string;
-};
-
-type UploadedDocument = {
-  file: File | null;
-  name: string;
-  size: string;
-};
-
-type Documents = {
-  nationalId: UploadedDocument | null;
-  selfie: UploadedDocument | null;
-  businessProof: UploadedDocument | null;
-  addressProof: UploadedDocument | null;
 };
 
 interface Wallet {
@@ -122,28 +99,19 @@ const initialData: ApplicationData = {
   email: "",
   phoneCountryCode: "+880",
   phone: "",
-  dob: "",
   country: "Bangladesh",
-  city: "",
   address: "",
-  language: "English",
-  source: "YouTube",
 
   businessType: "Individual",
   businessName: "",
-  registrationNumber: "N/A",
   taxId: "",
   businessEmail: "",
   businessPhoneCountryCode: "+880",
   businessPhone: "",
-  businessAddress: "",
   operationType: "Manually (I will manage orders)",
 
   tradeCoin: "USDT",
   paymentMethods: [],
-  dailyVolume: "1,000 - 5,000 USDT",
-  averageOrder: "100 - 500 USDT",
-  tradingSource: "YouTube",
 };
 
 /* =========================================================
@@ -168,9 +136,7 @@ function validateStepOne(data: ApplicationData): FieldErrors {
   }
 
   if (!data.phone.trim()) errors.phone = "Phone number is required.";
-  if (!data.dob) errors.dob = "Date of birth is required.";
   if (!data.country.trim()) errors.country = "Country is required.";
-  if (!data.city.trim()) errors.city = "City is required.";
   if (!data.address.trim()) errors.address = "Address is required.";
 
   return errors;
@@ -189,11 +155,8 @@ function validateStepTwo(data: ApplicationData): FieldErrors {
   }
 
   if (!data.businessPhone.trim()) errors.businessPhone = "Business phone is required.";
-  if (!data.businessAddress.trim()) errors.businessAddress = "Business address is required.";
   if (!data.operationType.trim()) errors.operationType = "Please select how you'll operate your ads.";
   if (!data.tradeCoin.trim()) errors.tradeCoin = "Preferred trade coin is required.";
-  if (!data.dailyVolume.trim()) errors.dailyVolume = "Expected daily volume is required.";
-  if (!data.averageOrder.trim()) errors.averageOrder = "Expected average order amount is required.";
 
   if (data.paymentMethods.length === 0) {
     errors.paymentMethods = "Select at least one payment method.";
@@ -202,14 +165,10 @@ function validateStepTwo(data: ApplicationData): FieldErrors {
   return errors;
 }
 
-function validateStepThree(documents: Documents): FieldErrors {
-  const errors: FieldErrors = {};
-
-  if (!documents.nationalId) errors.nationalId = "National ID / Passport is required.";
-  if (!documents.selfie) errors.selfie = "Selfie with ID is required.";
-  if (!documents.addressProof) errors.addressProof = "Address proof is required.";
-
-  return errors;
+function validateStepThree(): FieldErrors {
+  // Step 3 is now a static, informational preview of the documents
+  // our team reviews — there's nothing for the user to submit here.
+  return {};
 }
 
 function validateStepFour(depositPaid: boolean): FieldErrors {
@@ -235,7 +194,6 @@ function validateStepFive(agreed: boolean): FieldErrors {
 function validateStep(
   step: Step,
   data: ApplicationData,
-  documents: Documents,
   depositPaid: boolean,
   agreed: boolean
 ): FieldErrors {
@@ -245,7 +203,7 @@ function validateStep(
     case 2:
       return validateStepTwo(data);
     case 3:
-      return validateStepThree(documents);
+      return validateStepThree();
     case 4:
       return validateStepFour(depositPaid);
     case 5:
@@ -268,14 +226,6 @@ export default function MerchantApplication() {
 
   const [data, setData] =
     useState<ApplicationData>(initialData);
-
-  const [documents, setDocuments] =
-    useState<Documents>({
-      nationalId: null,
-      selfie: null,
-      businessProof: null,
-      addressProof: null,
-    });
 
   const [depositPaid, setDepositPaid] =
     useState(false);
@@ -516,7 +466,6 @@ export default function MerchantApplication() {
     const errors = validateStep(
       targetStep,
       data,
-      documents,
       depositPaid,
       agreed
     );
@@ -551,7 +500,6 @@ export default function MerchantApplication() {
       const errors = validateStep(
         candidate,
         data,
-        documents,
         depositPaid,
         agreed
       );
@@ -600,72 +548,6 @@ export default function MerchantApplication() {
         (previous - 1) as Step
       );
     }
-  };
-
-  /*
-   * -------------------------------------------------------
-   * DOCUMENT UPLOAD
-   * -------------------------------------------------------
-   */
-
-  const handleDocument = (
-    type: keyof Documents,
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    const maxSize =
-      5 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      const message = "Maximum file size is 5MB.";
-      setError(message);
-      toast.error(message);
-      return;
-    }
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "application/pdf",
-    ];
-
-    if (
-      !allowedTypes.includes(
-        file.type
-      )
-    ) {
-      const message = "Only JPG, PNG or PDF files are allowed.";
-      setError(message);
-      toast.error(message);
-      return;
-    }
-
-    setError("");
-
-    setDocuments((previous) => ({
-      ...previous,
-      [type]: {
-        file,
-        name: file.name,
-        size: `${(
-          file.size /
-          1024 /
-          1024
-        ).toFixed(2)} MB`,
-      },
-    }));
-
-    setFieldErrors((previous) => {
-      if (!previous[type]) return previous;
-      const next = { ...previous };
-      delete next[type];
-      return next;
-    });
   };
 
   /*
@@ -756,22 +638,6 @@ export default function MerchantApplication() {
       formData.append("deposit_paid", depositPaid ? "1" : "0");
       formData.append("agreed_terms", agreed ? "1" : "0");
 
-      if (documents.nationalId?.file) {
-        formData.append("national_id", documents.nationalId.file);
-      }
-
-      if (documents.selfie?.file) {
-        formData.append("selfie", documents.selfie.file);
-      }
-
-      if (documents.businessProof?.file) {
-        formData.append("business_proof", documents.businessProof.file);
-      }
-
-      if (documents.addressProof?.file) {
-        formData.append("address_proof", documents.addressProof.file);
-      }
-
       await submitMerchantApplicationApi(formData);
 
       // Only clear the saved draft once the API has actually
@@ -859,16 +725,6 @@ export default function MerchantApplication() {
 
       <div className="application-top">
 
-        <div className="application-breadcrumb">
-          <span>Merchant Center</span>
-
-          <i className="fa-solid fa-chevron-right" />
-
-          <span>
-            Merchant Application
-          </span>
-        </div>
-
         <div className="application-heading">
 
           <div>
@@ -887,7 +743,7 @@ export default function MerchantApplication() {
                 "Tell us about your business and how you plan to trade on LuckySpin."}
 
               {step === 3 &&
-                "Just a few more steps! Upload your documents to verify your identity and business."}
+                "Just a few more steps! Here's a preview of the documents our team reviews for verification."}
 
               {step === 4 &&
                 "A security deposit helps us maintain a safe and trusted P2P marketplace."}
@@ -987,15 +843,7 @@ export default function MerchantApplication() {
           />
         )}
 
-        {step === 3 && (
-          <StepThree
-            documents={documents}
-            handleDocument={
-              handleDocument
-            }
-            fieldErrors={fieldErrors}
-          />
-        )}
+        {step === 3 && <StepThree />}
 
         {step === 4 && (
           <StepFour
@@ -1012,7 +860,6 @@ export default function MerchantApplication() {
         {step === 5 && (
           <StepFive
             data={data}
-            documents={documents}
             depositPaid={depositPaid}
             agreed={agreed}
             setAgreed={(value) => {
@@ -1307,35 +1154,7 @@ function StepOne({
               }
             />
 
-            <PhoneInput
-              label="Phone Number"
-              required
-              countryCode={data.phoneCountryCode}
-              phone={data.phone}
-              error={fieldErrors.phone}
-              onCountryCodeChange={(value) =>
-                updateData("phoneCountryCode", value)
-              }
-              onPhoneChange={(value) =>
-                updateData("phone", value)
-              }
-            />
-
-            <Input
-              label="Date of Birth"
-              type={"date"}
-              required
-              value={data.dob}
-              placeholder="MM/DD/YYYY"
-              icon="fa-regular fa-calendar"
-              error={fieldErrors.dob}
-              onChange={(value) =>
-                updateData(
-                  "dob",
-                  value
-                )
-              }
-            />
+            
 
           </div>
 
@@ -1366,20 +1185,6 @@ function StepOne({
               <FieldError message={countryError} />
             </div>
 
-            <Input
-              label="City"
-              required
-              value={data.city}
-              placeholder="Los Angeles"
-              error={fieldErrors.city}
-              onChange={(value) =>
-                updateData(
-                  "city",
-                  value
-                )
-              }
-            />
-
             <Textarea
               label="Address"
               required
@@ -1394,45 +1199,22 @@ function StepOne({
               }
             />
 
-            <Select
-              label="Preferred Language"
+            <PhoneInput
+              label="Phone Number"
               required
-              value={data.language}
-              options={[
-                "English",
-                "Bangla",
-                "Hindi",
-              ]}
-              onChange={(value) =>
-                updateData(
-                  "language",
-                  value
-                )
+              countryCode={data.phoneCountryCode}
+              phone={data.phone}
+              error={fieldErrors.phone}
+              onCountryCodeChange={(value) =>
+                updateData("phoneCountryCode", value)
+              }
+              onPhoneChange={(value) =>
+                updateData("phone", value)
               }
             />
-
-            <Select
-              label="How did you hear about LuckySpin?"
-              value={data.source}
-              options={[
-                "YouTube",
-                "Facebook",
-                "Google",
-                "Friend / Referral",
-                "Other",
-              ]}
-              onChange={(value) =>
-                updateData(
-                  "source",
-                  value
-                )
-              }
-            />
-
           </div>
 
           <div className="col-lg-4">
-
             <SideIllustration
               icon="fa-solid fa-id-card"
               title="Start Your Merchant Journey"
@@ -1523,18 +1305,6 @@ function StepTwo({
             />
 
             <Input
-              label="Business Registration Number"
-              value={data.registrationNumber}
-              placeholder="123456789"
-              onChange={(value) =>
-                updateData(
-                  "registrationNumber",
-                  value
-                )
-              }
-            />
-
-            <Input
               label="Tax ID / NID Number"
               type="number"
               required
@@ -1583,20 +1353,6 @@ function StepTwo({
               }
             />
 
-            <Textarea
-              label="Business Address"
-              required
-              value={data.businessAddress}
-              placeholder="1234 Sunset Blvd, Apt 5B, Los Angeles, CA 90026"
-              error={fieldErrors.businessAddress}
-              onChange={(value) =>
-                updateData(
-                  "businessAddress",
-                  value
-                )
-              }
-            />
-
             <Select
               label="How will you operate your ads?"
               required
@@ -1642,7 +1398,7 @@ function StepTwo({
 
         <div className="row g-3">
 
-          <div className="col-lg-4">
+          <div className="col-lg-6">
 
             <Select
               label="Preferred Trade Coin"
@@ -1664,7 +1420,7 @@ function StepTwo({
 
           </div>
 
-          <div className="col-lg-4">
+          <div className="col-lg-6">
 
             <label className="field-label">
               Preferred Payment Methods <b>*</b>
@@ -1710,62 +1466,6 @@ function StepTwo({
 
           </div>
 
-          <div className="col-lg-4">
-
-            <Input
-              label="Daily Trading Volume (Expected)"
-              required
-              value={data.dailyVolume}
-              error={fieldErrors.dailyVolume}
-              onChange={(value) =>
-                updateData(
-                  "dailyVolume",
-                  value
-                )
-              }
-            />
-
-          </div>
-
-          <div className="col-lg-4">
-
-            <Input
-              label="Average Order Amount (Expected)"
-              required
-              value={data.averageOrder}
-              error={fieldErrors.averageOrder}
-              onChange={(value) =>
-                updateData(
-                  "averageOrder",
-                  value
-                )
-              }
-            />
-
-          </div>
-
-          <div className="col-lg-8">
-
-            <Select
-              label="How did you hear about LuckySpin? (Optional)"
-              value={data.tradingSource}
-              options={[
-                "YouTube",
-                "Facebook",
-                "Google",
-                "Friend / Referral",
-                "Other",
-              ]}
-              onChange={(value) =>
-                updateData(
-                  "tradingSource",
-                  value
-                )
-              }
-            />
-
-          </div>
-
         </div>
 
       </div>
@@ -1778,70 +1478,74 @@ function StepTwo({
    STEP 3
 ========================================================= */
 
-function StepThree({
-  documents,
-  handleDocument,
-  fieldErrors,
-}: {
-  documents: Documents;
-  handleDocument: (
-    type: keyof Documents,
-    event: ChangeEvent<HTMLInputElement>
-  ) => void;
-  fieldErrors: FieldErrors;
-}) {
+const DEMO_DOCUMENTS = [
+  {
+    title: "National ID / Passport",
+    image: "/images/documents/national-id-demo.jpg",
+  },
+  {
+    title: "Selfie with ID",
+    image: "/images/documents/selfie-demo.jpg",
+  },
+  {
+    title: "Business Proof",
+    image: "/images/documents/business-proof-demo.jpg",
+  },
+  {
+    title: "Address Proof",
+    image: "/images/documents/address-proof-demo.jpg",
+  },
+];
+
+function StepThree() {
   return (
     <div className="application-card">
 
       <div className="card-heading">
         <h2>
-          Upload Required Documents
+          Required Documents
         </h2>
 
         <p>
-          Please upload clear and valid documents. All documents are securely encrypted.
+          Sample of the documents our team reviews as part of every merchant application.
         </p>
       </div>
 
       <div className="documents-grid">
 
-        <DocumentUpload
-          type="nationalId"
-          title="National ID / Passport"
-          required
-          description="Upload a clear photo of your NID card or Passport."
-          document={documents.nationalId}
-          error={fieldErrors.nationalId}
-          onChange={handleDocument}
-        />
+        {DEMO_DOCUMENTS.map((doc) => (
+          <div className="document-upload-card" key={doc.title}>
 
-        <DocumentUpload
-          type="selfie"
-          title="Selfie with ID"
-          required
-          description="Take a selfie holding your NID/Passport near your face."
-          document={documents.selfie}
-          error={fieldErrors.selfie}
-          onChange={handleDocument}
-        />
+            <div className="document-card-header">
 
-        <DocumentUpload
-          type="businessProof"
-          title="Business Proof"
-          description="Upload business license, trade license or any business proof."
-          document={documents.businessProof}
-          onChange={handleDocument}
-        />
+              <div className="document-icon-small">
+                <i className="fa-regular fa-id-card" />
+              </div>
 
-        <DocumentUpload
-          type="addressProof"
-          title="Address Proof"
-          required
-          description="Upload utility bill, bank statement or any official document."
-          document={documents.addressProof}
-          error={fieldErrors.addressProof}
-          onChange={handleDocument}
-        />
+              <div>
+                <h3>
+                  {doc.title}
+                </h3>
+              </div>
+
+            </div>
+
+            <div className="upload-zone">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={doc.image}
+                alt={doc.title}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: 8,
+                }}
+              />
+            </div>
+
+          </div>
+        ))}
 
         <div className="document-guidelines">
 
@@ -2184,7 +1888,6 @@ function StepFour({
 
 function StepFive({
   data,
-  documents,
   depositPaid,
   agreed,
   setAgreed,
@@ -2192,7 +1895,6 @@ function StepFive({
   onEdit,
 }: {
   data: ApplicationData;
-  documents: Documents;
   depositPaid: boolean;
   agreed: boolean;
   setAgreed: (
@@ -2244,11 +1946,7 @@ function StepFive({
                   ? `${data.phoneCountryCode} ${data.phone}`
                   : "",
               ],
-              [
-                "Country / City",
-                `${data.country}, ${data.city}`,
-              ],
-              ["Language", data.language],
+              ["Country", data.country],
             ]}
           />
 
@@ -2281,10 +1979,6 @@ function StepFive({
                   ? `${data.businessPhoneCountryCode} ${data.businessPhone}`
                   : "",
               ],
-              [
-                "Business Address",
-                data.businessAddress,
-              ],
             ]}
           />
 
@@ -2292,47 +1986,19 @@ function StepFive({
 
             <ReviewSectionHeader
               icon="fa-solid fa-file-lines"
-              title="Documents Uploaded"
+              title="Documents"
               onEdit={() =>
                 onEdit(3)
               }
             />
 
-            <DocumentReview
-              title="National ID / Passport"
-              uploaded={
-                Boolean(
-                  documents.nationalId
-                )
-              }
-            />
-
-            <DocumentReview
-              title="Selfie with ID"
-              uploaded={
-                Boolean(
-                  documents.selfie
-                )
-              }
-            />
-
-            <DocumentReview
-              title="Address Proof"
-              uploaded={
-                Boolean(
-                  documents.addressProof
-                )
-              }
-            />
-
-            <DocumentReview
-              title="Business Proof (Optional)"
-              uploaded={
-                Boolean(
-                  documents.businessProof
-                )
-              }
-            />
+            {DEMO_DOCUMENTS.map((doc) => (
+              <DocumentReview
+                key={doc.title}
+                title={doc.title}
+                uploaded
+              />
+            ))}
 
             <div className="documents-valid">
               <i className="fa-solid fa-circle-check" />
@@ -2760,115 +2426,6 @@ function PhoneInput({
 }
 
 /* =========================================================
-   DOCUMENT UPLOAD
-========================================================= */
-
-function DocumentUpload({
-  type,
-  title,
-  required,
-  description,
-  document,
-  error,
-  onChange,
-}: {
-  type: keyof Documents;
-  title: string;
-  required?: boolean;
-  description: string;
-  document: UploadedDocument | null;
-  error?: string;
-  onChange: (
-    type: keyof Documents,
-    event: ChangeEvent<HTMLInputElement>
-  ) => void;
-}) {
-  return (
-    <div className={`document-upload-card ${error ? "has-error" : ""}`}>
-
-      <div className="document-card-header">
-
-        <div className="document-icon-small">
-          <i className="fa-regular fa-id-card" />
-        </div>
-
-        <div>
-          <h3>
-            {title}
-
-            {required && (
-              <b>*</b>
-            )}
-
-            {!required && (
-              <small>
-                (Optional)
-              </small>
-            )}
-          </h3>
-
-          <p>
-            {description}
-          </p>
-        </div>
-
-        {document && (
-          <span className="document-check">
-            <i className="fa-solid fa-check" />
-          </span>
-        )}
-
-      </div>
-
-      <label className="upload-zone">
-
-        <input
-          type="file"
-          accept=".jpg,.jpeg,.png,.pdf"
-          onChange={(event) =>
-            onChange(
-              type,
-              event
-            )
-          }
-        />
-
-        {document ? (
-          <>
-            <i className="fa-solid fa-file-circle-check upload-icon" />
-
-            <strong>
-              {document.name}
-            </strong>
-
-            <span>
-              {document.size} • Click to replace
-            </span>
-          </>
-        ) : (
-          <>
-            <i className="fa-solid fa-cloud-arrow-up upload-icon" />
-
-            <strong>
-              Click to upload
-              <span> or drag &amp; drop</span>
-            </strong>
-
-            <small>
-              JPG, PNG or PDF (Max 5MB)
-            </small>
-          </>
-        )}
-
-      </label>
-
-      <FieldError message={error} />
-
-    </div>
-  );
-}
-
-/* =========================================================
    BENEFITS
 ========================================================= */
 
@@ -3198,34 +2755,6 @@ function ReviewBenefit({
       <strong>{title}</strong>
 
       <span>{text}</span>
-
-    </div>
-  );
-}
-
-/* =========================================================
-   SIMPLE QR PATTERN
-========================================================= */
-
-function QrPattern() {
-  return (
-    <div className="qr-pattern">
-
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
 
     </div>
   );
