@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getMerchantAccount } from "@/app/api/merchant";
 
 type NavItem = {
   label: string;
@@ -23,6 +24,30 @@ type Props = {
   referralLink?: string;
 };
 
+type MerchantStatus = "approved" | "pending" | "rejected" | string;
+
+type MerchantAccount = {
+  status?: MerchantStatus;
+};
+
+/*
+ * -----------------------------------------------------------
+ * MERCHANT-ONLY SIDEBAR (approved merchants only)
+ * -----------------------------------------------------------
+ * Once a merchant's application is approved, the ENTIRE
+ * sidebar nav switches to only these merchant management
+ * links — every other item (Dashboard, Wallet, Lottery, etc.)
+ * is hidden while the merchant is approved.
+ */
+const MERCHANT_APPROVED_NAV_ITEMS: NavItem[] = [
+  { label: "Merchant Account", href: "/dashboard/merchant", iconClass: "fa-solid fa-user-tie" },
+  { label: "Merchant Commission", href: "/dashboard/merchant/commission-earnings", iconClass: "fa-solid fa-coins" },
+  { label: "Merchant Level", href: "/dashboard/merchant/level", iconClass: "fa-solid fa-layer-group" },
+  { label: "Merchant Profile", href: "/dashboard/merchant/profile", iconClass: "fa-solid fa-id-card" },
+  { label: "Merchant Reviews", href: "/dashboard/merchant/reviews", iconClass: "fa-solid fa-star" },
+  { label: "Merchant Settings", href: "/dashboard/merchant/settings", iconClass: "fa-solid fa-gear" },
+];
+
 export default function LeftSidebar({
   navItems = [
     { label: "Dashboard", href: "/dashboard", iconClass: "fas fa-home" },
@@ -35,12 +60,11 @@ export default function LeftSidebar({
         { label: "Transactions History", href: "/dashboard/wallet?tab=tab6" },
       ],
     },
-    // { label: "P2P", href: "/dashboard/wallet?tab=tab3", iconClass: "fa-solid fa-handshake" },
     {
       label: "P2P", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake", 
       subItems: [
         { label: "P2P Buy & Sell", href: "/dashboard/wallet?tab=tab3" },
-        { label: "Merchant Account", href: "/dashboard/merchant" },
+        { label: "Merchant Apply", href: "/dashboard/merchant" },
       ],
     },
     { label: "Lottery", href: "/dashboard/lottery", iconClass: "fa-regular fa-futbol" },
@@ -77,6 +101,39 @@ export default function LeftSidebar({
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
+  const [merchantAccount, setMerchantAccount] = React.useState<MerchantAccount>({});
+
+  useEffect(() => {
+    const fetchDepositInfo = async () => {
+      try {
+        const merchantAccount = await getMerchantAccount();
+        setMerchantAccount(merchantAccount?.data?.application ?? {});
+      } catch (err) {
+        console.error("Error fetching merchant account:", err);
+      }
+    };
+
+    fetchDepositInfo();
+  }, []);
+
+  const isApprovedMerchant = merchantAccount?.status === "approved";
+
+  /*
+   * -------------------------------------------------------
+   * EFFECTIVE NAV ITEMS
+   * -------------------------------------------------------
+   * Once the merchant application is approved, the sidebar
+   * shows ONLY the merchant management links — every other
+   * item (Dashboard, Wallet, Lottery, etc.) is hidden.
+   */
+  const effectiveNavItems = useMemo(() => {
+    if (isApprovedMerchant) {
+      return MERCHANT_APPROVED_NAV_ITEMS;
+    }
+
+    return navItems;
+  }, [navItems, isApprovedMerchant]);
+
   const onCloseMobile = useCallback(() => {
     document.querySelector(".left-sidebar-area")?.classList.remove("active");
   }, []);
@@ -109,8 +166,9 @@ export default function LeftSidebar({
   const isActive = useCallback(
     (href: string) => {
       if (!href || href === "#") return false;
+      const [hrefPath] = href.split("?");
       const current = pathname?.replace(/\/+$/, "") || "/";
-      const target = href.replace(/\/+$/, "") || "/";
+      const target = hrefPath.replace(/\/+$/, "") || "/";
       if (target === "/dashboard") return current === "/dashboard";
       return current === target || current.startsWith(target + "/");
     },
@@ -121,20 +179,27 @@ export default function LeftSidebar({
   const searchParams = useSearchParams();
 
   const tab = searchParams.get('tab');
-  
+
 
   const toggleSubMenu = useCallback((label: string) => {
     setOpenSubMenus((prev) => ({ ...prev, [label]: !prev[label] }));
   }, []);
 
-  // Auto-open wallet submenu if on a wallet route
+  // Auto-open a submenu if the current path/tab matches one of its sub items
   const isSubMenuOpen = useCallback(
     (item: NavItem) => {
       if (openSubMenus[item.label] !== undefined) return openSubMenus[item.label];
-      // Auto-expand if current path is under this item
-      return item.subItems?.some((sub) => isActive(sub.href)) ?? false;
+
+      return (
+        item.subItems?.some((sub) => {
+          if (sub.href.includes("tab=")) {
+            return tab === sub.href.split("tab=")[1];
+          }
+          return isActive(sub.href);
+        }) ?? false
+      );
     },
-    [openSubMenus, isActive]
+    [openSubMenus, isActive, tab]
   );
 
   const onNavigate = useCallback((href: string) => {
@@ -168,17 +233,25 @@ export default function LeftSidebar({
 
         <nav className="nav-menu">
           <ul>
-            {navItems.map((item) => {
+            {effectiveNavItems.map((item) => {
               const hasSubItems = item.subItems && item.subItems.length > 0;
               const subOpen = hasSubItems && isSubMenuOpen(item);
               const parentActive = isActive(item.href);
+
+              const anySubActive =
+                hasSubItems &&
+                item.subItems!.some((sub) =>
+                  sub.href.includes("tab=")
+                    ? tab === sub.href.split("tab=")[1]
+                    : isActive(sub.href)
+                );
 
               return (
                 <li
                   key={item.label}
                   className={[
                     parentActive && !hasSubItems ? "active" : "",
-                    hasSubItems && isWalletActive ? "active" : "",
+                    hasSubItems && anySubActive ? "active" : "",
                     hasSubItems ? "has-submenu" : "",
                   ]
                     .filter(Boolean)
@@ -213,12 +286,14 @@ export default function LeftSidebar({
                       }`}
                     >
                       {item.subItems!.map((sub) => {
-                        const subTab = sub.href.split("tab=")[1];
+                        const hasTabParam = sub.href.includes("tab=");
+                        const subTab = hasTabParam ? sub.href.split("tab=")[1] : null;
+                        const subActive = hasTabParam ? tab === subTab : isActive(sub.href);
 
                         return (
                           <li
                             key={sub.label}
-                            className={tab === subTab ? "active" : ""}
+                            className={subActive ? "active" : ""}
                           >
                             <Link href={sub.href}>
                               {sub.label}
@@ -268,8 +343,6 @@ export default function LeftSidebar({
           <ul>
             {faqItems.map((item) => (
               <li key={item.label} className="mb-0">
-                {/* <a href={item.href} onClick={stop} > */}
-                {/* <a href={item.href} onClick={(e) => { stop(e); onCloseMobile(); }}> */}
                 <a href={item.href} onClick={(e) => { e.preventDefault(); onNavigate(item.href); }}>
                   <i className={item.iconClass}></i>{" "}
                   <span className="sidebar-text">{item.label}</span>
@@ -291,3 +364,4 @@ export default function LeftSidebar({
     </>
   );
 }
+
