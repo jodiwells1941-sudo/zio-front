@@ -179,7 +179,8 @@ export default function MyAds() {
                         </div>
 
                         <div className="d-flex gap-2">
-                            <Link href={`/dashboard/ads?id=${c.id}`}
+                            {/* <Link href={`/dashboard/ads?id=${c.id}`} */}
+                            <Link href={`/dashboard/merchant/ads?id=${c.id}`}
                               className="btn btn-primary btn-sm"
                             >
                               Edit

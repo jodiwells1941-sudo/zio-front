@@ -132,7 +132,7 @@ function statusLabel(status: MerchantApplicationStatus): string {
 }
 
 function statusBadgeClass(status: MerchantApplicationStatus): string {
-  if (status === 'approved') return 'top-rated-badge';
+  if (status === 'approved') return 'top-rated-badge mt-10';
   if (status === 'rejected') return 'top-rated-badge status-rejected';
   return 'top-rated-badge status-pending';
 }
@@ -405,10 +405,10 @@ export default function MerchantProfile({
                     <i
                       className={
                         application.status === 'approved'
-                          ? 'fa-solid fa-circle-check'
+                          ? 'fa-solid fa-circle-check me-2 text-info'
                           : application.status === 'rejected'
-                          ? 'fa-solid fa-circle-xmark'
-                          : 'fa-solid fa-hourglass-half'
+                          ? 'fa-solid fa-circle-xmark me-2'
+                          : 'fa-solid fa-hourglass-half me-2'
                       }
                     />
                     {application.status === 'approved'

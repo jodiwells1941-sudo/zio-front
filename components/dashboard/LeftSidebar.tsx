@@ -5,11 +5,17 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getMerchantAccount } from "@/app/api/merchant";
 
+type SubItem = {
+  label: string;
+  href: string;
+  newTab?: boolean;
+};
+
 type NavItem = {
   label: string;
   href: string;
   iconClass: string;
-  subItems?: { label: string; href: string }[];
+  subItems?: SubItem[];
 };
 
 type SocialItem = {
@@ -30,22 +36,30 @@ type MerchantAccount = {
   status?: MerchantStatus;
 };
 
-/*
- * -----------------------------------------------------------
- * MERCHANT-ONLY SIDEBAR (approved merchants only)
- * -----------------------------------------------------------
- * Once a merchant's application is approved, the ENTIRE
- * sidebar nav switches to only these merchant management
- * links — every other item (Dashboard, Wallet, Lottery, etc.)
- * is hidden while the merchant is approved.
- */
+
 const MERCHANT_APPROVED_NAV_ITEMS: NavItem[] = [
-  { label: "Merchant Account", href: "/dashboard/merchant", iconClass: "fa-solid fa-user-tie" },
+  { label: "Merchant Account", href: "/dashboard/merchant/dashboard", iconClass: "fa-solid fa-user-tie" },
+  { label: "Ads", href: "/dashboard/merchant/ads", iconClass: "fa-solid fa-bullhorn" },
   { label: "Merchant Commission", href: "/dashboard/merchant/commission-earnings", iconClass: "fa-solid fa-coins" },
   { label: "Merchant Level", href: "/dashboard/merchant/level", iconClass: "fa-solid fa-layer-group" },
   { label: "Merchant Profile", href: "/dashboard/merchant/profile", iconClass: "fa-solid fa-id-card" },
   { label: "Merchant Reviews", href: "/dashboard/merchant/reviews", iconClass: "fa-solid fa-star" },
   { label: "Merchant Settings", href: "/dashboard/merchant/settings", iconClass: "fa-solid fa-gear" },
+];
+
+/*
+ * Exact merchant page paths (trailing slash is normalized away
+ * before comparing, so both "/dashboard/merchant" and
+ * "/dashboard/merchant/" match).
+ */
+const MERCHANT_ROUTE_PATHS = [
+  "/dashboard/merchant/dashboard",
+  "/dashboard/merchant/ads",
+  "/dashboard/merchant/commission-earnings",
+  "/dashboard/merchant/level",
+  "/dashboard/merchant/profile",
+  "/dashboard/merchant/reviews",
+  "/dashboard/merchant/settings",
 ];
 
 export default function LeftSidebar({
@@ -63,8 +77,8 @@ export default function LeftSidebar({
     {
       label: "P2P", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake", 
       subItems: [
-        { label: "P2P Buy & Sell", href: "/dashboard/wallet?tab=tab3" },
-        { label: "Merchant Apply", href: "/dashboard/merchant" },
+        { label: "P2P Buy & Sell", href: "/dashboard/wallet?tab=tab3", newTab: false },
+        { label: "Merchant Apply", href: "/dashboard/merchant", newTab: true },
       ],
     },
     { label: "Lottery", href: "/dashboard/lottery", iconClass: "fa-regular fa-futbol" },
@@ -120,19 +134,69 @@ export default function LeftSidebar({
 
   /*
    * -------------------------------------------------------
+   * NAV ITEMS WITH MERCHANT LABEL SWAP
+   * -------------------------------------------------------
+   * Once the merchant is approved, the "Merchant Apply" sub
+   * item under P2P should read "Merchant Account" instead
+   * (since the user already has an account, not an application
+   * to submit). Only the label changes — the href stays the
+   * same ("/dashboard/merchant").
+   */
+  const navItemsWithMerchantLabel = useMemo(() => {
+    if (!isApprovedMerchant) return navItems;
+
+    return navItems.map((item) => {
+      if (!item.subItems) return item;
+
+      const hasMerchantApplyLink = item.subItems.some(
+        (sub) => sub.href === "/dashboard/merchant"
+      );
+      if (!hasMerchantApplyLink) return item;
+
+      return {
+        ...item,
+        subItems: item.subItems.map((sub) =>
+          sub.href === "/dashboard/merchant"
+            ? { ...sub, label: "Merchant Account", href: "/dashboard/merchant/dashboard" }
+            : sub
+        ),
+      };
+    });
+  }, [navItems, isApprovedMerchant]);
+
+  /*
+   * -------------------------------------------------------
+   * MERCHANT ROUTE DETECTION
+   * -------------------------------------------------------
+   * True only when the current pathname EXACTLY matches one
+   * of the six merchant pages (trailing slash ignored). This
+   * is the ONLY thing that controls which nav list is shown —
+   * `isApprovedMerchant` is intentionally not used here, so
+   * visiting /dashboard (or any other non-merchant page) always
+   * shows the normal navItems, even for an approved merchant.
+   */
+  const isMerchantRoute = useMemo(() => {
+    const current = pathname?.replace(/\/+$/, "") || "/";
+    return MERCHANT_ROUTE_PATHS.includes(current);
+  }, [pathname]);
+
+  /*
+   * -------------------------------------------------------
    * EFFECTIVE NAV ITEMS
    * -------------------------------------------------------
-   * Once the merchant application is approved, the sidebar
-   * shows ONLY the merchant management links — every other
-   * item (Dashboard, Wallet, Lottery, etc.) is hidden.
+   * - Current URL is one of the six merchant pages
+   *   -> show ONLY MERCHANT_APPROVED_NAV_ITEMS, hide navItems.
+   * - Any other URL (e.g. /dashboard, /dashboard/wallet, ...)
+   *   -> show the normal navItems (with "Merchant Account" label
+   *   swapped in if approved), hide MERCHANT_APPROVED_NAV_ITEMS.
    */
   const effectiveNavItems = useMemo(() => {
-    if (isApprovedMerchant) {
+    if (isMerchantRoute) {
       return MERCHANT_APPROVED_NAV_ITEMS;
     }
 
-    return navItems;
-  }, [navItems, isApprovedMerchant]);
+    return navItemsWithMerchantLabel;
+  }, [navItemsWithMerchantLabel, isMerchantRoute]);
 
   const onCloseMobile = useCallback(() => {
     document.querySelector(".left-sidebar-area")?.classList.remove("active");
@@ -175,9 +239,7 @@ export default function LeftSidebar({
     [pathname]
   );
 
-  const isWalletActive = isActive("/dashboard/wallet");
   const searchParams = useSearchParams();
-
   const tab = searchParams.get('tab');
 
 
@@ -290,12 +352,20 @@ export default function LeftSidebar({
                         const subTab = hasTabParam ? sub.href.split("tab=")[1] : null;
                         const subActive = hasTabParam ? tab === subTab : isActive(sub.href);
 
+                        // const opensNewTab = sub.href !== "/dashboard/merchant";
+                        const opensNewTab = sub.newTab && sub.href !== "/dashboard/merchant";
+
                         return (
                           <li
                             key={sub.label}
                             className={subActive ? "active" : ""}
                           >
-                            <Link href={sub.href}>
+                            <Link
+                              href={sub.href}
+                              {...(opensNewTab
+                                ? { target: "_blank", rel: "noopener noreferrer" }
+                                : {})}
+                            >
                               {sub.label}
                             </Link>
                           </li>

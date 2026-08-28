@@ -135,7 +135,7 @@ const reviews = [
 
 export default function MerchantReviews() {
   return (
-    <section className="merchant-reviews-page">
+    <section className="merchant-reviews-v2">
 
       {/* ================= HEADER ================= */}
       <div className="merchant-page-header">
@@ -370,142 +370,187 @@ export default function MerchantReviews() {
 
       </div>
 
-      {/* ================= REVIEWS + RATE ================= */}
-      <div className="row g-3 review-bottom-grid">
+      {/* ================= RECENT REVIEWS + RATE EXPERIENCE ================= */}
+<div className="row g-3 merchant-review-bottom-layout">
 
-        {/* Recent Reviews */}
-        <div className="col-12 col-xl-9">
-          <div className="review-card recent-reviews-card">
+  {/* Recent Reviews */}
+  <div className="col-12 col-xl-9">
+    <div className="merchant-review-recent-card">
 
-            <div className="review-card-header">
-              <h2>Recent Reviews</h2>
-            </div>
+      {/* Header */}
+      <div className="merchant-review-recent-header">
+        <div>
+          <h2>Recent Reviews</h2>
+          <p>Latest feedback from your completed orders.</p>
+        </div>
 
-            <div className="reviews-list">
+        <button className="merchant-review-header-link">
+          View All
+          <i className="fa-solid fa-arrow-right" />
+        </button>
+      </div>
 
-              {reviews.map((review) => (
-                <div
-                  className="customer-review"
-                  key={review.order}
-                >
+      {/* Reviews */}
+      <div className="merchant-review-items">
 
-                  <div className="review-user">
+        {reviews.map((review) => (
+          <div
+            className="merchant-review-item"
+            key={review.order}
+          >
 
-                    <div className="review-avatar">
-                      {review.avatar ? (
-                        <img
-                          src={review.avatar}
-                          alt={review.name}
-                        />
-                      ) : (
-                        <i className="fa-solid fa-user" />
-                      )}
-                    </div>
+            {/* User */}
+            <div className="merchant-review-user">
 
-                    <div>
-                      <div className="review-user-name">
-                        {review.name}
+              <div className="merchant-review-avatar">
+                {review.avatar ? (
+                  <img
+                    src={review.avatar}
+                    alt={review.name}
+                  />
+                ) : (
+                  <i className="fa-solid fa-user" />
+                )}
+              </div>
 
-                        <span className="verified-badge">
-                          Verified Buyer
-                        </span>
-                      </div>
+              <div className="merchant-review-user-info">
 
-                      <small>{review.time}</small>
-                    </div>
+                <div className="merchant-review-user-name">
+                  <strong>{review.name}</strong>
 
-                  </div>
-
-                  <div className="review-content">
-
-                    <div className="review-rating-line">
-                      <span className="review-stars">
-                        {"★★★★★".slice(0, review.rating)}
-                      </span>
-
-                      <strong>{review.rating}.0</strong>
-                    </div>
-
-                    <p>{review.comment}</p>
-
-                    <div className="review-order">
-                      Order ID: {review.order}
-                      <span>•</span>
-                      {review.time}
-                    </div>
-
-                  </div>
-
-                  <div className="review-order-value">
-
-                    <span
-                      className={`review-side ${
-                        review.type === "buy"
-                          ? "buy"
-                          : "sell"
-                      }`}
-                    >
-                      {review.side}
-                    </span>
-
-                    <strong
-                      className={
-                        review.type === "buy"
-                          ? "buy-value"
-                          : "sell-value"
-                      }
-                    >
-                      {review.amount}
-                    </strong>
-
-                  </div>
-
+                  <span className="merchant-review-verified">
+                    <i className="fa-solid fa-circle-check" />
+                    Verified Buyer
+                  </span>
                 </div>
-              ))}
+
+                <span className="merchant-review-date">
+                  {review.time}
+                </span>
+
+              </div>
 
             </div>
 
-            <button className="view-all-reviews">
-              View All Reviews
-            </button>
+            {/* Review Content */}
+            <div className="merchant-review-content">
+
+              <div className="merchant-review-rating">
+                <span className="merchant-review-stars">
+                  {"★★★★★".slice(0, review.rating)}
+                </span>
+
+                <strong>
+                  {review.rating}.0
+                </strong>
+              </div>
+
+              <p className="merchant-review-comment">
+                {review.comment}
+              </p>
+
+              <div className="merchant-review-order-info">
+                <span>Order ID: {review.order}</span>
+                <i className="fa-solid fa-circle" />
+                <span>{review.time}</span>
+              </div>
+
+            </div>
+
+            {/* Order */}
+            <div className="merchant-review-order">
+
+              <span
+                className={`merchant-review-side ${
+                  review.type === "buy"
+                    ? "merchant-review-side-buy"
+                    : "merchant-review-side-sell"
+                }`}
+              >
+                {review.side}
+              </span>
+
+              <strong
+                className={
+                  review.type === "buy"
+                    ? "merchant-review-amount-buy"
+                    : "merchant-review-amount-sell"
+                }
+              >
+                {review.amount}
+              </strong>
+
+            </div>
 
           </div>
-        </div>
-
-        {/* Rate Your Experience */}
-        <div className="col-12 col-xl-3">
-          <div className="review-card rate-experience-card">
-
-            <div className="review-card-header">
-              <h2>Rate Your Experience</h2>
-            </div>
-
-            <p>
-              Your feedback helps others choose
-              the right merchant.
-            </p>
-
-            <div className="experience-stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button key={star}>
-                  <i className="fa-regular fa-star" />
-                </button>
-              ))}
-            </div>
-
-            <button className="merchant-primary-btn write-review-btn">
-              Write a Review
-            </button>
-
-            <div className="review-note">
-              <i className="fa-regular fa-circle-question" />
-              Only completed orders can be reviewed.
-            </div>
-
-          </div>
-        </div>
+        ))}
 
       </div>
+
+      {/* Footer */}
+      <div className="merchant-review-recent-footer">
+        <button className="merchant-review-view-all">
+          View All Reviews
+          <i className="fa-solid fa-arrow-right" />
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  {/* Rate Your Experience */}
+  <div className="col-12 col-xl-3">
+    <div className="merchant-review-rate-card">
+
+      <div className="merchant-review-rate-icon">
+        <i className="fa-regular fa-star" />
+      </div>
+
+      <div className="merchant-review-rate-heading">
+        <h2>Rate Your Experience</h2>
+        <p>
+          Your feedback helps other users
+          choose the right merchant.
+        </p>
+      </div>
+
+      {/* Stars */}
+      <div className="merchant-review-experience-stars">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            aria-label={`Rate ${star} stars`}
+          >
+            <i className="fa-regular fa-star" />
+          </button>
+        ))}
+      </div>
+
+      <div className="merchant-review-rate-divider" />
+
+      <button className="merchant-review-write-btn">
+        <i className="fa-regular fa-pen-to-square ms-2" />
+        Write a Review
+        <i className="fa-solid fa-arrow-right" />
+      </button>
+
+      {/* Note */}
+      <div className="merchant-review-rate-note">
+        <div className="merchant-review-rate-note-icon">
+          <i className="fa-regular fa-circle-question" />
+        </div>
+
+        <p>
+          Only completed orders can be reviewed.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
 
     </section>
   );

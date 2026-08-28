@@ -424,7 +424,7 @@ export default function MerchantSettings() {
           </div>
 
           <button type="button" className="add-payment-btn">
-            <i className="fa-solid fa-plus" />
+            <i className="fa-solid fa-plus ms-3" />
             Add New Payment Method
           </button>
         </SettingCard>
@@ -572,7 +572,7 @@ export default function MerchantSettings() {
           </div>
 
           <button type="button" className="manage-api-btn">
-            <i className="fa-solid fa-gear" />
+            <i className="fa-solid fa-gear ms-3" />
             Manage API Keys
           </button>
         </SettingCard>
