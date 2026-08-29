@@ -173,11 +173,12 @@
 "use client";
 
 import { getUserPaymentMethods } from "@/app/api/common";
+import { getBonusFeesSettings } from "@/app/api/merchant";
 import { P2pAdsData } from "@/app/api/p2padsapi";
 import { generateTrade } from "@/app/api/trade";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -199,22 +200,21 @@ export default function BuySellPendingModel({ onClose, ad }: Props) {
   const [submitting,   setSubmitting]   = useState(false);
   const [methods,        setMethods]        = useState<any[]>([]);
   const [loadingMethods, setLoadingMethods] = useState(false);
-
+  const [charge, setCharge] = useState(0);
 
   const loadMethods = useCallback(async () => {
-      setLoadingMethods(true);
-      try {
-        const res = await getUserPaymentMethods();
-        setMethods(res?.data ?? []);
-      } catch (e: any) {
-        toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed to load payment methods.');
-      } finally {
-        setLoadingMethods(false);
-      }
-    }, []);
+    setLoadingMethods(true);
+    try {
+      const res = await getUserPaymentMethods();
+      setMethods(res?.data ?? []);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed to load payment methods.');
+    } finally {
+      setLoadingMethods(false);
+    }
+  }, []);
   
-    useEffect(() => { loadMethods(); }, [loadMethods]);
-
+  useEffect(() => { loadMethods(); }, [loadMethods]);
 
   // Close on Escape
   useEffect(() => {
@@ -225,7 +225,35 @@ export default function BuySellPendingModel({ onClose, ad }: Props) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    const loadBonusFees = async () => {
+      try {
+        const res = await getBonusFeesSettings();
+        const settings = res?.data;
+
+        if (ad.type === 'buy') {
+          setCharge(Number(settings?.user_sell_charge ?? 0));
+        } else {
+          setCharge(0);
+        }
+      } catch (error) {
+        console.error('Failed to load bonus & fees settings:', error);
+        setCharge(0);
+      }
+    };
+
+    if (ad?.type) {
+      loadBonusFees();
+    }
+  }, [ad]);
+
   const handleAll = () => setSellAmount(String(ad.total_amount));
+
+  // ─── Fee & net receivable calculation ───────────────────────────────────────
+
+  const grossReceive = Number(receiveAmt) || 0;
+  const feeDeducted   = useMemo(() => (grossReceive * charge) / 100, [grossReceive, charge]);
+  const netReceive    = useMemo(() => Math.max(grossReceive - feeDeducted, 0), [grossReceive, feeDeducted]);
 
   const sellerName   = ad.user?.name          ?? 'Unknown';
   const sellerAvatar = ad.user?.avatar         ?? '';
@@ -339,6 +367,12 @@ export default function BuySellPendingModel({ onClose, ad }: Props) {
                   <span className="text-white-50 text-lg">Price Type</span>
                   <span className="val">{ad.price_type === 'fixed' ? 'Fixed' : 'Floating'}</span>
                 </div>
+                {charge > 0 && (
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-white-50 text-lg">Selling Fee</span>
+                    <span className="val text-danger">{charge}%</span>
+                  </div>
+                )}
               </div>
 
               {ad.remarks && (
@@ -397,6 +431,11 @@ export default function BuySellPendingModel({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.asset}</span>
                   </div>
                 </div>
+                {charge > 0 && (
+                  <div className="text-sm fw-6 text-danger pt-2">
+                    Selling Fees Charge {charge}%
+                  </div>
+                )}
               </div>
 
               {/* You Receive */}
@@ -419,9 +458,28 @@ export default function BuySellPendingModel({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.with_fiat}</span>
                   </div>
                 </div>
+
                 <div className="text-sm fw-6 text-danger pt-3">
                   Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
                 </div>
+
+                {/* Net receivable breakdown */}
+                {charge > 0 && grossReceive > 0 && (
+                  <div className="netBreakdown mt-3 pt-3">
+                    <div className="d-flex align-items-center justify-content-between text-sm">
+                      <span className="text-white-50">Gross Amount</span>
+                      <span className="text-light">{ad.with_fiat} {grossReceive.toFixed(2)}</span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between text-sm my-2">
+                      <span className="text-white-50">Fee ({charge}%)</span>
+                      <span className="text-danger">− {ad.with_fiat} {feeDeducted.toFixed(2)}</span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between mt-2 pt-2 netTotalRow">
+                      <span className="fw-6 text-light">You&apos;ll Receive</span>
+                      <span className="fw-6 netTotalValue">{ad.with_fiat} {netReceive.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Payment Method */}

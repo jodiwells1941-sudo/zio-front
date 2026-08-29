@@ -16777,6 +16777,32 @@ span {
    ADS
 ========================================================= */
 
+.netBreakdown {
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.netTotalRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.netTotalValue {
+  color: #2ecc71; /* success green for the final payout, distinct from the red fee/error tone already used */
+  font-size: 1rem;
+}
+
+.netBreakdown {
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.netTotalRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.netTotalValue {
+  color: #2ecc71; /* success green — consistent with the bonus being a gain, not a cost */
+  font-size: 1rem;
+}
+
 .ads-card {
   overflow: hidden;
 }
