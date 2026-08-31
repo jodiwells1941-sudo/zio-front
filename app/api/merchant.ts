@@ -19,3 +19,9 @@ export const updateMerchantApplicationApi = async (data: any) => {
   const response = await apiClient.put('/user/merchant/account-update', data);
   return response?.data;
 }
+
+export const getBonusFeesSettings = async () => {
+  const response = await apiClient.get('/user/settings/bonus-fees');
+  return response?.data;
+};
+

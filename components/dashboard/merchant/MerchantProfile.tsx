@@ -20,33 +20,19 @@ export type MerchantApplication = {
   email: string;
   phone_country_code: string;
   phone: string;
-  dob: string;
   country: string;
-  city: string;
   address: string;
-  language: string;
-  source: string;
 
   business_type: string;
   business_name: string;
-  registration_number: string;
   tax_id: string;
   business_email: string;
   business_phone_country_code: string;
   business_phone: string;
-  business_address: string;
   operation_type: string;
 
   trade_coin: string;
   payment_methods: string[];
-  daily_volume: string;
-  average_order: string;
-  trading_source: string;
-
-  national_id_path: string;
-  selfie_path: string;
-  business_proof_path: string | null;
-  address_proof_path: string;
 
   deposit_paid: boolean;
   deposit_amount: string;
@@ -57,11 +43,6 @@ export type MerchantApplication = {
 
   created_at: string;
   updated_at: string;
-
-  national_id_url: string;
-  selfie_url: string;
-  business_proof_url: string | null;
-  address_proof_url: string;
 };
 
 // Trading/earnings stats aren't part of the application API — they'd come
@@ -86,7 +67,7 @@ export type MerchantStats = {
 // Fields the Personal Information card can edit.
 type ProfileDraft = Pick<
   MerchantApplication,
-  'full_name' | 'phone_country_code' | 'phone' | 'city' | 'address' | 'language'
+  'full_name' | 'phone_country_code' | 'phone' | 'address'
 >;
 
 // Fields the Business Information card can edit.
@@ -96,7 +77,6 @@ type BusinessDraft = Pick<
   | 'business_email'
   | 'business_phone_country_code'
   | 'business_phone'
-  | 'business_address'
   | 'operation_type'
   | 'trade_coin'
   | 'payment_methods'
@@ -152,14 +132,13 @@ function statusLabel(status: MerchantApplicationStatus): string {
 }
 
 function statusBadgeClass(status: MerchantApplicationStatus): string {
-  if (status === 'approved') return 'top-rated-badge';
+  if (status === 'approved') return 'top-rated-badge mt-10';
   if (status === 'rejected') return 'top-rated-badge status-rejected';
   return 'top-rated-badge status-pending';
 }
 
 const PAYMENT_METHOD_OPTIONS = ['Bank Transfer', 'bKash', 'Nagad', 'Rocket'];
 const TRADE_COIN_OPTIONS = ['USDT', 'USDC', 'BTC'];
-const LANGUAGE_OPTIONS = ['English', 'Bangla', 'Hindi'];
 const OPERATION_TYPE_OPTIONS = [
   'Manually (I will manage orders)',
   'Automatically',
@@ -198,9 +177,7 @@ export default function MerchantProfile({
     full_name: '',
     phone_country_code: '+880',
     phone: '',
-    city: '',
     address: '',
-    language: 'English',
   });
 
   const [businessDraft, setBusinessDraft] = useState<BusinessDraft>({
@@ -208,7 +185,6 @@ export default function MerchantProfile({
     business_email: '',
     business_phone_country_code: '+880',
     business_phone: '',
-    business_address: '',
     operation_type: OPERATION_TYPE_OPTIONS[0],
     trade_coin: TRADE_COIN_OPTIONS[0],
     payment_methods: [],
@@ -222,9 +198,7 @@ export default function MerchantProfile({
         full_name: application.full_name,
         phone_country_code: application.phone_country_code,
         phone: application.phone,
-        city: application.city,
         address: application.address,
-        language: application.language,
       });
     }
   }, [application, editingSection]);
@@ -236,7 +210,6 @@ export default function MerchantProfile({
         business_email: application.business_email,
         business_phone_country_code: application.business_phone_country_code,
         business_phone: application.business_phone,
-        business_address: application.business_address,
         operation_type: application.operation_type,
         trade_coin: application.trade_coin,
         payment_methods: application.payment_methods ?? [],
@@ -353,15 +326,6 @@ export default function MerchantProfile({
     ? `${application.business_phone_country_code} ${application.business_phone}`
     : '-';
 
-  const businessAddress = application.business_address || '-';
-
-  const documents = [
-    { title: 'National ID / Passport', url: application.national_id_url },
-    { title: 'Selfie with ID', url: application.selfie_url },
-    { title: 'Business Proof', url: application.business_proof_url },
-    { title: 'Address Proof', url: application.address_proof_url },
-  ];
-
   const verification = [
     {
       icon: 'fa-solid fa-id-card',
@@ -441,10 +405,10 @@ export default function MerchantProfile({
                     <i
                       className={
                         application.status === 'approved'
-                          ? 'fa-solid fa-circle-check'
+                          ? 'fa-solid fa-circle-check me-2 text-info'
                           : application.status === 'rejected'
-                          ? 'fa-solid fa-circle-xmark'
-                          : 'fa-solid fa-hourglass-half'
+                          ? 'fa-solid fa-circle-xmark me-2'
+                          : 'fa-solid fa-hourglass-half me-2'
                       }
                     />
                     {application.status === 'approved'
@@ -559,26 +523,9 @@ export default function MerchantProfile({
                       }
                     />
 
-                    <EditSelect
-                      label="Preferred Language"
-                      value={profileDraft.language}
-                      options={LANGUAGE_OPTIONS}
-                      onChange={(value) =>
-                        setProfileDraft((p) => ({ ...p, language: value }))
-                      }
-                    />
-
                   </div>
 
                   <div className="business-column">
-
-                    <EditInput
-                      label="City"
-                      value={profileDraft.city}
-                      onChange={(value) =>
-                        setProfileDraft((p) => ({ ...p, city: value }))
-                      }
-                    />
 
                     <EditTextarea
                       label="Address"
@@ -612,12 +559,6 @@ export default function MerchantProfile({
                       value={personalPhone}
                     />
 
-                    <InfoItem
-                      icon="fa-solid fa-language"
-                      label="Preferred Language"
-                      value={application.language || '-'}
-                    />
-
                   </div>
 
                   <div className="business-column">
@@ -626,12 +567,6 @@ export default function MerchantProfile({
                       icon="fa-solid fa-earth-asia"
                       label="Country"
                       value={application.country || '-'}
-                    />
-
-                    <InfoItem
-                      icon="fa-solid fa-city"
-                      label="City"
-                      value={application.city || '-'}
                     />
 
                     <InfoItem
@@ -667,8 +602,8 @@ export default function MerchantProfile({
                 <div className="business-info-grid">
                   <div className="business-column">
 
-                    {/* Business type, registration number and tax ID are tied
-                        to KYC review and aren't self-editable here. */}
+                    {/* Business type and tax ID are tied to KYC review and
+                        aren't self-editable here. */}
                     <InfoItem
                       icon="fa-solid fa-building"
                       label="Business Type"
@@ -716,17 +651,6 @@ export default function MerchantProfile({
                   </div>
 
                   <div className="business-column">
-
-                    <EditTextarea
-                      label="Business Address"
-                      value={businessDraft.business_address}
-                      onChange={(value) =>
-                        setBusinessDraft((p) => ({
-                          ...p,
-                          business_address: value,
-                        }))
-                      }
-                    />
 
                     <InfoItem
                       icon="fa-solid fa-file-invoice"
@@ -815,13 +739,6 @@ export default function MerchantProfile({
                   <div className="business-column">
 
                     <InfoItem
-                      icon="fa-solid fa-location-dot"
-                      label="Business Address"
-                      value={businessAddress}
-                      multiline
-                    />
-
-                    <InfoItem
                       icon="fa-solid fa-file-invoice"
                       label="Tax ID / NID"
                       value={application.tax_id || '-'}
@@ -878,45 +795,6 @@ export default function MerchantProfile({
 
                         {'subtitle' in item && item.subtitle && (
                           <small>{item.subtitle}</small>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-              </div>
-            </section>
-
-            {/* DOCUMENTS */}
-            <section className="merchant-card verification-card">
-
-              <div className="merchant-section-header">
-                <h3>Submitted Documents</h3>
-              </div>
-
-              <div className="verification-grid">
-
-                {documents.map((doc) => (
-                  <div className="verification-item" key={doc.title}>
-                    <div className="verification-icon">
-                      <i className="fa-regular fa-file-lines" />
-                    </div>
-
-                    <div className="verification-content">
-                      <span>{doc.title}</span>
-
-                      <div className="verification-value">
-                        {doc.url ? (
-                          <a
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-success"
-                          >
-                            View Document
-                          </a>
-                        ) : (
-                          <strong>Not Provided</strong>
                         )}
                       </div>
                     </div>
