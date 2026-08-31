@@ -40,6 +40,7 @@ type MerchantAccount = {
 const MERCHANT_APPROVED_NAV_ITEMS: NavItem[] = [
   { label: "Merchant Account", href: "/dashboard/merchant/dashboard", iconClass: "fa-solid fa-user-tie" },
   { label: "Ads", href: "/dashboard/merchant/ads", iconClass: "fa-solid fa-bullhorn" },
+  { label: "All Orders", href: "/dashboard/merchant/orders", iconClass: "fa-solid fa-cart-shopping" },
   { label: "Merchant Commission", href: "/dashboard/merchant/commission-earnings", iconClass: "fa-solid fa-coins" },
   { label: "Merchant Level", href: "/dashboard/merchant/level", iconClass: "fa-solid fa-layer-group" },
   { label: "Merchant Profile", href: "/dashboard/merchant/profile", iconClass: "fa-solid fa-id-card" },
@@ -55,6 +56,7 @@ const MERCHANT_APPROVED_NAV_ITEMS: NavItem[] = [
 const MERCHANT_ROUTE_PATHS = [
   "/dashboard/merchant/dashboard",
   "/dashboard/merchant/ads",
+  "/dashboard/merchant/orders",
   "/dashboard/merchant/commission-earnings",
   "/dashboard/merchant/level",
   "/dashboard/merchant/profile",

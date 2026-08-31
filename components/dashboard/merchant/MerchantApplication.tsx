@@ -281,8 +281,7 @@ export default function MerchantApplication() {
           getMerchantDepositAmountApi(),
         ]);
 
-        setWalletSettings(walletRes?.data ?? null);
-
+        setWalletSettings(walletRes?.data ?? null);        
         const amount = Number(depositRes?.data?.deposit_amount);
 
         setRequiredDepositAmount(
