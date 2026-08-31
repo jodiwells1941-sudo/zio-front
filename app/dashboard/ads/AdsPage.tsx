@@ -222,14 +222,14 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     Object.keys(stepValidators[step - 1](formData)).length > 0;
 
   const setAd = async () => {
-    const res = await fetchUserInfoAPI();
+    // const res = await fetchUserInfoAPI();
 
-    if (!res?.data) return;
+    // if (!res?.data) return;
 
-    if (res.data.wallet.security_amount_for_ads < 20) {
-      toast.error("Your current security deposit is less than $20. Consider adding more to ensure your ads remain active.");
-      return;
-    }
+    // if (res.data.wallet.security_amount_for_ads < 20) {
+    //   toast.error("Your current security deposit is less than $20. Consider adding more to ensure your ads remain active.");
+    //   return;
+    // }
 
     setCreatedAd(true);
   }
@@ -241,7 +241,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
       <div className="p-4 d-flex gap-3 justify-content-between">
         <button className='btn btn-black bg-black text-white' onClick={()=>setCreatedAd(false)}> All Ads</button>
         <div className="d-flex gap-2">
-          <button className='btn btn-warning' onClick={()=>setisOpenDepositModel(true)}>Add Security Money</button>
+          {/* <button className='btn btn-warning' onClick={()=>setisOpenDepositModel(true)}>Add Security Money</button> */}
           <button className='btn btn-warning' onClick={()=>setAd()}>Create Ads</button>
         </div>
       </div>
