@@ -76,6 +76,12 @@ export const getTrades = async (params?: Record<string, string | number>) => {
   return response?.data;
 };
 
+// Get Merchant orders (paginated)
+export const getMerchantOrders = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/trade/merchant-orders', { params });
+  return response?.data;
+};
+
 // ─── Generate (create) a trade ────────────────────────────────────────────────
 
 export const generateTrade = async (data: GenerateTradePayload) => {
