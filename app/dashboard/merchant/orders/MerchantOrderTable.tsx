@@ -1,6 +1,6 @@
 "use client";
 
-import { getTrades, updateTradeStatus } from "@/app/api/trade";
+import { getMerchantOrders, updateTradeStatus } from "@/app/api/trade";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -54,7 +54,7 @@ const getStatusUI = (trade: Trade): { text: string; className: string } => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function AdsTable() {
+export default function MerchantOrderTable() {
   const [trades,    setTrades]    = useState<Trade[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [syncing,   setSyncing]   = useState(false);
@@ -82,7 +82,7 @@ export default function AdsTable() {
         ...(toDate   ? { to_date: toDate }     : {}),
       };
 
-      const res = await (getTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
+      const res = await (getMerchantOrders as (args?: Record<string, string | number>) => Promise<unknown>)(params);
 
       const paginated = (res as any)?.data;
       setTrades(paginated?.data ?? paginated ?? []);
