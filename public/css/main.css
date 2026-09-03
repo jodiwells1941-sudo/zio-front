@@ -18849,6 +18849,21 @@ span {
   font-size: 14px;
 }
 
+.dl-bonus-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(43, 208, 115, 0.08);
+  border: 1px solid rgba(43, 208, 115, 0.25);
+  color: #2bd073;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.dl-bonus-badge i { color: #f0b332; }
+
 .paid-status {
   color: #30df70 !important;
 }

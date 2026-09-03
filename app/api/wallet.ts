@@ -77,4 +77,16 @@ export const depositListApi = async (page: number = 1) => {
 };
 
 
+export const getWithdrawChargeApi = async () => {
+  const response = await apiClient.get('/user/withdraw-charge');
+  return response?.data;
+};
+
+export const getDepositBonusApi = async (amount: number) => {
+  const response = await apiClient.get('/user/deposit-bonus', {
+    params: { amount },
+  });
+  return response?.data;
+};
+
 

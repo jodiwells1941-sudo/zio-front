@@ -9,6 +9,7 @@ import {
   VerifyDepositApi,
   SubmitBinanceDepositApi,
   cancelDeposit,
+  getDepositBonusApi,
 } from "@/app/api/wallet";
 import { depositListApi } from "@/app/api/wallet";
 import { toast } from "react-toastify";
@@ -25,6 +26,13 @@ type DepositInfo = {
   qr_code: string;
   expires_at?: string;
   status?: "pending" | "completed" | "expired" | "failed";
+};
+
+type DepositBonusInfo = {
+  deposit_amount: number;
+  bonus_amount: number;
+  total_credit: number;
+  tier_id: number | null;
 };
 
 type DepositRow = {
@@ -929,6 +937,40 @@ const handleBinanceSubmit = async () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [binanceStatus]);
 
+
+  const [depositBonus, setDepositBonus] = useState<DepositBonusInfo | null>(null);
+  const [isBonusLoading, setIsBonusLoading] = useState<boolean>(false);
+
+  // ── fetch deposit bonus whenever the active amount changes (debounced) ──────
+  useEffect(() => {
+    const amount = paymentMethod === "binance" ? binanceAmount : depositAmount;
+
+    if (!amount || amount <= 0) {
+      setDepositBonus(null);
+      return;
+    }
+
+    setIsBonusLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await getDepositBonusApi(amount);
+        if (!res.error) {
+          setDepositBonus(res.data);
+        } else {
+          setDepositBonus(null);
+        }
+      } catch (error) {
+        console.error("Error fetching deposit bonus:", error);
+        setDepositBonus(null);
+      } finally {
+        setIsBonusLoading(false);
+      }
+    }, 400); // debounce so we don't hit the API on every keystroke
+
+    return () => clearTimeout(timer);
+  }, [depositAmount, binanceAmount, paymentMethod]);  
+
   // ── render ──────────────────────────────────────────────────────────────────
   return (
     <div className="dl-wrapper" ref={depositSectionRef}>
@@ -1054,6 +1096,19 @@ const handleBinanceSubmit = async () => {
                       />
                       <span>USDT</span>
                     </div>
+
+                    <small className="dl-hint text-danger mb-2">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+
+                    {isBonusLoading && (
+                      <small className="dl-hint text-secondary d-block mt-1 mb-2">Checking bonus…</small>
+                    )}
+                    {!isBonusLoading && depositBonus && depositBonus.bonus_amount > 0 && (
+                      <div className="dl-bonus-badge mb-2">
+                        <i className="fa-solid fa-gift" />
+                        +{depositBonus.bonus_amount} {"USDT bonus — you'll be credited"} {depositBonus.total_credit} USDT
+                      </div>
+                    )}
+
                     {amountPreset?.length > 0 && (
                       <div className="dl-amount-presets">
                         {amountPreset.map((n) => (
