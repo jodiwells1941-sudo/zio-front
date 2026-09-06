@@ -89,4 +89,7 @@ export const getDepositBonusApi = async (amount: number) => {
   return response?.data;
 };
 
-
+export const getDepositBonusTiersApi = async () => {
+  const response = await apiClient.get('/user/deposit-bonus-tiers');
+  return response.data;
+};

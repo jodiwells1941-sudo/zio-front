@@ -37,6 +37,12 @@ export type P2pAdsData = {
     name: string;
     avatar: string;
   };
+  merchant: {
+    id: number;
+    full_name: string;
+    email: string;
+    avatar: string;
+  };
 
   payment_method: {
     id: number;

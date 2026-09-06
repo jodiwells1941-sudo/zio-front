@@ -83,7 +83,7 @@ interface WalletSettings {
 }
 
 const TOTAL_STEPS = 5;
-const DEFAULT_DEPOSIT_AMOUNT = 100;
+const DEFAULT_DEPOSIT_AMOUNT = 500;
 
 const STEPS = [
   "Basic Information",

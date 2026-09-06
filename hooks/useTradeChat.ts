@@ -57,9 +57,11 @@ export function useTradeChat(tradeId: number | null) {
       setLoading(true);
       const [tradeRes, msgRes] = await Promise.all([getTrade(tradeId), getTradeMessages(tradeId)]);
       const trade = tradeRes?.data;
+      // console.log('trade ===', trade);
+      
       if (trade) {
-        const cp =
-          meId === trade.client_id ? trade.customer?.name : trade.client?.name;
+        // const cp = meId === trade.client_id ? trade.customer?.name : trade.client?.name;
+        const cp = meId === trade.client_id ? trade.customer?.name : trade.merchant?.name;
         setCounterpartyName(cp || "Counterparty");
         setOrderId(trade.order_id ?? null);
       }

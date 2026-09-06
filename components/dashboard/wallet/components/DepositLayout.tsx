@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import DepositSupportModal from "./DepositSupportModal";
 import PaginationControls from "../../PaginationControls";
 import { useRouter } from "next/navigation";
+import DepositBonus from "./DepositBonusCard";
 
 type DepositInfo = {
   amount: string;
@@ -1082,7 +1083,7 @@ const handleBinanceSubmit = async () => {
             <>
               {/* Form card */}
               <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-                <div className="dl-form-grid deposit-wrapper mt-0">
+                <div className="dl-form-grid deposit-wrapper mt-0 mb-0">
                   <div>
                     <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
                     <div className="amount-input mb-2">
@@ -1097,18 +1098,6 @@ const handleBinanceSubmit = async () => {
                       <span>USDT</span>
                     </div>
 
-                    <small className="dl-hint text-danger mb-2">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
-
-                    {isBonusLoading && (
-                      <small className="dl-hint text-secondary d-block mt-1 mb-2">Checking bonus…</small>
-                    )}
-                    {!isBonusLoading && depositBonus && depositBonus.bonus_amount > 0 && (
-                      <div className="dl-bonus-badge mb-2">
-                        <i className="fa-solid fa-gift" />
-                        +{depositBonus.bonus_amount} {"USDT bonus — you'll be credited"} {depositBonus.total_credit} USDT
-                      </div>
-                    )}
-
                     {amountPreset?.length > 0 && (
                       <div className="dl-amount-presets">
                         {amountPreset.map((n) => (
@@ -1118,7 +1107,13 @@ const handleBinanceSubmit = async () => {
                         ))}
                       </div>
                     )}
-                    <small className="dl-hint text-danger">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+                    <DepositBonus
+                      paymentMethod={paymentMethod}
+                      depositAmount={depositAmount}
+                      binanceAmount={binanceAmount}
+                      depositBonus={depositBonus}
+                      isBonusLoading={isBonusLoading}
+                    />
                   </div>
 
                   <div>
@@ -1163,16 +1158,18 @@ const handleBinanceSubmit = async () => {
                         Network is locked to {activeNetworkLabel} for this payment method.
                       </small>
                     </div>
+
+                    <div className="d-flex justify-content-end pt-5">
+                      <button type="button" className="dl-cta w-100"
+                        disabled={isLoading || depositAmount <= 0 || isLocked}
+                        onClick={handleCreateDeposit}>
+                        {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-end pt-2">
-                  <button type="button" className="dl-cta w-50"
-                    disabled={isLoading || depositAmount <= 0 || isLocked}
-                    onClick={handleCreateDeposit}>
-                    {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
-                  </button>
-                </div>
+                
               </div>
 
               {/* Deposit details */}
@@ -1311,7 +1308,7 @@ const handleBinanceSubmit = async () => {
           {/* ── BINANCE MANUAL FLOW — step 1: form ───────────────────────────────── */}
           {paymentMethod === "binance" && !binanceSubmitted && (
             <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-              <div className="dl-form-grid deposit-wrapper mt-0">
+              <div className="dl-form-grid deposit-wrapper mt-0 mb-0">
                 <div>
                   <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
                   <div className="amount-input mb-2">
@@ -1335,7 +1332,14 @@ const handleBinanceSubmit = async () => {
                       ))}
                     </div>
                   )}
-                  <small className="dl-hint text-danger">Min: 1 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+
+                  <DepositBonus
+                    paymentMethod={paymentMethod}
+                    depositAmount={depositAmount}
+                    binanceAmount={binanceAmount}
+                    depositBonus={depositBonus}
+                    isBonusLoading={isBonusLoading}
+                  />
                 </div>
 
                 <div>
@@ -1347,18 +1351,18 @@ const handleBinanceSubmit = async () => {
                         onChange={(e) => setBinanceUserId(e.target.value)}
                       />
                     </div>
-                    <small className="dl-hint text-danger">This helps our team match your transfer faster.</small>
+                    <small className="dl-hint text-danger pb-3">This helps our team match your transfer faster.</small>
                   
+                  <div className="d-flex justify-content-end pt-5 mt-5">
+                    <button type="button" className="dl-cta w-100 mt-5"
+                      disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
+                      onClick={handleBinanceSubmit}>
+                      {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="d-flex justify-content-end pt-2">
-                <button type="button" className="dl-cta w-50"
-                  disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
-                  onClick={handleBinanceSubmit}>
-                  {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
-                </button>
-              </div>
             </div>
           )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { getMerchantAccount, updateMerchantApplicationApi } from "@/app/api/merchant";
+import { getMerchantAccount, updateMerchantApplicationApi, updateMerchantAvatarApi } from "@/app/api/merchant";
 import MerchantProfile, {
   type MerchantProfileUpdatePayload,
   type MerchantApplication,
@@ -54,6 +54,16 @@ export default function Page() {
     [fetchMerchantAccount]
   );
 
+  const handleAvatarUpload = useCallback(async (file: File) => {
+    const res = await updateMerchantAvatarApi(file);
+
+    if (res?.data?.application) {
+      setApplication(res.data.application);
+    } else {
+      await fetchMerchantAccount();
+    }
+  }, [fetchMerchantAccount]);
+
   return (
     <MerchantProfile
       application={application}
@@ -61,6 +71,7 @@ export default function Page() {
       error={error}
       onRetry={fetchMerchantAccount}
       onUpdate={handleUpdate}
+      onAvatarUpload={handleAvatarUpload}
     />
   );
 }

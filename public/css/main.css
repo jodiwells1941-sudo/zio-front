@@ -18864,6 +18864,217 @@ span {
 }
 .dl-bonus-badge i { color: #f0b332; }
 
+
+/* ════════════════════════════════════════════════════════════════
+   7) ADD this CSS anywhere inside the existing <style jsx>{`...`}</style>
+      block (e.g. right after the .dl-amount-presets rules)
+   ════════════════════════════════════════════════════════════════ */
+  .dl-bonus-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--primary-color);
+    background: rgba(156, 236, 254, 0.08);
+    border: 1px solid rgba(156, 236, 254, 0.25);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .dl-bonus-inline--empty {
+    color: #8d96ad;
+    background: var(--senary-color);
+    border-color: var(--septenary-color);
+  }
+  .dl-bonus-inline--empty i {
+    color: #8d96ad;
+  }
+
+  .dl-bonus-tier--empty {
+    opacity: 0.75;
+  }
+  .dl-bonus-tier-icon--muted {
+    background: var(--quaternary-color);
+  }
+
+  .dl-bonus-card {
+    border: 1px solid rgba(255, 186, 35, 0.25);
+    border-radius: 14px;
+    padding: 16px;
+    background: radial-gradient(
+        circle at top right,
+        rgba(156, 236, 254, 0.06),
+        transparent 55%
+      ),
+      var(--quinary-color);
+  }
+
+  .dl-bonus-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .dl-bonus-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--white);
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .dl-bonus-card-title i {
+    color: var(--secondary-color);
+  }
+  .dl-bonus-card-badge {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    background: rgba(255, 186, 35, 0.12);
+    border: 1px solid rgba(255, 186, 35, 0.3);
+    border-radius: 999px;
+    padding: 4px 8px;
+    white-space: nowrap;
+  }
+
+  /* ── FIX: CSS grid instead of Bootstrap row/col-md-6 ───────────────
+      auto-fit + minmax measures the actual container this card is
+      rendered inside, not the browser viewport. Result: it shows 2
+      columns only when there's genuinely enough room for 2 columns,
+      and falls back to 1 column automatically when the card sits in
+      a narrow form column — no breakpoint math needed. */
+  .dl-bonus-tier-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .dl-bonus-tier {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    border: 1px solid var(--quaternary-color);
+    border-radius: 12px;
+    padding: 6px 7px;
+    background: var(--tertiary-color);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .dl-bonus-tier--active {
+    border-color: var(--secondary-color);
+    background: rgba(255, 186, 35, 0.06);
+    box-shadow: 0 0 0 1px rgba(255, 186, 35, 0.15);
+  }
+
+  .dl-bonus-tier-icon {
+    width: 30px;
+    height: 29px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--octonary-color);
+  }
+  .dl-bonus-tier-icon--purple {
+    background: var(--primary-color);
+  }
+  .dl-bonus-tier-icon--amber {
+    background: var(--secondary-color);
+  }
+  .dl-bonus-tier-icon--blue {
+    background: linear-gradient(
+      135deg,
+      var(--primary-color),
+      var(--secondary-color)
+    );
+  }
+
+  .dl-bonus-tier-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  /* Text truncates instead of wrapping/overflowing when the
+      2-column grid is tight. */
+  .dl-bonus-tier-range {
+    font-size: 12px;
+    color: #9aa4ba;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dl-bonus-tier-value {
+    font-size: 14px;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dl-bonus-tier-value strong {
+    color: var(--secondary-color);
+    font-weight: 800;
+  }
+
+  .dl-bonus-tag {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    border-radius: 999px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .dl-bonus-tag--popular {
+    background: rgba(255, 186, 35, 0.14);
+    color: var(--secondary-color);
+    border: 1px solid rgba(255, 186, 35, 0.35);
+  }
+  .dl-bonus-tag--best {
+    background: rgba(156, 236, 254, 0.14);
+    color: var(--primary-color);
+    border: 1px solid rgba(156, 236, 254, 0.35);
+  }
+  .dl-bonus-tag--active {
+    background: rgba(255, 186, 35, 0.18);
+    color: var(--secondary-color);
+    border: 1px solid var(--secondary-color);
+  }
+
+  .dl-bonus-view-all {
+    width: 100%;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--octonary-color);
+    cursor: pointer;
+    background: linear-gradient(
+      90deg,
+      var(--primary-color),
+      var(--primary-color)
+    );
+    transition: opacity 0.15s ease;
+  }
+  .dl-bonus-view-all:hover {
+    opacity: 0.9;
+  }
+
+
+
+
 .paid-status {
   color: #30df70 !important;
 }
@@ -27353,4 +27564,31 @@ span {
     font-size: 23px;
   }
 
+}
+
+.merchant-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.merchant-avatar-edit-btn {
+  position: absolute;
+  bottom: 50px;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #6C4DF6; /* match your purple accent */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.merchant-avatar-edit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

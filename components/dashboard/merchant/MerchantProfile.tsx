@@ -16,6 +16,8 @@ export type MerchantApplication = {
   id: number;
   user_id: number;
   full_name: string;
+  avatar: string | null;
+  avatar_url: string | null;
   username: string;
   email: string;
   phone_country_code: string;
@@ -97,6 +99,7 @@ type MerchantProfileProps = {
     section: 'profile' | 'business',
     data: MerchantProfileUpdatePayload
   ) => Promise<void>;
+  onAvatarUpload?: (file: File) => Promise<void>;
 };
 
 /* =========================================================
@@ -163,6 +166,7 @@ export default function MerchantProfile({
   error = null,
   onRetry,
   onUpdate,
+  onAvatarUpload,
 }: MerchantProfileProps) {
   const handleAction = (action: string) => {
     console.log(`Navigate to: ${action}`);
@@ -243,6 +247,32 @@ export default function MerchantProfile({
           : [...previous.payment_methods, method],
       };
     });
+  };
+
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const avatarInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // allow re-selecting the same file later
+
+    if (!file || !onAvatarUpload) return;
+
+    setAvatarError(null);
+    setAvatarUploading(true);
+
+    try {
+      await onAvatarUpload(file);
+    } catch (err: any) {
+      setAvatarError(
+        err?.response?.data?.message ||
+          err?.message ||
+          'Unable to upload avatar. Please try again.'
+      );
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const saveSection = async (section: 'profile' | 'business') => {
@@ -394,7 +424,7 @@ export default function MerchantProfile({
 
               <div className="merchant-profile-top">
 
-                <div className="merchant-avatar-wrapper">
+                {/* <div className="merchant-avatar-wrapper">
                   <div className="merchant-avatar">
                     <div className="merchant-avatar-fallback">
                       <i className="fa-solid fa-user" />
@@ -415,7 +445,65 @@ export default function MerchantProfile({
                       ? 'Verified Merchant'
                       : statusLabel(application.status)}
                   </span>
+                </div> */}
+                <div className="merchant-avatar-wrapper">
+                   <div className="merchant-avatar">
+                    {application.avatar_url ? (
+                      <img
+                        src={application.avatar_url}
+                        alt={application.full_name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      />
+                    ) : (
+                      <div className="merchant-avatar-fallback">
+                        <i className="fa-solid fa-user" />
+                      </div>
+                    )}
+                  </div>
+
+                  {onAvatarUpload && (
+                    <>
+                      <button
+                        type="button"
+                        className="merchant-avatar-edit-btn"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={avatarUploading}
+                        aria-label="Change avatar"
+                      >
+                        {avatarUploading ? (
+                          <i className="fa-solid fa-circle-notch fa-spin" />
+                        ) : (
+                          <i className="fa-solid fa-camera" />
+                        )}
+                      </button>
+
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/png, image/jpeg, image/webp"
+                        style={{ display: 'none' }}
+                        onChange={handleAvatarSelect}
+                      />
+                    </>
+                  )}
+
+                  <span className={statusBadgeClass(application.status)}>
+                      <i
+                        className={
+                          application.status === 'approved'
+                            ? 'fa-solid fa-circle-check me-2 text-info'
+                            : application.status === 'rejected'
+                            ? 'fa-solid fa-circle-xmark me-2'
+                            : 'fa-solid fa-hourglass-half me-2'
+                        }
+                      />
+                      {application.status === 'approved'
+                        ? 'Verified Merchant'
+                        : statusLabel(application.status)}
+                  </span>
                 </div>
+
+                {avatarError && <FieldError message={avatarError} />}
 
                 <div className="merchant-profile-details">
 
