@@ -251,13 +251,13 @@ export default function MerchantOrderTable() {
       const useP2p =
         (side === 'buy' && !trade.isCustomer) || (side === 'sell' && trade.isCustomer);
       return useP2p
-        ? `/dashboard/wallet/p2p?trade_id=${trade.id}`
-        : `/dashboard/wallet/sell?trade_id=${trade.id}`;
+        ? `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`
+        : `/dashboard/merchant/ads/sell?trade_id=${trade.id}`;
     }
-    if (trade?.isCustomer && trade.type === 'Sell') return `/dashboard/wallet/p2p?trade_id=${trade.id}`;
-    if (trade?.isCustomer && trade.type === 'Buy') return `/dashboard/wallet/sell?trade_id=${trade.id}`;
-    if (!trade?.isCustomer && trade.type === 'Buy') return `/dashboard/wallet/p2p?trade_id=${trade.id}`;
-    return `/dashboard/wallet/sell?trade_id=${trade.id}`;
+    if (trade?.isCustomer && trade.type === 'Sell') return `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`;
+    if (trade?.isCustomer && trade.type === 'Buy') return `/dashboard/merchant/ads/sell?trade_id=${trade.id}`;
+    if (!trade?.isCustomer && trade.type === 'Buy') return `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`;
+    return `/dashboard/merchant/ads/sell?trade_id=${trade.id}`;
   };
 
   // ─── Copy helper ─────────────────────────────────────────────────────────────
@@ -300,7 +300,7 @@ export default function MerchantOrderTable() {
           </button>
 
           {/* Create Ad */}
-          <Link href="/dashboard/ads" className="btn btn-warning btn-sm d-flex align-items-center gap-1">
+          <Link href="/dashboard/merchant/ads" className="btn btn-warning btn-sm d-flex align-items-center gap-1">
             <i className="fa-solid fa-plus" />
             <span className="d-none d-md-inline">Ads Create</span>
           </Link>
@@ -430,7 +430,6 @@ export default function MerchantOrderTable() {
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
                       <td>{renderActions(trade)}</td>
-
                     </tr>
                   );
                 })}

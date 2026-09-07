@@ -9,12 +9,14 @@ import {
   VerifyDepositApi,
   SubmitBinanceDepositApi,
   cancelDeposit,
+  getDepositBonusApi,
 } from "@/app/api/wallet";
 import { depositListApi } from "@/app/api/wallet";
 import { toast } from "react-toastify";
 import DepositSupportModal from "./DepositSupportModal";
 import PaginationControls from "../../PaginationControls";
 import { useRouter } from "next/navigation";
+import DepositBonus from "./DepositBonusCard";
 
 type DepositInfo = {
   amount: string;
@@ -25,6 +27,13 @@ type DepositInfo = {
   qr_code: string;
   expires_at?: string;
   status?: "pending" | "completed" | "expired" | "failed";
+};
+
+type DepositBonusInfo = {
+  deposit_amount: number;
+  bonus_amount: number;
+  total_credit: number;
+  tier_id: number | null;
 };
 
 type DepositRow = {
@@ -929,6 +938,40 @@ const handleBinanceSubmit = async () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [binanceStatus]);
 
+
+  const [depositBonus, setDepositBonus] = useState<DepositBonusInfo | null>(null);
+  const [isBonusLoading, setIsBonusLoading] = useState<boolean>(false);
+
+  // ── fetch deposit bonus whenever the active amount changes (debounced) ──────
+  useEffect(() => {
+    const amount = paymentMethod === "binance" ? binanceAmount : depositAmount;
+
+    if (!amount || amount <= 0) {
+      setDepositBonus(null);
+      return;
+    }
+
+    setIsBonusLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await getDepositBonusApi(amount);
+        if (!res.error) {
+          setDepositBonus(res.data);
+        } else {
+          setDepositBonus(null);
+        }
+      } catch (error) {
+        console.error("Error fetching deposit bonus:", error);
+        setDepositBonus(null);
+      } finally {
+        setIsBonusLoading(false);
+      }
+    }, 400); // debounce so we don't hit the API on every keystroke
+
+    return () => clearTimeout(timer);
+  }, [depositAmount, binanceAmount, paymentMethod]);  
+
   // ── render ──────────────────────────────────────────────────────────────────
   return (
     <div className="dl-wrapper" ref={depositSectionRef}>
@@ -1040,7 +1083,7 @@ const handleBinanceSubmit = async () => {
             <>
               {/* Form card */}
               <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-                <div className="dl-form-grid deposit-wrapper mt-0">
+                <div className="dl-form-grid deposit-wrapper mt-0 mb-0">
                   <div>
                     <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
                     <div className="amount-input mb-2">
@@ -1054,6 +1097,7 @@ const handleBinanceSubmit = async () => {
                       />
                       <span>USDT</span>
                     </div>
+
                     {amountPreset?.length > 0 && (
                       <div className="dl-amount-presets">
                         {amountPreset.map((n) => (
@@ -1063,7 +1107,13 @@ const handleBinanceSubmit = async () => {
                         ))}
                       </div>
                     )}
-                    <small className="dl-hint text-danger">Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+                    <DepositBonus
+                      paymentMethod={paymentMethod}
+                      depositAmount={depositAmount}
+                      binanceAmount={binanceAmount}
+                      depositBonus={depositBonus}
+                      isBonusLoading={isBonusLoading}
+                    />
                   </div>
 
                   <div>
@@ -1108,16 +1158,18 @@ const handleBinanceSubmit = async () => {
                         Network is locked to {activeNetworkLabel} for this payment method.
                       </small>
                     </div>
+
+                    <div className="d-flex justify-content-end pt-5">
+                      <button type="button" className="dl-cta w-100"
+                        disabled={isLoading || depositAmount <= 0 || isLocked}
+                        onClick={handleCreateDeposit}>
+                        {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-end pt-2">
-                  <button type="button" className="dl-cta w-50"
-                    disabled={isLoading || depositAmount <= 0 || isLocked}
-                    onClick={handleCreateDeposit}>
-                    {isLoading ? "Creating..." : "Create Deposit"} <span aria-hidden>→</span>
-                  </button>
-                </div>
+                
               </div>
 
               {/* Deposit details */}
@@ -1256,7 +1308,7 @@ const handleBinanceSubmit = async () => {
           {/* ── BINANCE MANUAL FLOW — step 1: form ───────────────────────────────── */}
           {paymentMethod === "binance" && !binanceSubmitted && (
             <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
-              <div className="dl-form-grid deposit-wrapper mt-0">
+              <div className="dl-form-grid deposit-wrapper mt-0 mb-0">
                 <div>
                   <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
                   <div className="amount-input mb-2">
@@ -1280,7 +1332,14 @@ const handleBinanceSubmit = async () => {
                       ))}
                     </div>
                   )}
-                  <small className="dl-hint text-danger">Min: 1 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+
+                  <DepositBonus
+                    paymentMethod={paymentMethod}
+                    depositAmount={depositAmount}
+                    binanceAmount={binanceAmount}
+                    depositBonus={depositBonus}
+                    isBonusLoading={isBonusLoading}
+                  />
                 </div>
 
                 <div>
@@ -1292,18 +1351,18 @@ const handleBinanceSubmit = async () => {
                         onChange={(e) => setBinanceUserId(e.target.value)}
                       />
                     </div>
-                    <small className="dl-hint text-danger">This helps our team match your transfer faster.</small>
+                    <small className="dl-hint text-danger pb-3">This helps our team match your transfer faster.</small>
                   
+                  <div className="d-flex justify-content-end pt-5 mt-5">
+                    <button type="button" className="dl-cta w-100 mt-5"
+                      disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
+                      onClick={handleBinanceSubmit}>
+                      {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="d-flex justify-content-end pt-2">
-                <button type="button" className="dl-cta w-50"
-                  disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
-                  onClick={handleBinanceSubmit}>
-                  {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
-                </button>
-              </div>
             </div>
           )}
 

@@ -26,12 +26,12 @@ export default function MyAds() {
   const [activeP2PTab, setActiveP2PTab] =
     useState<P2PTabKey>("wallet-balance");
   const [ads, setAds] = useState<P2pAdsData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  
 
   //  Map API → UI
   const mapAdToCard = (ad: P2pAdsData): P2PCard => ({
     id: ad.id,
-    name: ad.user?.name || "Unknown",
+    name: ad.merchant?.full_name || "Unknown",
     platform: `${ad.asset}/${ad.with_fiat}`,
     methodName: ad.payment_method?.sell_method?.name || "N/A",
     rate: ad.fixed_price,
@@ -39,7 +39,8 @@ export default function MyAds() {
     available: `${ad.total_amount} ${ad.asset}`,
     timeText: `${ad.payment_time_limit} min`,
     type: ad.type,
-    userImage: ad.user?.avatar || "",
+    // userImage: ad.user?.avatar || "",
+    userImage: ad.merchant?.avatar || "",
     currency: ad.with_fiat,
   });
 

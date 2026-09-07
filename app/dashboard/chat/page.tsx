@@ -28,7 +28,7 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [activeTradeId, setActiveTradeId] = useState<number | null>(null);
 
-  const chat = useTradeChat(activeTradeId);
+  const chat = useTradeChat(activeTradeId);  
 
   const loadTrades = useCallback(async () => {
     try {

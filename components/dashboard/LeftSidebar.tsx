@@ -62,6 +62,8 @@ const MERCHANT_ROUTE_PATHS = [
   "/dashboard/merchant/profile",
   "/dashboard/merchant/reviews",
   "/dashboard/merchant/settings",
+  "/dashboard/merchant/ads/p2p",
+  "/dashboard/merchant/ads/sell",
 ];
 
 export default function LeftSidebar({

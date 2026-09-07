@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Swal from 'sweetalert2';
-import { SubmitDepositWithdrawApi } from '@/app/api/wallet';
+import { SubmitDepositWithdrawApi, getWithdrawChargeApi } from '@/app/api/wallet';
 import WithdrawSubmitProcessingModel from './WithdrawSubmitProcessingModel';
 
 interface FormData {
@@ -162,6 +162,29 @@ export default function WithdrawLayout({
     binanceId: '',
   });
 
+  // ── withdraw charge (fetched from API instead of hardcoded 3%) ──────────────
+  const [withdrawChargePercent, setWithdrawChargePercent] = useState<number>(3); // fallback until API resolves
+  const [isChargeLoading, setIsChargeLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchWithdrawCharge = async () => {
+      try {
+        const res = await getWithdrawChargeApi();
+        if (!res.error) {
+          setWithdrawChargePercent(Number(res.data?.withdraw_charge ?? 3));
+        } else {
+          console.error('Failed to fetch withdraw charge:', res.message);
+        }
+      } catch (error) {
+        console.error('Error fetching withdraw charge:', error);
+      } finally {
+        setIsChargeLoading(false);
+      }
+    };
+
+    fetchWithdrawCharge();
+  }, []);
+
   // \\── is the "Binance Pay Manual" method selected? ─────────────────────────────
   const isBinanceMethod = selectedPayment === 'binance';
 
@@ -211,6 +234,10 @@ export default function WithdrawLayout({
   //    agree with what the user actually entered. ─────────────────────────────
   const usesWalletDestination = !isBinanceMethod && formData.depositAddress.trim() !== '';
 
+  // ── derived fee/receive amount — now based on the fetched charge percent ────
+  const withdrawalCharge = selectedAmount * (withdrawChargePercent / 100);
+  const receiveAmount = selectedAmount - withdrawalCharge;
+
   // ── Validation ───────────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -253,9 +280,6 @@ export default function WithdrawLayout({
   // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!validate()) return;
-
-    const withdrawalCharge = selectedAmount * 0.03;
-    const receiveAmount = selectedAmount - withdrawalCharge;
 
     const selectedMethodLabel =
       PAYMENT_METHODS.find((item) => item.id === selectedPayment)?.label ??
@@ -318,7 +342,7 @@ export default function WithdrawLayout({
             <span>USDT</span>
           </div>
 
-          <p>After 3% withdrawal fee</p>
+          <p>After ${withdrawChargePercent}% withdrawal fee</p>
         </div>
 
         <div class="withdraw-confirm-details">
@@ -333,7 +357,7 @@ export default function WithdrawLayout({
           <div class="withdraw-confirm-row">
             <span>
               <i class="fa-solid fa-percent"></i>
-              Fee (3%)
+              Fee (${withdrawChargePercent}%)
             </span>
             <strong class="fee-value">
               -${withdrawalCharge.toFixed(2)} USDT
@@ -569,8 +593,6 @@ export default function WithdrawLayout({
     }
   };
 
-  const withdrawalCharge = selectedAmount * 0.03;
-  const receiveAmount = selectedAmount - withdrawalCharge;
   const [showProcessingModal, setShowProcessingModal] = useState(false);
   const [withdrawalModalData, setWithdrawalModalData] =
     useState<WithdrawalModalData | null>(null);
@@ -604,7 +626,7 @@ export default function WithdrawLayout({
     }).format(date);
   };
 
-  
+
 
   return (
     <div className="wl-wrapper">
@@ -749,6 +771,7 @@ export default function WithdrawLayout({
                 <div className="d-flex justify-content-between w-full">
                     <div className='text-warning'>
                       Fees {withdrawalCharge.toFixed(2)} USDT
+                      {!isChargeLoading && ` (${withdrawChargePercent}%)`}
                     </div>
                     <div style={{ fontWeight: 600, color: 'green', fontSize: '18px' }}>
                       You will receive {receiveAmount.toFixed(2)} USDT
@@ -869,9 +892,13 @@ export default function WithdrawLayout({
                   type="button"
                   className="wl-cta w-100"
                   onClick={handleSubmit}
-                  disabled={loading}
+                  disabled={loading || isChargeLoading}
                 >
-                  {loading ? 'Processing…' : `${actionLabel} ${selectedAmount} USD`} <span aria-hidden>→</span>
+                  {isChargeLoading
+                    ? 'Loading…'
+                    : loading
+                    ? 'Processing…'
+                    : `${actionLabel} ${selectedAmount} USD`} <span aria-hidden>→</span>
                 </button>
               </div>
             </div>
