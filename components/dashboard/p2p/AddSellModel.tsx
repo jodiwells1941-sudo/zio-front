@@ -18,7 +18,7 @@ type Props = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function BuySellPendingModel({ onClose, ad }: Props) {
+export default function AddSellModel({ onClose, ad }: Props) {
   const router = useRouter();
 
   const [sellAmount,   setSellAmount]   = useState('');
@@ -83,8 +83,8 @@ export default function BuySellPendingModel({ onClose, ad }: Props) {
   const feeDeducted   = useMemo(() => (grossReceive * charge) / 100, [grossReceive, charge]);
   const netReceive    = useMemo(() => Math.max(grossReceive - feeDeducted, 0), [grossReceive, feeDeducted]);
 
-  const sellerName   = ad.user?.name          ?? 'Unknown';
-  const sellerAvatar = ad.user?.avatar         ?? '';
+  const sellerName   = ad.merchant.full_name          ?? 'Unknown';
+  const sellerAvatar = ad.merchant.avatar         ?? '';
   const methodName   = ad.payment_method?.sell_method?.name
                     ?? ad.payment_method?.sell_method?.name
                     ?? 'N/A';

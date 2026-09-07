@@ -2,11 +2,11 @@
 
 import { getAllAds, P2pAdsData } from '@/app/api/p2padsapi';
 import { useEffect, useState } from 'react';
-import BuySellPendingModel from '../../p2p/BuySellPendingModel';
 import type { P2PTabKey } from '../types';
 import P2PBuyModal from './P2PBuyModal';
 import P2PHeaderButton from './P2PHeaderButton';
 import P2PTabButton from './P2PTabButton';
+import AddSellModel from '../../p2p/AddSellModel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -505,7 +505,7 @@ export default function P2PLayout({
       </div>
 
       {isModalOpen && selectedAd && (
-        <BuySellPendingModel onClose={() => setIsModalOpen(false)} ad={selectedAd} />
+        <AddSellModel onClose={() => setIsModalOpen(false)} ad={selectedAd} />
       )}
       {buyModalOpen && selectedAd && (
         <P2PBuyModal onClose={() => setBuyModalOpen(false)} ad={selectedAd} />
