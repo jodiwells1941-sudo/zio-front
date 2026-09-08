@@ -137,12 +137,12 @@ export default function DepositBonus({
   return (
     <>
       {/* Deposit Limit */}
-      <small className="dl-hint text-danger mb-2">
+      {/* <small className="dl-hint text-danger mb-2">
         Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD
-      </small>
+      </small> */}
 
       {/* Bonus Card */}
-      <div className="dl-bonus-card mb-3">
+      <div className="dl-bonus-card mb-3 mt-4">
         <div className="dl-bonus-card-head">
           <span className="dl-bonus-card-title">
             <i className="fa-solid fa-gift" /> Deposit Bonus
@@ -161,7 +161,7 @@ export default function DepositBonus({
             <div className="dl-bonus-tier-list">
               {(showAllTiers
                 ? bonusTiers
-                : bonusTiers.slice(0, 2)
+                : bonusTiers.slice(0, 6)
               ).map((tier, idx) => {
                 const active = isTierActive(tier);
 
@@ -217,15 +217,15 @@ export default function DepositBonus({
             </div>
 
             {/* View All */}
-            {bonusTiers.length > 2 && (
+            {bonusTiers.length > 6 && (
               <button
                 type="button"
-                className="dl-bonus-view-all"
+                className="text-center mt-3 w-100 flex-column text-info"
                 onClick={() =>
                   setShowAllTiers((value) => !value)
                 }
               >
-                <i className="fa-solid fa-gift" />
+                {/* <i className="fa-solid fa-gift" /> */}
 
                 {showAllTiers
                   ? "Show Less"
@@ -255,13 +255,13 @@ export default function DepositBonus({
         )}
 
         {/* Current amount line — always shows something, never disappears */}
-        {/* {isBonusLoading ? (
-          <small className="dl-hint text-secondary d-block mt-2">
+        {isBonusLoading ? (
+          <small className="dl-hint text-secondary d-block mt-3">
             Checking bonus…
           </small>
         ) : (
           <div
-            className={`dl-bonus-inline mt-2 ${
+            className={`dl-bonus-inline mt-3 ${
               depositBonus && depositBonus.bonus_amount > 0
                 ? ""
                 : "dl-bonus-inline--empty"
@@ -277,7 +277,7 @@ export default function DepositBonus({
               <>0 Bonus for this amount</>
             )}
           </div>
-        )} */}
+        )}
       </div>
     </>
   );
