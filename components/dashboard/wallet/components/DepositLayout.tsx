@@ -1085,28 +1085,6 @@ const handleBinanceSubmit = async () => {
               <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
                 <div className="dl-form-grid deposit-wrapper mt-0 mb-0">
                   <div>
-                    <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
-                    <div className="amount-input mb-2">
-                      <input
-                        type="text" inputMode="decimal" placeholder="Amount"
-                        value={depositAmount || ""} required disabled={isLocked}
-                        onChange={(e) => {
-                          const v = Number(e.target.value.replace(/[^\d.]/g, ""));
-                          if (!Number.isNaN(v)) setDepositAmount(v);
-                        }}
-                      />
-                      <span>USDT</span>
-                    </div>
-
-                    {amountPreset?.length > 0 && (
-                      <div className="dl-amount-presets">
-                        {amountPreset.map((n) => (
-                          <button key={n} type="button" disabled={isLocked}
-                            className={`dl-preset-btn ${depositAmount === n ? "active" : ""}`}
-                            onClick={() => setDepositAmount(n)}>{n}</button>
-                        ))}
-                      </div>
-                    )}
                     <DepositBonus
                       paymentMethod={paymentMethod}
                       depositAmount={depositAmount}
@@ -1117,6 +1095,31 @@ const handleBinanceSubmit = async () => {
                   </div>
 
                   <div>
+                    <div>
+                      <label className="dl-label">1. Enter Deposit Amount <small className="text-danger fs-4">*</small></label>
+                      <div className="amount-input mb-2">
+                        <input
+                          type="text" inputMode="decimal" placeholder="Amount"
+                          value={depositAmount || ""} required disabled={isLocked}
+                          onChange={(e) => {
+                            const v = Number(e.target.value.replace(/[^\d.]/g, ""));
+                            if (!Number.isNaN(v)) setDepositAmount(v);
+                          }}
+                        />
+                        <span>USDT</span>
+                      </div>
+
+                      {amountPreset?.length > 0 && (
+                        <div className="dl-amount-presets">
+                          {amountPreset.map((n) => (
+                            <button key={n} type="button" disabled={isLocked}
+                              className={`dl-preset-btn ${depositAmount === n ? "active" : ""}`}
+                              onClick={() => setDepositAmount(n)}>{n}</button>
+                          ))}
+                        </div>
+                      )}
+                      <small className="dl-hint text-danger mb-2"> Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+                    </div>
                     <label>2. Select Coin: <small className="text-danger fs-4">*</small></label>
                     <div className="dl-select-row pt-2">
                       <div className="dl-dropdown">
@@ -1159,7 +1162,7 @@ const handleBinanceSubmit = async () => {
                       </small>
                     </div>
 
-                    <div className="d-flex justify-content-end pt-5">
+                    <div className="d-flex justify-content-end pt-3">
                       <button type="button" className="dl-cta w-100"
                         disabled={isLoading || depositAmount <= 0 || isLocked}
                         onClick={handleCreateDeposit}>
@@ -1310,29 +1313,6 @@ const handleBinanceSubmit = async () => {
             <div className={`dl-card dl-form-card bg-light-dark ${hideMethodCardOnMobile ? "dl-method-card--mobile-hidden" : ""}`}>
               <div className="dl-form-grid deposit-wrapper mt-0 mb-0">
                 <div>
-                  <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
-                  <div className="amount-input mb-2">
-                    <input
-                      type="text" inputMode="decimal" placeholder="Amount"
-                      value={binanceAmount || ""} disabled={binanceSubmitted}
-                      onChange={(e) => {
-                        const v = Number(e.target.value.replace(/[^\d.]/g, ""));
-                        if (!Number.isNaN(v)) setBinanceAmount(v);
-                      }}
-                    />
-                    <span>USD</span>
-                  </div>
-
-                  {amountPreset?.length > 0 && (
-                    <div className="dl-amount-presets">
-                      {amountPreset.map((n) => (
-                        <button key={n} type="button" disabled={binanceSubmitted}
-                          className={`dl-preset-btn ${binanceAmount === n ? "active" : ""}`}
-                          onClick={() => setBinanceAmount(n)}>{n}</button>
-                      ))}
-                    </div>
-                  )}
-
                   <DepositBonus
                     paymentMethod={paymentMethod}
                     depositAmount={depositAmount}
@@ -1343,18 +1323,44 @@ const handleBinanceSubmit = async () => {
                 </div>
 
                 <div>
-                    <label className="dl-label">2. Your Binance ID <small className="text-danger fs-4">*</small></label>
+                  <div>
+                    <label className="dl-label">1. Deposit Amount <small className="text-danger fs-4">*</small></label>
                     <div className="amount-input mb-2">
                       <input
-                        type="text" placeholder="Enter your Binance ID"
-                        value={binanceUserId} disabled={binanceSubmitted}
-                        onChange={(e) => setBinanceUserId(e.target.value)}
+                        type="text" inputMode="decimal" placeholder="Amount"
+                        value={binanceAmount || ""} disabled={binanceSubmitted}
+                        onChange={(e) => {
+                          const v = Number(e.target.value.replace(/[^\d.]/g, ""));
+                          if (!Number.isNaN(v)) setBinanceAmount(v);
+                        }}
                       />
+                      <span>USD</span>
                     </div>
-                    <small className="dl-hint text-danger pb-3">This helps our team match your transfer faster.</small>
+
+                    {amountPreset?.length > 0 && (
+                      <div className="dl-amount-presets">
+                        {amountPreset.map((n) => (
+                          <button key={n} type="button" disabled={binanceSubmitted}
+                            className={`dl-preset-btn ${binanceAmount === n ? "active" : ""}`}
+                            onClick={() => setBinanceAmount(n)}>{n}</button>
+                        ))}
+                      </div>
+                    )}
+                    <small className="dl-hint text-danger mb-2"> Min: 5 USD &nbsp;•&nbsp; Max: 5,000 USD</small>
+                  </div>
                   
-                  <div className="d-flex justify-content-end pt-5 mt-5">
-                    <button type="button" className="dl-cta w-100 mt-5"
+                  <label className="dl-label">2. Your Binance ID <small className="text-danger fs-4">*</small></label>
+                  <div className="amount-input mb-2">
+                    <input
+                      type="text" placeholder="Enter your Binance ID"
+                      value={binanceUserId} disabled={binanceSubmitted}
+                      onChange={(e) => setBinanceUserId(e.target.value)}
+                    />
+                  </div>
+                  <small className="dl-hint text-danger pb-3">This helps our team match your transfer faster.</small>
+                  
+                  <div className="d-flex justify-content-end pt-3">
+                    <button type="button" className="dl-cta w-100"
                       disabled={binanceSubmitting || binanceAmount <= 0 || binanceSubmitted}
                       onClick={handleBinanceSubmit}>
                       {binanceSubmitting ? "Submitting..." : "Create Deposit"} <span aria-hidden>→</span>
