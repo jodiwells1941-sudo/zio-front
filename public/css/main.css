@@ -18957,7 +18957,7 @@ span {
     align-items: center;
     gap: 8px;
     min-width: 0;
-    border: 1px solid var(--quaternary-color);
+    border: 1px solid #4e5053;
     border-radius: 12px;
     padding: 6px 7px;
     background: var(--tertiary-color);

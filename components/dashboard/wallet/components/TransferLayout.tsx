@@ -4,15 +4,11 @@ import StatusTd from './StatusTd';
 import { TransactionCard } from './TransactionCard';
 import { GLOBAL_CONFIG } from '@/app/config';
 import { GenerateEVoucherApi, GetEVoucherListApi, GetUserApi, GetWalletTransferListApi, RedeemEVoucherApi, WalletTransferApi } from '@/app/api/p2p';
+import { getWithdrawChargeApi } from '@/app/api/wallet';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import PaginationControls from '../../PaginationControls';
 import { useAuth } from '@/hooks/useAuth';
-
-const statusMap: Record<string, 1 | 2> = {
-  Pending: 2,
-  Confirmed: 1,
-};
 
 const INITIAL_PAGINATION_STATE = {
     current_page: 1,
@@ -51,8 +47,35 @@ export default function TransferLayout({
   const [generateCode, setGenerateCode] = useState<boolean>(false);
   const [evoucherCode, setEVoucherCode] = useState<string>('');
   const [code, setCode] = useState<string>('');
-  const [activeTab, setActiveTab] = useState('transfer-history');  
-  const finalAmount = selectedAmount + (selectedAmount * GLOBAL_CONFIG.transferCommission / 100);
+  const [activeTab, setActiveTab] = useState('transfer-history');
+
+  // ── withdraw charge (fetched from API instead of hardcoded GLOBAL_CONFIG.transferCommission) ──
+  const [withdrawChargePercent, setWithdrawChargePercent] = useState<number>(GLOBAL_CONFIG.transferCommission ?? 3); // fallback until API resolves
+  const [isChargeLoading, setIsChargeLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchWithdrawCharge = async () => {
+      try {
+        const res = await getWithdrawChargeApi();
+        if (!res.error) {
+          setWithdrawChargePercent(Number(res.data?.withdraw_charge ?? GLOBAL_CONFIG.transferCommission ?? 3));
+        } else {
+          console.error('Failed to fetch withdraw charge:', res.message);
+        }
+      } catch (error) {
+        console.error('Error fetching withdraw charge:', error);
+      } finally {
+        setIsChargeLoading(false);
+      }
+    };
+
+    fetchWithdrawCharge();
+  }, []);
+
+  // finalAmount: fee is deducted from the selected amount (e.g. select $100, 5% fee -> transfer $95)
+  const withdrawalCharge = selectedAmount * (withdrawChargePercent / 100);
+  const finalAmount = selectedAmount - withdrawalCharge;
+
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { amount, receiverId, receiverName, receiverEmail, receiverPhone } = formData;
@@ -125,7 +148,7 @@ export default function TransferLayout({
         return;
     }
 
-    const transferData = { receiver_id: receiverId, amount: finalAmount };
+    const transferData = { receiver_id: receiverId, amount: selectedAmount };
 
     try {
         const response = await WalletTransferApi(transferData);
@@ -147,7 +170,7 @@ export default function TransferLayout({
     const result = await Swal.fire({
       title: "Transfer Confirmation",
       icon: "info",
-      html: `You are about to transfer <strong>$${finalAmount}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>.`,
+      html: `You are about to transfer <strong>$${selectedAmount.toFixed(2)}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>. (Fee ${withdrawChargePercent}%: $${withdrawalCharge.toFixed(2)}, receiver gets $${finalAmount.toFixed(2)})`,
       showCloseButton: true,
       showCancelButton: true,
       focusConfirm: false,
@@ -235,11 +258,6 @@ export default function TransferLayout({
   // ============================== E-Voucher start ===================================
   // ── State ──────────────────────────────────────────────────────
   const [evoucherList, setEvoucherList]   = useState<any[]>([]);
-  // const [isDataLoading, setIsDataLoading] = useState(false);
-  // const [isPageLoading, setIsPageLoading] = useState(false);
-  // const [pagination, setPagination]       = useState<any>(null);
-  // const [filterParams, setFilterParams]   = useState({ page: 1 });
-
   // ── Fetch ───────────────────────────────────────────────────────
   const getEvoucherList = async (page = 1, isPageChange = false) => {
       isPageChange ? setIsPageLoading(true) : setIsDataLoading(true);
@@ -260,11 +278,6 @@ export default function TransferLayout({
           setIsPageLoading(false);
       }
   };
-
-  // const handlePageChange = (page: number) => {
-  //     setFilterParams((prev) => ({ ...prev, page }));
-  //     getEvoucherList(page, true);
-  // };
 
   // ── On mount ────────────────────────────────────────────────────
   useEffect(() => {
@@ -288,7 +301,7 @@ export default function TransferLayout({
     if (!result.isConfirmed) return;  // early return, cleaner
 
     try {
-      const response = await GenerateEVoucherApi({ amount: finalAmount });
+      const response = await GenerateEVoucherApi({ amount: selectedAmount });
 
       if (!response?.error) {
         toast.success(response.message || 'E-Voucher generated successfully!');
@@ -369,9 +382,19 @@ export default function TransferLayout({
             />
             <span>USD</span>
           </div>
-          {selectedAmount > 0 && (<div className='text-warning mt-4'>
-              Transfer Amount (Fee {GLOBAL_CONFIG.transferCommission}%): $ {finalAmount}
-          </div>)}
+          {selectedAmount > 0 && (
+            <div className='text-warning mt-4'>
+              {isChargeLoading ? (
+                'Calculating transfer fee…'
+              ) : (
+                <>
+                  <div>Total Amount: $ {selectedAmount.toFixed(2)}</div>
+                  <div>Fee ({withdrawChargePercent}%): $ {withdrawalCharge.toFixed(2)}</div>
+                  <div><strong>Transfer Amount: $ {finalAmount.toFixed(2)}</strong></div>
+                </>
+              )}
+            </div>
+          )}
 
           <label>Receiver User ID</label>
           <div className="input-box">
@@ -383,8 +406,8 @@ export default function TransferLayout({
             <input disabled type="text" placeholder="Your user name here" value={formData?.receiverName || ''} />
           </div>
 
-          <button type="button"  className="confirm-btn" onClick={submitForm} disabled={isLoading || !receiverName || amount < 20}>
-            Confirm Transfer {finalAmount} USD
+          <button type="button"  className="confirm-btn" onClick={submitForm} disabled={isLoading || isChargeLoading || !receiverName || amount < 20}>
+            Confirm Transfer {selectedAmount.toFixed(2)} USD
           </button>
         </div>
 
@@ -422,9 +445,19 @@ export default function TransferLayout({
             <span>USD</span>
           </div>
 
-          {selectedAmount > 0 && (<div className='text-warning mt-4'>
-              Transfer Amount (Fee {GLOBAL_CONFIG.transferCommission}%): $ {finalAmount}
-          </div>)}
+          {selectedAmount > 0 && (
+            <div className='text-warning mt-4'>
+              {isChargeLoading ? (
+                'Calculating transfer fee…'
+              ) : (
+                <>
+                  <div>Total Amount: $ {selectedAmount.toFixed(2)}</div>
+                  <div>Fee ({withdrawChargePercent}%): $ {withdrawalCharge.toFixed(2)}</div>
+                  <div><strong>Transfer Amount: $ {finalAmount.toFixed(2)}</strong></div>
+                </>
+              )}
+            </div>
+          )}
 
           {generateCode && (
             <div className="input-box mt-3 d-flex align-items-center">
@@ -464,7 +497,7 @@ export default function TransferLayout({
             </div>
           )}
 
-          <button type="button" className="confirm-btn" onClick={generateCodeConfirm}>
+          <button type="button" className="confirm-btn" onClick={generateCodeConfirm} disabled={isChargeLoading}>
             Generate Code
           </button>
 
