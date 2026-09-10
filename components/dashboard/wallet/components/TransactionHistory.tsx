@@ -23,12 +23,16 @@ export default function TransactionHistory() {
     per_page:      20,
   });
 
+  // console.log('transferList ==', transferList);
+  
+
   // ── Fetch ──────────────────────────────────────────────────────
   const fetchTransferList = useCallback(async (page: number) => {
     page === 1 ? setIsDataLoading(true) : setIsFetching(true);
 
     try {
       const res = await GetTransferListApi({ params: { page } });      
+  console.log('transferList ==', res);
 
       setTransferList(res?.data?.data || []);
       setPagination({
@@ -74,7 +78,7 @@ export default function TransactionHistory() {
           <thead>
             <tr>
               <th>Sl #</th>
-              {/* <th>User ID</th> */}
+              <th>Description</th>
               <th>Transaction Type</th>
               <th>Amount</th>
               <th>Time</th>
@@ -90,6 +94,7 @@ export default function TransactionHistory() {
               transferList.map((r: any, index: number) => (
                 <tr key={`${r.id}-${r.uu_id}`}>
                   <td>{slOffset + index + 1}</td>
+                  <td>{r.description}</td>
                   <td>{r.type == 'credit' ? 'Deposit' : 'Withdrawal'}</td>
                   <td>$ {Number(r.amount).toFixed(2)}</td>
                   <td>{r.date}</td>

@@ -40,6 +40,7 @@ type DepositRow = {
   id: number;
   deposit_id: string;
   amount: string;
+  bonus?: string | number | null;
   network: string;
   status: number; // 1 pending, 2 completed, 3 failed, 4 expired
   created_at: string;
@@ -560,12 +561,6 @@ const handleBinanceSubmit = async () => {
   }
 };
 
-
-
-
-
-
-
   const cancelPayment = async (): Promise<boolean> => {
 
     if (!depositInfo?.token) {
@@ -575,10 +570,7 @@ const handleBinanceSubmit = async () => {
     try {
       const res = await cancelDeposit({
         token: depositInfo.token,
-      });
-
-      console.log('res ==', res);
-      
+      });      
 
       if (!res?.error) {
         toast.success(res?.message ?? 'Deposit cancelled successfully.');
@@ -1793,6 +1785,7 @@ const handleBinanceSubmit = async () => {
                 <th>Sl #</th>
                 <th>Deposit ID</th>
                 <th>Amount</th>
+                <th> Bonus </th>
                 <th>Network</th>
                 <th>Date</th>
                 <th>Payment Method</th>
@@ -1811,6 +1804,7 @@ const handleBinanceSubmit = async () => {
                       <td>{slOffset + index + 1}</td>
                       <td><code className="dl-deposit-id">#{r.deposit_id}</code></td>
                       <td>$ {Number(r.amount).toFixed(2)}</td>
+                      <td>{Number(r.bonus).toFixed(2)}</td>
                       <td>
                       <span
                         className={
@@ -1832,7 +1826,7 @@ const handleBinanceSubmit = async () => {
                       <td><span className={`${ r.payment_method === 'binance' ? 'text-warning' : 'text-info'}`}>{r.payment_method == 'binance' ? 'Binance' : 'crypto'}</span></td>
                       <td><span className={s.cls}>{s.label}</span></td>
                       <td>
-                        { r?.deposit_support ? <span className="text-info">Review</span>
+                        { r?.deposit_support ? <span className="text-info">{r.status == 2 ? '-' : 'Review'}</span>
                         : <>
                         { (r.status != 2 && r.status != 5) && 
                           <button
