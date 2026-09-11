@@ -1804,7 +1804,7 @@ const handleBinanceSubmit = async () => {
                       <td>{slOffset + index + 1}</td>
                       <td><code className="dl-deposit-id">#{r.deposit_id}</code></td>
                       <td>$ {Number(r.amount).toFixed(2)}</td>
-                      <td>{Number(r.bonus).toFixed(2)}</td>
+                      <td>$ {Number(r.bonus).toFixed(2)}</td>
                       <td>
                       <span
                         className={

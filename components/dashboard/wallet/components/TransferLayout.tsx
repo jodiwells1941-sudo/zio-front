@@ -288,7 +288,8 @@ export default function TransferLayout({
     const result = await Swal.fire({
       title: "Generate E-Voucher Confirmation",
       icon: "info",
-      html: `You are about to generate an E-Voucher worth <strong>$${selectedAmount}</strong>. Do you want to proceed?`,
+      // html: `You are about to generate an E-Voucher worth <strong>$${selectedAmount}</strong>. Do you want to proceed?`,
+      html: `You are about to generate an E-Voucher worth <strong>$${selectedAmount.toFixed(2)}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>. (Fee ${withdrawChargePercent}%: $${withdrawalCharge.toFixed(2)}, receiver gets $${finalAmount.toFixed(2)})`,
       showCloseButton: true,
       showCancelButton: true,
       focusConfirm: false,
@@ -407,7 +408,7 @@ export default function TransferLayout({
           </div>
 
           <button type="button"  className="confirm-btn" onClick={submitForm} disabled={isLoading || isChargeLoading || !receiverName || amount < 20}>
-            Confirm Transfer {selectedAmount.toFixed(2)} USD
+            Confirm Transfer {(selectedAmount - withdrawalCharge).toFixed(2)} USD
           </button>
         </div>
 
