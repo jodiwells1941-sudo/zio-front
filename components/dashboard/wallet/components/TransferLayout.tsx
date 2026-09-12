@@ -425,7 +425,6 @@ export default function TransferLayout({
               <button
                 key={`t2-${n}`}
                 type="button"
-                // className={selectedAmount === n ? 'active' : ''}
                 className={`${selectedAmount === n  ? 'active' : ''} d-none d-md-block` }
                 onClick={() => setSelectedAmount(n)}
               >

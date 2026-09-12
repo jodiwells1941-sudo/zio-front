@@ -8,7 +8,7 @@ interface TransactionData {
   type: string;
   amount: string;
   time: string;
-  status:  1 | 2;
+  status:  1 | 2 | 3;
 }
 
 interface TransactionCardProps {
@@ -18,14 +18,20 @@ interface TransactionCardProps {
 // ── Status config ──────────────────────────────────────────────
 const statusConfig = {
   1: {
-    headerBg: 'rgba(156, 236, 254, 0.08)',   // --primary-color tinted
-    dotColor: '#9cecfe',                       // --primary-color
-    label: 'SUCCESS',
+    headerBg: 'rgba(156, 236, 254, 0.08)',
+    dotColor: '#9cecfe',
+    label: 'APPROVED',
     labelColor: '#9cecfe',
   },
   2: {
-    headerBg: 'rgba(255, 186, 35, 0.08)',     // --secondary-color tinted
-    dotColor: '#ffba23',                       // --secondary-color
+    headerBg: 'rgba(255, 88, 88, 0.08)',
+    dotColor: '#ff5858',
+    label: 'REJECTED',
+    labelColor: '#ff5858',
+  },
+  3: {
+    headerBg: 'rgba(255, 186, 35, 0.08)',
+    dotColor: '#ffba23',
     label: 'PENDING',
     labelColor: '#ffba23',
   },
