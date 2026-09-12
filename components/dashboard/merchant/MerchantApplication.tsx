@@ -42,7 +42,7 @@ function FieldError({ message }: { message?: string }) {
 
 type Option = { label: string; value: string };
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4;
 
 type FieldErrors = Record<string, string>;
 
@@ -55,19 +55,6 @@ type ApplicationData = {
   phone: string;
   country: string;
   address: string;
-
-  // Step 2
-  businessType: string;
-  businessName: string;
-  taxId: string;
-  businessEmail: string;
-  businessPhoneCountryCode: string;
-  businessPhone: string;
-  operationType: string;
-
-  // Trading
-  tradeCoin: string;
-  paymentMethods: string[];
 };
 
 interface Wallet {
@@ -82,12 +69,11 @@ interface WalletSettings {
   wallet?: Wallet;
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 const DEFAULT_DEPOSIT_AMOUNT = 500;
 
 const STEPS = [
   "Basic Information",
-  "Business Information",
   "Documents",
   "Security Deposit",
   "Review & Submit",
@@ -101,17 +87,6 @@ const initialData: ApplicationData = {
   phone: "",
   country: "Bangladesh",
   address: "",
-
-  businessType: "Individual",
-  businessName: "",
-  taxId: "",
-  businessEmail: "",
-  businessPhoneCountryCode: "+880",
-  businessPhone: "",
-  operationType: "Manually (I will manage orders)",
-
-  tradeCoin: "USDT",
-  paymentMethods: [],
 };
 
 /* =========================================================
@@ -142,36 +117,13 @@ function validateStepOne(data: ApplicationData): FieldErrors {
   return errors;
 }
 
-function validateStepTwo(data: ApplicationData): FieldErrors {
-  const errors: FieldErrors = {};
-
-  if (!data.businessType.trim()) errors.businessType = "Business type is required.";
-  if (!data.taxId.trim()) errors.taxId = "Tax ID / NID number is required.";
-
-  if (!data.businessEmail.trim()) {
-    errors.businessEmail = "Business email is required.";
-  } else if (!EMAIL_REGEX.test(data.businessEmail)) {
-    errors.businessEmail = "Enter a valid business email address.";
-  }
-
-  if (!data.businessPhone.trim()) errors.businessPhone = "Business phone is required.";
-  if (!data.operationType.trim()) errors.operationType = "Please select how you'll operate your ads.";
-  if (!data.tradeCoin.trim()) errors.tradeCoin = "Preferred trade coin is required.";
-
-  if (data.paymentMethods.length === 0) {
-    errors.paymentMethods = "Select at least one payment method.";
-  }
-
-  return errors;
-}
-
-function validateStepThree(): FieldErrors {
-  // Step 3 is now a static, informational preview of the documents
-  // our team reviews — there's nothing for the user to submit here.
+function validateStepDocuments(): FieldErrors {
+  // This step is a static, informational preview of the documents our
+  // team reviews — there's nothing for the user to submit here.
   return {};
 }
 
-function validateStepFour(depositPaid: boolean): FieldErrors {
+function validateStepDeposit(depositPaid: boolean): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!depositPaid) {
@@ -181,7 +133,7 @@ function validateStepFour(depositPaid: boolean): FieldErrors {
   return errors;
 }
 
-function validateStepFive(agreed: boolean): FieldErrors {
+function validateStepReview(agreed: boolean): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!agreed) {
@@ -201,13 +153,11 @@ function validateStep(
     case 1:
       return validateStepOne(data);
     case 2:
-      return validateStepTwo(data);
+      return validateStepDocuments();
     case 3:
-      return validateStepThree();
+      return validateStepDeposit(depositPaid);
     case 4:
-      return validateStepFour(depositPaid);
-    case 5:
-      return validateStepFive(agreed);
+      return validateStepReview(agreed);
     default:
       return {};
   }
@@ -215,10 +165,9 @@ function validateStep(
 
 const GENERIC_STEP_MESSAGES: Record<Step, string> = {
   1: "Please complete all required basic information.",
-  2: "Please complete all required business information.",
-  3: "Please upload all required documents.",
-  4: "Please complete the security deposit before continuing.",
-  5: "Please confirm that all information is accurate.",
+  2: "Please upload all required documents.",
+  3: "Please complete the security deposit before continuing.",
+  4: "Please confirm that all information is accurate.",
 };
 
 export default function MerchantApplication() {
@@ -256,7 +205,7 @@ export default function MerchantApplication() {
    * WALLET BALANCE + REQUIRED DEPOSIT AMOUNT
    * -------------------------------------------------------
    * Pulls the merchant's current wallet balance and the
-   * required security deposit amount so Step 4 can decide
+   * required security deposit amount so Step 3 can decide
    * whether a manual deposit is actually needed.
    */
 
@@ -319,8 +268,9 @@ export default function MerchantApplication() {
    * -------------------------------------------------------
    * Restores whatever step the user last completed along with
    * every field they had already filled in. Uploaded files
-   * themselves can't survive localStorage, so Step 3 always
-   * asks the user to re-attach documents if they land back on it.
+   * themselves can't survive localStorage, so the Documents
+   * step always asks the user to re-attach documents if they
+   * land back on it.
    */
 
   useEffect(() => {
@@ -395,7 +345,7 @@ export default function MerchantApplication() {
    */
 
   useEffect(() => {
-    if (step !== 4 || depositPaid) {
+    if (step !== 3 || depositPaid) {
       return;
     }
 
@@ -422,7 +372,7 @@ export default function MerchantApplication() {
 
   const updateData = (
     field: keyof ApplicationData,
-    value: string | string[]
+    value: string
   ) => {
     setData((previous) => ({
       ...previous,
@@ -493,7 +443,7 @@ export default function MerchantApplication() {
    */
 
   const runFullValidation = (): { valid: boolean; failedStep?: Step; errors: FieldErrors } => {
-    const allSteps: Step[] = [1, 2, 3, 4, 5];
+    const allSteps: Step[] = [1, 2, 3, 4];
 
     for (const candidate of allSteps) {
       const errors = validateStep(
@@ -551,42 +501,6 @@ export default function MerchantApplication() {
 
   /*
    * -------------------------------------------------------
-   * PAYMENT METHOD
-   * -------------------------------------------------------
-   */
-
-  const togglePaymentMethod = (
-    method: string
-  ) => {
-    setData((previous) => {
-      const exists =
-        previous.paymentMethods.includes(
-          method
-        );
-
-      return {
-        ...previous,
-        paymentMethods: exists
-          ? previous.paymentMethods.filter(
-              (item) => item !== method
-            )
-          : [
-              ...previous.paymentMethods,
-              method,
-            ],
-      };
-    });
-
-    setFieldErrors((previous) => {
-      if (!previous.paymentMethods) return previous;
-      const next = { ...previous };
-      delete next.paymentMethods;
-      return next;
-    });
-  };
-
-  /*
-   * -------------------------------------------------------
    * FINAL SUBMIT
    * -------------------------------------------------------
    */
@@ -596,7 +510,7 @@ export default function MerchantApplication() {
   ) => {
     event.preventDefault();
 
-    // Re-validate every step, not just Step 5 — the combined
+    // Re-validate every step, not just the review step — the combined
     // payload we're about to send draws on data collected across
     // the whole flow, so all of it needs to be valid together.
     const fullResult = runFullValidation();
@@ -622,16 +536,13 @@ export default function MerchantApplication() {
     setError("");
 
     try {
-      // `data` already carries every field collected across Steps
-      // 1 & 2, so building the payload here naturally combines
-      // everything saved from previous steps with the final state.
+      // `data` already carries every field collected in Step 1, so
+      // building the payload here naturally combines everything saved
+      // from previous steps with the final state.
       const formData = new FormData();
 
       Object.entries(data).forEach(([key, value]) => {
-        formData.append(
-          key,
-          Array.isArray(value) ? JSON.stringify(value) : value
-        );
+        formData.append(key, value);
       });
 
       formData.append("deposit_paid", depositPaid ? "1" : "0");
@@ -729,7 +640,7 @@ export default function MerchantApplication() {
           <div>
             <h1>
               Merchant Application
-              {step === 5 && (
+              {step === 4 && (
                 <i className="fa-solid fa-circle-check verified-title" />
               )}
             </h1>
@@ -739,15 +650,12 @@ export default function MerchantApplication() {
                 "Apply now and start your journey as a verified merchant on LuckySpin."}
 
               {step === 2 &&
-                "Tell us about your business and how you plan to trade on LuckySpin."}
-
-              {step === 3 &&
                 "Just a few more steps! Here's a preview of the documents our team reviews for verification."}
 
-              {step === 4 &&
+              {step === 3 &&
                 "A security deposit helps us maintain a safe and trusted P2P marketplace."}
 
-              {step === 5 &&
+              {step === 4 &&
                 "Review all your information and submit your application."}
             </p>
           </div>
@@ -831,21 +739,10 @@ export default function MerchantApplication() {
           />
         )}
 
-        {step === 2 && (
-          <StepTwo
-            data={data}
-            updateData={updateData}
-            togglePaymentMethod={
-              togglePaymentMethod
-            }
-            fieldErrors={fieldErrors}
-          />
-        )}
+        {step === 2 && <StepDocuments />}
 
-        {step === 3 && <StepThree />}
-
-        {step === 4 && (
-          <StepFour
+        {step === 3 && (
+          <StepDeposit
             depositPaid={depositPaid}
             depositTime={depositTime}
             formatTime={formatTime}
@@ -856,8 +753,8 @@ export default function MerchantApplication() {
           />
         )}
 
-        {step === 5 && (
-          <StepFive
+        {step === 4 && (
+          <StepReview
             data={data}
             depositPaid={depositPaid}
             agreed={agreed}
@@ -899,7 +796,7 @@ export default function MerchantApplication() {
           <div className="application-step-counter">
 
             <strong>
-              Step {step} of 5
+              Step {step} of {TOTAL_STEPS}
             </strong>
 
             <div className="mini-progress">
@@ -919,7 +816,7 @@ export default function MerchantApplication() {
 
           </div>
 
-          {step < 4 && (
+          {step < 3 && (
             <button
               type="button"
               className="application-next-btn"
@@ -931,7 +828,7 @@ export default function MerchantApplication() {
             </button>
           )}
 
-          {step === 4 && (
+          {step === 3 && (
             <button
               type="button"
               className="application-next-btn"
@@ -944,7 +841,7 @@ export default function MerchantApplication() {
             </button>
           )}
 
-          {step === 5 && (
+          {step === 4 && (
             <button
               type="submit"
               className="application-next-btn"
@@ -1034,7 +931,7 @@ function ApplicationProgress({
 
             </button>
 
-            {number < 5 && (
+            {number < STEPS.length && (
               <span
                 className={`progress-connector ${
                   number < current
@@ -1053,7 +950,7 @@ function ApplicationProgress({
 }
 
 /* =========================================================
-   STEP 1
+   STEP 1 — BASIC INFORMATION
 ========================================================= */
 
 function StepOne({
@@ -1064,7 +961,7 @@ function StepOne({
   data: ApplicationData;
   updateData: (
     field: keyof ApplicationData,
-    value: string | string[]
+    value: string
   ) => void;
   fieldErrors: FieldErrors;
 }) {
@@ -1237,244 +1134,7 @@ function StepOne({
 }
 
 /* =========================================================
-   STEP 2
-========================================================= */
-
-function StepTwo({
-  data,
-  updateData,
-  togglePaymentMethod,
-  fieldErrors,
-}: {
-  data: ApplicationData;
-  updateData: (
-    field: keyof ApplicationData,
-    value: string | string[]
-  ) => void;
-  togglePaymentMethod: (
-    method: string
-  ) => void;
-  fieldErrors: FieldErrors;
-}) {
-  return (
-    <>
-
-      <div className="application-card">
-
-        <div className="card-heading">
-          <h2>Business Information</h2>
-
-          <p>
-            Tell us about your business and how you plan to trade on LuckySpin.
-          </p>
-        </div>
-
-        <div className="row g-4">
-
-          <div className="col-lg-4">
-
-            <Select
-              label="Business Type"
-              required
-              value={data.businessType}
-              options={[
-                "Individual",
-                "Company",
-                "Partnership",
-              ]}
-              error={fieldErrors.businessType}
-              onChange={(value) =>
-                updateData(
-                  "businessType",
-                  value
-                )
-              }
-            />
-
-            <Input
-              label="Business Name"
-              value={data.businessName}
-              placeholder="Smith Trading LLC"
-              onChange={(value) =>
-                updateData(
-                  "businessName",
-                  value
-                )
-              }
-            />
-
-            <Input
-              label="Tax ID / NID Number"
-              type="number"
-              required
-              value={data.taxId}
-              placeholder="12-3456789"
-              success
-              error={fieldErrors.taxId}
-              onChange={(value) =>
-                updateData(
-                  "taxId",
-                  value
-                )
-              }
-            />
-
-          </div>
-
-          <div className="col-lg-4">
-
-            <Input
-              label="Business Contact Email"
-              required
-              value={data.businessEmail}
-              placeholder="smithtrading@gmail.com"
-              success
-              error={fieldErrors.businessEmail}
-              onChange={(value) =>
-                updateData(
-                  "businessEmail",
-                  value
-                )
-              }
-            />
-
-            <PhoneInput
-              label="Business Contact Phone"
-              required
-              countryCode={data.businessPhoneCountryCode}
-              phone={data.businessPhone}
-              error={fieldErrors.businessPhone}
-              onCountryCodeChange={(value) =>
-                updateData("businessPhoneCountryCode", value)
-              }
-              onPhoneChange={(value) =>
-                updateData("businessPhone", value)
-              }
-            />
-
-            <Select
-              label="How will you operate your ads?"
-              required
-              value={data.operationType}
-              options={[
-                "Manually (I will manage orders)",
-                "Automatically",
-              ]}
-              error={fieldErrors.operationType}
-              onChange={(value) =>
-                updateData(
-                  "operationType",
-                  value
-                )
-              }
-            />
-
-          </div>
-
-          <div className="col-lg-4">
-
-            <SideIllustration
-              icon="fa-solid fa-store"
-              title="Important Notice"
-              text="Please provide accurate business information. Incorrect information may result in application rejection or account suspension."
-            />
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <div className="application-card">
-
-        <div className="card-heading">
-          <h2>Trading Preferences</h2>
-
-          <p>
-            Select your preferences to help us understand your trading needs.
-          </p>
-        </div>
-
-        <div className="row g-3">
-
-          <div className="col-lg-6">
-
-            <Select
-              label="Preferred Trade Coin"
-              required
-              value={data.tradeCoin}
-              options={[
-                "USDT",
-                "USDC",
-                "BTC",
-              ]}
-              error={fieldErrors.tradeCoin}
-              onChange={(value) =>
-                updateData(
-                  "tradeCoin",
-                  value
-                )
-              }
-            />
-
-          </div>
-
-          <div className="col-lg-6">
-
-            <label className="field-label">
-              Preferred Payment Methods <b>*</b>
-            </label>
-
-            <div className="payment-methods">
-
-              {[
-                "Bank Transfer",
-                "bKash",
-                "Nagad",
-                "Rocket",
-              ].map((method) => (
-                <button
-                  type="button"
-                  key={method}
-                  className={
-                    data.paymentMethods.includes(
-                      method
-                    )
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    togglePaymentMethod(
-                      method
-                    )
-                  }
-                >
-                  {method}
-
-                  {data.paymentMethods.includes(
-                    method
-                  ) && (
-                    <i className="fa-solid fa-check" />
-                  )}
-                </button>
-              ))}
-
-            </div>
-
-            <FieldError message={fieldErrors.paymentMethods} />
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </>
-  );
-}
-
-/* =========================================================
-   STEP 3
+   STEP 2 — DOCUMENTS
 ========================================================= */
 
 const DEMO_DOCUMENTS = [
@@ -1496,7 +1156,7 @@ const DEMO_DOCUMENTS = [
   },
 ];
 
-function StepThree() {
+function StepDocuments() {
   return (
     <div className="application-card">
 
@@ -1597,10 +1257,10 @@ function StepThree() {
 }
 
 /* =========================================================
-   STEP 4
+   STEP 3 — SECURITY DEPOSIT
 ========================================================= */
 
-function StepFour({
+function StepDeposit({
   depositPaid,
   depositTime,
   formatTime,
@@ -1882,10 +1542,10 @@ function StepFour({
 }
 
 /* =========================================================
-   STEP 5
+   STEP 4 — REVIEW & SUBMIT
 ========================================================= */
 
-function StepFive({
+function StepReview({
   data,
   depositPaid,
   agreed,
@@ -1949,45 +1609,13 @@ function StepFive({
             ]}
           />
 
-          <ReviewInformation
-            icon="fa-solid fa-building"
-            title="Business Information"
-            step={2}
-            onEdit={onEdit}
-            rows={[
-              [
-                "Business Type",
-                data.businessType,
-              ],
-              [
-                "Business Name",
-                data.businessName ||
-                  "Smith Trading LLC",
-              ],
-              [
-                "Tax ID / NID Number",
-                data.taxId,
-              ],
-              [
-                "Business Email",
-                data.businessEmail,
-              ],
-              [
-                "Business Phone",
-                data.businessPhone
-                  ? `${data.businessPhoneCountryCode} ${data.businessPhone}`
-                  : "",
-              ],
-            ]}
-          />
-
           <div className="review-section">
 
             <ReviewSectionHeader
               icon="fa-solid fa-file-lines"
               title="Documents"
               onEdit={() =>
-                onEdit(3)
+                onEdit(2)
               }
             />
 
@@ -2019,7 +1647,7 @@ function StepFive({
             icon="fa-solid fa-shield-halved"
             title="Security Deposit Summary"
             onEdit={() =>
-              onEdit(4)
+              onEdit(3)
             }
           />
 
@@ -2294,64 +1922,6 @@ function Textarea({
           )
         }
       />
-
-      <FieldError message={error} />
-
-    </div>
-  );
-}
-
-function Select({
-  label,
-  required,
-  value,
-  options,
-  error,
-  onChange,
-}: {
-  label: string;
-  required?: boolean;
-  value: string;
-  options: string[];
-  error?: string;
-  onChange: (
-    value: string
-  ) => void;
-}) {
-  return (
-    <div className="field-group">
-
-      <label className="field-label">
-        {label}
-
-        {required && <b>*</b>}
-      </label>
-
-      <div className={`select-input-wrapper ${error ? "has-error" : ""}`}>
-
-        <select
-          value={value}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-            )
-          }
-        >
-          {options.map(
-            (option) => (
-              <option
-                key={option}
-                value={option}
-              >
-                {option}
-              </option>
-            )
-          )}
-        </select>
-
-        <i className="fa-solid fa-chevron-down" />
-
-      </div>
 
       <FieldError message={error} />
 

@@ -25,17 +25,6 @@ export type MerchantApplication = {
   country: string;
   address: string;
 
-  business_type: string;
-  business_name: string;
-  tax_id: string;
-  business_email: string;
-  business_phone_country_code: string;
-  business_phone: string;
-  operation_type: string;
-
-  trade_coin: string;
-  payment_methods: string[];
-
   deposit_paid: boolean;
   deposit_amount: string;
   agreed_terms: boolean;
@@ -72,19 +61,7 @@ type ProfileDraft = Pick<
   'full_name' | 'phone_country_code' | 'phone' | 'address'
 >;
 
-// Fields the Business Information card can edit.
-type BusinessDraft = Pick<
-  MerchantApplication,
-  | 'business_name'
-  | 'business_email'
-  | 'business_phone_country_code'
-  | 'business_phone'
-  | 'operation_type'
-  | 'trade_coin'
-  | 'payment_methods'
->;
-
-export type MerchantProfileUpdatePayload = Partial<ProfileDraft & BusinessDraft>;
+export type MerchantProfileUpdatePayload = Partial<ProfileDraft>;
 
 type MerchantProfileProps = {
   application: MerchantApplication | null;
@@ -96,7 +73,7 @@ type MerchantProfileProps = {
   // backend has confirmed the update (throwing on failure re-opens the
   // form with the error shown inline).
   onUpdate?: (
-    section: 'profile' | 'business',
+    section: 'profile',
     data: MerchantProfileUpdatePayload
   ) => Promise<void>;
   onAvatarUpload?: (file: File) => Promise<void>;
@@ -140,13 +117,6 @@ function statusBadgeClass(status: MerchantApplicationStatus): string {
   return 'top-rated-badge status-pending';
 }
 
-const PAYMENT_METHOD_OPTIONS = ['Bank Transfer', 'bKash', 'Nagad', 'Rocket'];
-const TRADE_COIN_OPTIONS = ['USDT', 'USDC', 'BTC'];
-const OPERATION_TYPE_OPTIONS = [
-  'Manually (I will manage orders)',
-  'Automatically',
-];
-
 const quickActions = [
   { icon: 'fa-solid fa-paper-plane', title: 'Create Advertisement' },
   { icon: 'fa-solid fa-rectangle-ad', title: 'My Advertisements' },
@@ -173,7 +143,7 @@ export default function MerchantProfile({
   };
 
   const [editingSection, setEditingSection] =
-    useState<null | 'profile' | 'business'>(null);
+    useState<null | 'profile'>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -184,18 +154,8 @@ export default function MerchantProfile({
     address: '',
   });
 
-  const [businessDraft, setBusinessDraft] = useState<BusinessDraft>({
-    business_name: '',
-    business_email: '',
-    business_phone_country_code: '+880',
-    business_phone: '',
-    operation_type: OPERATION_TYPE_OPTIONS[0],
-    trade_coin: TRADE_COIN_OPTIONS[0],
-    payment_methods: [],
-  });
-
-  // Keep the drafts in sync with the latest server data whenever we're
-  // not actively editing that section (e.g. after a refetch).
+  // Keep the draft in sync with the latest server data whenever we're
+  // not actively editing (e.g. after a refetch).
   useEffect(() => {
     if (application && editingSection !== 'profile') {
       setProfileDraft({
@@ -207,23 +167,9 @@ export default function MerchantProfile({
     }
   }, [application, editingSection]);
 
-  useEffect(() => {
-    if (application && editingSection !== 'business') {
-      setBusinessDraft({
-        business_name: application.business_name,
-        business_email: application.business_email,
-        business_phone_country_code: application.business_phone_country_code,
-        business_phone: application.business_phone,
-        operation_type: application.operation_type,
-        trade_coin: application.trade_coin,
-        payment_methods: application.payment_methods ?? [],
-      });
-    }
-  }, [application, editingSection]);
-
-  const startEdit = (section: 'profile' | 'business') => {
+  const startEdit = (section: 'profile') => {
     if (!onUpdate) {
-      handleAction(section === 'profile' ? 'Edit Profile' : 'Edit Business');
+      handleAction('Edit Profile');
       return;
     }
 
@@ -234,19 +180,6 @@ export default function MerchantProfile({
   const cancelEdit = () => {
     setSaveError(null);
     setEditingSection(null);
-  };
-
-  const toggleBusinessPaymentMethod = (method: string) => {
-    setBusinessDraft((previous) => {
-      const exists = previous.payment_methods.includes(method);
-
-      return {
-        ...previous,
-        payment_methods: exists
-          ? previous.payment_methods.filter((item) => item !== method)
-          : [...previous.payment_methods, method],
-      };
-    });
   };
 
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -275,14 +208,14 @@ export default function MerchantProfile({
     }
   };
 
-  const saveSection = async (section: 'profile' | 'business') => {
+  const saveSection = async (section: 'profile') => {
     if (!onUpdate) return;
 
     setSaving(true);
     setSaveError(null);
 
     try {
-      await onUpdate(section, section === 'profile' ? profileDraft : businessDraft);
+      await onUpdate(section, profileDraft);
       setEditingSection(null);
     } catch (err: any) {
       setSaveError(
@@ -352,10 +285,6 @@ export default function MerchantProfile({
     ? `${application.phone_country_code} ${application.phone}`
     : '-';
 
-  const businessPhone = application.business_phone
-    ? `${application.business_phone_country_code} ${application.business_phone}`
-    : '-';
-
   const verification = [
     {
       icon: 'fa-solid fa-id-card',
@@ -364,15 +293,9 @@ export default function MerchantProfile({
       status: application.status === 'approved' ? 'verified' : 'normal',
     },
     {
-      icon: 'fa-regular fa-envelope',
-      title: 'Business Email',
-      value: application.business_email || '-',
-      status: 'normal',
-    },
-    {
       icon: 'fa-solid fa-building-shield',
       title: 'Security Deposit',
-      value: `${formatMoney(application.deposit_amount)} ${application.trade_coin}`,
+      value: `${formatMoney(application.deposit_amount)} USDT`,
       subtitle: application.deposit_paid ? 'Paid & Refundable' : 'Not Paid',
       status: application.deposit_paid ? 'verified' : 'normal',
     },
@@ -424,28 +347,6 @@ export default function MerchantProfile({
 
               <div className="merchant-profile-top">
 
-                {/* <div className="merchant-avatar-wrapper">
-                  <div className="merchant-avatar">
-                    <div className="merchant-avatar-fallback">
-                      <i className="fa-solid fa-user" />
-                    </div>
-                  </div>
-
-                  <span className={statusBadgeClass(application.status)}>
-                    <i
-                      className={
-                        application.status === 'approved'
-                          ? 'fa-solid fa-circle-check me-2 text-info'
-                          : application.status === 'rejected'
-                          ? 'fa-solid fa-circle-xmark me-2'
-                          : 'fa-solid fa-hourglass-half me-2'
-                      }
-                    />
-                    {application.status === 'approved'
-                      ? 'Verified Merchant'
-                      : statusLabel(application.status)}
-                  </span>
-                </div> */}
                 <div className="merchant-avatar-wrapper">
                    <div className="merchant-avatar">
                     {application.avatar_url ? (
@@ -665,191 +566,6 @@ export default function MerchantProfile({
                     />
 
                   </div>
-                </div>
-              )}
-            </section>
-
-            {/* BUSINESS INFORMATION (editable) */}
-            <section className="merchant-card business-info-card">
-
-              <SectionHeader
-                title="Business Information"
-                editing={editingSection === 'business'}
-                saving={saving}
-                editable={Boolean(onUpdate)}
-                onEdit={() => startEdit('business')}
-                onCancel={cancelEdit}
-                onSave={() => saveSection('business')}
-              />
-
-              {editingSection === 'business' && saveError && (
-                <FieldError message={saveError} />
-              )}
-
-              {editingSection === 'business' ? (
-                <div className="business-info-grid">
-                  <div className="business-column">
-
-                    {/* Business type and tax ID are tied to KYC review and
-                        aren't self-editable here. */}
-                    <InfoItem
-                      icon="fa-solid fa-building"
-                      label="Business Type"
-                      value={application.business_type || '-'}
-                    />
-
-                    <EditInput
-                      label="Business Name"
-                      value={businessDraft.business_name}
-                      onChange={(value) =>
-                        setBusinessDraft((p) => ({ ...p, business_name: value }))
-                      }
-                    />
-
-                    <EditInput
-                      label="Business Email"
-                      type="email"
-                      value={businessDraft.business_email}
-                      onChange={(value) =>
-                        setBusinessDraft((p) => ({
-                          ...p,
-                          business_email: value,
-                        }))
-                      }
-                    />
-
-                    <EditPhone
-                      label="Business Phone"
-                      countryCode={businessDraft.business_phone_country_code}
-                      phone={businessDraft.business_phone}
-                      onCountryCodeChange={(value) =>
-                        setBusinessDraft((p) => ({
-                          ...p,
-                          business_phone_country_code: value,
-                        }))
-                      }
-                      onPhoneChange={(value) =>
-                        setBusinessDraft((p) => ({
-                          ...p,
-                          business_phone: value,
-                        }))
-                      }
-                    />
-
-                  </div>
-
-                  <div className="business-column">
-
-                    <InfoItem
-                      icon="fa-solid fa-file-invoice"
-                      label="Tax ID / NID"
-                      value={application.tax_id || '-'}
-                    />
-
-                    <EditSelect
-                      label="Preferred Coin"
-                      value={businessDraft.trade_coin}
-                      options={TRADE_COIN_OPTIONS}
-                      onChange={(value) =>
-                        setBusinessDraft((p) => ({ ...p, trade_coin: value }))
-                      }
-                    />
-
-                    <EditSelect
-                      label="Ad Operation Type"
-                      value={businessDraft.operation_type}
-                      options={OPERATION_TYPE_OPTIONS}
-                      onChange={(value) =>
-                        setBusinessDraft((p) => ({
-                          ...p,
-                          operation_type: value,
-                        }))
-                      }
-                    />
-
-                    <div className="field-group">
-                      <label className="field-label">Payment Methods</label>
-
-                      <div className="payment-methods">
-                        {PAYMENT_METHOD_OPTIONS.map((method) => (
-                          <button
-                            type="button"
-                            key={method}
-                            className={
-                              businessDraft.payment_methods.includes(method)
-                                ? 'selected'
-                                : ''
-                            }
-                            onClick={() => toggleBusinessPaymentMethod(method)}
-                          >
-                            {method}
-
-                            {businessDraft.payment_methods.includes(method) && (
-                              <i className="fa-solid fa-check" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              ) : (
-                <div className="business-info-grid">
-                  <div className="business-column">
-
-                    <InfoItem
-                      icon="fa-solid fa-building"
-                      label="Business Type"
-                      value={application.business_type || '-'}
-                    />
-
-                    <InfoItem
-                      icon="fa-solid fa-building-columns"
-                      label="Business Name"
-                      value={application.business_name || '-'}
-                    />
-
-                    <InfoItem
-                      icon="fa-regular fa-envelope"
-                      label="Business Email"
-                      value={application.business_email || '-'}
-                    />
-
-                    <InfoItem
-                      icon="fa-solid fa-phone"
-                      label="Business Phone"
-                      value={businessPhone}
-                    />
-
-                  </div>
-
-                  <div className="business-column">
-
-                    <InfoItem
-                      icon="fa-solid fa-file-invoice"
-                      label="Tax ID / NID"
-                      value={application.tax_id || '-'}
-                    />
-
-                    <InfoItem
-                      icon="fa-brands fa-bitcoin"
-                      label="Preferred Coin"
-                      value={application.trade_coin || '-'}
-                    />
-
-                    <InfoItem
-                      icon="fa-solid fa-money-bill-transfer"
-                      label="Payment Methods"
-                      value={
-                        application.payment_methods?.length
-                          ? application.payment_methods.join(', ')
-                          : '-'
-                      }
-                    />
-
-                  </div>
-
                 </div>
               )}
             </section>
@@ -1233,39 +949,6 @@ function EditTextarea({
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-    </div>
-  );
-}
-
-function EditSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="field-group">
-      <label className="field-label">{label}</label>
-
-      <div className="select-input-wrapper">
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        >
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-
-        <i className="fa-solid fa-chevron-down" />
-      </div>
     </div>
   );
 }
