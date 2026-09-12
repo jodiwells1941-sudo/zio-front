@@ -72,9 +72,10 @@ export default function TransferLayout({
     fetchWithdrawCharge();
   }, []);
 
-  // finalAmount: fee is deducted from the selected amount (e.g. select $100, 5% fee -> transfer $95)
+  // UI shows total amount including the withdrawal charge, but the API still receives the original selected amount.
   const withdrawalCharge = selectedAmount * (withdrawChargePercent / 100);
-  const finalAmount = selectedAmount - withdrawalCharge;
+  const totalWithCharge = selectedAmount + withdrawalCharge;
+  const transferAmount = selectedAmount;
 
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -170,7 +171,7 @@ export default function TransferLayout({
     const result = await Swal.fire({
       title: "Transfer Confirmation",
       icon: "info",
-      html: `You are about to transfer <strong>$${selectedAmount.toFixed(2)}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>. (Fee ${withdrawChargePercent}%: $${withdrawalCharge.toFixed(2)}, receiver gets $${finalAmount.toFixed(2)})`,
+      html: `You are about to transfer <strong>$${transferAmount.toFixed(2)}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>. (Total including withdrawal charge: $${totalWithCharge.toFixed(2)} | fee ${withdrawChargePercent}%: $${withdrawalCharge.toFixed(2)})`,
       showCloseButton: true,
       showCancelButton: true,
       focusConfirm: false,
@@ -289,7 +290,7 @@ export default function TransferLayout({
       title: "Generate E-Voucher Confirmation",
       icon: "info",
       // html: `You are about to generate an E-Voucher worth <strong>$${selectedAmount}</strong>. Do you want to proceed?`,
-      html: `You are about to generate an E-Voucher worth <strong>$${selectedAmount.toFixed(2)}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>. (Fee ${withdrawChargePercent}%: $${withdrawalCharge.toFixed(2)}, receiver gets $${finalAmount.toFixed(2)})`,
+      html: `You are about to generate an E-Voucher worth <strong>$${transferAmount.toFixed(2)}</strong> to <strong>${receiverName}</strong> ID: <strong>${receiverId}</strong>. (Total including withdrawal charge: $${totalWithCharge.toFixed(2)} | fee ${withdrawChargePercent}%: $${withdrawalCharge.toFixed(2)})`,
       showCloseButton: true,
       showCancelButton: true,
       focusConfirm: false,
@@ -389,9 +390,9 @@ export default function TransferLayout({
                 'Calculating transfer fee…'
               ) : (
                 <>
-                  <div>Total Amount: $ {selectedAmount.toFixed(2)}</div>
-                  <div>Fee ({withdrawChargePercent}%): $ {withdrawalCharge.toFixed(2)}</div>
-                  <div><strong>Transfer Amount: $ {finalAmount.toFixed(2)}</strong></div>
+                  <div>Total Amount: $ {totalWithCharge.toFixed(2)}</div>
+                  <div>Withdrawal Charge ({withdrawChargePercent}%): $ {withdrawalCharge.toFixed(2)}</div>
+                  <div><strong>Send Amount: $ {transferAmount.toFixed(2)}</strong></div>
                 </>
               )}
             </div>
@@ -408,7 +409,7 @@ export default function TransferLayout({
           </div>
 
           <button type="button"  className="confirm-btn" onClick={submitForm} disabled={isLoading || isChargeLoading || !receiverName || amount < 20}>
-            Confirm Transfer {(selectedAmount - withdrawalCharge).toFixed(2)} USD
+            Confirm Transfer {transferAmount.toFixed(2)} USD
           </button>
         </div>
 
@@ -451,9 +452,9 @@ export default function TransferLayout({
                 'Calculating transfer fee…'
               ) : (
                 <>
-                  <div>Total Amount: $ {selectedAmount.toFixed(2)}</div>
-                  <div>Fee ({withdrawChargePercent}%): $ {withdrawalCharge.toFixed(2)}</div>
-                  <div><strong>Transfer Amount: $ {finalAmount.toFixed(2)}</strong></div>
+                  <div>Total Amount: $ {totalWithCharge.toFixed(2)}</div>
+                  <div>Withdrawal Charge ({withdrawChargePercent}%): $ {withdrawalCharge.toFixed(2)}</div>
+                  <div><strong>Send Amount: $ {transferAmount.toFixed(2)}</strong></div>
                 </>
               )}
             </div>
