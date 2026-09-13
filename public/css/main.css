@@ -18864,6 +18864,13 @@ span {
 }
 .dl-bonus-badge i { color: #f0b332; }
 
+.amount-positive {
+  color: #2bd073;
+}
+.amount-negative {
+  color: #ff5867;
+}
+
 
 /* ════════════════════════════════════════════════════════════════
    7) ADD this CSS anywhere inside the existing <style jsx>{`...`}</style>
