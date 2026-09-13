@@ -238,7 +238,7 @@ export default function TransactionHistory() {
                   amount:   r.amount ?? (r.amount_raw ? `${Number(r.amount_raw) >= 0 ? '+' : '-'}$${Math.abs(Number(r.amount_raw)).toFixed(2)}` : '-'),
                   amount_color: Number(r.amount_raw ?? r.amount ?? 0) >= 0 ? 'green' : 'red',
                   time:     r.date_time ?? r.date,
-                  status:   Number(r.status) ?? 3,
+                  status:   ([1,2,3].includes(Number(r.status)) ? (Number(r.status) as 1 | 2 | 3) : 3),
                   payment_method: r.payment_method,
                   payment_method_icon: r.payment_method_icon,
                   trx_id: r.trx_id,
