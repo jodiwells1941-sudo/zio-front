@@ -9,6 +9,14 @@ interface TransactionData {
   amount: string;
   time: string;
   status:  1 | 2 | 3;
+  // optional fields that may be passed from TransactionHistory
+  type_icon?: string;
+  amount_color?: string;
+  amount_raw?: string | number;
+  payment_method?: string;
+  payment_method_icon?: string;
+  trx_id?: string;
+  view_url?: string;
 }
 
 interface TransactionCardProps {
