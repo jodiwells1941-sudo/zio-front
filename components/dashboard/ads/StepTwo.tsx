@@ -176,7 +176,7 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
 
         {/* Payment Time Limit */}
         <div className="form-group-custom">
-          <label>Payment Time Limit <span className="text-danger fs-4">*</span></label>
+          <label>Order Time Limit <span className="text-danger fs-4">*</span></label>
           <select
             className={`select-custom form-control-custom w-100 w-md-25 ${errors.paymentTimeLimit ? 'is-invalid' : ''}`}
             value={formData.paymentTimeLimit}

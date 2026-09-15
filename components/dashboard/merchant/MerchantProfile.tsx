@@ -18,7 +18,6 @@ export type MerchantApplication = {
   full_name: string;
   avatar: string | null;
   avatar_url: string | null;
-  username: string;
   email: string;
   phone_country_code: string;
   phone: string;
@@ -418,12 +417,7 @@ export default function MerchantProfile({
                       <span>Merchant ID</span>
                       <strong>{merchantId}</strong>
                     </div>
-
-                    <div className="merchant-meta-item">
-                      <span>Username</span>
-                      <strong>{application.username}</strong>
-                    </div>
-
+                    
                     <div className="merchant-meta-item">
                       <span>Member Since</span>
                       <strong>{memberSince}</strong>

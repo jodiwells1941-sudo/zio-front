@@ -74,7 +74,7 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
           {/* With Fiat */}
           <div className="form-group-custom">
             <label>
-              With Fiat <span className="text-danger fs-4">*</span>
+              Select Your Currency  <span className="text-danger fs-4">*</span>
               <span className="label-icon"><i className="fa-solid fa-circle-info" /></span>
             </label>
             <div className="token-selector">
@@ -95,7 +95,7 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
         </div>
 
         {/* Price Type */}
-        <div className="form-group-custom">
+        {/* <div className="form-group-custom">
           <label>Price Type <span className="text-danger fs-4">*</span></label>
           <div className="radio-group-custom">
             {(['fixed', 'floating'] as const).map(pt => (
@@ -110,12 +110,12 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
               </label>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Fixed Price */}
         {formData.priceType === 'fixed' && (
           <div className="form-group-custom">
-            <label>Fixed Price <span className="text-danger fs-4">*</span></label>
+            <label>{formData.type == 'buy' ? 'Buy Price' : 'Sell Price'} <span className="text-danger fs-4">*</span></label>
             <div className={`number-input-group ${errors.fixedPrice ? 'border border-danger rounded' : ''}`}>
               <button
                 className="number-input-btn"

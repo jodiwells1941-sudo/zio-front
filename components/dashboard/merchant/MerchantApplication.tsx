@@ -4,6 +4,7 @@ import React, {
   FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import ReactSelect from "react-select";
@@ -14,8 +15,9 @@ import {
 } from "country-telephone-data";
 import { toast } from "react-toastify";
 import { submitMerchantApplicationApi, getMerchantDepositAmountApi } from "@/app/api/merchant";
-import { walletSettingsDataApi } from "@/app/api/auth";
+import { walletSettingsDataApi, profileVerificationApi } from "@/app/api/auth";
 import { useRouter } from "next/navigation";
+import { getUserInfo } from "@/utils/auth";
 
 /* =========================================================
    STORAGE
@@ -49,7 +51,6 @@ type FieldErrors = Record<string, string>;
 type ApplicationData = {
   // Step 1
   fullName: string;
-  username: string;
   email: string;
   phoneCountryCode: string;
   phone: string;
@@ -74,19 +75,114 @@ const DEFAULT_DEPOSIT_AMOUNT = 500;
 
 const STEPS = [
   "Basic Information",
-  "Documents",
+  "Document Verification",
   "Security Deposit",
   "Review & Submit",
 ];
 
 const initialData: ApplicationData = {
   fullName: "",
-  username: "",
   email: "",
   phoneCountryCode: "+880",
   phone: "",
   country: "Bangladesh",
   address: "",
+};
+
+/* =========================================================
+   DOCUMENTS (Step 2) — mirrors VerifyProfilePage exactly:
+   four document TYPES (passport / driving licence / national
+   id / other govt. doc), each with a front & back SIDE. Each
+   side holds a `file` (newly selected, not yet submitted), a
+   `preview` (object URL for a new file, or the full server
+   URL for a side that already exists), and `isExisting` (true
+   when it came from the server rather than a fresh selection
+   in this session). If a side already exists it's shown as a
+   preview; otherwise an upload zone is shown for that side.
+========================================================= */
+
+type DocType = "passport" | "driving_license" | "national_id" | "other_document";
+type Side = "front" | "back";
+
+interface DocumentSideState {
+  file: File | null;
+  preview: string | null;
+  isExisting: boolean;
+}
+
+interface DocumentState {
+  front: DocumentSideState;
+  back: DocumentSideState;
+}
+
+type DocumentsState = Record<DocType, DocumentState>;
+
+const DOCUMENT_TYPES: {
+  id: DocType;
+  /** Prefix that maps to <prefix>_front_image / <prefix>_back_image in the API */
+  apiPrefix: string;
+  icon: string;
+  title: string;
+  sub: string;
+  color: string;
+}[] = [
+  {
+    id: "passport",
+    apiPrefix: "passport",
+    icon: "fas fa-passport",
+    title: "Passport",
+    sub: "International travel document",
+    color: "#3b82f6",
+  },
+  {
+    id: "driving_license",
+    apiPrefix: "driving_license",
+    icon: "fas fa-car",
+    title: "Driving Licence",
+    sub: "Government issued ID",
+    color: "#8b5cf6",
+  },
+  {
+    id: "national_id",
+    apiPrefix: "national_id",
+    icon: "fas fa-id-card",
+    title: "National ID",
+    sub: "National identity card",
+    color: "#22c55e",
+  },
+  {
+    id: "other_document",
+    apiPrefix: "other_document",
+    icon: "fas fa-file-alt",
+    title: "Other Govt. Doc",
+    sub: "Any government document",
+    color: "#f7a600",
+  },
+];
+
+const emptyDocSide = (): DocumentSideState => ({
+  file: null,
+  preview: null,
+  isExisting: false,
+});
+
+const emptyDocumentState = (): DocumentState => ({
+  front: emptyDocSide(),
+  back: emptyDocSide(),
+});
+
+const EMPTY_DOCUMENTS: DocumentsState = DOCUMENT_TYPES.reduce(
+  (acc, { id }) => {
+    acc[id] = emptyDocumentState();
+    return acc;
+  },
+  {} as DocumentsState
+);
+
+const storageUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${process.env.NEXT_PUBLIC_BACKEND_URL}/storage/${path}`;
 };
 
 /* =========================================================
@@ -102,7 +198,6 @@ function validateStepOne(data: ApplicationData): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!data.fullName.trim()) errors.fullName = "Full name is required.";
-  if (!data.username.trim()) errors.username = "Username is required.";
 
   if (!data.email.trim()) {
     errors.email = "Email is required.";
@@ -117,10 +212,13 @@ function validateStepOne(data: ApplicationData): FieldErrors {
   return errors;
 }
 
-function validateStepDocuments(): FieldErrors {
-  // This step is a static, informational preview of the documents our
-  // team reviews — there's nothing for the user to submit here.
-  return {};
+// A document type counts as "provided" once at least its front side has
+// either a newly selected file or an existing one on the server. The back
+// side is captured when relevant (e.g. driving licence, national id) but
+// isn't required, since some documents (e.g. passport) are single-sided.
+function validateStepDocuments(documents: DocumentsState): FieldErrors {
+  const errors: FieldErrors = {};
+  return errors;
 }
 
 function validateStepDeposit(depositPaid: boolean): FieldErrors {
@@ -146,6 +244,7 @@ function validateStepReview(agreed: boolean): FieldErrors {
 function validateStep(
   step: Step,
   data: ApplicationData,
+  documents: DocumentsState,
   depositPaid: boolean,
   agreed: boolean
 ): FieldErrors {
@@ -153,7 +252,7 @@ function validateStep(
     case 1:
       return validateStepOne(data);
     case 2:
-      return validateStepDocuments();
+      return validateStepDocuments(documents);
     case 3:
       return validateStepDeposit(depositPaid);
     case 4:
@@ -165,7 +264,7 @@ function validateStep(
 
 const GENERIC_STEP_MESSAGES: Record<Step, string> = {
   1: "Please complete all required basic information.",
-  2: "Please upload all required documents.",
+  2: "Optional: upload verification documents if available.",
   3: "Please complete the security deposit before continuing.",
   4: "Please confirm that all information is accurate.",
 };
@@ -175,6 +274,22 @@ export default function MerchantApplication() {
 
   const [data, setData] =
     useState<ApplicationData>(initialData);
+
+  const [documents, setDocuments] =
+    useState<DocumentsState>(EMPTY_DOCUMENTS);
+
+  const [documentsLoading, setDocumentsLoading] =
+    useState(true);
+
+  // Which document type / side the shared hidden file input is currently
+  // targeting — mirrors VerifyProfilePage's activeDoc / activeSide pattern.
+  const [activeDocType, setActiveDocType] =
+    useState<DocType>("passport");
+
+  const [activeSide, setActiveSide] =
+    useState<Side>("front");
+
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const [depositPaid, setDepositPaid] =
     useState(false);
@@ -264,13 +379,68 @@ export default function MerchantApplication() {
 
   /*
    * -------------------------------------------------------
+   * LOAD EXISTING DOCUMENTS (Step 2)
+   * -------------------------------------------------------
+   * If a merchant has a draft/previous application with
+   * documents already uploaded on the server, fetch them here
+   * the same way VerifyProfilePage loads its saved documents,
+   * and mark them `isExisting: true` so Step 2 shows a preview
+   * instead of an upload zone for that side.
+   *
+   * There's no such endpoint wired up yet in this file — add
+   * one (e.g. `getMerchantApplicationApi()`) and map its
+   * response into `documents` below when it's available. Until
+   * then every document simply starts empty for a fresh
+   * upload.
+   */
+  useEffect(() => {
+    const loadExistingDocuments = async () => {
+      setDocumentsLoading(true);
+      try {
+        // Try to reuse profile verification document fields if present —
+        // many deployments store user document images under the same
+        // keys (e.g. passport_front_image). This lets us show any
+        // already-uploaded files to the merchant applicant without
+        // requiring a dedicated merchant-docs endpoint.
+        const res = await profileVerificationApi();
+        const doc = res?.document;
+
+        if (doc && typeof doc === "object") {
+          setDocuments((prev) => {
+            const next = { ...prev };
+
+            DOCUMENT_TYPES.forEach(({ id, apiPrefix }) => {
+              const frontUrl = storageUrl((doc as Record<string, any>)[`${apiPrefix}_front_image`]);
+              const backUrl = storageUrl((doc as Record<string, any>)[`${apiPrefix}_back_image`]);
+
+              next[id] = {
+                front: { file: null, preview: frontUrl, isExisting: !!frontUrl },
+                back:  { file: null, preview: backUrl,  isExisting: !!backUrl },
+              };
+            });
+
+            return next;
+          });
+        }
+      } catch {
+        // Non-fatal — merchant may not have a draft yet.
+      } finally {
+        setDocumentsLoading(false);
+      }
+    };
+
+    loadExistingDocuments();
+  }, []);
+
+  /*
+   * -------------------------------------------------------
    * RESTORE APPLICATION (runs once on mount)
    * -------------------------------------------------------
    * Restores whatever step the user last completed along with
    * every field they had already filled in. Uploaded files
-   * themselves can't survive localStorage, so the Documents
-   * step always asks the user to re-attach documents if they
-   * land back on it.
+   * themselves can't survive localStorage, so Step 2 relies on
+   * `isExisting` documents fetched from the server (above) or
+   * the user re-attaching files in this session.
    */
 
   useEffect(() => {
@@ -312,6 +482,32 @@ export default function MerchantApplication() {
       setRestored(true);
     }
   }, []);
+
+  // Merge current authenticated user info into the form data
+  // after we've attempted to restore any saved draft from
+  // localStorage. We only set fields that are still empty so
+  // saved progress takes precedence.
+  useEffect(() => {
+    if (!restored) return;
+
+    try {
+      const currentUser = getUserInfo();
+      if (!currentUser) return;
+
+      setData((prev) => ({
+        fullName:
+          prev.fullName || currentUser.name || currentUser.fullName || "",
+        email: prev.email || currentUser.email || "",
+        phoneCountryCode:
+          prev.phoneCountryCode || currentUser.phone_country_code || prev.phoneCountryCode,
+        phone: prev.phone || currentUser.phone || currentUser.mobile || "",
+        country: prev.country || currentUser.country || "",
+        address: prev.address || currentUser.address || "",
+      }));
+    } catch (e) {
+      // ignore errors reading user info
+    }
+  }, [restored]);
 
   /*
    * -------------------------------------------------------
@@ -388,6 +584,50 @@ export default function MerchantApplication() {
     });
   };
 
+  // ── Document upload helpers (front/back per doc type, same shape as
+  //    VerifyProfilePage) ─────────────────────────────────────────────
+  const triggerDocUpload = (docType: DocType, side: Side) => {
+    setActiveDocType(docType);
+    setActiveSide(side);
+    // Let state settle before triggering click
+    setTimeout(() => docInputRef.current?.click(), 0);
+  };
+
+  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setDocuments((prev) => ({
+      ...prev,
+      [activeDocType]: {
+        ...prev[activeDocType],
+        [activeSide]: {
+          file,
+          preview: URL.createObjectURL(file),
+          isExisting: false,
+        },
+      },
+    }));
+
+    setFieldErrors((previous) => {
+      if (!previous[activeDocType]) return previous;
+      const next = { ...previous };
+      delete next[activeDocType];
+      return next;
+    });
+  };
+
+  const removeDocument = (docType: DocType, side: Side) => {
+    setDocuments((prev) => ({
+      ...prev,
+      [docType]: {
+        ...prev[docType],
+        [side]: emptyDocSide(),
+      },
+    }));
+  };
+
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remaining = seconds % 60;
@@ -415,6 +655,7 @@ export default function MerchantApplication() {
     const errors = validateStep(
       targetStep,
       data,
+      documents,
       depositPaid,
       agreed
     );
@@ -449,6 +690,7 @@ export default function MerchantApplication() {
       const errors = validateStep(
         candidate,
         data,
+        documents,
         depositPaid,
         agreed
       );
@@ -543,6 +785,20 @@ export default function MerchantApplication() {
 
       Object.entries(data).forEach(([key, value]) => {
         formData.append(key, value);
+      });
+
+      // Only newly-selected files need to be (re)sent — sides that
+      // were already on the server (`isExisting`) don't need re-upload.
+      // Field names match VerifyProfilePage's convention:
+      // `${apiPrefix}_front_image` / `${apiPrefix}_back_image`.
+      DOCUMENT_TYPES.forEach(({ id, apiPrefix }) => {
+        const doc = documents[id];
+        if (doc.front.file) {
+          formData.append(`${apiPrefix}_front_image`, doc.front.file);
+        }
+        if (doc.back.file) {
+          formData.append(`${apiPrefix}_back_image`, doc.back.file);
+        }
       });
 
       formData.append("deposit_paid", depositPaid ? "1" : "0");
@@ -650,7 +906,7 @@ export default function MerchantApplication() {
                 "Apply now and start your journey as a verified merchant on LuckySpin."}
 
               {step === 2 &&
-                "Just a few more steps! Here's a preview of the documents our team reviews for verification."}
+                "Upload each document below. Anything already on file is shown automatically."}
 
               {step === 3 &&
                 "A security deposit helps us maintain a safe and trusted P2P marketplace."}
@@ -739,7 +995,19 @@ export default function MerchantApplication() {
           />
         )}
 
-        {step === 2 && <StepDocuments />}
+        {step === 2 && (
+          <StepDocuments
+            documents={documents}
+            documentsLoading={documentsLoading}
+            activeDocType={activeDocType}
+            activeSide={activeSide}
+            setActiveDocType={setActiveDocType}
+            setActiveSide={setActiveSide}
+            fieldErrors={fieldErrors}
+            onUpload={triggerDocUpload}
+            onRemove={removeDocument}
+          />
+        )}
 
         {step === 3 && (
           <StepDeposit
@@ -756,6 +1024,7 @@ export default function MerchantApplication() {
         {step === 4 && (
           <StepReview
             data={data}
+            documents={documents}
             depositPaid={depositPaid}
             agreed={agreed}
             setAgreed={(value) => {
@@ -775,6 +1044,17 @@ export default function MerchantApplication() {
             }}
           />
         )}
+
+        {/* Single hidden file input shared by every document side in
+            Step 2 — `activeDocType` / `activeSide` track which panel
+            triggered it, same pattern as VerifyProfilePage. */}
+        <input
+          ref={docInputRef}
+          type="file"
+          accept="*/*"
+          style={{ display: "none" }}
+          onChange={handleDocUpload}
+        />
 
         {/* =================================================
             FOOTER ACTIONS
@@ -1008,7 +1288,7 @@ function StepOne({
               label="Full Name"
               required
               value={data.fullName}
-              placeholder="John Michael Smith"
+              placeholder="Your Full Name"
               error={fieldErrors.fullName}
               onChange={(value) =>
                 updateData(
@@ -1019,27 +1299,11 @@ function StepOne({
             />
 
             <Input
-              label="Username"
-              required
-              value={data.username}
-              placeholder="johnsmith99"
-              helper="This will be your merchant username."
-              success
-              error={fieldErrors.username}
-              onChange={(value) =>
-                updateData(
-                  "username",
-                  value
-                )
-              }
-            />
-
-            <Input
               label="Email Address"
               required
               type="email"
               value={data.email}
-              placeholder="johnsmith99@gmail.com"
+              placeholder="your.email@example.com"
               success
               error={fieldErrors.email}
               onChange={(value) =>
@@ -1069,6 +1333,28 @@ function StepOne({
                     setCountry(selected);
                     setCountryTouched(true);
                     updateData("country", selected?.label ?? "");
+
+                    // Auto-select phone country code when a country is chosen.
+                    // Match by ISO2 code rather than country name — the two
+                    // libraries don't always spell country names the same way
+                    // (e.g. "South Korea" vs "Korea, Republic of"), but the
+                    // ISO2 code is stable and shared between both datasets.
+                    try {
+                      if (selected?.value) {
+                        const iso2 = selected.value.toLowerCase();
+
+                        const match = allCountries.find(
+                          (c: CountryTelephoneData) =>
+                            String(c.iso2).toLowerCase() === iso2
+                        );
+
+                        if (match && match.dialCode) {
+                          updateData("phoneCountryCode", `+${match.dialCode}`);
+                        }
+                      }
+                    } catch (e) {
+                      // ignore lookup errors
+                    }
                   }}
                   onBlur={() => setCountryTouched(true)}
                   placeholder="Select Country"
@@ -1085,7 +1371,7 @@ function StepOne({
               label="Address"
               required
               value={data.address}
-              placeholder="1234 Sunset Blvd, Apt 5B, Los Angeles, CA 90026"
+              placeholder="Your Address"
               error={fieldErrors.address}
               onChange={(value) =>
                 updateData(
@@ -1134,105 +1420,265 @@ function StepOne({
 }
 
 /* =========================================================
-   STEP 2 — DOCUMENTS
+   STEP 2 — DOCUMENT VERIFICATION
+   ---------------------------------------------------------
+   Same pattern as VerifyProfilePage: compact tabs pick the
+   document TYPE (Passport / Driving Licence / National ID /
+   Other Govt. Doc), and both the front and back SIDE panels
+   are shown side by side underneath. Each side shows its
+   existing/preview image if one is already on file, or an
+   upload zone if it hasn't been provided yet.
 ========================================================= */
 
-const DEMO_DOCUMENTS = [
-  {
-    title: "National ID / Passport",
-    image: "/images/documents/national-id-demo.jpg",
-  },
-  {
-    title: "Selfie with ID",
-    image: "/images/documents/selfie-demo.jpg",
-  },
-  {
-    title: "Business Proof",
-    image: "/images/documents/business-proof-demo.jpg",
-  },
-  {
-    title: "Address Proof",
-    image: "/images/documents/address-proof-demo.jpg",
-  },
-];
+function StepDocuments({
+  documents,
+  documentsLoading,
+  activeDocType,
+  activeSide,
+  setActiveDocType,
+  setActiveSide,
+  fieldErrors,
+  onUpload,
+  onRemove,
+}: {
+  documents: DocumentsState;
+  documentsLoading: boolean;
+  activeDocType: DocType;
+  activeSide: Side;
+  setActiveDocType: (docType: DocType) => void;
+  setActiveSide: (side: Side) => void;
+  fieldErrors: FieldErrors;
+  onUpload: (docType: DocType, side: Side) => void;
+  onRemove: (docType: DocType, side: Side) => void;
+}) {
+  if (documentsLoading) {
+    return (
+      <div className="application-card" style={{ textAlign: "center", padding: "60px 0" }}>
+        <i className="fas fa-spinner fa-spin" style={{ fontSize: 24 }} />
+        <p style={{ marginTop: 10 }}>Checking for previously uploaded documents…</p>
+      </div>
+    );
+  }
 
-function StepDocuments() {
+  const activeDocMeta = DOCUMENT_TYPES.find((d) => d.id === activeDocType) ?? DOCUMENT_TYPES[0];
+  const activeDocState = documents[activeDocType];
+
   return (
     <div className="application-card">
 
       <div className="card-heading">
         <h2>
-          Required Documents
+          Document Verification
         </h2>
 
         <p>
-          Sample of the documents our team reviews as part of every merchant application.
+          Choose a document type below, then upload the front and back sides. Anything already on file is shown automatically — no need to re-upload it.
         </p>
       </div>
 
-      <div className="documents-grid">
+      {/* Document type tabs */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          marginBottom: 18,
+        }}
+      >
+        {DOCUMENT_TYPES.map((tab) => {
+          const doc = documents[tab.id];
+          const complete = !!(doc.front.preview || doc.back.preview);
+          const isActive = activeDocType === tab.id;
 
-        {DEMO_DOCUMENTS.map((doc) => (
-          <div className="document-upload-card" key={doc.title}>
-
-            <div className="document-card-header">
-
-              <div className="document-icon-small">
-                <i className="fa-regular fa-id-card" />
-              </div>
-
-              <div>
-                <h3>
-                  {doc.title}
-                </h3>
-              </div>
-
-            </div>
-
-            <div className="upload-zone">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={doc.image}
-                alt={doc.title}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: 8,
-                }}
-              />
-            </div>
-
-          </div>
-        ))}
-
-        <div className="document-guidelines">
-
-          <div className="guideline-content">
-
-            <h3>
-              Document Guidelines
-            </h3>
-
-            <Guideline text="All documents must be valid and unexpired" />
-            <Guideline text="Information must be clear and readable" />
-            <Guideline text="No edited or cropped documents" />
-            <Guideline text="Supported formats: JPG, PNG, PDF" />
-            <Guideline text="Maximum file size: 5MB per file" />
-
-          </div>
-
-          <div className="guideline-illustration">
-            <i className="fa-solid fa-folder-open" />
-
-            <span>
-              <i className="fa-solid fa-shield-halved" />
-            </span>
-          </div>
-
-        </div>
-
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveDocType(tab.id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 14px",
+                borderRadius: 999,
+                border: `1px solid ${isActive ? tab.color : "rgba(255,255,255,0.12)"}`,
+                background: isActive ? `${tab.color}12` : "transparent",
+                color: isActive ? tab.color : "rgba(255,255,255,0.7)",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <i className={tab.icon} />
+              {tab.title}
+              {complete && (
+                <i
+                  className="fa-solid fa-circle-check"
+                  style={{ color: "#22c55e", fontSize: 12 }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
+
+      {fieldErrors[activeDocType] && (
+        <FieldError message={fieldErrors[activeDocType]} />
+      )}
+
+      <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 14 }}>
+        {activeDocMeta.sub}
+      </p>
+
+      {/* Front / back panels for the active document type */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 16,
+        }}
+      >
+        {(["front", "back"] as Side[]).map((side) => {
+          const sideState = activeDocState[side];
+          const hasImage = !!sideState.preview;
+          const isSelected = activeSide === side;
+
+          return (
+            <div
+              key={side}
+              onClick={() => setActiveSide(side)}
+              style={{
+                border: `1px solid ${isSelected ? activeDocMeta.color : "rgba(255,255,255,0.08)"}`,
+                borderRadius: 12,
+                padding: 14,
+                cursor: "pointer",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 10,
+                }}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.8 }}>
+                  <i className={side === "front" ? "fas fa-id-card" : "fas fa-id-card-alt"} style={{ marginRight: 6 }} />
+                  {side === "front" ? "Front side" : "Back side"}
+                </span>
+
+                {hasImage && (
+                  <small style={{ color: sideState.isExisting ? "#22c55e" : "#f7a600" }}>
+                    {sideState.isExisting ? "Already on file" : "Ready to submit"}
+                  </small>
+                )}
+              </div>
+
+              {hasImage ? (
+                <div className="upload-zone" style={{ position: "relative" }}>
+                  {/* Render image previews for image files, otherwise show a generic file box */}
+                  {typeof sideState.preview === "string" && /\.(jpe?g|png|webp|gif|svg)$/i.test(sideState.preview) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={sideState.preview as string}
+                      alt={`${activeDocMeta.title} ${side}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: 8,
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 12,
+                      height: 160,
+                      borderRadius: 8,
+                      background: "rgba(255,255,255,0.02)",
+                    }}>
+                      <i className="fa-solid fa-file" style={{ fontSize: 28 }} />
+                      <div style={{ textAlign: "left" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700 }}>{sideState.file ? (sideState.file as File).name : "Attached document"}</div>
+                        <div style={{ fontSize: 12, opacity: 0.6 }}>{sideState.isExisting ? "Already on file" : "Ready to submit"}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      display: "flex",
+                      gap: 6,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="doc-action-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpload(activeDocType, side);
+                      }}
+                      title="Replace"
+                    >
+                      <i className="fa-solid fa-rotate" />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="doc-action-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(activeDocType, side);
+                      }}
+                      title="Remove"
+                    >
+                      <i className="fa-solid fa-trash" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="upload-zone"
+                  style={{
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    textAlign: "center",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpload(activeDocType, side);
+                  }}
+                >
+                  <i className="fas fa-cloud-upload-alt" style={{ fontSize: 22 }} />
+                  <span>Click to upload</span>
+                  <small style={{ opacity: 0.5 }}>Any file type · Max 5MB</small>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <ul className="vp-tips mt-3">
+        {[
+          "Document must not be expired",
+          "All four corners clearly visible",
+          "No blur, glare, or shadows on text",
+          "Upload both front and back sides where applicable",
+          "Original document only — no photocopies",
+        ].map((t) => (
+          <li key={t}><i className="fas fa-circle" /> {t}</li>
+        ))}
+      </ul>
 
       <div className="important-note">
 
@@ -1547,6 +1993,7 @@ function StepDeposit({
 
 function StepReview({
   data,
+  documents,
   depositPaid,
   agreed,
   setAgreed,
@@ -1554,6 +2001,7 @@ function StepReview({
   onEdit,
 }: {
   data: ApplicationData;
+  documents: DocumentsState;
   depositPaid: boolean;
   agreed: boolean;
   setAgreed: (
@@ -1564,6 +2012,14 @@ function StepReview({
     step: Step
   ) => void;
 }) {
+  const allDocumentsUploaded = DOCUMENT_TYPES.every(({ id }) => {
+    const doc = documents[id];
+    return (
+      (doc.front.file || doc.front.isExisting) ||
+      (doc.back.file || doc.back.isExisting)
+    );
+  });
+
   return (
     <div className="review-page">
 
@@ -1597,7 +2053,6 @@ function StepReview({
             onEdit={onEdit}
             rows={[
               ["Full Name", data.fullName],
-              ["Username", data.username],
               ["Email", data.email],
               [
                 "Phone Number",
@@ -1613,24 +2068,39 @@ function StepReview({
 
             <ReviewSectionHeader
               icon="fa-solid fa-file-lines"
-              title="Documents"
+              title="Document Verification"
               onEdit={() =>
                 onEdit(2)
               }
             />
 
-            {DEMO_DOCUMENTS.map((doc) => (
-              <DocumentReview
-                key={doc.title}
-                title={doc.title}
-                uploaded
-              />
-            ))}
+            {DOCUMENT_TYPES.map((doc) => {
+              const state = documents[doc.id];
+              const frontDone = !!(state.front.file || state.front.isExisting);
+              const backDone = !!(state.back.file || state.back.isExisting);
+
+              return (
+                <DocumentReview
+                  key={doc.id}
+                  title={doc.title}
+                  uploaded={frontDone || backDone}
+                  detail={
+                    frontDone && backDone
+                      ? "Front & back"
+                      : frontDone
+                      ? "Front only"
+                      : backDone
+                      ? "Back only"
+                      : undefined
+                  }
+                />
+              );
+            })}
 
             <div className="documents-valid">
               <i className="fa-solid fa-circle-check" />
-              All documents verified
-              <span>Valid</span>
+              {allDocumentsUploaded ? "All documents uploaded" : "Some documents are missing"}
+              <span>{allDocumentsUploaded ? "Valid" : "Incomplete"}</span>
             </div>
 
           </div>
@@ -2123,26 +2593,6 @@ function InfoBar({
 }
 
 /* =========================================================
-   GUIDELINES
-========================================================= */
-
-function Guideline({
-  text,
-}: {
-  text: string;
-}) {
-  return (
-    <div className="guideline-row">
-
-      <i className="fa-solid fa-circle-check" />
-
-      <span>{text}</span>
-
-    </div>
-  );
-}
-
-/* =========================================================
    DEPOSIT
 ========================================================= */
 
@@ -2272,39 +2722,6 @@ function ReviewSectionHeader({
   );
 }
 
-function DocumentReview({
-  title,
-  uploaded,
-}: {
-  title: string;
-  uploaded: boolean;
-}) {
-  return (
-    <div className="document-review-row">
-
-      <span>
-        <i className="fa-regular fa-id-card" />
-        {title}
-      </span>
-
-      <strong>
-        {uploaded
-          ? "Uploaded"
-          : "Missing"}
-      </strong>
-
-      <i
-        className={
-          uploaded
-            ? "fa-solid fa-circle-check"
-            : "fa-solid fa-circle-xmark"
-        }
-      />
-
-    </div>
-  );
-}
-
 function ReviewBenefit({
   icon,
   title,
@@ -2316,14 +2733,45 @@ function ReviewBenefit({
 }) {
   return (
     <div className="review-benefit">
-
+      <i className={icon} />
       <div>
-        <i className={icon} />
+        <strong>{title}</strong>
+        <span>{text}</span>
       </div>
+    </div>
+  );
+}
 
-      <strong>{title}</strong>
+function DocumentReview({
+  title,
+  uploaded,
+  detail,
+}: {
+  title: string;
+  uploaded: boolean;
+  detail?: string;
+}) {
+  return (
+    <div className="document-review-row">
 
-      <span>{text}</span>
+      <span>
+        <i className="fa-regular fa-id-card" />
+        {title}
+      </span>
+
+      <strong>
+        {uploaded
+          ? (detail ?? "Uploaded")
+          : "Missing"}
+      </strong>
+
+      <i
+        className={
+          uploaded
+            ? "fa-solid fa-circle-check"
+            : "fa-solid fa-circle-xmark"
+        }
+      />
 
     </div>
   );
