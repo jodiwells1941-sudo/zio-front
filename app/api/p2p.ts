@@ -56,3 +56,8 @@ export const GetTransferListApi = async (params: any) => {
     const response = await apiClient.get("/user/transaction-list", params);
     return response.data;
 };
+
+export const GetCurrencyLimitApi = async (params: any) => {
+    const response = await apiClient.get("/user/currency-limit", params);
+    return response.data;
+};

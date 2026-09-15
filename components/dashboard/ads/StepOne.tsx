@@ -1,8 +1,8 @@
 'use client';
 
+import { useEffect, useState } from "react";
 import { StepErrors } from "@/app/dashboard/ads/AdsPage";
-
-
+import { GetCurrencyLimitApi } from "@/app/api/p2p";
 
 interface StepOneProps {
   formData: {
@@ -30,7 +30,77 @@ const CURRENCIES = [
   { code: 'CHF', name: 'Swiss Franc' },
 ];
 
+type CurrencyLimit = {
+  currency_code: string;
+  min_amount: string | number | null;
+  max_amount: string | number | null;
+  is_active: boolean;
+};
+
 export default function StepOne({ formData, onFormChange, errors = {} }: StepOneProps) {
+  const [limit, setLimit] = useState<CurrencyLimit | null>(null);
+  const [limitLoading, setLimitLoading] = useState(false);
+  const [priceRangeError, setPriceRangeError] = useState<string | null>(null);
+
+  // ── Fetch min/max whenever the selected currency changes ──
+  useEffect(() => {
+    if (!formData.withFlat) {
+      setLimit(null);
+      setPriceRangeError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLimitLoading(true);
+
+    (async () => {
+      try {
+        const res = await GetCurrencyLimitApi({ params: { currency: formData.withFlat } });
+        if (cancelled) return;
+
+        if (!res?.error) {
+          setLimit(res.data);
+        } else {
+          setLimit(null);
+        }
+      } catch {
+        if (!cancelled) setLimit(null);
+      } finally {
+        if (!cancelled) setLimitLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.withFlat]);
+
+  // ── Validate price against fetched min/max as it changes ──
+  useEffect(() => {
+    if (!limit || limit.min_amount === null) {
+      setPriceRangeError(null);
+      return;
+    }
+
+    const min = Number(limit.min_amount);
+    const max = limit.max_amount === null ? null : Number(limit.max_amount);
+    const price = formData.fixedPrice;
+
+    if (price < min) {
+      setPriceRangeError(`Price must be at least ${min.toLocaleString()} ${formData.withFlat}.`);
+    } else if (max !== null && price > max) {
+      setPriceRangeError(`Price must not exceed ${max.toLocaleString()} ${formData.withFlat}.`);
+    } else {
+      setPriceRangeError(null);
+    }
+  }, [limit, formData.fixedPrice, formData.withFlat]);
+
+  const formatLimit = (value: string | number | null) => {
+    if (value === null || value === undefined) return '-';
+    const n = Number(value);
+    return Number.isNaN(n) ? '-' : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  };
+
   return (
     <>
       <div className="step-one-container border rounded-3 p-3 border-dark-light">
@@ -94,29 +164,11 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
           </div>
         </div>
 
-        {/* Price Type */}
-        {/* <div className="form-group-custom">
-          <label>Price Type <span className="text-danger fs-4">*</span></label>
-          <div className="radio-group-custom">
-            {(['fixed', 'floating'] as const).map(pt => (
-              <label key={pt} className="radio-item-custom">
-                <input
-                  type="radio"
-                  className="radio-custom"
-                  checked={formData.priceType === pt}
-                  onChange={() => onFormChange({ priceType: pt })}
-                />
-                {pt.charAt(0).toUpperCase() + pt.slice(1)}
-              </label>
-            ))}
-          </div>
-        </div> */}
-
         {/* Fixed Price */}
         {formData.priceType === 'fixed' && (
           <div className="form-group-custom">
             <label>{formData.type == 'buy' ? 'Buy Price' : 'Sell Price'} <span className="text-danger fs-4">*</span></label>
-            <div className={`number-input-group ${errors.fixedPrice ? 'border border-danger rounded' : ''}`}>
+            <div className={`number-input-group ${(errors.fixedPrice || priceRangeError) ? 'border border-danger rounded' : ''}`}>
               <button
                 className="number-input-btn"
                 onClick={() => onFormChange({ fixedPrice: Math.max(97.75, formData.fixedPrice - 1) })}
@@ -138,10 +190,9 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
                 <i className="fa-solid fa-plus" />
               </button>
             </div>
-            {/* {errors.fixedPrice
-              ? <div className="invalid-feedback d-block">{errors.fixedPrice}</div>
-              : <div className="help-text">The fixed price should be between 97.75 - 152.72</div>
-            } */}
+            {priceRangeError && (
+              <div className="invalid-feedback d-block">{priceRangeError}</div>
+            )}
           </div>
         )}
 
@@ -152,8 +203,16 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
             <div className="price-value"> {formData?.withFlat || 'USD'} {formData.fixedPrice.toFixed(2)}</div>
           </div>
           <div className="price-display-item">
-            <div className="price-label">Highest Order Price</div>
-            <div className="price-value">-</div>
+            <div className="price-label">Minimum Currency Price</div>
+            <div className="price-value">
+              {limitLoading ? '...' : formatLimit(limit?.min_amount ?? null)}
+            </div>
+          </div>
+          <div className="price-display-item">
+            <div className="price-label">Maximum Currency Price</div>
+            <div className="price-value">
+              {limitLoading ? '...' : formatLimit(limit?.max_amount ?? null)}
+            </div>
           </div>
         </div>
 
