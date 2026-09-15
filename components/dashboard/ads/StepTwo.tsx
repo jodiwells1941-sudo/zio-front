@@ -30,13 +30,63 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
   const [loadingMethods, setLoadingMethods] = useState(false);
   const [saving,         setSaving]         = useState(false);
 
+  // ─── Local "fiat typed" state ──────────────────────────────────────────────
+  // The user now types the withFlat (fiat) amount in these fields.
+  // formData.totalAmount / orderLimitMin / orderLimitMax keep storing the
+  // asset (USD/USDT) amount, exactly like before — nothing downstream changes.
+  const [totalAmountFlat,  setTotalAmountFlat]  = useState('');
+  const [orderLimitMinFlat, setOrderLimitMinFlat] = useState('');
+  const [orderLimitMaxFlat, setOrderLimitMaxFlat] = useState('');
+
   const closeModal = () => { setModalMode(null); setEditTarget(undefined); };
 
-  const totalEstimatedFee = formData.totalAmount
-    ? (parseFloat(formData.totalAmount) * (formData.fixedPrice ?? 0.004)).toFixed(2)
-    : '0';    
-  const minInFiat = (formData.orderLimitMin * (formData.fixedPrice ?? 0)).toFixed(2);
-  const maxInFiat = (formData.orderLimitMax * (formData.fixedPrice ?? 0)).toFixed(2);
+  const price = formData.fixedPrice ?? 0.004;
+
+  // ─── One-time sync from formData (e.g. when editing an existing ad) ───────
+  useEffect(() => {
+    if (formData.totalAmount) {
+      setTotalAmountFlat((parseFloat(formData.totalAmount) * price).toFixed(2));
+    }
+    if (formData.orderLimitMin) {
+      setOrderLimitMinFlat((formData.orderLimitMin * price).toFixed(2));
+    }
+    if (formData.orderLimitMax) {
+      setOrderLimitMaxFlat((formData.orderLimitMax * price).toFixed(2));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Reverse-conversion handlers (fiat typed -> asset stored) ─────────────
+
+  const handleTotalAmountFlatChange = (val: string) => {
+    setTotalAmountFlat(val);
+    const assetVal = val && price ? (parseFloat(val) / price).toString() : '';
+    onFormChange({ totalAmount: assetVal });
+  };
+
+  const handleOrderLimitMinFlatChange = (val: string) => {
+    setOrderLimitMinFlat(val);
+    const assetVal = val && price ? parseFloat(val) / price : 0;
+    onFormChange({ orderLimitMin: assetVal || 0 });
+  };
+
+  const handleOrderLimitMaxFlatChange = (val: string) => {
+    setOrderLimitMaxFlat(val);
+    const assetVal = val && price ? parseFloat(val) / price : 0;
+    onFormChange({ orderLimitMax: assetVal || 0 });
+  };
+
+  // ─── Asset equivalents shown under each input (reversed from before) ──────
+
+  const totalAssetEquivalent = totalAmountFlat && price
+    ? (parseFloat(totalAmountFlat) / price).toFixed(2)
+    : '0';
+  const minAssetEquivalent = orderLimitMinFlat && price
+    ? (parseFloat(orderLimitMinFlat) / price).toFixed(2)
+    : '0';
+  const maxAssetEquivalent = orderLimitMaxFlat && price
+    ? (parseFloat(orderLimitMaxFlat) / price).toFixed(2)
+    : '0';
 
   // ─── Load payment methods ──────────────────────────────────────────────────
 
@@ -89,15 +139,15 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                 type="number"
                 className="input fw-5 text-light placeholder-texr-color"
                 placeholder={`Please Enter Total ${formData.type === 'buy' ? 'Buy' : 'Sell'} Amount`}
-                value={formData.totalAmount}
-                onChange={e => onFormChange({ totalAmount: e.target.value })}
+                value={totalAmountFlat}
+                onChange={e => handleTotalAmountFlatChange(e.target.value)}
               />
-              <div className="inputRight"><span className="ccyText text-white">{formData?.asset || 'USD'}</span></div>
+              <div className="inputRight"><span className="ccyText text-white">{formData?.withFlat || 'BDT'}</span></div>
             </div>
           </div>
           {errors.totalAmount
             ? <div className="invalid-feedback d-block">{errors.totalAmount}</div>
-            : <div className="help-text">≈ {totalEstimatedFee} {formData?.withFlat || 'USD'}</div>
+            : <div className="help-text">≈ {totalAssetEquivalent} {formData?.asset || 'USDT'}</div>
           }
         </div>
 
@@ -111,14 +161,14 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                 <input
                   type="number"
                   className={`form-control-custom bg-dark ${errors.orderLimitMin ? 'is-invalid' : ''}`}
-                  value={formData.orderLimitMin}
-                  onChange={e => onFormChange({ orderLimitMin: parseFloat(e.target.value) || 0 })}
+                  value={orderLimitMinFlat}
+                  onChange={e => handleOrderLimitMinFlatChange(e.target.value)}
                 />
-                {formData?.asset || 'USD'}
+                {formData?.withFlat || 'BDT'}
               </div>
               {errors.orderLimitMin
                 ? <div className="invalid-feedback d-block">{errors.orderLimitMin}</div>
-                : <div className="help-text">≈ {minInFiat} {formData?.withFlat || 'BDT'}</div>
+                : <div className="help-text">≈ {minAssetEquivalent} {formData?.asset || 'USDT'}</div>
               }
             </div>
 
@@ -130,14 +180,14 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                 <input
                   type="number"
                   className={`form-control-custom bg-dark ${errors.orderLimitMax ? 'is-invalid' : ''}`}
-                  value={formData.orderLimitMax}
-                  onChange={e => onFormChange({ orderLimitMax: parseFloat(e.target.value) || 0 })}
+                  value={orderLimitMaxFlat}
+                  onChange={e => handleOrderLimitMaxFlatChange(e.target.value)}
                 />
-                {formData?.asset || 'USD'}
+                {formData?.withFlat || 'BDT'}
               </div>
               {errors.orderLimitMax
                 ? <div className="invalid-feedback d-block">{errors.orderLimitMax}</div>
-                : <div className="help-text">≈ {maxInFiat} {formData?.withFlat || 'BDT'}</div>
+                : <div className="help-text">≈ {maxAssetEquivalent} {formData?.asset || 'USDT'}</div>
               }
             </div>
           </div>
@@ -176,7 +226,7 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
 
         {/* Payment Time Limit */}
         <div className="form-group-custom">
-          <label>Payment Time Limit <span className="text-danger fs-4">*</span></label>
+          <label>Order Time Limit <span className="text-danger fs-4">*</span></label>
           <select
             className={`select-custom form-control-custom w-100 w-md-25 ${errors.paymentTimeLimit ? 'is-invalid' : ''}`}
             value={formData.paymentTimeLimit}

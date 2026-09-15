@@ -166,6 +166,12 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const resetForm = () => {
+    setFormData({ ...DEFAULT_FORM });
+    setErrors({});
+    setCurrentStep(1);
+  };
+
   const handleSubmit = async () => {
     const stepErrors = validateStep3(formData);
     if (Object.keys(stepErrors).length) { setErrors(stepErrors); return; }
@@ -179,6 +185,8 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
         toast.success('Ad updated successfully!');
       } else {
         await createAd(payload);
+        resetForm();
+        setCreatedAd(false);
         toast.success('Ad posted successfully!');
       }
       router.push('/dashboard/ads/');
@@ -231,6 +239,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     //   return;
     // }
 
+    resetForm();
     setCreatedAd(true);
   }
 
@@ -239,7 +248,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
       <P2PTopNav />
 
       <div className="p-4 d-flex gap-3 justify-content-between">
-        <button className='btn btn-black bg-black text-white' onClick={()=>setCreatedAd(false)}> All Ads</button>
+        <button className='btn btn-black bg-black text-white' onClick={()=>{ resetForm(); setCreatedAd(false); }}> All Ads</button>
         <div className="d-flex gap-2">
           {/* <button className='btn btn-warning' onClick={()=>setisOpenDepositModel(true)}>Add Security Money</button> */}
           <button className='btn btn-warning' onClick={()=>setAd()}>Create Ads</button>
