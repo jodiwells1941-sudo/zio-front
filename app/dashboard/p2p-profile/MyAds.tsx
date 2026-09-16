@@ -22,6 +22,12 @@ type P2PCard = {
   currency: string;
 };
 
+const formatMoney = (value: number | string) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "0.00";
+  return num.toFixed(2);
+};
+
 export default function MyAds() {
   const [activeP2PTab, setActiveP2PTab] =
     useState<P2PTabKey>("wallet-balance");
@@ -35,7 +41,7 @@ export default function MyAds() {
     platform: `${ad.asset}/${ad.with_fiat}`,
     methodName: ad.payment_method?.sell_method?.name || "N/A",
     rate: ad.fixed_price,
-    limit: `${ad.order_limit_min * ad.fixed_price} - ${ad.order_limit_max * ad.fixed_price} ${ad.with_fiat}`,
+    limit: `${formatMoney(ad.order_limit_min * ad.fixed_price)} - ${formatMoney(ad.order_limit_max * ad.fixed_price)} ${ad.with_fiat}`,
     available: `${ad.total_amount} ${ad.asset}`,
     timeText: `${ad.payment_time_limit} min`,
     type: ad.type,
@@ -74,7 +80,7 @@ export default function MyAds() {
     (c) =>
       c.type ===
       (activeP2PTab === "wallet-balance" ? "buy" : "sell")
-  );
+  );  
 
   //  Delete handler
   const handleDelete = async (id: number) => {
@@ -154,7 +160,17 @@ export default function MyAds() {
                         </div>
 
                         <div className="payment-method text-end">
-                          <div>{c.methodName}</div>
+                          <div className="d-flex align-items-center justify-content-end gap-2">
+                            <span
+                              className={`badge rounded-pill px-2 py-1 text-uppercase ${
+                                c.type === "sell" ? "bg-danger" : "bg-success"
+                              }`}
+                              style={{ fontSize: "11px", letterSpacing: "0.5px" }}
+                            >
+                              {c.type}
+                            </span>
+                            <div>{c.methodName}</div>
+                          </div>
                           <small>{c.timeText}</small>
                         </div>
                       </div>
@@ -175,7 +191,7 @@ export default function MyAds() {
                             <strong>Limit:</strong> {c.limit}
                           </small>
                           <p className="mb-0">
-                            <strong>Available:</strong> {c.available}
+                            <strong>Available:</strong> {parseFloat(c.available).toFixed(2)}
                           </p>
                         </div>
 

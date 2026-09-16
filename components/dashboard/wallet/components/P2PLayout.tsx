@@ -206,6 +206,12 @@ export default function P2PLayout({
     setPage(1);
   };
 
+  const formatMoney = (value: number | string) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '0.00';
+    return num.toFixed(2);
+  };
+
   // ── Map API → UI card ─────────────────────────────────────────────────────────
   const mapAdToCard = (ad: P2pAdsData): P2PCard => ({
     id:         ad.id,
@@ -214,7 +220,7 @@ export default function P2PLayout({
     methodName: ad.payment_method?.sell_method?.name || 'N/A',
     rate:       ad.fixed_price,
     // limit:      `${ad.order_limit_min} - ${ad.order_limit_max} ${ad.asset}`,
-    limit: `${ad.order_limit_min * ad.fixed_price} - ${ad.order_limit_max * ad.fixed_price} ${ad.with_fiat}`,
+    limit: `${formatMoney(ad.order_limit_min * ad.fixed_price)} - ${formatMoney(ad.order_limit_max * ad.fixed_price)} ${ad.with_fiat}`,
     available:  `${ad.total_amount} ${ad.asset}`,
     timeText:   `${ad.payment_time_limit} min`,
     type:       ad.type,

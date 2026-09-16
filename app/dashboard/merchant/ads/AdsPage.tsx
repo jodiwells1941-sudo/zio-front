@@ -5,12 +5,10 @@ import { useRouter } from 'next/navigation';
 import StepOne from '@/components/dashboard/ads/StepOne';
 import StepTwo from '@/components/dashboard/ads/StepTwo';
 import StepThree from '@/components/dashboard/ads/StepThree';
-import P2PTopNav from '@/components/dashboard/p2p/P2PTopNav';
 import { toast } from 'react-toastify';
 import { createAd, updateAd, P2pAdPayload } from '@/app/api/p2padsapi';
 import AddSecurityMoneyModal from './AddSecurityMonyModal';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchUserInfoAPI } from '@/app/api/auth';
 import MyAds from '../../p2p-profile/MyAds';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -138,6 +136,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
   const [formData,    setFormData]    = useState<FormData>({ ...DEFAULT_FORM, ...defaultValues });
   const [createdAd, setCreatedAd] = useState(false);
   const [isOpenDepositModel, setisOpenDepositModel] = useState(false);
+  const [securityDepositRequired, setSecurityDepositRequired] = useState(0);
   const { user } = useAuth();
 
   const handleFormChange = (data: Partial<FormData>) => {
@@ -172,6 +171,12 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     setCurrentStep(1);
   };
 
+  const openSecurityDepositModal = () => {
+    const requiredAmount = formData.type === 'sell' ? Number(formData.totalAmount || 0) : 0;
+    setSecurityDepositRequired(requiredAmount);
+    setisOpenDepositModel(true);
+  };
+
   const handleSubmit = async () => {
     const stepErrors = validateStep3(formData);
     if (Object.keys(stepErrors).length) { setErrors(stepErrors); return; }
@@ -183,15 +188,22 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
       if (isEditMode && editId) {
         await updateAd(editId, payload);
         toast.success('Ad updated successfully!');
+        router.push('/dashboard/merchant/ads/');
       } else {
         await createAd(payload);
+        const requiredAmount = payload.type === 'sell' ? Number(payload.total_amount || 0) : 0;
         resetForm();
         setCreatedAd(false);
         toast.success('Ad posted successfully!');
+
+        if (requiredAmount > 0) {
+          setSecurityDepositRequired(requiredAmount);
+          setisOpenDepositModel(true);
+          return;
+        }
+
+        router.push('/dashboard/merchant/ads/');
       }
-      
-      setCreatedAd(false);
-      router.push('/dashboard/merchant/ads/');
     } catch (e: unknown) {
       const error = e as {
         response?: {
@@ -260,7 +272,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
       {/* <P2PTopNav /> */}
 
       <div className="p-4 d-flex gap-3 justify-content-between">
-        <button className='btn btn-black bg-black text-white' onClick={()=>{ resetForm(); setCreatedAd(false); }}> All Ads</button>
+        <button className='btn btn-black bg-black text-white' onClick={()=>{ resetForm(); setCreatedAd(false); setisOpenDepositModel(false); setSecurityDepositRequired(0); }}> All Ads</button>
         <div className="d-flex gap-2">
           {/* <button className='btn btn-warning' onClick={()=>setisOpenDepositModel(true)}>Add Security Money</button> */}
           <button className='btn btn-warning' onClick={()=>setAd()}>Create Ads</button>
@@ -339,7 +351,12 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
         <AddSecurityMoneyModal 
           walletBalance={user.wallet.amount}
           currentSecurityDeposit={user.wallet.security_amount_for_ads}
-          onClose={() => setisOpenDepositModel(false)}
+          requiredSecurityAmount={securityDepositRequired}
+          onClose={() => {
+            setisOpenDepositModel(false);
+            setSecurityDepositRequired(0);
+            router.push('/dashboard/merchant/ads/');
+          }}
           onSuccess={(newDeposit) => {
             // update your local state / refetch wallet
           }}
