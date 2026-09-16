@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 interface AddSecurityMoneyModalProps {
   walletBalance: number;       // current available wallet balance
   currentSecurityDeposit: number; // current security_amount_for_ads
+  requiredSecurityAmount?: number;
   onClose: () => void;
   onSuccess: (newSecurityDeposit: number) => void;
 }
@@ -45,10 +46,13 @@ function validateAmount(
 export default function AddSecurityMoneyModal({
   walletBalance,
   currentSecurityDeposit,
+  requiredSecurityAmount = 0,
   onClose,
   onSuccess,
 }: AddSecurityMoneyModalProps) {
-  const [amountRaw,       setAmountRaw]       = useState("");
+  const [amountRaw,       setAmountRaw]       = useState(
+    requiredSecurityAmount > 0 ? requiredSecurityAmount.toFixed(2) : ""
+  );
   const [error,           setError]           = useState("");
   const [touched,         setTouched]         = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -62,6 +66,13 @@ export default function AddSecurityMoneyModal({
   }, [amountRaw, walletBalance, touched, submitAttempted]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (requiredSecurityAmount > 0) {
+      setAmountRaw(requiredSecurityAmount.toFixed(2));
+      setTouched(true);
+    }
+  }, [requiredSecurityAmount]);
+
   const parsedAmount     = parseFloat(amountRaw) || 0;
   const previewBalance   = Math.max(walletBalance - parsedAmount, 0);
   const previewSecurity  = currentSecurityDeposit + parsedAmount;
@@ -155,8 +166,9 @@ export default function AddSecurityMoneyModal({
             <div className="asm-info-banner border border-dark-light rounded p-3 mb-3 d-flex align-items-start gap-2">
               <i className="fa-solid fa-circle-info text-warning mt-1" aria-hidden="true" />
               <p className="mb-0 text-sm text-light">
-                Security deposits are locked funds used to back your sell ads.
-                They ensure trade reliability and will be released when your ads are closed.
+                {requiredSecurityAmount > 0
+                  ? `This ad requires your security money as $${requiredSecurityAmount.toFixed(2)}.`
+                  : "Security deposits are locked funds used to back your sell ads. They ensure trade reliability and will be released when your ads are closed."}
               </p>
             </div>
 
@@ -175,7 +187,7 @@ export default function AddSecurityMoneyModal({
                   Security Deposit
                 </span>
                 <span className="asm-balance-value fw-bold">
-                  ${currentSecurityDeposit.toFixed(2)}
+                  ${amountRaw}
                 </span>
               </div>
             </div>
