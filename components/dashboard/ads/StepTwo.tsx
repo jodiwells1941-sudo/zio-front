@@ -7,6 +7,20 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import PaymentModal from '../p2pProfile/Paymentmodal';
 
+const CURRENCIES = [
+  { code: 'USD', name: 'US Dollar', icon: '$' },
+  { code: 'EUR', name: 'Euro', icon: '€' },
+  { code: 'GBP', name: 'British Pound', icon: '£' },
+  { code: 'BDT', name: 'Bangladeshi Taka', icon: '৳' },
+  { code: 'INR', name: 'Indian Rupee', icon: '₹' },
+  { code: 'PKR', name: 'Pakistani Rupee', icon: '₨' },
+  { code: 'AUD', name: 'Australian Dollar', icon: '$' },
+  { code: 'CAD', name: 'Canadian Dollar', icon: '$' },
+  { code: 'JPY', name: 'Japanese Yen', icon: '¥' },
+  { code: 'CNY', name: 'Chinese Yuan', icon: '¥' },
+  { code: 'CHF', name: 'Swiss Franc', icon: 'CHF' },
+];
+
 interface StepTwoProps {
   formData: {
     totalAmount: string;
@@ -41,6 +55,9 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
   const closeModal = () => { setModalMode(null); setEditTarget(undefined); };
 
   const price = formData.fixedPrice ?? 0.004;
+
+  // ─── Currency icon lookup (shown as a prefix right before the amount) ─────
+  const currencyIcon = CURRENCIES.find(c => c.code === (formData?.withFlat || 'BDT'))?.icon ?? '';
 
   // ─── One-time sync from formData (e.g. when editing an existing ad) ───────
   useEffect(() => {
@@ -134,13 +151,30 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
             <span className="text-danger fs-4">*</span>
           </label>
           <div className="total-amount-row">
-            <div className={`inputWrap w-100 w-md-50 rounded bg-dark ${errors.totalAmount ? 'border border-danger' : ''}`}>
+            <div
+              className={`inputWrap w-100 w-md-50 rounded bg-dark ${errors.totalAmount ? 'border border-danger' : ''}`}
+              style={{ position: 'relative' }}
+            >
+              <span
+                className="ccyPrefix text-white"
+                style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontWeight: 700,
+                  pointerEvents: 'none',
+                }}
+              >
+                {currencyIcon}
+              </span>
               <input
                 type="number"
                 className="input fw-5 text-light placeholder-texr-color"
                 placeholder={`Please Enter Total ${formData.type === 'buy' ? 'Buy' : 'Sell'} Amount`}
                 value={totalAmountFlat}
                 onChange={e => handleTotalAmountFlatChange(e.target.value)}
+                style={{ paddingLeft: 32 }}
               />
               <div className="inputRight"><span className="ccyText text-white">{formData?.withFlat || 'BDT'}</span></div>
             </div>
@@ -158,12 +192,28 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
             Min
             <div>
               <div className="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  className={`form-control-custom bg-dark ${errors.orderLimitMin ? 'is-invalid' : ''}`}
-                  value={orderLimitMinFlat}
-                  onChange={e => handleOrderLimitMinFlatChange(e.target.value)}
-                />
+                <div style={{ position: 'relative' }}>
+                  <span
+                    className="ccyPrefix text-white"
+                    style={{
+                      position: 'absolute',
+                      left: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontWeight: 700,
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {currencyIcon}
+                  </span>
+                  <input
+                    type="number"
+                    className={`form-control-custom ps-5 bg-dark ${errors.orderLimitMin ? 'is-invalid' : ''}`}
+                    value={orderLimitMinFlat}
+                    onChange={e => handleOrderLimitMinFlatChange(e.target.value)}
+                    style={{ paddingLeft: 26 }}
+                  />
+                </div>
                 {formData?.withFlat || 'BDT'}
               </div>
               {errors.orderLimitMin
@@ -177,12 +227,28 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
             Max
             <div>
               <div className="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  className={`form-control-custom bg-dark ${errors.orderLimitMax ? 'is-invalid' : ''}`}
-                  value={orderLimitMaxFlat}
-                  onChange={e => handleOrderLimitMaxFlatChange(e.target.value)}
-                />
+                <div style={{ position: 'relative' }}>
+                  <span
+                    className="ccyPrefix text-white"
+                    style={{
+                      position: 'absolute',
+                      left: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontWeight: 700,
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {currencyIcon}
+                  </span>
+                  <input
+                    type="number"
+                    className={`form-control-custom ps-5 bg-dark ${errors.orderLimitMax ? 'is-invalid' : ''}`}
+                    value={orderLimitMaxFlat}
+                    onChange={e => handleOrderLimitMaxFlatChange(e.target.value)}
+                    style={{ paddingLeft: 26 }}
+                  />
+                </div>
                 {formData?.withFlat || 'BDT'}
               </div>
               {errors.orderLimitMax
