@@ -146,7 +146,7 @@ export default function AddSecurityMoneyModal({
         {/* ── Head ── */}
         <div className="rt-modal-head">
           <h6 className="rt-modal-title" id="asm-modal-title">
-            Add Security Deposit
+            Your Sell Amount
           </h6>
           <button
             type="button"
@@ -167,7 +167,7 @@ export default function AddSecurityMoneyModal({
               <i className="fa-solid fa-circle-info text-warning mt-1" aria-hidden="true" />
               <p className="mb-0 text-sm text-light">
                 {requiredSecurityAmount > 0
-                  ? `This ad requires your security money as $${requiredSecurityAmount.toFixed(2)}.`
+                  ? `This ad requires your Sell money as $${requiredSecurityAmount.toFixed(2)}.`
                   : "Security deposits are locked funds used to back your sell ads. They ensure trade reliability and will be released when your ads are closed."}
               </p>
             </div>
@@ -184,7 +184,7 @@ export default function AddSecurityMoneyModal({
               </div>
               <div className="asm-balance-card border border-dark-light rounded p-3 text-center">
                 <span className="asm-balance-label d-block text-light text-sm mb-1">
-                  Security Deposit
+                  Sell Amount
                 </span>
                 <span className="asm-balance-value fw-bold">
                   ${currentSecurityDeposit.toFixed(2)}
@@ -246,7 +246,7 @@ export default function AddSecurityMoneyModal({
                   </span>
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-sm">Security Deposit</span>
+                  <span className="text-sm">Sell Amount</span>
                   <span className="text-sm fw-bold text-success">
                     ${previewSecurity.toFixed(2)}
                   </span>

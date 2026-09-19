@@ -11,6 +11,7 @@ interface PaymentReceivedModelProps {
   buyerName: string;
   amount: number;
   currency: string;
+  details?: Array<{ label: string; value: string }>;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ export function PaymentReceivedModel({
   buyerName,
   amount,
   currency,
+  details = [],
 }: PaymentReceivedModelProps) {
   const [isVerified, setIsVerified] = useState(false);
 
@@ -49,6 +51,17 @@ export function PaymentReceivedModel({
         {/* Body */}
         <div className="m-2 bg-dark rounded">
           <div className="modal-body">
+            {details.length > 0 && (
+              <div className="mb-3 rounded border border-secondary-subtle p-3 bg-black bg-opacity-10">
+                <div className="fw-semibold text-white mb-2">Order details</div>
+                {details.map((row, index) => (
+                  <div key={`${row.label}-${index}`} className="d-flex justify-content-between align-items-center gap-3 py-1 small text-white-50">
+                    <span>{row.label}</span>
+                    <strong className="text-white text-end">{row.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Steps — shown before checkbox is checked */}
             {!isVerified && (

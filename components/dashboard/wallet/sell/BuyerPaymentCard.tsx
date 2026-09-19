@@ -1,5 +1,6 @@
 "use client";
 
+import { getMerchantAccount } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
@@ -25,6 +26,7 @@ interface TradeData {
   created_at: string;
   notes: string | null;
   is_client_seller: boolean;
+  pending_time_limit?: string | null;
   payment_expires_at: string | null; // ← new field
   client: { id: number; name: string; avatar?: string };
   customer: { id: number; name: string; avatar?: string };
@@ -96,6 +98,20 @@ export default function BuyerPaymentCard() {
   const [submitting,      setSubmitting]      = useState(false);
   const [paymentReceived, setPaymentReceived] = useState(false);
   const [confirmPayment,  setConfirmPayment]  = useState(false);
+  const [isMerchant,      setIsMerchant]      = useState(false);
+
+  useEffect(() => {
+    const checkMerchant = async () => {
+      try {
+        const res = await getMerchantAccount();
+        setIsMerchant(res?.data?.application?.status === "approved");
+      } catch {
+        setIsMerchant(false);
+      }
+    };
+
+    void checkMerchant();
+  }, []);
 
   // ─── Fetch trade ────────────────────────────────────────────────────────────
 
@@ -104,6 +120,7 @@ export default function BuyerPaymentCard() {
     try {
       setLoading(true);
       const res = await getTrade(tradeIdNum);
+      
       const t: TradeData = res?.data;
       setTrade(t);
     } catch (e: any) {
@@ -164,11 +181,17 @@ export default function BuyerPaymentCard() {
     trade?.payment_expires_at ?? null,
     releasePhaseActive
   );
+  const pendingApprovalTimer = useExpiryTimer(
+    trade?.pending_time_limit ?? null,
+    !!trade && trade.status === 1
+  );
 
   const mm = trade?.status === 5 ? releaseAppealTimer.mm : paymentTimer.mm;
   const ss = trade?.status === 5 ? releaseAppealTimer.ss : paymentTimer.ss;
   const appealCountdownBlocking =
     !!trade?.payment_expires_at && releasePhaseActive && !releaseAppealTimer.expired;
+  const pendingApprovalMm = pendingApprovalTimer.mm;
+  const pendingApprovalSs = pendingApprovalTimer.ss;
 
   // ─── Status update ───────────────────────────────────────────────────────────
 
@@ -259,6 +282,15 @@ export default function BuyerPaymentCard() {
   const canApprove = statusList.includes(2);
   const canReject = statusList.includes(3);
   const isPendingReview = trade.status === 1 && (canApprove || canReject);
+  const approvalWindowExpired =
+    trade.status === 1 && !!trade.pending_time_limit && pendingApprovalTimer.expired;
+  const showExpiredPendingState = approvalWindowExpired || trade.status === 3 || trade.status === 4 || trade.status === 8;
+  const backToP2PHref = isMerchant ? "/dashboard/merchant/orders/" : "/dashboard/orders";
+  const paymentModalDetails = [
+    { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
+    { label: "Price", value: `${withFiat || "BDT"} ${price}` },
+    { label: `You receive (${trade.p2p_ad?.asset ?? "USDT"})`, value: `${cryptoAmountStr} ${trade.p2p_ad?.asset ?? "USDT"}` },
+  ];
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -279,6 +311,17 @@ export default function BuyerPaymentCard() {
           <div className="toast-body p-2 rounded-2 text-white toast-bg-success d-flex align-items-center">
             <i className="fas fa-check me-2" />
             Your Sell Request Is Accepted
+          </div>
+        )}
+        {trade.status === 1 && trade.pending_time_limit && (
+          <div className="alert bg-warning alert-warning d-flex justify-content-between align-items-center mt-4 mb-2 py-2">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-regular fa-clock" />
+              Waiting for approval — expires in
+            </span>
+            <strong className="font-monospace fs-20">
+              {pad(pendingApprovalMm)}:{pad(pendingApprovalSs)}
+            </strong>
           </div>
         )}
         {trade.status === 10 && (
@@ -331,7 +374,23 @@ export default function BuyerPaymentCard() {
       </div>
 
       {/* ── STEPS (shown while not yet completed; not when appealed status 10) ── */}
-      {!confirmPayment && trade.status !== 10 && (
+      {!confirmPayment && trade.status !== 10 && showExpiredPendingState ? (
+        <div className="p2pStepWrap">
+          <div className="p2pCard p-3 text-center">
+            <i className="fa-solid fa-circle-xmark text-danger fs-1 mb-3 d-block" />
+            <div className="p2pStepTitle text-danger mb-1">
+              {trade.current_status?.status_text ?? "Order Cancelled"}
+            </div>
+            <p className="p2pMuted p2pSmall">{trade.current_status?.note ?? "The pending approval time has expired."}</p>
+            <Link
+              href={backToP2PHref}
+              className="p2pPrimaryBtn d-inline-block mt-3"
+            >
+              Back to P2P Market
+            </Link>
+          </div>
+        </div>
+      ) : !confirmPayment && trade.status !== 10 && (
         isPendingReview ? (
           <div className="p2pStepWrap">
             <div className="p2pStepRow">
@@ -350,13 +409,15 @@ export default function BuyerPaymentCard() {
                         className="p2pPrimaryBtn"
                         type="button"
                         onClick={() => void handleApproveTrade()}
-                        disabled={submitting}
+                        disabled={submitting || approvalWindowExpired}
                       >
                         {submitting ? (
                           <>
                             <span className="spinner-border spinner-border-sm me-2" role="status" />
                             Approving…
                           </>
+                        ) : approvalWindowExpired ? (
+                          "Time Expired"
                         ) : (
                           "Approve Trade"
                         )}
@@ -584,7 +645,7 @@ export default function BuyerPaymentCard() {
             {(trade.current_status?.note ?? trade.notes) && (
               <p className="p2pMuted p2pSmall mt-2 mb-0">{trade.current_status?.note ?? trade.notes}</p>
             )}
-            <Link href="/dashboard/wallet/?tab=tab3" className="p2pPrimaryBtn d-inline-block mt-3">
+            <Link href={backToP2PHref} className="p2pPrimaryBtn d-inline-block mt-3">
               Back to P2P
             </Link>
           </div>
@@ -609,10 +670,11 @@ export default function BuyerPaymentCard() {
         <PaymentReceivedModel
           isOpen={paymentReceived}
           onClose={() => setPaymentReceived(false)}
-          setConfirmPayment={ handleConfirmPayment}
+          setConfirmPayment={handleConfirmPayment}
           buyerName={buyerName}
           amount={trade.payable_amount}
           currency={withFiat}
+          details={paymentModalDetails}
         />
       )}
     </>

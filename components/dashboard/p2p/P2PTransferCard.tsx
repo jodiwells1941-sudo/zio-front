@@ -1,6 +1,7 @@
 "use client";
 
-import { getTrade, updateTradeStatus } from "@/app/api/trade";
+import { getMerchantAccount } from "@/app/api/merchant";
+import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -39,9 +40,10 @@ export interface TradeData {
    */
   status: number;
   notes: string | null;
-  type: string;             // "buy" | "sell"
+  type: string; // "buy" | "sell"
   is_client_seller: boolean;
   created_at: string;
+  pending_time_limit: string;
   /**
    * Backend computes exactly which next-status values the current auth user
    * is allowed to submit.  We drive every action button from this list.
@@ -73,43 +75,49 @@ export interface TradeData {
       };
     };
   };
-  client:   { id: number; name: string; avatar: string };
+  client: { id: number; name: string; avatar: string };
   customer: { id: number; name: string; avatar: string };
   trade_review?: any;
 }
 
-// ─── Status helpers ───────────────────────────────────────────────────────────
+// ─── Props ────────────────────────────────────────────────────────────────────
 
-/**
- * Map trade.status (integer) → frontend UI phase
- *
- *  1 pending          → payment  (buyer pays, seller approves)
- *  2 approved         → payment  (buyer pays now)
- *  5 dispatched       → pending  (seller releases)
- *  6 dispatch_approved
- *  9 completed        → completed 
- * 10 claimed_by_buyer
- *  3,4,7,8            → rejected
- */
-function resolveUIStatus(status: number): PaymentStatus {
-  if ([9, 6].includes(status))     return "completed";
-  if (status === 5)                return "pending";
-  if ([3, 4, 7, 8, 10].includes(status)) return "rejected";
-  return "payment";                // 1, 2
+interface P2PTransferCardProps {
+  /** Raw trade.status from the parent (1 = pending). */
+  pendingStatus?: number;
+  /** Remaining seconds in the pending window. */
+  pendingTimeLeft?: number;
+  /** ISO string for pending_time_limit from backend. */
+  pendingExpireTime?: string | null;
+  /** Optional callback fired when the countdown hits zero. */
+  onTradeExpired?: () => void;
 }
 
-function pad(n: number) { return String(n).padStart(2, "0"); }
+// ─── Status helpers ───────────────────────────────────────────────────────────
 
-function parseApiDateToMs(dateStr?: string | null): number | null {
+export function resolveUIStatus(status: number): PaymentStatus {
+  if ([9, 6].includes(status)) return "completed";
+  if (status === 5) return "pending";
+  if ([3, 4, 7, 8, 10].includes(status)) return "rejected";
+  return "payment"; // 1, 2
+}
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+export function parseApiDateToMs(dateStr?: string | null): number | null {
   if (!dateStr) return null;
   const direct = new Date(dateStr).getTime();
   if (!Number.isNaN(direct)) return direct;
-  const normalized = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T");
+  const normalized = dateStr.includes("T")
+    ? dateStr
+    : dateStr.replace(" ", "T");
   const retry = new Date(normalized).getTime();
   return Number.isNaN(retry) ? null : retry;
 }
 
-// ─── Status Banner ─────────────────────────────────────────────────────────────
+// ─── Status Banner ────────────────────────────────────────────────────────────
 
 function StatusBanner({ status }: { status: number }) {
   const map: Record<number, React.ReactElement> = {
@@ -171,9 +179,11 @@ export function CopyBtn({ text, id }: { text: string; id: string }) {
   };
   return (
     <button className="p2pCopyBtn" type="button" aria-label="copy" onClick={handle}>
-      {copied
-        ? <i className="fa-solid fa-check text-success" />
-        : <i className="fa-regular fa-copy" />}
+      {copied ? (
+        <i className="fa-solid fa-check text-success" />
+      ) : (
+        <i className="fa-regular fa-copy" />
+      )}
     </button>
   );
 }
@@ -188,7 +198,11 @@ function OrderDetailsAccordion({
   const [open, setOpen] = useState(true);
   return (
     <div className="p2pOrderDetails">
-      <button className="p2pOrderDetailsHeader" type="button" onClick={() => setOpen(o => !o)}>
+      <button
+        className="p2pOrderDetailsHeader"
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+      >
         <span>Order details</span>
         <i className={`fa-solid fa-angle-${open ? "up" : "down"}`} />
       </button>
@@ -197,7 +211,9 @@ function OrderDetailsAccordion({
           {rows.map((row, i) => (
             <div key={`${row.label}-${i}`} className="p2pDetailRow">
               <span className="p2pMuted">{row.label}</span>
-              <span className={`p2pDetailVal ${i === 0 ? "green" : ""}`}>{row.value}</span>
+              <span className={`p2pDetailVal ${i === 0 ? "green" : ""}`}>
+                {row.value}
+              </span>
             </div>
           ))}
         </div>
@@ -206,7 +222,164 @@ function OrderDetailsAccordion({
   );
 }
 
-// ─── Payment Info Card (shared between payment + pending views) ───────────────
+function PaymentProofModal({
+  isOpen,
+  trade,
+  onClose,
+  onSuccess,
+}: {
+  isOpen: boolean;
+  trade: TradeData | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [note, setNote] = useState("I have paid the seller.");
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
+
+  useEffect(() => {
+    if (!isOpen) {
+      setProofFile(null);
+      setNote("I have paid the seller.");
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      setSubmitting(false);
+      return;
+    }
+  }, [isOpen]);
+
+  if (!isOpen || !trade) return null;
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setProofFile(null);
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      return;
+    }
+
+    setProofFile(file);
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!proofFile) {
+      toast.error("Please upload a payment proof image before submitting.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await sendTradeMessage(trade.id, {
+        message: note.trim() || "I have paid the seller.",
+        attachment: proofFile,
+      });
+      await updateTradeStatus(trade.id, 5, "Buyer confirms payment sent with proof attachment");
+      toast.success("Payment proof sent successfully.");
+      onSuccess();
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Failed to send payment proof.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{ display: "flex" }}>
+      <div className="modal-content" style={{ maxWidth: 620, width: "min(92vw, 620px)" }}>
+        <div className="modal-header">
+          <h6 className="modal-title">Submit payment proof</h6>
+          <button
+            type="button"
+            className="modal-close-btn"
+            aria-label="Close modal"
+            onClick={onClose}
+          >
+            <i className="fas fa-times" />
+          </button>
+        </div>
+
+        <div className="modal-body p-3">
+          <div className="p2pCard p-3 mb-3">
+            <div className="p2pStepTitle mb-2">Order details</div>
+            {orderView && (
+              <div className="p2pOrderDetailsBody">
+                {orderView.detailRows.map((row, index) => (
+                  <div key={`${row.label}-${index}`} className="p2pDetailRow">
+                    <span className="p2pMuted">{row.label}</span>
+                    <span className="p2pDetailVal text-white">
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label text-white-50 small mb-2">Message</label>
+            <textarea
+              className="form-control bg-dark text-light border-dark"
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="I have paid the seller."
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label text-white-50 small mb-2">Proof image</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="form-control bg-dark text-light border-dark"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {previewUrl && (
+            <div className="mb-3 text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrl}
+                alt="Payment proof preview"
+                className="img-fluid rounded border border-secondary"
+                style={{ maxHeight: 220, objectFit: "contain" }}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer mx-auto mb-4">
+          <button type="button" className="p2pLinkBtn me-3" onClick={onClose} disabled={submitting}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="p2pPrimaryBtn"
+            onClick={() => void handleSubmit()}
+            disabled={submitting || !proofFile}
+          >
+            {submitting ? "Submitting…" : "Submit Proof"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Payment Info Card ────────────────────────────────────────────────────────
 
 export function PaymentInfoCard({
   trade,
@@ -215,18 +388,16 @@ export function PaymentInfoCard({
   trade: TradeData;
   view: ReturnType<typeof getViewerOrderAmountDisplay>;
 }) {
-  const pm          = trade.p2p_ad?.payment_method;
-  const sellMethod  = pm?.sell_method;
-  const fieldDefs   = sellMethod?.fields   ?? [];
-  const fieldValues = pm?.field_values     ?? {};
-  const remarks     = pm?.remarks;
-  const qrCode      = pm?.qr_code;
-  const orderId     = trade.order_id;
+  const pm = trade.p2p_ad?.payment_method;
+  const sellMethod = pm?.sell_method;
+  const fieldDefs = sellMethod?.fields ?? [];
+  const fieldValues = pm?.field_values ?? {};
+  const remarks = pm?.remarks;
+  const qrCode = pm?.qr_code;
+  const orderId = trade.order_id;
 
   return (
     <div className="p2pCard p-0">
-
-      {/* You Pay — fiat for buyer, crypto for seller */}
       <div className="p2pCardRow px-3 bg-dark rounded-top-3">
         <div className="p2pCardLabel">{view.youPayLabel}</div>
         <div className="p2pCardValue green">
@@ -235,7 +406,6 @@ export function PaymentInfoCard({
         </div>
       </div>
 
-      {/* Reference */}
       <div className="p2pCardRow px-3">
         <div className="p2pCardLabel">
           Reference message <i className="fa-regular fa-circle-question p2pInfo" />
@@ -246,11 +416,6 @@ export function PaymentInfoCard({
         </div>
       </div>
 
-      {/*
-        Dynamic fields — driven by sell_method.fields schema + field_values data
-        Works for: walletNumber (Nagad/Bkash), accountHolder+bankName+branch+iban
-        (Bank Transfer), email (PayPal), cashtag (CashApp) — anything automatically
-      */}
       {fieldDefs.map((field) => {
         const val = fieldValues[field.key];
         if (!val) return null;
@@ -265,7 +430,6 @@ export function PaymentInfoCard({
         );
       })}
 
-      {/* QR Code */}
       {qrCode && (
         <div className="p2pCardRow px-3">
           <div className="p2pCardLabel">QR Code</div>
@@ -279,7 +443,6 @@ export function PaymentInfoCard({
         </div>
       )}
 
-      {/* Remarks */}
       {remarks && (
         <div className="p2pCardRow px-3">
           <div className="p2pCardLabel">Remarks</div>
@@ -292,29 +455,51 @@ export function PaymentInfoCard({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function P2PTransferCard() {
+export default function P2PTransferCard({
+  pendingStatus = 0,
+  pendingTimeLeft = 0,
+  pendingExpireTime = null,
+  onTradeExpired,
+}: P2PTransferCardProps = {}) {
   const searchParams = useSearchParams();
-  const tradeId      = searchParams.get("trade_id");
+  const tradeId = searchParams.get("trade_id");
 
-  const [trade,       setTrade]       = useState<TradeData | null>(null);
-  const [uiStatus,    setUiStatus]    = useState<PaymentStatus>("payment");
+  const [trade, setTrade] = useState<TradeData | null>(null);
+  const [uiStatus, setUiStatus] = useState<PaymentStatus>("payment");
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const [loading,     setLoading]     = useState(true);
-  const [submitting,  setSubmitting]  = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState<number | null>(null);
   const [timerExpired, setTimerExpired] = useState(false);
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [isMerchant, setIsMerchant] = useState(false);
+
+  useEffect(() => {
+    const checkMerchant = async () => {
+      try {
+        const res = await getMerchantAccount();
+        setIsMerchant(res?.data?.application?.status === "approved");
+      } catch {
+        setIsMerchant(false);
+      }
+    };
+
+    void checkMerchant();
+  }, []);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchTrade = useCallback(async () => {
     if (!tradeId) return;
     try {
       setLoading(true);
-      const res      = await getTrade(Number(tradeId));
+      const res = await getTrade(Number(tradeId));
       const t: TradeData = res?.data;
       setTrade(t);
       setUiStatus(resolveUIStatus(t.status));
       if (t.status === 2 && t.payment_expires_at) {
         const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
-        const sec = expiresAtMs ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000)) : 0;
+        const sec = expiresAtMs
+          ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
+          : 0;
         setSecondsLeft(sec);
         setTimerExpired(sec <= 0);
       }
@@ -325,9 +510,11 @@ export default function P2PTransferCard() {
     }
   }, [tradeId]);
 
-  useEffect(() => { fetchTrade(); }, [fetchTrade]);
+  useEffect(() => {
+    fetchTrade();
+  }, [fetchTrade]);
 
-  // ── Realtime: approve, payment sent/received, appeal, admin resolve, feedback ──
+  // ── Realtime ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!tradeId) return;
     const tradeIdNum = Number(tradeId);
@@ -350,7 +537,7 @@ export default function P2PTransferCard() {
     };
   }, [tradeId, fetchTrade]);
 
-  // ── Countdown ──────────────────────────────────────────────────────────────
+  // ── Poll while pending (status=1) ─────────────────────────────────────────
   useEffect(() => {
     if (!tradeId || !trade || trade.status !== 1) return;
 
@@ -360,42 +547,44 @@ export default function P2PTransferCard() {
         const t: TradeData = res?.data;
 
         if (t.status === 2) {
-          // Seller approved → stop polling, start countdown
           setTrade(t);
           setUiStatus(resolveUIStatus(t.status));
           if (t.payment_expires_at) {
             const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
-            const sec = expiresAtMs ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000)) : 0;
+            const sec = expiresAtMs
+              ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
+              : 0;
             setSecondsLeft(sec);
             setTimerExpired(sec <= 0);
           }
-          toast.success("Your request has been approved! Please complete the payment.");
+          toast.success(
+            "Your request has been approved! Please complete the payment."
+          );
           clearInterval(poll);
         }
 
-        // Any terminal status → stop polling
         if ([3, 4, 5, 6, 7, 8, 9].includes(t.status)) {
           setTrade(t);
           setUiStatus(resolveUIStatus(t.status));
           clearInterval(poll);
         }
       } catch {
-        // silent — don't toast on poll failures
+        // silent
       }
     }, 2000);
 
     return () => clearInterval(poll);
   }, [trade?.status, tradeId]);
 
-  // Countdown — only runs when status=2 (approved, buyer must pay)
+  // ── Countdown for status=2 payment window ─────────────────────────────────
   useEffect(() => {
     if (trade?.status !== 2 || secondsLeft <= 0) return;
 
     const t = setInterval(() => {
-      setSecondsLeft(s => {
+      setSecondsLeft((s) => {
         if (s <= 1) {
           clearInterval(t);
-          setTimerExpired(true); // unlock Claim button
+          setTimerExpired(true);
           return 0;
         }
         return s - 1;
@@ -408,54 +597,30 @@ export default function P2PTransferCard() {
   useEffect(() => {
     if (trade?.status === 2 && trade.payment_expires_at) {
       const expiresAtMs = parseApiDateToMs(trade.payment_expires_at);
-      const sec = expiresAtMs ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000)) : 0;
+      const sec = expiresAtMs
+        ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
+        : 0;
       setTimerExpired(sec <= 0);
     } else {
       setTimerExpired(false);
     }
   }, [trade?.status, trade?.payment_expires_at]);
 
-  // ── Status Update ──────────────────────────────────────────────────────────
-  /**
-   * Mirrors backend update() transitions:
-   *   1 → 2  seller approves       (wallet deduct)
-   *   1 → 3  seller/buyer rejects
-   *   2 → 5  buyer dispatches      (notifies seller)
-   *   5 → 6  seller releases       (wallet credit + transactions)
-   *   5 → 7  seller disputes
-   */
-
-  // const handleStatusUpdate = async (newStatus: number, notes?: string) => {
-  //   if (!trade) return;
-  //   setSubmitting(newStatus);
-  //   try {
-  //     await updateTradeStatus(trade.id, newStatus, notes);
-  //     const updated = { ...trade, status: newStatus };
-  //     setTrade(updated as TradeData);
-  //     setUiStatus(resolveUIStatus(newStatus));
-
-  //     const msgs: Record<number, string> = {
-  //       2: "Trade approved! Buyer can now send payment.",
-  //       3: "Order rejected.",
-  //       5: "Seller notified. Waiting for crypto release.",
-  //       6: "Crypto released successfully. Trade complete!",
-  //       7: "Dispatch disputed. Admin will review.",
-  //     };
-  //     toast.success(msgs[newStatus] ?? "Status updated.");
-  //   } catch (e: any) {
-  //     toast.error(e?.response?.data?.message ?? "Failed to update status.");
-  //   } finally {
-  //     setSubmitting(null);
-  //   }
-  // };
-
+  // ── Status Update ─────────────────────────────────────────────────────────
   const handleStatusUpdate = async (newStatus: number, notes?: string) => {
     if (!trade) return;
 
     const v = getViewerOrderAmountDisplay(trade);
 
-    // ── Confirmation messages per action ──────────────────────────────────────
-    const confirmMap: Record<number, { title: string; html: string; confirmText: string; icon: "warning" | "question" | "info" }> = {
+    const confirmMap: Record<
+      number,
+      {
+        title: string;
+        html: string;
+        confirmText: string;
+        icon: "warning" | "question" | "info";
+      }
+    > = {
       2: {
         title: "Approve Trade?",
         html: `Approving will deduct <strong>${v.asset} ${v.cryptoStr}</strong> from your wallet.<br/>Are you sure you want to approve this trade?`,
@@ -496,7 +661,6 @@ export default function P2PTransferCard() {
 
     const confirm = confirmMap[newStatus];
 
-    // Show Swal only for actions that have a confirmation defined
     if (confirm) {
       const result = await Swal.fire({
         title: confirm.title,
@@ -506,13 +670,14 @@ export default function P2PTransferCard() {
         showCancelButton: true,
         confirmButtonText: confirm.confirmText,
         cancelButtonText: "No, Go Back!",
-        confirmButtonColor: [3, 7, 10].includes(newStatus) ? "#dc3545" : "#198754",
+        confirmButtonColor: [3, 7, 10].includes(newStatus)
+          ? "#dc3545"
+          : "#198754",
       });
 
-      if (!result.isConfirmed) return; // user cancelled — stop here
+      if (!result.isConfirmed) return;
     }
 
-    // ── Proceed with API call ─────────────────────────────────────────────────
     setSubmitting(newStatus);
     try {
       await updateTradeStatus(trade.id, newStatus, notes);
@@ -523,12 +688,14 @@ export default function P2PTransferCard() {
       const msgs: Record<number, string> = {
         2: "Trade approved! Buyer can now send payment.",
         3: "Order rejected.",
-        5: trade.type === "buy"
-          ? "Seller notified. Waiting for crypto release."
-          : "Buyer notified. Waiting for you to confirm receipt.",
-        6: trade.type === "buy"
-          ? "Crypto released successfully. Trade complete!"
-          : "Trade completed successfully.",
+        5:
+          trade.type === "buy"
+            ? "Seller notified. Waiting for crypto release."
+            : "Buyer notified. Waiting for you to confirm receipt.",
+        6:
+          trade.type === "buy"
+            ? "Crypto released successfully. Trade complete!"
+            : "Trade completed successfully.",
         7: "Dispatch disputed. Admin will review.",
         10: "Claim submitted. Admin will review shortly.",
       };
@@ -540,57 +707,68 @@ export default function P2PTransferCard() {
     }
   };
 
-  // ── Guards ─────────────────────────────────────────────────────────────────
-  if (!tradeId) return (
-    <p className="text-center py-5 text-muted">No trade ID found in URL.</p>
-  );
+  // ── Guards ────────────────────────────────────────────────────────────────
+  if (!tradeId)
+    return <p className="text-center py-5 text-muted">No trade ID found in URL.</p>;
 
-  if (loading) return (
-    <div className="p2pOrderHeader placeholder-glow">
-      <span className="placeholder col-8 mb-2 d-block rounded" />
-      <span className="placeholder col-5 mb-2 d-block rounded" />
-      <span className="placeholder col-6 d-block rounded" />
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="p2pOrderHeader placeholder-glow">
+        <span className="placeholder col-8 mb-2 d-block rounded" />
+        <span className="placeholder col-5 mb-2 d-block rounded" />
+        <span className="placeholder col-6 d-block rounded" />
+      </div>
+    );
 
-  if (!trade) return (
-    <p className="text-center py-5 text-danger">Trade not found.</p>
-  );
+  if (!trade)
+    return <p className="text-center py-5 text-danger">Trade not found.</p>;
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-  const orderId    = trade.order_id;
-  const vd         = getViewerOrderAmountDisplay(trade);
-  const fiat       = vd.fiat;
-  const asset      = vd.asset;
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const orderId = trade.order_id;
+  const vd = getViewerOrderAmountDisplay(trade);
+  const fiat = vd.fiat;
+  const asset = vd.asset;
   const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "N/A";
-  const mm         = Math.floor(secondsLeft / 60);
-  const ss         = secondsLeft % 60;
+  const mm = Math.floor(secondsLeft / 60);
+  const ss = secondsLeft % 60;
 
-  /**
-   * status_list is set by the backend per-user:
-   *   Seller at status=1 → [2, 3]  (approve / reject)
-   *   Buy flow: creator at status=2 → [5]; owner at status=5 → [6,7]
-   *   Sell flow: owner at status=2 → [5]; creator at status=5 → [6,7]
-   */
-  const statusList  = trade.status_list ?? [];
-  const canApprove  = statusList.includes(2);
-  const canReject   = statusList.includes(3);
+  const statusList = trade.status_list ?? [];
+  const canApprove = statusList.includes(2);
+  const canReject = statusList.includes(3);
   const canDispatch = statusList.includes(5);
-  const canRelease  = statusList.includes(6);
-  const canDispute  = statusList.includes(7);
-  const canClaim    = statusList.includes(10);
-  const isBuyFlow   = trade.type === "buy";
+  const canRelease = statusList.includes(6);
+  const canDispute = statusList.includes(7);
+  const canClaim = statusList.includes(10);
+  const isBuyFlow = trade.type === "buy";
   const notifyTransferredLabel = isBuyFlow
-    ? "Transferred, Notify Seller"
+    ? "I Have Paid"
     : "Transferred, Notify Buyer";
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // Pending countdown (status === 1) — derived values
+  const isPending = trade.status === 1;
+  const pendingMm = Math.floor(pendingTimeLeft / 60);
+  const pendingSs = pendingTimeLeft % 60;
+  const backToP2PHref = isMerchant ? "/dashboard/merchant/orders/" : "/dashboard/wallet/?tab=tab3";
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="p2pOrderHeader">
-
         <StatusBanner status={trade.status} />
+
+        {/* Pending countdown banner (status === 1) */}
+        {isPending && pendingExpireTime && (
+          <div className="alert bg-warning alert-warning d-flex justify-content-between align-items-center mt-4 mb-2 py-2">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-regular fa-clock" />
+              Waiting for approval — expires in
+            </span>
+            <strong className="font-monospace fs-20">
+              {pad(pendingMm)}:{pad(pendingSs)}
+            </strong>
+          </div>
+        )}
 
         {uiStatus === "completed" ? (
           <div className="d-flex justify-content-between align-items-center">
@@ -601,33 +779,48 @@ export default function P2PTransferCard() {
               </span>
             </span>
             <Link href="/dashboard/chat/" className="chat-notification d-md-none">
-              <i className="fa-solid fa-message" /><span className="chat-badge">2</span>
+              <i className="fa-solid fa-message" />
+              <span className="chat-badge">2</span>
             </Link>
           </div>
-
         ) : uiStatus === "rejected" ? (
           <div className="d-flex justify-content-between align-items-center">
             <h2 className="p2pTitle text-danger">
               {trade.current_status?.status_text ?? "Order Cancelled"}
             </h2>
           </div>
-
         ) : (
           <div className="d-flex justify-content-between align-items-center">
             <h2 className="p2pTitle">
-              {uiStatus === "payment" && (
-                isBuyFlow
-                  ? <>Pay the Seller within <span className="p2pTimer">{pad(mm)}:{pad(ss)}</span></>
-                  : <>Pay the Buyer within <span className="p2pTimer">{pad(mm)}:{pad(ss)}</span></>
+              {/* Payment countdown for status=2 */}
+              {uiStatus === "payment" && trade.status === 2 && (
+                <>
+                  {isBuyFlow ? "Pay the Seller within " : "Pay the Buyer within "}
+                  <span className="p2pTimer">
+                    {pad(mm)}:{pad(ss)}
+                  </span>
+                </>
               )}
+
               {uiStatus === "pending" && (
-                isBuyFlow
-                  ? <>Pending the Seller to Release <i className="fa-regular fa-circle-question text-xs" /></>
-                  : <>Pending the Buyer to Confirm <i className="fa-regular fa-circle-question text-xs" /></>
+                <>
+                  {isBuyFlow ? (
+                    <>
+                      Pending the Seller to Release{" "}
+                      <i className="fa-regular fa-circle-question text-xs" />
+                    </>
+                  ) : (
+                    <>
+                      Pending the Buyer to Confirm{" "}
+                      <i className="fa-regular fa-circle-question text-xs" />
+                    </>
+                  )}
+                </>
               )}
             </h2>
             <Link href="/dashboard/chat/" className="chat-notification d-md-none">
-              <i className="fa-solid fa-message" /><span className="chat-badge">2</span>
+              <i className="fa-solid fa-message" />
+              <span className="chat-badge">2</span>
             </Link>
           </div>
         )}
@@ -641,21 +834,16 @@ export default function P2PTransferCard() {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════════════════
           PAYMENT PHASE  (trade.status = 1 or 2)
-
-          • Seller view (status=1): sees approve / reject buttons  [2, 3]
-          • Buyer  view (status=2): sees payment info + notify btn [5]
-          • Buyer  view (status=1): sees loading spinner (waiting for approval)
-      ══════════════════════════════════════════════════════════════════════ */}
+      ══════════════════════════════════════════════════════════════════ */}
       {uiStatus === "payment" && (
         <div className="p2pStepWrap">
-
-          {/* Step 1 — Payment info (visible to all parties) */}
           <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">1</div>
+            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
+              1
+            </div>
             <div className="p2pStepContent">
-
               <div className="p2pStepTop">
                 <div className="p2pStepTitle">
                   Transfer via : <span className="p2pMethod">{methodName}</span>
@@ -666,30 +854,33 @@ export default function P2PTransferCard() {
               </div>
 
               <PaymentInfoCard trade={trade} view={vd} />
-
               <OrderDetailsAccordion rows={vd.detailRows} />
             </div>
           </div>
 
-          {/* Step 2 — Action buttons (driven by status_list) */}
           <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">2</div>
+            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
+              2
+            </div>
 
             <div className="p2pStep2">
               <div className="p2pStep2Body">
-
-                {/* ── Fiat payer: notify transfer stays available after timer; claim when API allows 10 ── */}
                 <div className="p2pActions">
                   {canDispatch && (
                     <button
                       className="p2pPrimaryBtn"
                       type="button"
-                      onClick={() => handleStatusUpdate(5)}
+                      onClick={() => setShowProofModal(true)}
                       disabled={submitting !== null}
                     >
-                      {submitting === 5
-                        ? <><span className="spinner-border spinner-border-sm me-2" />Notifying…</>
-                        : notifyTransferredLabel}
+                      {submitting === 5 ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" />
+                          Notifying…
+                        </>
+                      ) : (
+                        notifyTransferredLabel
+                      )}
                     </button>
                   )}
                   {timerExpired && canClaim && (
@@ -699,14 +890,18 @@ export default function P2PTransferCard() {
                       onClick={() => handleStatusUpdate(10)}
                       disabled={submitting !== null}
                     >
-                      {submitting === 10
-                        ? <><span className="spinner-border spinner-border-sm me-2" />Submitting Claim…</>
-                        : "⏱ Time Expired — Claim to Admin"}
+                      {submitting === 10 ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" />
+                          Submitting Claim…
+                        </>
+                      ) : (
+                        "⏱ Time Expired — Claim to Admin"
+                      )}
                     </button>
                   )}
                 </div>
 
-                {/* ── SELLER: status=1 → can approve or reject ── */}
                 {(canApprove || canReject) && (
                   <>
                     <div className="p2pStepTitle">Review Trade Request</div>
@@ -722,9 +917,14 @@ export default function P2PTransferCard() {
                           onClick={() => handleStatusUpdate(2)}
                           disabled={submitting !== null}
                         >
-                          {submitting === 2
-                            ? <><span className="spinner-border spinner-border-sm me-2" />Approving…</>
-                            : "Approve Trade"}
+                          {submitting === 2 ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" />
+                              Approving…
+                            </>
+                          ) : (
+                            "Approve Trade"
+                          )}
                         </button>
                       )}
                       {canReject && (
@@ -740,28 +940,15 @@ export default function P2PTransferCard() {
                     </div>
                   </>
                 )}
-
-                {/* ── BUYER: status=1 → waiting for seller approval ── */}
-                {/* {!canDispatch && !canApprove && !canReject && (
-                  <div className="p2pMuted p2pSmall d-flex align-items-center gap-2 py-2">
-                    <span className="spinner-border spinner-border-sm" />
-                    Waiting for seller to approve your request…
-                  </div>
-                )} */}
-
               </div>
             </div>
           </div>
-
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════════════════
           PENDING PHASE  (trade.status = 5)
-
-          • Seller view: release [6] or dispute [7]
-          • Buyer  view: waiting spinner
-      ══════════════════════════════════════════════════════════════════════ */}
+      ══════════════════════════════════════════════════════════════════ */}
       {uiStatus === "pending" && (
         <P2PPendingAmmountCard
           trade={trade}
@@ -773,16 +960,14 @@ export default function P2PTransferCard() {
         />
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════════════════
           COMPLETED  (status 6 or 9)
-      ══════════════════════════════════════════════════════════════════════ */}
-      {uiStatus === "completed" && (
-        <OrderCompleted trade={trade} />
-      )}
+      ══════════════════════════════════════════════════════════════════ */}
+      {uiStatus === "completed" && <OrderCompleted trade={trade} />}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          REJECTED / CANCELLED  (status 3, 4, 7, 8)
-      ══════════════════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════════════════════════════════════════════
+          REJECTED / CANCELLED  (status 3, 4, 7, 8, 10)
+      ══════════════════════════════════════════════════════════════════ */}
       {uiStatus === "rejected" && (
         <div className="p2pStepWrap">
           <div className="p2pCard p-3 text-center">
@@ -791,12 +976,25 @@ export default function P2PTransferCard() {
               {trade.current_status?.status_text ?? "Order Cancelled"}
             </div>
             <p className="p2pMuted p2pSmall">{trade.current_status?.note}</p>
-            <Link href="/dashboard/wallet/?tab=tab3" className="p2pPrimaryBtn d-inline-block mt-3">
+            <Link
+              href={backToP2PHref}
+              className="p2pPrimaryBtn d-inline-block mt-3"
+            >
               Back to P2P Market
             </Link>
           </div>
         </div>
       )}
+
+      <PaymentProofModal
+        isOpen={showProofModal}
+        trade={trade}
+        onClose={() => setShowProofModal(false)}
+        onSuccess={() => {
+          setShowProofModal(false);
+          void fetchTrade();
+        }}
+      />
     </>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { walletSettingsDataApi } from "@/app/api/auth";
 import { getUserPaymentMethods } from "@/app/api/common";
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { P2pAdsData } from "@/app/api/p2padsapi";
@@ -29,6 +30,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
   const [methods,        setMethods]        = useState<any[]>([]);
   const [loadingMethods, setLoadingMethods] = useState(false);
   const [charge, setCharge] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   const loadMethods = useCallback(async () => {
     setLoadingMethods(true);
@@ -43,6 +45,20 @@ export default function AddSellModel({ onClose, ad }: Props) {
   }, []);
   
   useEffect(() => { loadMethods(); }, [loadMethods]);
+
+  useEffect(() => {
+    const fetchWalletSettings = async () => {
+      try {
+        const res = await walletSettingsDataApi();
+        setWalletBalance(Number(res?.data?.wallet?.amount ?? 0));
+      } catch (error) {
+        console.error("Failed to load wallet settings:", error);
+        setWalletBalance(0);
+      }
+    };
+
+    void fetchWalletSettings();
+  }, []);
 
   // Close on Escape
   useEffect(() => {
@@ -82,6 +98,9 @@ export default function AddSellModel({ onClose, ad }: Props) {
   const grossReceive = Number(receiveAmt) || 0;
   const feeDeducted   = useMemo(() => (grossReceive * charge) / 100, [grossReceive, charge]);
   const netReceive    = useMemo(() => Math.max(grossReceive - feeDeducted, 0), [grossReceive, feeDeducted]);
+  const sellValue     = Number(sellAmount || 0);
+  const availableValue = Math.max(walletBalance - sellValue, 0);
+  const totalValue    = walletBalance;
 
   const sellerName   = ad.merchant.full_name          ?? 'Unknown';
   const sellerAvatar = ad.merchant.avatar         ?? '';
@@ -241,6 +260,9 @@ export default function AddSellModel({ onClose, ad }: Props) {
               {/* You Sell */}
               <div className="card">
                 <div className="apr">You Sell</div>
+                <small className="text-sm text-white-50">
+                  Available = <span className="text-warning">{availableValue.toFixed(2)} {ad.asset}</span>, Sell = <span className="text-warning">{sellValue.toFixed(2)} {ad.asset}</span>, Total = <span className="text-warning">{totalValue.toFixed(2)} {ad.asset}</span>
+                </small>
                 <div className="inputWrap">
                   <input
                     type="number"
@@ -259,8 +281,11 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.asset}</span>
                   </div>
                 </div>
+                <div className="text-sm fw-6 text-danger pt-3">
+                  Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
+                </div>
                 {charge > 0 && (
-                  <div className="text-sm fw-6 text-danger pt-2">
+                  <div className="text-sm fw-6 text-warning pt-2">
                     Selling Fees Charge {charge}%
                   </div>
                 )}
@@ -317,9 +342,6 @@ export default function AddSellModel({ onClose, ad }: Props) {
                   <span><i className="fa-solid fa-building-columns" /></span>
                   <span>{methodName}</span>
                 </div>
-                {/* {walletNumber && (
-                  <small className="text-warning p-1 fw-6">{walletNumber}</small>
-                )} */}
               </div>
 
 

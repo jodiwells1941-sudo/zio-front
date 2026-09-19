@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 
 function parseExpiryMs(value: string): number {
-  const direct = new Date(value).getTime();
-  if (!Number.isNaN(direct)) return direct;
-  const normalized = value.includes("T") ? value : value.replace(" ", "T");
-  return new Date(normalized).getTime();
+  if (!value) return Number.NaN;
+
+  const trimmed = value.trim();
+  const hasTimezone = /Z$|[+-]\d{2}:?\d{2}$/.test(trimmed);
+  const iso = hasTimezone
+    ? trimmed.replace(" ", "T")
+    : trimmed.replace(" ", "T") + "Z";
+
+  const parsed = Date.parse(iso);
+  return Number.isNaN(parsed) ? Number.NaN : parsed;
 }
 
 /**
