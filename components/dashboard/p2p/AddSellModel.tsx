@@ -371,7 +371,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
 
 
               {/* Desktop footer */}
-              <div className="d-none d-md-block mt-5">
+              <div className="d-none d-md-block">
                 <div className="footerBtns">
                   <button
                     type="button"
