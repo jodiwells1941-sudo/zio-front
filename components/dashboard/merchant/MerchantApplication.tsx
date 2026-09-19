@@ -1526,9 +1526,44 @@ function StepDocuments({
         <FieldError message={fieldErrors[activeDocType]} />
       )}
 
-      <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 14 }}>
-        {activeDocMeta.sub}
-      </p>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 18,
+          padding: "10px 12px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 12,
+          background: "rgba(9, 18, 31, 0.5)",
+        }}
+      >
+        <div
+          style={{
+            width: 42,
+            height: 42,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            background: `${activeDocMeta.color}1f`,
+            color: activeDocMeta.color,
+            fontSize: 18,
+          }}
+        >
+          <i className={activeDocMeta.icon} />
+        </div>
+
+        <div style={{ lineHeight: 1.3 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#f4f7fb" }}>
+            {activeDocMeta.title}
+            <span style={{ color: "#ffb703", marginLeft: 4 }}>*</span>
+          </div>
+          <div style={{ fontSize: 12, color: "#8ea0b6", marginTop: 2 }}>
+            {activeDocMeta.sub}
+          </div>
+        </div>
+      </div>
 
       {/* Front / back panels for the active document type */}
       <div
@@ -1628,17 +1663,19 @@ function StepDocuments({
                       <i className="fa-solid fa-rotate" />
                     </button>
 
-                    <button
-                      type="button"
-                      className="doc-action-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(activeDocType, side);
-                      }}
-                      title="Remove"
-                    >
-                      <i className="fa-solid fa-trash" />
-                    </button>
+                    {!sideState.isExisting && (
+                      <button
+                        type="button"
+                        className="doc-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemove(activeDocType, side);
+                        }}
+                        title="Remove"
+                      >
+                        <i className="fa-solid fa-trash" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -1660,6 +1697,11 @@ function StepDocuments({
                 >
                   <i className="fas fa-cloud-upload-alt" style={{ fontSize: 22 }} />
                   <span>Click to upload</span>
+                  <small style={{ opacity: 0.7, lineHeight: 1.5 }}>
+                    {activeDocMeta.title === "Passport"
+                      ? "Upload a clear photo of your NID card or Passport."
+                      : `Upload a clear photo of your ${activeDocMeta.title.toLowerCase()}.`}
+                  </small>
                   <small style={{ opacity: 0.5 }}>Any file type · Max 5MB</small>
                 </div>
               )}
@@ -2452,6 +2494,12 @@ function PhoneInput({
           type="text"
           placeholder="(555) 123-4567"
           value={phone}
+          style={
+            {
+              color: "#e3e8ef",
+              "--placeholder-color": "#778aa5",
+            } as React.CSSProperties
+          }
           onChange={(event) =>
             onPhoneChange(event.target.value)
           }

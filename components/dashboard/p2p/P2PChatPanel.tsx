@@ -2,7 +2,7 @@
 
 import { useTradeChat } from "@/hooks/useTradeChat";
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export default function P2PChatPanel() {
   const searchParams = useSearchParams();
@@ -31,6 +31,8 @@ export default function P2PChatPanel() {
     bodyRef,
     formatMsgTime,
   } = useTradeChat(tradeId);
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const initials = counterpartyName.slice(0, 2).toUpperCase();
 
@@ -88,10 +90,15 @@ export default function P2PChatPanel() {
                 <div key={m.id} className={`p2pMsg ${m.is_sender ? "self" : "other"}`}>
                   <div className="p2pMsgBubble">
                     {m.attachment && (
-                      <a href={m.attachment} target="_blank" rel="noopener noreferrer">
+                      <button
+                        type="button"
+                        className="p-0 border-0 bg-transparent w-100 text-start"
+                        onClick={() => setSelectedImage(m.attachment ?? null)}
+                        aria-label="Open image attachment"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={m.attachment} alt="attachment" className="p2pChatImg" />
-                      </a>
+                      </button>
                     )}
                     {m.message ? <div className="mt-1">{m.message}</div> : null}
                   </div>
@@ -103,6 +110,31 @@ export default function P2PChatPanel() {
             </>
           )}
         </div>
+
+        {selectedImage && (
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center "
+            style={{ background: "rgba(0,0,0,0.75)", zIndex: 1040 }}
+            onClick={() => setSelectedImage(null)}
+          >
+            <div className="position-relative z_index" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle"
+                aria-label="Close image preview"
+                onClick={() => setSelectedImage(null)}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedImage}
+                alt="Open chat attachment"
+                style={{ maxWidth: "min(92vw, 900px)", maxHeight: "80vh", objectFit: "contain", borderRadius: 12 }}
+              />
+            </div>
+          </div>
+        )}
 
         {pendingImage && (
           <div className="px-3 py-2 small text-white-50 border-top border-secondary border-opacity-25">

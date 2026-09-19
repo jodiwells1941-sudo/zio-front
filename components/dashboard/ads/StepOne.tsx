@@ -42,6 +42,38 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
   const [limitLoading, setLimitLoading] = useState(false);
   const [priceRangeError, setPriceRangeError] = useState<string | null>(null);
 
+  const handleTypeChange = async (nextType: 'buy' | 'sell') => {
+    const previousCurrency = formData.withFlat;
+
+    setLimit(null);
+    setPriceRangeError(null);
+    setLimitLoading(false);
+
+    onFormChange({
+      type: nextType,
+      asset: '',
+      withFlat: '',
+      priceType: 'fixed',
+      fixedPrice: 0,
+    });
+
+    if (!previousCurrency) return;
+
+    setLimitLoading(true);
+
+    try {
+      const res = await GetCurrencyLimitApi({
+        currency: previousCurrency,
+        order_type: nextType,
+      });
+      setLimit(res?.data ?? null);
+    } catch {
+      setLimit(null);
+    } finally {
+      setLimitLoading(false);
+    }
+  };
+
   // ── Fetch min/max whenever the selected currency changes ──
   useEffect(() => {
     if (!formData.withFlat) {
@@ -55,7 +87,10 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
 
     (async () => {
       try {
-        const res = await GetCurrencyLimitApi({ params: { currency: formData.withFlat } });
+        const res = await GetCurrencyLimitApi({
+          currency: formData.withFlat,
+          order_type: formData.type,
+        });
         if (cancelled) return;
 
         if (!res?.error) {
@@ -114,7 +149,7 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
             <button
               key={t}
               className={`tab-button ${formData.type === t ? 'active' : ''}`}
-              onClick={() => onFormChange({ type: t })}
+              onClick={() => handleTypeChange(t)}
               type="button"
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}

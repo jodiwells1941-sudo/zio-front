@@ -1288,6 +1288,10 @@ span {
   z-index: 99 !important;
 }
 
+.z_index_0 {
+  z-index: 0 !important;
+}
+
 /* ==== 
  --------- (3.04) scroll porgress button styles end ---------
  ==== */
@@ -18770,6 +18774,15 @@ span {
   transition: .2s ease;
   height: 46px;
   padding: 0 11px;
+}
+
+.phone-input-container input {
+  color: #e3e8ef;
+}
+
+.phone-input-container input::placeholder {
+  color: var(--placeholder-color, #94a3b8) !important;
+  opacity: 1;
 }
 
 .payment-warning {

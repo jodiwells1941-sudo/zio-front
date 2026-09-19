@@ -14,6 +14,11 @@ type Props = {
   ad: P2pAdsData;             // full ad passed from P2PLayout
 };
 
+type FieldErrors = {
+  payAmount?: string;
+  receiveAmt?: string;
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function P2PBuyModal({ onClose, ad }: Props) {
@@ -22,7 +27,8 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
   const [payAmount,   setPayAmount]   = useState('');
   const [receiveAmt,  setReceiveAmt]  = useState('');
   const [submitting,  setSubmitting]  = useState(false);
-  const [bonus, setBonus] = useState(0);  
+  const [bonus, setBonus] = useState(0);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // Close on Escape
   useEffect(() => {
@@ -67,6 +73,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
     const maxCrypto = ad.order_limit_max;
     setReceiveAmt(String(maxCrypto));
     setPayAmount((maxCrypto * ad.fixed_price).toFixed(2));
+    setFieldErrors({});
   };
 
   // ─── Bonus & final receivable calculation ───────────────────────────────────
@@ -78,6 +85,21 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
   // ─── Submit ────────────────────────────────────────────────────────────────
 
   const handleBuy = async () => {
+    // ── Required field validation ──────────────────────────────────────────
+    const errors: FieldErrors = {};
+    if (!payAmount.trim() || !(parseAmount(payAmount) > 0)) {
+      errors.payAmount = 'You Pay amount is required.';
+    }
+    if (!receiveAmt.trim() || !(parseAmount(receiveAmt) > 0)) {
+      errors.receiveAmt = 'You Receive amount is required.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      toast.error('Please enter how much you pay and how much crypto you receive.');
+      return;
+    }
+    setFieldErrors({});
+
     const payFiat = parseAmount(payAmount);
     const recvCrypto = parseAmount(receiveAmt);
     let assetQty = Number.NaN;
@@ -229,7 +251,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
               {/* You Pay */}
               <div className="card">
                 <div className="apr">You Pay</div>
-                <div className="inputWrap">
+                <div className={`inputWrap ${fieldErrors.payAmount ? 'border border-danger' : ''}`}>
                   <input
                     className="input text-light placeholder-texr-color"
                     placeholder={`${(ad.order_limit_min * ad.fixed_price).toFixed(2)} - ${(ad.order_limit_max * ad.fixed_price).toFixed(2)}`}
@@ -238,6 +260,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     onChange={e => {
                       setPayAmount(e.target.value);
                       setReceiveAmt((Number(e.target.value) / ad.fixed_price).toFixed(2));
+                      if (fieldErrors.payAmount || fieldErrors.receiveAmt) setFieldErrors({});
                     }}
                     aria-label="you pay"
                   />
@@ -246,6 +269,9 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.with_fiat}</span>
                   </div>
                 </div>
+                {fieldErrors.payAmount && (
+                  <div className="invalid-feedback d-block text-danger text-sm mt-1">{fieldErrors.payAmount}</div>
+                )}
               </div>
 
               {/* You Receive */}
@@ -253,7 +279,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                 <div className="cardLabel">
                   <span className="apr">You Receive</span>
                 </div>
-                <div className="inputWrap">
+                <div className={`inputWrap ${fieldErrors.receiveAmt ? 'border border-danger' : ''}`}>
                   <input
                     className="input text-light placeholder-texr-color"
                     value={receiveAmt}
@@ -261,6 +287,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     onChange={e => {
                       setReceiveAmt(e.target.value);
                       setPayAmount((Number(e.target.value) * ad.fixed_price).toFixed(2));
+                      if (fieldErrors.payAmount || fieldErrors.receiveAmt) setFieldErrors({});
                     }}
                     placeholder={`${ad.order_limit_min} - ${ad.order_limit_max}`}
                   />
@@ -269,6 +296,9 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.asset}</span>
                   </div>
                 </div>
+                {fieldErrors.receiveAmt && (
+                  <div className="invalid-feedback d-block text-danger text-sm mt-1">{fieldErrors.receiveAmt}</div>
+                )}
 
                 {bonus > 0 && (
                   <div className="text-sm fw-6 text-success pt-2">
@@ -331,4 +361,3 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
     </div>
   );
 }
-

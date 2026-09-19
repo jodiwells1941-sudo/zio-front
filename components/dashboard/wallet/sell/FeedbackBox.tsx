@@ -117,7 +117,7 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
   };
 
   return (
-    <div className="bg-dark p-3 rounded-3 mt-3">
+    <div className="bg-dark p-3 rounded-3 mt-3 z_index_0">
       <h6 className="text-lg fw-6">Feedback</h6>
       <p className="text-white-50">Review Counterparty</p>
 

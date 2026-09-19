@@ -97,30 +97,32 @@ export default function AddSecurityMoneyModal({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitAttempted(true);
-    setTouched(true);
-
-    const validationError = validateAmount(amountRaw, walletBalance);
-    setError(validationError);
-    if (validationError) return;
-
-    setLoading(true);
-    setApiError("");
-
-    try {
-      const res = await addSecurityMoney({ amount: parsedAmount });
-      onSuccess(res?.data?.new_security_deposit ?? previewSecurity);
       onClose();
-      toast.success("Security deposit added successfully!");
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Something went wrong. Please try again.";
-      setApiError(msg);
-    } finally {
-      setLoading(false);
-    }
+
+    // e.preventDefault();
+    // setSubmitAttempted(true);
+    // setTouched(true);
+
+    // const validationError = validateAmount(amountRaw, walletBalance);
+    // setError(validationError);
+    // if (validationError) return;
+
+    // setLoading(true);
+    // setApiError("");
+
+    // try {
+    //   const res = await addSecurityMoney({ amount: parsedAmount });
+    //   onSuccess(res?.data?.new_security_deposit ?? previewSecurity);
+    //   onClose();
+    //   toast.success("Security deposit added successfully!");
+    // } catch (err: unknown) {
+    //   const msg =
+    //     (err as { response?: { data?: { message?: string } } })?.response?.data
+    //       ?.message ?? "Something went wrong. Please try again.";
+    //   setApiError(msg);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   const showError = (touched || submitAttempted) && !!error;
@@ -146,7 +148,7 @@ export default function AddSecurityMoneyModal({
         {/* ── Head ── */}
         <div className="rt-modal-head">
           <h6 className="rt-modal-title" id="asm-modal-title">
-            Add Security Deposit
+            Your Sell Amount
           </h6>
           <button
             type="button"
@@ -167,7 +169,7 @@ export default function AddSecurityMoneyModal({
               <i className="fa-solid fa-circle-info text-warning mt-1" aria-hidden="true" />
               <p className="mb-0 text-sm text-light">
                 {requiredSecurityAmount > 0
-                  ? `This ad requires your security money as $${requiredSecurityAmount.toFixed(2)}.`
+                  ? `This ad requires your Sell money as $${requiredSecurityAmount.toFixed(2)}.`
                   : "Security deposits are locked funds used to back your sell ads. They ensure trade reliability and will be released when your ads are closed."}
               </p>
             </div>
@@ -184,7 +186,7 @@ export default function AddSecurityMoneyModal({
               </div>
               <div className="asm-balance-card border border-dark-light rounded p-3 text-center">
                 <span className="asm-balance-label d-block text-light text-sm mb-1">
-                  Security Deposit
+                  Sell Amount
                 </span>
                 <span className="asm-balance-value fw-bold">
                   ${amountRaw}
@@ -193,7 +195,7 @@ export default function AddSecurityMoneyModal({
             </div>
 
             {/* ── Amount Input ── */}
-            <div className="input-box">
+            <div className="input-box d-none">
               <label htmlFor="asm-amount">
                 Amount <span className="text-danger fs-4">*</span>
                 <span className="text-sm ps-1 text-light">(min ${MIN_AMOUNT}.00)</span>
@@ -215,16 +217,6 @@ export default function AddSecurityMoneyModal({
                     showValid ? "is-valid"   : "",
                   ].join(" ").trim()}
                 />
-                {/* <button
-                  type="button"
-                  className="asm-max-btn btn--secondary text-sm py-1 px-2"
-                  onClick={handleMaxClick}
-                  disabled={loading || walletBalance <= 0}
-                  tabIndex={-1}
-                  aria-label="Use maximum wallet balance"
-                >
-                  MAX
-                </button> */}
               </div>
 
               {showError && (
@@ -246,7 +238,7 @@ export default function AddSecurityMoneyModal({
                   </span>
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-sm">Security Deposit</span>
+                  <span className="text-sm">Sell Amount</span>
                   <span className="text-sm fw-bold text-success">
                     ${previewSecurity.toFixed(2)}
                   </span>
