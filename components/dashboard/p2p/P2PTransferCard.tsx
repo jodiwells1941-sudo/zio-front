@@ -740,9 +740,7 @@ export default function P2PTransferCard({
   const canDispute = statusList.includes(7);
   const canClaim = statusList.includes(10);
   const isBuyFlow = trade.type === "buy";
-  const notifyTransferredLabel = isBuyFlow
-    ? "I Have Paid"
-    : "Transferred, Notify Buyer";
+  const notifyTransferredLabel = isBuyFlow ? "I Have Paid" : "Transferred, Notify Buyer";
 
   // Pending countdown (status === 1) — derived values
   const isPending = trade.status === 1;
@@ -870,7 +868,13 @@ export default function P2PTransferCard({
                     <button
                       className="p2pPrimaryBtn"
                       type="button"
-                      onClick={() => setShowProofModal(true)}
+                      onClick={() => {
+                        if (notifyTransferredLabel === "Transferred, Notify Buyer") {
+                          void handleStatusUpdate(5);
+                          return;
+                        }
+                        setShowProofModal(true);
+                      }}
                       disabled={submitting !== null}
                     >
                       {submitting === 5 ? (

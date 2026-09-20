@@ -259,10 +259,12 @@ export default function AddSellModel({ onClose, ad }: Props) {
 
               {/* You Sell */}
               <div className="card">
-                <div className="apr">You Sell</div>
-                <small className="text-sm text-white-50">
-                  Available = <span className="text-warning">{availableValue.toFixed(2)} {ad.asset}</span>, Sell = <span className="text-warning">{sellValue.toFixed(2)} {ad.asset}</span>, Total = <span className="text-warning">{totalValue.toFixed(2)} {ad.asset}</span>
-                </small>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="apr">You Sell</div>
+                  <small className="text-sm text-white-50">
+                    Available = <span className="text-warning">{availableValue.toFixed(2)}</span>
+                  </small>
+                </div>
                 <div className="inputWrap">
                   <input
                     type="number"
@@ -281,7 +283,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.asset}</span>
                   </div>
                 </div>
-                <div className="text-sm fw-6 text-danger pt-3">
+                <div className="text-sm fw-6 text-danger">
                   Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
                 </div>
                 {charge > 0 && (
@@ -310,10 +312,6 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     <span className="currency">৳</span>
                     <span className="ccyText">{ad.with_fiat}</span>
                   </div>
-                </div>
-
-                <div className="text-sm fw-6 text-danger pt-3">
-                  Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
                 </div>
 
                 {/* Net receivable breakdown */}
@@ -368,7 +366,6 @@ export default function AddSellModel({ onClose, ad }: Props) {
                   <div className="invalid-feedback d-block">{errors.paymentMethodId}</div>
                 )}
               </div>
-
 
               {/* Desktop footer */}
               <div className="d-none d-md-block">
