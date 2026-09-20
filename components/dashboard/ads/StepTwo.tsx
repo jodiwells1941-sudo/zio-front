@@ -44,15 +44,14 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
   const [loadingMethods, setLoadingMethods] = useState(false);
   const [saving,         setSaving]         = useState(false);
 
-  // Whether the user is creating a SELL ad. For sell ads, the user types the
-  // amount directly in the asset (USD/USDT), and we show the converted
-  // fiat (withFlat) amount underneath. For buy ads, behavior is unchanged:
-  // the user types the fiat amount and we show the converted asset amount.
+  // Only the TOTAL AMOUNT field switches to asset-wise input for sell ads.
+  // Order Limit Min/Max always stay fiat (currency)-wise input, for both
+  // buy and sell — same behavior as before, on purpose.
   const isSell = formData.type === 'sell';
 
   // ─── Local "typed" state ────────────────────────────────────────────────
-  // For BUY: these hold the fiat (withFlat) amount the user types.
-  // For SELL: these hold the asset (USD/USDT) amount the user types.
+  // totalAmountInput: fiat for buy, asset for sell (see isSell above).
+  // orderLimitMin/MaxInput: always fiat (currency), for both buy and sell.
   // formData.totalAmount / orderLimitMin / orderLimitMax always keep storing
   // the asset amount, exactly like before — nothing downstream changes.
   const [totalAmountInput,   setTotalAmountInput]   = useState('');
@@ -67,10 +66,15 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
   const fiatIcon = CURRENCIES.find(c => c.code === (formData?.withFlat || 'BDT'))?.icon ?? '';
   const assetIcon = '$';
 
-  // What's typed into the input, and what's shown underneath, swap for sell.
-  const inputPrefix = isSell ? assetIcon : fiatIcon;
-  const inputSuffixLabel = isSell ? (formData?.asset || 'USDT') : (formData?.withFlat || 'BDT');
-  const helpSuffixLabel = isSell ? (formData?.withFlat || 'BDT') : (formData?.asset || 'USDT');
+  // Total Amount: swaps prefix/suffix for sell (asset-wise).
+  const totalInputPrefix = isSell ? assetIcon : fiatIcon;
+  const totalInputSuffixLabel = isSell ? (formData?.asset || 'USDT') : (formData?.withFlat || 'BDT');
+  const totalHelpSuffixLabel = isSell ? (formData?.withFlat || 'BDT') : (formData?.asset || 'USDT');
+
+  // Order Limit Min/Max: always fiat-wise (currency), regardless of buy/sell.
+  const limitInputPrefix = fiatIcon;
+  const limitInputSuffixLabel = formData?.withFlat || 'BDT';
+  const limitHelpSuffixLabel = formData?.asset || 'USDT';
 
   // ─── One-time sync from formData (e.g. when editing an existing ad) ───────
   useEffect(() => {
@@ -79,18 +83,18 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
       setTotalAmountInput(isSell ? formData.totalAmount : (assetVal * price).toFixed(2));
     }
     if (formData.orderLimitMin) {
-      setOrderLimitMinInput(isSell ? String(formData.orderLimitMin) : (formData.orderLimitMin * price).toFixed(2));
+      setOrderLimitMinInput((formData.orderLimitMin * price).toFixed(2));
     }
     if (formData.orderLimitMax) {
-      setOrderLimitMaxInput(isSell ? String(formData.orderLimitMax) : (formData.orderLimitMax * price).toFixed(2));
+      setOrderLimitMaxInput((formData.orderLimitMax * price).toFixed(2));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Input change handlers ─────────────────────────────────────────────
-  // SELL: typed value IS the asset amount -> store it directly.
-  // BUY: typed value is the fiat amount -> convert to asset before storing.
 
+  // Total Amount: SELL -> typed value IS the asset amount, store directly.
+  //               BUY  -> typed value is fiat, convert to asset before storing.
   const handleTotalAmountInputChange = (val: string) => {
     setTotalAmountInput(val);
     if (isSell) {
@@ -101,38 +105,33 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
     }
   };
 
+  // Order Limit Min/Max: always fiat typed -> convert to asset before storing.
   const handleOrderLimitMinInputChange = (val: string) => {
     setOrderLimitMinInput(val);
-    if (isSell) {
-      onFormChange({ orderLimitMin: val ? parseFloat(val) : 0 });
-    } else {
-      const assetVal = val && price ? parseFloat(val) / price : 0;
-      onFormChange({ orderLimitMin: assetVal || 0 });
-    }
+    const assetVal = val && price ? parseFloat(val) / price : 0;
+    onFormChange({ orderLimitMin: assetVal || 0 });
   };
 
   const handleOrderLimitMaxInputChange = (val: string) => {
     setOrderLimitMaxInput(val);
-    if (isSell) {
-      onFormChange({ orderLimitMax: val ? parseFloat(val) : 0 });
-    } else {
-      const assetVal = val && price ? parseFloat(val) / price : 0;
-      onFormChange({ orderLimitMax: assetVal || 0 });
-    }
+    const assetVal = val && price ? parseFloat(val) / price : 0;
+    onFormChange({ orderLimitMax: assetVal || 0 });
   };
 
   // ─── Equivalent shown under each input ─────────────────────────────────
-  // SELL: input is asset -> show fiat equivalent (asset * price).
-  // BUY: input is fiat -> show asset equivalent (fiat / price), same as before.
 
+  // Total Amount: SELL -> input is asset, show fiat equivalent (asset * price).
+  //               BUY  -> input is fiat, show asset equivalent (fiat / price).
   const totalHelpEquivalent = totalAmountInput && price
     ? (isSell ? (parseFloat(totalAmountInput) * price) : (parseFloat(totalAmountInput) / price)).toFixed(2)
     : '0';
+
+  // Order Limit Min/Max: input is always fiat, show asset equivalent (fiat / price).
   const minHelpEquivalent = orderLimitMinInput && price
-    ? (isSell ? (parseFloat(orderLimitMinInput) * price) : (parseFloat(orderLimitMinInput) / price)).toFixed(2)
+    ? (parseFloat(orderLimitMinInput) / price).toFixed(2)
     : '0';
   const maxHelpEquivalent = orderLimitMaxInput && price
-    ? (isSell ? (parseFloat(orderLimitMaxInput) * price) : (parseFloat(orderLimitMaxInput) / price)).toFixed(2)
+    ? (parseFloat(orderLimitMaxInput) / price).toFixed(2)
     : '0';
 
   // ─── Load payment methods ──────────────────────────────────────────────────
@@ -196,7 +195,7 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                   pointerEvents: 'none',
                 }}
               >
-                {inputPrefix}
+                {totalInputPrefix}
               </span>
               <input
                 type="number"
@@ -206,12 +205,12 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                 onChange={e => handleTotalAmountInputChange(e.target.value)}
                 style={{ paddingLeft: 32 }}
               />
-              <div className="inputRight"><span className="ccyText text-white">{inputSuffixLabel}</span></div>
+              <div className="inputRight"><span className="ccyText text-white">{totalInputSuffixLabel}</span></div>
             </div>
           </div>
           {errors.totalAmount
             ? <div className="invalid-feedback d-block">{errors.totalAmount}</div>
-            : <div className="help-text">≈ {totalHelpEquivalent} {helpSuffixLabel}</div>
+            : <div className="help-text">≈ {totalHelpEquivalent} {totalHelpSuffixLabel}</div>
           }
         </div>
 
@@ -234,7 +233,7 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                       pointerEvents: 'none',
                     }}
                   >
-                    {inputPrefix}
+                    {limitInputPrefix}
                   </span>
                   <input
                     type="number"
@@ -244,11 +243,11 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                     style={{ paddingLeft: 26 }}
                   />
                 </div>
-                {inputSuffixLabel}
+                {limitInputSuffixLabel}
               </div>
               {errors.orderLimitMin
                 ? <div className="invalid-feedback d-block">{errors.orderLimitMin}</div>
-                : <div className="help-text">≈ {minHelpEquivalent} {helpSuffixLabel}</div>
+                : <div className="help-text">≈ {minHelpEquivalent} {limitHelpSuffixLabel}</div>
               }
             </div>
 
@@ -269,7 +268,7 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                       pointerEvents: 'none',
                     }}
                   >
-                    {inputPrefix}
+                    {limitInputPrefix}
                   </span>
                   <input
                     type="number"
@@ -279,11 +278,11 @@ export default function StepTwo({ formData, onFormChange, errors = {} }: StepTwo
                     style={{ paddingLeft: 26 }}
                   />
                 </div>
-                {inputSuffixLabel}
+                {limitInputSuffixLabel}
               </div>
               {errors.orderLimitMax
                 ? <div className="invalid-feedback d-block">{errors.orderLimitMax}</div>
-                : <div className="help-text">≈ {maxHelpEquivalent} {helpSuffixLabel}</div>
+                : <div className="help-text">≈ {maxHelpEquivalent} {limitHelpSuffixLabel}</div>
               }
             </div>
           </div>
