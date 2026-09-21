@@ -1,6 +1,6 @@
 "use client";
 
-import { getMerchantAccount } from "@/app/api/merchant";
+import { getBonusFeesSettings, getMerchantAccount } from "@/app/api/merchant";
 import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
@@ -237,7 +237,40 @@ function PaymentProofModal({
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [bonusPercent, setBonusPercent] = useState(0);
+  const [sellFeePercent, setSellFeePercent] = useState(0);
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
+
+  useEffect(() => {
+    if (!trade) return;
+
+    let mounted = true;
+
+    const loadSettings = async () => {
+      try {
+        const res = await getBonusFeesSettings();
+        const settings = res?.data ?? {};
+        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
+        const nextFee = Number(settings?.user_sell_charge ?? 0);
+
+        if (!mounted) return;
+        setBonusPercent(trade.type === "buy" ? nextBonus : 0);
+        setSellFeePercent(trade.type === "sell" ? nextFee : 0);
+      } catch (error) {
+        console.error("Failed to load bonus & fees settings:", error);
+        if (mounted) {
+          setBonusPercent(0);
+          setSellFeePercent(0);
+        }
+      }
+    };
+
+    void loadSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [trade]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -271,6 +304,13 @@ function PaymentProofModal({
       return URL.createObjectURL(file);
     });
   };
+
+  const adjustedTotalAmount = trade?.type === "buy"
+    ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
+    : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
+  const totalAmountCurrency = trade?.type === "buy"
+    ? trade?.p2p_ad?.asset ?? "USDT"
+    : trade?.p2p_ad?.with_fiat ?? orderView?.fiat ?? "BDT";
 
   const handleSubmit = async () => {
     if (!proofFile) {
@@ -323,6 +363,27 @@ function PaymentProofModal({
                     </span>
                   </div>
                 ))}
+
+                {trade?.type === "buy" && bonusPercent > 0 && (
+                  <div className="p2pDetailRow">
+                    <span className="p2pMuted">Buy Bonus</span>
+                    <span className="p2pDetailVal text-warning">+{bonusPercent}%</span>
+                  </div>
+                )}
+
+                {trade?.type === "sell" && sellFeePercent > 0 && (
+                  <div className="p2pDetailRow">
+                    <span className="p2pMuted">Selling Fee</span>
+                    <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
+                  </div>
+                )}
+
+                <div className="p2pDetailRow">
+                  <span className="p2pMuted">Total Amount</span>
+                  <span className="p2pDetailVal text-success">
+                    {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -395,6 +456,51 @@ export function PaymentInfoCard({
   const remarks = pm?.remarks;
   const qrCode = pm?.qr_code;
   const orderId = trade.order_id;
+  const [bonusPercent, setBonusPercent] = useState(0);
+  const [sellFeePercent, setSellFeePercent] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSettings = async () => {
+      try {
+        const res = await getBonusFeesSettings();
+        const settings = res?.data ?? {};
+        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
+        const nextFee = Number(settings?.user_sell_charge ?? 0);
+
+        if (!mounted) return;
+        setBonusPercent(trade.type === "buy" ? nextBonus : 0);
+        setSellFeePercent(trade.type === "sell" ? nextFee : 0);
+      } catch (error) {
+        console.error("Failed to load bonus & fees settings:", error);
+        if (mounted) {
+          setBonusPercent(0);
+          setSellFeePercent(0);
+        }
+      }
+    };
+
+    void loadSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [trade.type]);
+
+  const extraFeeOrBonusRow =
+    trade.type === "buy" && bonusPercent > 0
+      ? { label: "Buy Bonus", value: `+${bonusPercent}%` }
+      : trade.type === "sell" && sellFeePercent > 0
+        ? { label: "Selling Fee", value: `${sellFeePercent}%` }
+        : null;
+
+  const totalAmount = trade.type === "buy"
+    ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
+    : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
+  const totalAmountCurrency = trade.type === "buy"
+    ? trade.p2p_ad?.asset ?? "USDT"
+    : trade.p2p_ad?.with_fiat ?? view.fiat ?? "BDT";
 
   return (
     <div className="p2pCard p-0">
@@ -413,6 +519,22 @@ export function PaymentInfoCard({
         <div className="p2pCardValue">
           {orderId}
           <CopyBtn text={orderId} id="ref" />
+        </div>
+      </div>
+
+      {extraFeeOrBonusRow && (
+        <div className="p2pCardRow px-3">
+          <div className="p2pCardLabel">{extraFeeOrBonusRow.label}</div>
+          <div className="p2pCardValue text-warning">
+            {extraFeeOrBonusRow.value}
+          </div>
+        </div>
+      )}
+
+      <div className="p2pCardRow px-3">
+        <div className="p2pCardLabel">Total Amount</div>
+        <div className="p2pCardValue green">
+          {totalAmountCurrency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
         </div>
       </div>
 
@@ -707,6 +829,40 @@ export default function P2PTransferCard({
     }
   };
 
+  const [bonusPercent, setBonusPercent] = useState(0);
+  const [sellFeePercent, setSellFeePercent] = useState(0);
+
+  useEffect(() => {
+    if (!trade) return;
+
+    let mounted = true;
+
+    const loadSettings = async () => {
+      try {
+        const res = await getBonusFeesSettings();
+        const settings = res?.data ?? {};
+        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
+        const nextFee = Number(settings?.user_sell_charge ?? 0);
+
+        if (!mounted) return;
+        setBonusPercent(trade.type === "buy" ? nextBonus : 0);
+        setSellFeePercent(trade.type === "sell" ? nextFee : 0);
+      } catch (error) {
+        console.error("Failed to load bonus & fees settings:", error);
+        if (mounted) {
+          setBonusPercent(0);
+          setSellFeePercent(0);
+        }
+      }
+    };
+
+    void loadSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [trade]);
+
   // ── Guards ────────────────────────────────────────────────────────────────
   if (!tradeId)
     return <p className="text-center py-5 text-muted">No trade ID found in URL.</p>;
@@ -729,6 +885,13 @@ export default function P2PTransferCard({
   const fiat = vd.fiat;
   const asset = vd.asset;
   const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "N/A";
+  const orderDetailRows = [...vd.detailRows];
+  if (trade.type === "buy" && bonusPercent > 0) {
+    orderDetailRows.push({ label: "Buy Bonus", value: `+${bonusPercent}%`, copyText: `${bonusPercent}%` });
+  }
+  if (trade.type === "sell" && sellFeePercent > 0) {
+    orderDetailRows.push({ label: "Selling Fee", value: `${sellFeePercent}%`, copyText: `${sellFeePercent}%` });
+  }
   const mm = Math.floor(secondsLeft / 60);
   const ss = secondsLeft % 60;
 
@@ -776,10 +939,12 @@ export default function P2PTransferCard({
                 <i className="fa-solid fa-check" />
               </span>
             </span>
-            <Link href="/dashboard/chat/" className="chat-notification d-md-none">
-              <i className="fa-solid fa-message" />
-              <span className="chat-badge">2</span>
-            </Link>
+            {trade.status != 1 && (
+              <Link href="/dashboard/chat/" className="chat-notification d-md-none">
+                <i className="fa-solid fa-message" />
+                <span className="chat-badge">0</span>
+              </Link>
+            )}
           </div>
         ) : uiStatus === "rejected" ? (
           <div className="d-flex justify-content-between align-items-center">
@@ -816,10 +981,12 @@ export default function P2PTransferCard({
                 </>
               )}
             </h2>
-            <Link href="/dashboard/chat/" className="chat-notification d-md-none">
-              <i className="fa-solid fa-message" />
-              <span className="chat-badge">2</span>
-            </Link>
+            {trade.status != 1 && (
+              <Link href="/dashboard/chat/" className="chat-notification d-md-none">
+                <i className="fa-solid fa-message" />
+                <span className="chat-badge">0</span>
+              </Link>
+            )}
           </div>
         )}
 
@@ -853,7 +1020,7 @@ export default function P2PTransferCard({
               { !isPending && (
                 <PaymentInfoCard trade={trade} view={vd}  />
               )}
-              <OrderDetailsAccordion rows={vd.detailRows} />
+              <OrderDetailsAccordion rows={orderDetailRows} />
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { getMerchantAccount } from "@/app/api/merchant";
+import { getBonusFeesSettings, getMerchantAccount } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
@@ -99,6 +99,8 @@ export default function BuyerPaymentCard() {
   const [paymentReceived, setPaymentReceived] = useState(false);
   const [confirmPayment,  setConfirmPayment]  = useState(false);
   const [isMerchant,      setIsMerchant]      = useState(false);
+  const [bonusPercent,    setBonusPercent]    = useState(0);
+  const [sellFeePercent,  setSellFeePercent]  = useState(0);
 
   useEffect(() => {
     const checkMerchant = async () => {
@@ -112,6 +114,35 @@ export default function BuyerPaymentCard() {
 
     void checkMerchant();
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSettings = async () => {
+      try {
+        const res = await getBonusFeesSettings();
+        const settings = res?.data ?? {};
+        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
+        const nextFee = Number(settings?.user_sell_charge ?? 0);
+
+        if (!mounted) return;
+        setBonusPercent(trade?.type === "buy" ? nextBonus : 0);
+        setSellFeePercent(trade?.type === "sell" ? nextFee : 0);
+      } catch (error) {
+        console.error("Failed to load bonus & fees settings:", error);
+        if (mounted) {
+          setBonusPercent(0);
+          setSellFeePercent(0);
+        }
+      }
+    };
+
+    void loadSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [trade?.type]);
 
   // ─── Fetch trade ────────────────────────────────────────────────────────────
 
@@ -286,11 +317,29 @@ export default function BuyerPaymentCard() {
     trade.status === 1 && !!trade.pending_time_limit && pendingApprovalTimer.expired;
   const showExpiredPendingState = approvalWindowExpired || trade.status === 3 || trade.status === 4 || trade.status === 8;
   const backToP2PHref = isMerchant ? "/dashboard/merchant/orders/" : "/dashboard/orders";
+  const adjustedTotalAmount = trade.type === "buy"
+    ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
+    : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
+  const totalAmountCurrency = trade.type === "buy"
+    ? trade.p2p_ad?.asset ?? "USDT"
+    : withFiat || "BDT";
+
   const paymentModalDetails = [
     { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
     { label: "Price", value: `${withFiat || "BDT"} ${price}` },
     { label: `You receive (${trade.p2p_ad?.asset ?? "USDT"})`, value: `${cryptoAmountStr} ${trade.p2p_ad?.asset ?? "USDT"}` },
   ];
+
+  if (trade.type === "buy" && bonusPercent > 0) {
+    paymentModalDetails.push({ label: "Buy Bonus", value: `+${bonusPercent}%` });
+  }
+  if (trade.type === "sell" && sellFeePercent > 0) {
+    paymentModalDetails.push({ label: "Selling Fee", value: `${sellFeePercent}%` });
+  }
+  paymentModalDetails.push({
+    label: "Total Amount",
+    value: `${totalAmountCurrency} ${adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`,
+  });
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -340,9 +389,11 @@ export default function BuyerPaymentCard() {
                 <i className="fa-solid fa-check" />
               </span>
             </span>
-            <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="chat-notification d-md-none">
-              <i className="fa-solid fa-message" />
-            </Link>
+            {trade.status != 1 && (
+              <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="chat-notification d-md-none">
+                <i className="fa-solid fa-message" />
+              </Link>
+            )}
           </div>
         ) : (
           <div className="d-flex justify-content-between align-items-center">
@@ -357,9 +408,11 @@ export default function BuyerPaymentCard() {
                 <>{`Waiting Buyer's Payment`} <span className="p2pTimer">{pad(mm)}:{pad(ss)}</span></>
               )}
             </h2>
-            <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="chat-notification d-md-none">
-              <i className="fa-solid fa-message" />
-            </Link>
+            {trade.status != 1 && (
+              <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="chat-notification d-md-none">
+                <i className="fa-solid fa-message" />
+              </Link>
+            )}
           </div>
         )}
 
@@ -532,6 +585,24 @@ export default function BuyerPaymentCard() {
                     <span className="p2pMuted">Receive Quantity</span>
                     <span className="p2pDetailVal">
                       {cryptoAmountStr} <span className="usdt">{trade.p2p_ad?.asset ?? 'USDT'}</span>
+                    </span>
+                  </div>
+                  {trade.type === "buy" && bonusPercent > 0 && (
+                    <div className="p2pDetailRow">
+                      <span className="p2pMuted">Buy Bonus</span>
+                      <span className="p2pDetailVal text-warning">+{bonusPercent}%</span>
+                    </div>
+                  )}
+                  {trade.type === "sell" && sellFeePercent > 0 && (
+                    <div className="p2pDetailRow">
+                      <span className="p2pMuted">Selling Fee</span>
+                      <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
+                    </div>
+                  )}
+                  <div className="p2pDetailRow">
+                    <span className="p2pMuted">Total Amount</span>
+                    <span className="p2pDetailVal text-success">
+                      {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                     </span>
                   </div>
                 </div>
