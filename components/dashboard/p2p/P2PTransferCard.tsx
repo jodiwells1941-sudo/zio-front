@@ -237,6 +237,7 @@ function PaymentProofModal({
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [proofError, setProofError] = useState(false);
   const [bonusPercent, setBonusPercent] = useState(0);
   const [sellFeePercent, setSellFeePercent] = useState(0);
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
@@ -281,6 +282,7 @@ function PaymentProofModal({
         return null;
       });
       setSubmitting(false);
+      setProofError(false);
       return;
     }
   }, [isOpen]);
@@ -291,6 +293,7 @@ function PaymentProofModal({
     const file = event.target.files?.[0] ?? null;
     if (!file) {
       setProofFile(null);
+      setProofError(true);
       setPreviewUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
@@ -299,6 +302,7 @@ function PaymentProofModal({
     }
 
     setProofFile(file);
+    setProofError(false);
     setPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return URL.createObjectURL(file);
@@ -314,9 +318,12 @@ function PaymentProofModal({
 
   const handleSubmit = async () => {
     if (!proofFile) {
+      setProofError(true);
       toast.error("Please upload a payment proof image before submitting.");
       return;
     }
+
+    setProofError(false);
 
     setSubmitting(true);
     try {
@@ -350,91 +357,110 @@ function PaymentProofModal({
           </button>
         </div>
 
-        <div className="modal-body p-3">
-          <div className="p2pCard p-3 mb-3">
-            <div className="p2pStepTitle mb-2">Order details</div>
-            {orderView && (
-              <div className="p2pOrderDetailsBody">
-                {orderView.detailRows.map((row, index) => (
-                  <div key={`${row.label}-${index}`} className="p2pDetailRow">
-                    <span className="p2pMuted">{row.label}</span>
-                    <span className="p2pDetailVal text-white">
-                      {row.value}
+        <form
+          className="w-100"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!proofFile) {
+              setProofError(true);
+              toast.error("Please upload a payment proof image before submitting.");
+              return;
+            }
+            setProofError(false);
+            void handleSubmit();
+          }}
+        >
+          <div className="modal-body p-3">
+            <div className="p2pCard p-3 mb-3">
+              <div className="p2pStepTitle mb-2">Order details</div>
+              {orderView && (
+                <div className="p2pOrderDetailsBody">
+                  {orderView.detailRows.map((row, index) => (
+                    <div key={`${row.label}-${index}`} className="p2pDetailRow">
+                      <span className="p2pMuted">{row.label}</span>
+                      <span className="p2pDetailVal text-white">
+                        {row.value}
+                      </span>
+                    </div>
+                  ))}
+
+                  {trade?.type === "buy" && bonusPercent > 0 && (
+                    <div className="p2pDetailRow">
+                      <span className="p2pMuted">Buy Bonus</span>
+                      <span className="p2pDetailVal text-warning">+{bonusPercent}%</span>
+                    </div>
+                  )}
+
+                  {trade?.type === "sell" && sellFeePercent > 0 && (
+                    <div className="p2pDetailRow">
+                      <span className="p2pMuted">Selling Fee</span>
+                      <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
+                    </div>
+                  )}
+
+                  <div className="p2pDetailRow">
+                    <span className="p2pMuted">Total Amount</span>
+                    <span className="p2pDetailVal text-success">
+                      {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                     </span>
                   </div>
-                ))}
-
-                {trade?.type === "buy" && bonusPercent > 0 && (
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">Buy Bonus</span>
-                    <span className="p2pDetailVal text-warning">+{bonusPercent}%</span>
-                  </div>
-                )}
-
-                {trade?.type === "sell" && sellFeePercent > 0 && (
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">Selling Fee</span>
-                    <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
-                  </div>
-                )}
-
-                <div className="p2pDetailRow">
-                  <span className="p2pMuted">Total Amount</span>
-                  <span className="p2pDetailVal text-success">
-                    {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                  </span>
                 </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label text-white-50 small mb-2">Message</label>
+              <textarea
+                className="form-control bg-dark text-light border-dark"
+                rows={2}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="I have paid the seller."
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label text-white-50 small">Proof image</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className={`form-control bg-dark text-light ${proofError ? "border-danger is-invalid" : "border-dark"}`}
+                onChange={handleFileChange}
+                required
+                aria-required="true"
+                aria-invalid={proofError}
+              />
+              {proofError && (
+                <div className="text-danger small mt-2">Please upload a payment proof image.</div>
+              )}
+            </div>
+
+            {previewUrl && (
+              <div className="mb-3 ">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt="Payment proof preview"
+                  className="img-fluid rounded border border-secondary"
+                  style={{ maxHeight: 60, objectFit: "contain" }}
+                />
               </div>
             )}
           </div>
 
-          <div className="mb-3">
-            <label className="form-label text-white-50 small mb-2">Message</label>
-            <textarea
-              className="form-control bg-dark text-light border-dark"
-              rows={2}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="I have paid the seller."
-            />
+          <div className="modal-footer mx-auto mb-4">
+            <button type="button" className="p2pLinkBtn me-3" onClick={onClose} disabled={submitting}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="p2pPrimaryBtn me-3"
+              disabled={submitting}
+            >
+              {submitting ? "Submitting…" : "Submit Proof"}
+            </button>
           </div>
-
-          <div className="mb-3">
-            <label className="form-label text-white-50 small mb-2">Proof image</label>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              className="form-control bg-dark text-light border-dark"
-              onChange={handleFileChange}
-            />
-          </div>
-
-          {previewUrl && (
-            <div className="mb-3 text-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewUrl}
-                alt="Payment proof preview"
-                className="img-fluid rounded border border-secondary"
-                style={{ maxHeight: 220, objectFit: "contain" }}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="modal-footer mx-auto mb-4">
-          <button type="button" className="p2pLinkBtn me-3" onClick={onClose} disabled={submitting}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="p2pPrimaryBtn"
-            onClick={() => void handleSubmit()}
-            disabled={submitting || !proofFile}
-          >
-            {submitting ? "Submitting…" : "Submit Proof"}
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );

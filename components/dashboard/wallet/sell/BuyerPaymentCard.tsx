@@ -284,10 +284,14 @@ export default function BuyerPaymentCard() {
 
   // ─── Derived values ──────────────────────────────────────────────────────────
 
+  console.log('trade.user_payment_method =', trade);
+  // trade.p2p_ad?.payment_method?.field_values?.walletNumber
+  
+
   const byerPaymentMethod = trade.user_payment_method?.sell_method?.name;
   const byerWalletNumber  = trade.user_payment_method?.field_values?.walletNumber
                          ?? trade.user_payment_method?.field_values?.bankName
-                         ?? '—';
+                         ?? trade.p2p_ad?.payment_method?.field_values?.walletNumber ?? '--';
   const methodName        = trade.current_status?.method
                          ?? trade.p2p_ad?.payment_method?.sell_method?.name
                          ?? 'N/A';
@@ -303,8 +307,6 @@ export default function BuyerPaymentCard() {
   const price             = Number(trade.user_price).toFixed(2);
   const withFiat          = trade.current_status?.with_fiat ?? trade.p2p_ad?.with_fiat ?? '';
   const buyerName         = trade.customer?.name ?? 'Buyer';
-  const clientName        = trade.client?.name ?? 'Counterparty';
-  const withFiatCurrency  = trade.p2p_ad?.asset ?? 'USDT';
   const isBuyerDispatched = trade.status === 5;
   const statusList = trade.status_list ?? [];
   const canRelease = statusList.includes(6);
