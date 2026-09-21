@@ -170,6 +170,7 @@ export default function P2PLayout({
   const [loading, setLoading] = useState(false);
   const [meta,    setMeta]    = useState<PaginationMeta | null>(null);
   const [page,    setPage]    = useState(1);
+  const [debouncedAmount, setDebouncedAmount] = useState('');
 
   // ── Filters ──────────────────────────────────────────────────────────────────
   const [filterFiat,   setFilterFiat]   = useState('');
@@ -185,21 +186,30 @@ export default function P2PLayout({
     m => m.currency === 'ALL' || !filterFiat || m.currency === filterFiat
   );
 
-  // Parse min/max from the selected range label
-  const selectedRange = AMOUNT_RANGES.find(r => r.label === filterAmount);
-
   // Reset method if it becomes unavailable after currency change
   useEffect(() => {
     if (filterMethod && filterFiat) {
       const stillAvailable = availableMethods.some(m => m.name === filterMethod);
-      if (!stillAvailable) setFilterMethod('');
+      if (!stillAvailable) {
+        setFilterMethod('');
+        setFilterAmount('');
+      }
     }
   }, [filterFiat]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedAmount(filterAmount);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [filterAmount]);
 
   // ── Clear all filters ─────────────────────────────────────────────────────────
   const clearFilters = () => {
     setFilterFiat('');
     setFilterAmount('');
+    setDebouncedAmount('');
     setFilterMethod('');
     setAds([]);
     setMeta(null);
@@ -239,6 +249,8 @@ export default function P2PLayout({
         type,
         page: targetPage,
         with_fiat: filterFiat,
+        payment_method: filterMethod || undefined,
+        amount_range: debouncedAmount || undefined,
       });
 
       const responseData = res?.data;
@@ -272,7 +284,7 @@ export default function P2PLayout({
       setAds([]);
       setMeta(null);
     }
-  }, [activeP2PTab, filterFiat, filterAmount, filterMethod]);
+  }, [activeP2PTab, filterFiat, filterMethod, debouncedAmount]);
 
   useEffect(() => {
     if (allFiltersSet && page > 1) fetchAllAds(page);
@@ -363,6 +375,21 @@ export default function P2PLayout({
       <div className="wallet-filter-section">
         <div className="filter-items-wrapper">
 
+          <div className="form-group-custom mt-3 mt-md-0">
+            <select
+              className="select-custom form-control-custom border-0"
+              value={filterFiat}
+              onChange={e => handleChange(e.target.value)}
+            >
+              <option value="">Select Currency</option>
+              {CURRENCIES.map(c => (
+                <option key={c.code} value={c.code}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Amount Range */}
           <div className="wallet-filter-item-group">
             <div className="filter-header-label">
@@ -372,16 +399,14 @@ export default function P2PLayout({
               </svg>
             </div>
             <div className="wallet-dropdown-content-box px-2">
-              <select
-                className="select-custom form-control-custom"
+              <input
+                type="text"
+                className=" form-control-custom"
                 value={filterAmount}
                 onChange={e => setFilterAmount(e.target.value)}
-              >
-                <option value="">Select range</option>
-                {AMOUNT_RANGES.map(r => (
-                  <option key={r.label} value={r.label}>{r.label}</option>
-                ))}
-              </select>
+                placeholder="Type amount range"
+                disabled={!filterFiat}
+              />
             </div>
           </div>
 
@@ -397,7 +422,10 @@ export default function P2PLayout({
               <select
                 className="select-custom form-control-custom"
                 value={filterMethod}
-                onChange={e => setFilterMethod(e.target.value)}
+                onChange={e => {
+                  const nextValue = e.target.value;
+                  setFilterMethod(nextValue);
+                }}
                 disabled={!filterFiat}
               >
                 <option value="">
@@ -467,32 +495,6 @@ export default function P2PLayout({
                 <P2PTabButton tab="wallet-add"     label="Buy"  activeTab={activeP2PTab} onChange={setActiveP2PTab} />
                 <P2PTabButton tab="wallet-balance" label="Sell" activeTab={activeP2PTab} onChange={setActiveP2PTab} />
               </div>
-            </div>
-
-            {/* Currency filter — sent to backend */}
-            <div className="form-group-custom mt-3 mt-md-0">
-              {/* <select
-                className="select-custom form-control-custom"
-                value={filterFiat}
-                onChange={e => setFilterFiat(e.target.value)}
-              >
-                <option value="">Select Currency</option>
-                {CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
-                ))}
-              </select> */}
-              <select
-                className="select-custom form-control-custom"
-                value={filterFiat}
-                onChange={e => handleChange(e.target.value)}
-              >
-                <option value="">Select Currency</option>
-                {CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <P2PHeaderButton />

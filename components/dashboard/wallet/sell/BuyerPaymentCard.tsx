@@ -366,7 +366,7 @@ export default function BuyerPaymentCard() {
         {/* Order number */}
         <div className="p2pSubRow">
           <div className="p2pOrderNo">
-            <span className="p2pMuted">Order number</span>
+            <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>
             <CopyBtn text={orderId} />
           </div>
@@ -450,12 +450,6 @@ export default function BuyerPaymentCard() {
                   Confirm payment from buyer: {buyerName}
                 </span>
               </div>
-              <p className="w-100 d-block text-reset">
-                Log in to your payment account and confirm you have received the payment.
-              </p>
-              <p className="text-danger py-2">
-                * Scammers can send fake banking app notifications or SMS. Do not release your crypto before receiving the funds in your account.
-              </p>
 
               <div className="p2pCard p-0">
                 {/* You Receive */}
@@ -488,21 +482,15 @@ export default function BuyerPaymentCard() {
                   </div>
                 </div>
 
-                {/* Wallet */}
-                {/* <div className="p2pCardRow px-3">
-                  <div className="p2pCardLabel">{methodName} Number</div>
-                  <div className="p2pCardValue">
-                    {walletNumber}
-                    <CopyBtn text={walletNumber} />
+                {trade.status != 1 && (
+                  <div className="p2pCardRow px-3">
+                    <div className="p2pCardLabel">{byerPaymentMethod} Number</div>
+                    <div className="p2pCardValue">
+                      {byerWalletNumber}
+                      <CopyBtn text={byerWalletNumber} />
+                    </div>
                   </div>
-                </div> */}
-                <div className="p2pCardRow px-3">
-                  <div className="p2pCardLabel">{byerPaymentMethod} Number</div>
-                  <div className="p2pCardValue">
-                    {byerWalletNumber}
-                    <CopyBtn text={byerWalletNumber} />
-                  </div>
-                </div>
+                )}
 
                 {/* Buyer name input */}
                 <div className="px-2 pb-3">

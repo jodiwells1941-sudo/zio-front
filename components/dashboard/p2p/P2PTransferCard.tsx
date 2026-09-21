@@ -825,7 +825,7 @@ export default function P2PTransferCard({
 
         <div className="p2pSubRow">
           <div className="p2pOrderNo">
-            <span className="p2pMuted">Order number</span>
+            <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>
             <CopyBtn text={orderId} id="order_id" />
           </div>
@@ -850,8 +850,9 @@ export default function P2PTransferCard({
                   <i className="fa-regular fa-circle-question" /> Payment Tips
                 </button>
               </div>
-
-              <PaymentInfoCard trade={trade} view={vd} />
+              { !isPending && (
+                <PaymentInfoCard trade={trade} view={vd}  />
+              )}
               <OrderDetailsAccordion rows={vd.detailRows} />
             </div>
           </div>

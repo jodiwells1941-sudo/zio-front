@@ -193,12 +193,26 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Available</span>
-                  <span className="val">{ad.total_amount} {ad.asset}</span>
+                  <span className="val">{ad.total_amount} <b className="text-warning">{ad.asset}</b></span>
+                </div>
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className="text-white-50 text-lg">Price</span>
+                  <span className="val">{ad.fixed_price.toFixed(2)} <b className="text-warning">{ad.with_fiat}</b></span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Order Limit</span>
                   <span className="val">
-                    {ad.order_limit_min.toLocaleString()} – {ad.order_limit_max.toLocaleString()} {ad.asset}
+                    {/* {ad.order_limit_min.toLocaleString()} – {ad.order_limit_max.toLocaleString()} {ad.asset} */}
+                    {(ad.order_limit_min * ad.fixed_price).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    –{" "}
+                    {(ad.order_limit_max * ad.fixed_price).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    <b className="text-warning">{ad.with_fiat}</b>
                   </span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">

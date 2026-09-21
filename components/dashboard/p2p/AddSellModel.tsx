@@ -334,19 +334,22 @@ export default function AddSellModel({ onClose, ad }: Props) {
               </div>
 
               {/* Payment Method */}
-              <div className="form-group-custom mt-3">
+              {/* <div className="form-group-custom mt-3">
                 <span className="pb-1 fw-5">Buyer payment Method:</span>
                 <div className="form-control-custom rounded-4 d-flex align-items-center gap-2 px-3">
                   <span><i className="fa-solid fa-building-columns" /></span>
                   <span>{methodName}</span>
                 </div>
-              </div>
+              </div> */}
 
 
               {/* Select Payment Method */}
-              <Link href="/dashboard/p2p-profile/" className="text-sm text-primary mt-2 inline-block">
-                {methods.length === 0 ? 'Add a payment method to proceed' : 'Select a different payment method'}
-              </Link>
+              <div className="d-flex justify-content-end">
+                <Link href="/dashboard/p2p-profile/" className="text-sm text-primary mt-2 p-3 bg-light-white text-xs text-white-50">
+                  <i className="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+                  Add payment method
+                </Link>
+              </div>
               <div className="mb-4 w-100">
                 <label>Select Payment Method <span className="text-danger fs-4">*</span></label>
                 <select
