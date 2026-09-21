@@ -524,6 +524,7 @@ export function PaymentInfoCard({
   const totalAmount = trade.type === "buy"
     ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
     : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
+
   const totalAmountCurrency = trade.type === "buy"
     ? trade.p2p_ad?.asset ?? "USDT"
     : trade.p2p_ad?.with_fiat ?? view.fiat ?? "BDT";
@@ -560,7 +561,8 @@ export function PaymentInfoCard({
       <div className="p2pCardRow px-3">
         <div className="p2pCardLabel">Total Amount</div>
         <div className="p2pCardValue green">
-          {totalAmountCurrency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+          {view.youPayLine}
+          {/* {totalAmountCurrency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} */}
         </div>
       </div>
 

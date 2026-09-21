@@ -338,10 +338,10 @@ export default function BuyerPaymentCard() {
   if (trade.type === "sell" && sellFeePercent > 0) {
     paymentModalDetails.push({ label: "Selling Fee", value: `${sellFeePercent}%` });
   }
-  paymentModalDetails.push({
-    label: "Total Amount",
-    value: `${totalAmountCurrency} ${adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`,
-  });
+  // paymentModalDetails.push({
+  //   label: "Total Amount",
+  //   value: `${totalAmountCurrency} ${adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`,
+  // });
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -601,12 +601,12 @@ export default function BuyerPaymentCard() {
                       <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
                     </div>
                   )}
-                  <div className="p2pDetailRow">
+                  {/* <div className="p2pDetailRow">
                     <span className="p2pMuted">Total Amount</span>
                     <span className="p2pDetailVal text-success">
                       {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

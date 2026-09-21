@@ -207,7 +207,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Order Limit</span>
                   <span className="val">
-                    {ad.order_limit_min.toLocaleString()} – {ad.order_limit_max.toLocaleString()} {ad.with_fiat}
+                    {(ad.order_limit_min * ad.fixed_price).toLocaleString()} – {(ad.order_limit_max * ad.fixed_price).toLocaleString()} {ad.with_fiat}
                   </span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
@@ -332,16 +332,6 @@ export default function AddSellModel({ onClose, ad }: Props) {
                   </div>
                 )}
               </div>
-
-              {/* Payment Method */}
-              {/* <div className="form-group-custom mt-3">
-                <span className="pb-1 fw-5">Buyer payment Method:</span>
-                <div className="form-control-custom rounded-4 d-flex align-items-center gap-2 px-3">
-                  <span><i className="fa-solid fa-building-columns" /></span>
-                  <span>{methodName}</span>
-                </div>
-              </div> */}
-
 
               {/* Select Payment Method */}
               <div className="d-flex justify-content-end">
