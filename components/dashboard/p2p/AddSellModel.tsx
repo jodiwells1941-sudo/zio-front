@@ -207,7 +207,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Order Limit</span>
                   <span className="val">
-                    {ad.order_limit_min.toLocaleString()} – {ad.order_limit_max.toLocaleString()} {ad.with_fiat}
+                    {(ad.order_limit_min * ad.fixed_price).toLocaleString()} – {(ad.order_limit_max * ad.fixed_price).toLocaleString()} {ad.with_fiat}
                   </span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
@@ -259,10 +259,12 @@ export default function AddSellModel({ onClose, ad }: Props) {
 
               {/* You Sell */}
               <div className="card">
-                <div className="apr">You Sell</div>
-                <small className="text-sm text-white-50">
-                  Available = <span className="text-warning">{availableValue.toFixed(2)} {ad.asset}</span>, Sell = <span className="text-warning">{sellValue.toFixed(2)} {ad.asset}</span>, Total = <span className="text-warning">{totalValue.toFixed(2)} {ad.asset}</span>
-                </small>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="apr">You Sell</div>
+                  <small className="text-sm text-white-50">
+                    Available = <span className="text-warning">{availableValue.toFixed(2)}</span>
+                  </small>
+                </div>
                 <div className="inputWrap">
                   <input
                     type="number"
@@ -281,7 +283,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     <span className="ccyText">{ad.asset}</span>
                   </div>
                 </div>
-                <div className="text-sm fw-6 text-danger pt-3">
+                <div className="text-sm fw-6 text-danger">
                   Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
                 </div>
                 {charge > 0 && (
@@ -312,10 +314,6 @@ export default function AddSellModel({ onClose, ad }: Props) {
                   </div>
                 </div>
 
-                <div className="text-sm fw-6 text-danger pt-3">
-                  Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
-                </div>
-
                 {/* Net receivable breakdown */}
                 {charge > 0 && grossReceive > 0 && (
                   <div className="netBreakdown mt-3 pt-3">
@@ -335,20 +333,13 @@ export default function AddSellModel({ onClose, ad }: Props) {
                 )}
               </div>
 
-              {/* Payment Method */}
-              <div className="form-group-custom mt-3">
-                <span className="pb-1 fw-5">Buyer payment Method:</span>
-                <div className="form-control-custom rounded-4 d-flex align-items-center gap-2 px-3">
-                  <span><i className="fa-solid fa-building-columns" /></span>
-                  <span>{methodName}</span>
-                </div>
-              </div>
-
-
               {/* Select Payment Method */}
-              <Link href="/dashboard/p2p-profile/" className="text-sm text-primary mt-2 inline-block">
-                {methods.length === 0 ? 'Add a payment method to proceed' : 'Select a different payment method'}
-              </Link>
+              <div className="d-flex justify-content-end">
+                <Link href="/dashboard/p2p-profile/" className="text-sm text-primary mt-2 p-3 bg-light-white text-xs text-white-50">
+                  <i className="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+                  Add payment method
+                </Link>
+              </div>
               <div className="mb-4 w-100">
                 <label>Select Payment Method <span className="text-danger fs-4">*</span></label>
                 <select
@@ -368,7 +359,6 @@ export default function AddSellModel({ onClose, ad }: Props) {
                   <div className="invalid-feedback d-block">{errors.paymentMethodId}</div>
                 )}
               </div>
-
 
               {/* Desktop footer */}
               <div className="d-none d-md-block">

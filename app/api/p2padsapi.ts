@@ -87,7 +87,14 @@ export interface P2pAdPayload {
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
-export const getAllAds = async (params?: { type?: 'buy' | 'sell'; asset?: string; with_fiat?: string; page?: number }) => {
+export const getAllAds = async (params?: {
+  type?: 'buy' | 'sell';
+  asset?: string;
+  with_fiat?: string;
+  page?: number;
+  payment_method?: string;
+  amount_range?: string;
+}) => {
   const response = await apiClient.get('/user/p2p/all-ads', { params });
   return response?.data;
 };

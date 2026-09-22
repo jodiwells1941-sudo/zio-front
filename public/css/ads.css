@@ -833,6 +833,59 @@
   font-weight: 600;
 }
 
+/* Unified status badges (consistent, theme-friendly styles) */
+.trade-status-pending,
+.trade-status-approved,
+.trade-status-cancelled,
+.trade-status-progress,
+.trade-status-claimed,
+.trade-status-completed {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000; /* default, overridden where needed */
+  background-color: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.trade-status-pending {
+  background-color: rgba(245,158,11,0.12); /* amber */
+  color: var(--accent-yellow);
+  border-color: rgba(245,158,11,0.18);
+}
+
+.trade-status-approved {
+  background-color: rgba(16,185,129,0.12); /* green */
+  color: var(--accent-green);
+  border-color: rgba(16,185,129,0.18);
+}
+
+.trade-status-claimed {
+  background-color: rgba(249, 92, 19, 0.14);
+  color: #f5d3c8;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.trade-status-cancelled {
+  background-color: rgba(239,68,68,0.12); /* red */
+  color: var(--accent-red);
+  border-color: rgba(239,68,68,0.18);
+}
+
+.trade-status-progress {
+  background-color: rgba(59,130,246,0.12); /* blue */
+  color: #60a5fa;
+  border-color: rgba(59,130,246,0.18);
+}
+
+.trade-status-completed {
+  background-color: rgba(52,211,153,0.12); /* teal */
+  color: var(--success);
+  border-color: rgba(52,211,153,0.18);
+}
+
 .trade-link {
   color: var(--text-primary);
   text-decoration: underline;

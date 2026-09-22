@@ -84,19 +84,27 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
       setErrors({});
       route.push("/dashboard/orders");
 
-    } catch (error: any) {
-      const data = error?.response?.data;
-      if (data?.errors) {
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: unknown } })?.response?.data;
+
+      if (data && typeof data === 'object' && 'errors' in data) {
         const serverErrors: FormErrors = {};
-        Object.entries(data.errors).forEach(([key, msgs]) => {
-          serverErrors[key as keyof FormErrors] = Array.isArray(msgs)
-            ? (msgs as string[])[0]
-            : String(msgs);
-        });
+        const errs = (data as { errors?: Record<string, string | string[]> }).errors;
+        if (errs && typeof errs === 'object') {
+          Object.entries(errs).forEach(([key, msgs]) => {
+            serverErrors[key as keyof FormErrors] = Array.isArray(msgs)
+              ? (msgs as string[])[0]
+              : String(msgs);
+          });
+        }
         setErrors(serverErrors);
-        Swal.fire("Validation Error", data?.message ?? "Please fix the errors.", "error");
+        const msg = (data as { message?: unknown }).message;
+        Swal.fire("Validation Error", msg && String(msg) || "Please fix the errors.", "error");
       } else {
-        Swal.fire("Error", data?.message ?? "Something went wrong. Try again.", "error");
+        const msg = data && typeof data === 'object' && 'message' in data
+          ? String((data as { message?: unknown }).message)
+          : "Something went wrong. Try again.";
+        Swal.fire("Error", msg, "error");
       }
     } finally {
       setLoading(false);
@@ -126,7 +134,8 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
         <button
           type="button"
           onClick={() => handleTypeSelect("positive")}
-          className="btn--primary py-2 px-3 text-sm d-flex align-items-center justify-content-center"
+          className={`border rounded-pill fs-6 py-2 px-3 d-flex align-items-center justify-content-center ${type === "positive" ? 'active' : ''}`}
+          aria-pressed={type === "positive"}
           style={type === "positive" ? activeStyle : {}}
         >
           <i className="fa-regular fa-thumbs-up pe-2" /> Positive
@@ -135,7 +144,8 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
         <button
           type="button"
           onClick={() => handleTypeSelect("negative")}
-          className="btn--primary py-2 px-3 text-sm d-flex align-items-center justify-content-center"
+          className={`border rounded-pill fs-6 py-2 px-3 d-flex align-items-center justify-content-center ${type === "negative" ? 'active' : ''}`}
+          aria-pressed={type === "negative"}
           style={type === "negative" ? activeStyle : {}}
         >
           <i className="fa-regular fa-thumbs-down pe-2" /> Negative
@@ -153,7 +163,8 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
             key={tag}
             type="button"
             onClick={() => handleTagClick(tag)}
-            className="btn--secondary py-lg-2 py-1 px-3 rounded-2 m-2"
+            className={`btn--secondary py-lg-2 py-1 px-3 rounded-2 m-2 ${selectedTags.includes(tag) ? 'active' : ''}`}
+            aria-pressed={selectedTags.includes(tag)}
             style={selectedTags.includes(tag) ? activeTagStyle : {}}
           >
             {tag}
