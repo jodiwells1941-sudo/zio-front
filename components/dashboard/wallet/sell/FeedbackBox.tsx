@@ -99,7 +99,10 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
         }
         setErrors(serverErrors);
         const msg = (data as { message?: unknown }).message;
-        Swal.fire("Validation Error", msg && String(msg) || "Please fix the errors.", "error");
+        const text = typeof msg === 'string'
+          ? msg
+          : (msg !== undefined && msg !== null ? String(msg) : "Please fix the errors.");
+        await Swal.fire("Validation Error", text, "error");
       } else {
         const msg = data && typeof data === 'object' && 'message' in data
           ? String((data as { message?: unknown }).message)
