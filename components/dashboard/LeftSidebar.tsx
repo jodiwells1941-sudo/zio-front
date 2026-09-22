@@ -45,6 +45,7 @@ const MERCHANT_APPROVED_NAV_ITEMS: NavItem[] = [
   { label: "Merchant Level", href: "/dashboard/merchant/level", iconClass: "fa-solid fa-layer-group" },
   { label: "Merchant Profile", href: "/dashboard/merchant/profile", iconClass: "fa-solid fa-id-card" },
   { label: "Merchant Reviews", href: "/dashboard/merchant/reviews", iconClass: "fa-solid fa-star" },
+  { label: "Appeal Center", href: "/dashboard/merchant/appeal-center", iconClass: "fa-solid fa-exclamation-triangle" },
   { label: "Merchant Settings", href: "/dashboard/merchant/settings", iconClass: "fa-solid fa-gear" },
 ];
 
@@ -61,6 +62,7 @@ const MERCHANT_ROUTE_PATHS = [
   "/dashboard/merchant/level",
   "/dashboard/merchant/profile",
   "/dashboard/merchant/reviews",
+  "/dashboard/merchant/appeal-center",
   "/dashboard/merchant/settings",
   "/dashboard/merchant/ads/p2p",
   "/dashboard/merchant/ads/sell",

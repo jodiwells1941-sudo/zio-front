@@ -83,6 +83,37 @@ export const getMerchantOrders = async (params: {
   return response?.data;
 };
 
+export interface AppealRow {
+  id: number | string;
+  order_id: string;
+  type: string;
+  side: string;
+  amount: string;
+  price: string;
+  customer: string;
+  client: string;
+  user_image?: string | null;
+  merchant_image?: string | null;
+  status: string;
+  status_text?: string;
+  appeal_note?: string | null;
+  appeal_reason?: string | null;
+  appealed_at?: string | null;
+  date?: string | null;
+}
+
+export interface PaginatedAppeals {
+  data: AppealRow[];
+  current_page: number;
+  per_page: number;
+  total: number;
+}
+
+export const getMerchantAppeals = async (params: { page?: number; per_page?: number } = {}): Promise<PaginatedAppeals> => {
+  const response = await apiClient.get('/user/merchant/appeal-list', { params });
+  return response?.data;
+};
+
 export interface EarningsChartResponse {
   labels: string[];
   earnings: number[];

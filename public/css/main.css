@@ -27612,3 +27612,768 @@ span {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* =========================================================
+   APPEAL CENTER
+========================================================= */
+
+.appeal-page {
+  min-height: calc(100vh - 80px);
+  padding: 30px 0 50px;
+  color: #ffffff;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(123, 47, 247, 0.10),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(0, 183, 255, 0.07),
+      transparent 28%
+    ),
+    #070220;
+}
+
+.appeal-container {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.appeal-section {
+  width: 100%;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.appeal-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 26px;
+}
+
+.appeal-label {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 15px;
+  border: 1px solid rgba(255, 176, 0, 0.38);
+  border-radius: 30px;
+  background: rgba(255, 176, 0, 0.035);
+  box-shadow:
+    0 0 16px rgba(255, 176, 0, 0.10),
+    inset 0 0 10px rgba(255, 176, 0, 0.02);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.appeal-label-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffb000;
+  font-size: 11px;
+}
+
+.appeal-label-divider {
+  width: 1px;
+  height: 17px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.appeal-title {
+  margin: 14px 0 5px;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.appeal-description {
+  margin: 0;
+  max-width: 650px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   TOTAL CARD
+========================================================= */
+
+.appeal-total-card {
+  min-width: 225px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(26, 18, 48, 0.98),
+      rgba(15, 12, 39, 0.98)
+    );
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.appeal-total-icon {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 18px;
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #c026d3
+  );
+  box-shadow:
+    0 8px 22px rgba(168, 85, 247, 0.28);
+}
+
+.appeal-total-label {
+  margin-bottom: 2px;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 12px;
+}
+
+.appeal-total-value {
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.appeal-content-card {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(26, 18, 48, 0.98),
+      rgba(12, 8, 30, 0.98)
+    );
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.appeal-content-header {
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.appeal-content-title {
+  margin: 0 0 4px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.appeal-content-title i {
+  color: #a855f7;
+}
+
+.appeal-content-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+
+.appeal-count {
+  padding: 7px 13px;
+  border: 1px solid rgba(0, 183, 255, 0.20);
+  border-radius: 30px;
+  color: #00b7ff;
+  background: rgba(0, 183, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.appeal-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.appeal-table {
+  width: 100%;
+  min-width: 1050px;
+  margin: 0;
+  border-collapse: collapse;
+  color: #ffffff;
+}
+
+.appeal-table thead {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.appeal-table th {
+  height: 52px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.appeal-table td {
+  height: 72px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.appeal-table tbody tr {
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.appeal-table tbody tr:hover {
+  background: rgba(168, 85, 247, 0.045);
+}
+
+.appeal-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* =========================================================
+   APPEAL ID
+========================================================= */
+
+.appeal-id {
+  color: #a855f7;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.order-id {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* =========================================================
+   TYPE
+========================================================= */
+
+.appeal-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.appeal-type i {
+  color: #ffb000;
+  font-size: 12px;
+}
+
+/* =========================================================
+   USER
+========================================================= */
+
+.appeal-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.appeal-user-avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  overflow: hidden;
+  border: 1px solid rgba(168, 85, 247, 0.30);
+  border-radius: 50%;
+  background: #21173b;
+}
+
+.appeal-user-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.appeal-user-name {
+  max-width: 150px;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appeal-user-client {
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.40);
+  font-size: 12px;
+}
+
+/* =========================================================
+   AMOUNT
+========================================================= */
+
+.appeal-amount {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.appeal-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.appeal-status-pending {
+  border: 1px solid rgba(255, 176, 0, 0.25);
+  color: #ffb000;
+  background: rgba(255, 176, 0, 0.09);
+}
+
+.appeal-status-review {
+  border: 1px solid rgba(0, 183, 255, 0.25);
+  color: #00b7ff;
+  background: rgba(0, 183, 255, 0.09);
+}
+
+.appeal-status-resolved {
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.09);
+}
+
+.appeal-status-rejected {
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.09);
+}
+
+.appeal-status-default {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.60);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* =========================================================
+   DATE
+========================================================= */
+
+.appeal-date {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.48);
+  white-space: nowrap;
+}
+
+.appeal-date i {
+  color: #a855f7;
+}
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.appeal-pagination {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pagination-info {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+
+.pagination-info strong {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pagination-btn {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.70);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: rgba(168, 85, 247, 0.45);
+  color: #ffffff;
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pagination-current {
+  min-width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 8px;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #c026d3
+  );
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 5px 16px rgba(168, 85, 247, 0.20);
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.appeal-empty {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.appeal-empty-icon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  border: 1px solid rgba(168, 85, 247, 0.20);
+  border-radius: 50%;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.08);
+  font-size: 25px;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.10);
+}
+
+.appeal-empty h4 {
+  margin: 0 0 7px;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.appeal-empty p {
+  max-width: 450px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.43);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.appeal-error {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 22px;
+  padding: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.20);
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.045);
+}
+
+.appeal-error-icon {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.10);
+  font-size: 17px;
+}
+
+.appeal-error-content {
+  flex: 1;
+}
+
+.appeal-error-content h5 {
+  margin: 0 0 5px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.appeal-error-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+}
+
+.appeal-retry-btn {
+  min-height: 35px;
+  padding: 0 14px;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  border-radius: 8px;
+  color: #ffffff;
+  background: rgba(239, 68, 68, 0.10);
+  font-size: 12px;
+  transition: 0.2s ease;
+}
+
+.appeal-retry-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.appeal-loading {
+  width: 100%;
+}
+
+.appeal-skeleton-row {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns:
+    1fr
+    1fr
+    1fr
+    2fr
+    1fr
+    1.2fr
+    1.2fr;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.appeal-skeleton {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.045),
+    rgba(168, 85, 247, 0.10),
+    rgba(255, 255, 255, 0.045)
+  );
+  background-size: 200% 100%;
+  animation: appealSkeleton 1.5s infinite;
+}
+
+.skeleton-id {
+  width: 70px;
+}
+
+.skeleton-order {
+  width: 80px;
+}
+
+.skeleton-type {
+  width: 75px;
+}
+
+.appeal-user-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-name {
+  width: 100px;
+  margin-bottom: 7px;
+}
+
+.skeleton-client {
+  width: 65px;
+}
+
+.skeleton-amount {
+  width: 80px;
+}
+
+.skeleton-status {
+  width: 90px;
+}
+
+.skeleton-date {
+  width: 90px;
+}
+
+@keyframes appealSkeleton {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 991.98px) {
+  .appeal-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .appeal-total-card {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .appeal-skeleton-row {
+    grid-template-columns:
+      1fr
+      1fr
+      1fr
+      2fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .appeal-page {
+    padding: 20px 0 35px;
+  }
+
+  .appeal-container {
+    padding: 0 14px;
+  }
+
+  .appeal-title {
+    font-size: 25px;
+  }
+
+  .appeal-description {
+    font-size: 12px;
+  }
+
+  .appeal-content-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .appeal-count {
+    align-self: flex-start;
+  }
+
+  .appeal-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .appeal-error {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .appeal-retry-btn {
+    margin-left: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .appeal-label {
+    font-size: 12px;
+  }
+
+  .appeal-title {
+    font-size: 23px;
+  }
+
+  .appeal-total-card {
+    max-width: none;
+  }
+
+  .pagination-buttons {
+    width: 100%;
+  }
+
+  .pagination-btn {
+    flex: 1;
+  }
+}
