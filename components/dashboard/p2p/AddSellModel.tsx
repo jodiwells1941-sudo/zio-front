@@ -97,7 +97,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
 
   const grossReceive = Number(receiveAmt) || 0;
   const feeDeducted   = useMemo(() => (grossReceive * charge) / 100, [grossReceive, charge]);
-  const netReceive    = useMemo(() => Math.max(grossReceive - feeDeducted, 0), [grossReceive, feeDeducted]);
+  const netReceive    = useMemo(() => Math.max(grossReceive + feeDeducted, 0), [grossReceive, feeDeducted]);
   const sellValue     = Number(sellAmount || 0);
   const availableValue = Math.max(walletBalance - sellValue, 0);
   const totalValue    = walletBalance;
@@ -323,10 +323,10 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     </div>
                     <div className="d-flex align-items-center justify-content-between text-sm my-2">
                       <span className="text-white-50">Fee ({charge}%)</span>
-                      <span className="text-danger">− {ad.with_fiat} {feeDeducted.toFixed(2)}</span>
+                      <span className="text-danger">+ {ad.with_fiat} {feeDeducted.toFixed(2)}</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mt-2 pt-2 netTotalRow">
-                      <span className="fw-6 text-light">You&apos;ll Receive</span>
+                      <span className="fw-6 text-light">Total Amount</span>
                       <span className="fw-6 netTotalValue">{ad.with_fiat} {netReceive.toFixed(2)}</span>
                     </div>
                   </div>

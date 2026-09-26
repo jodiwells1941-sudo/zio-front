@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay } from "./p2pOrderDisplay";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
+import OrderDetailsCard from "../wallet/sell/OrderDetailsCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,13 +45,10 @@ export interface TradeData {
   is_client_seller: boolean;
   created_at: string;
   pending_time_limit: string;
-  /**
-   * Backend computes exactly which next-status values the current auth user
-   * is allowed to submit.  We drive every action button from this list.
-   */
   status_list: number[];
-  /** ISO-8601 payment window end (approved → payment sent). */
   payment_expires_at?: string | null;
+  charge_amount?: number;
+  bonus_amount?: number;
   current_status: {
     id: number;
     note: string;
@@ -188,7 +186,7 @@ export function CopyBtn({ text, id }: { text: string; id: string }) {
   );
 }
 
-// ─── Order Details Accordion ──────────────────────────────────────────────────
+// ─── Order Details Accordion (legacy — kept for the proof modal's inline summary) ──
 
 function OrderDetailsAccordion({
   rows,
@@ -939,6 +937,13 @@ export default function P2PTransferCard({
   const pendingSs = pendingTimeLeft % 60;
   const backToP2PHref = isMerchant ? "/dashboard/merchant/orders/" : "/dashboard/wallet/?tab=tab3";
 
+  // "From" is always the seller side, "To" is always the buyer side —
+  // matches the "USDT Order details" card in the merchant screenshots.
+  const fromName = trade.is_client_seller ? trade.client?.name ?? "—" : trade.customer?.name ?? "—";
+  const toName    = trade.is_client_seller ? trade.customer?.name ?? "—" : trade.client?.name ?? "—";
+  const fee       = Number(trade.charge_amount ?? 0);
+  const bonus     = Number(trade.bonus_amount ?? 0);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
@@ -1048,7 +1053,25 @@ export default function P2PTransferCard({
               { !isPending && (
                 <PaymentInfoCard trade={trade} view={vd}  />
               )}
-              <OrderDetailsAccordion rows={orderDetailRows} />
+
+              {/* Order details — matches "USDT Order details" merchant card design */}
+              <div className="mt-3">
+                <OrderDetailsCard
+                  fromName={fromName}
+                  toName={toName}
+                  payWith={methodName}
+                  orderType={trade.type === "buy" ? "Buy" : "Sell"}
+                  type={trade.type}
+                  asset={asset}
+                  fiatCurrency={fiat}
+                  fiatAmount={Number(trade.payable_amount)}
+                  price={Number(trade.user_price)}
+                  totalQuantity={Number(trade.receivable_amount)}
+                  fee={fee}
+                  bonus={bonus}
+                  orderNo={orderId}
+                />
+              </div>
             </div>
           </div>
 

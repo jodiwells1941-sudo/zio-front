@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PaymentCompleted from "./PaymentCompleted";
 import { PaymentReceivedModel } from "./PaymentReceivedModel";
+import OrderDetailsCard from "./OrderDetailsCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,10 +25,12 @@ interface TradeData {
   receivable_amount: number;
   user_price: number;
   created_at: string;
+  bonus_amount: number | null;
   notes: string | null;
   is_client_seller: boolean;
   pending_time_limit?: string | null;
   payment_expires_at: string | null; // ← new field
+  charge_amount?: number; // ← fee shown in Order details (release quantity / fee breakdown)
   client: { id: number; name: string; avatar?: string };
   customer: { id: number; name: string; avatar?: string };
   customer_id: number;
@@ -151,7 +154,7 @@ export default function BuyerPaymentCard() {
     try {
       setLoading(true);
       const res = await getTrade(tradeIdNum);
-      
+
       const t: TradeData = res?.data;
       setTrade(t);
     } catch (e: any) {
@@ -284,10 +287,6 @@ export default function BuyerPaymentCard() {
 
   // ─── Derived values ──────────────────────────────────────────────────────────
 
-  console.log('trade.user_payment_method =', trade);
-  // trade.p2p_ad?.payment_method?.field_values?.walletNumber
-  
-
   const byerPaymentMethod = trade.user_payment_method?.sell_method?.name;
   const byerWalletNumber  = trade.user_payment_method?.field_values?.walletNumber
                          ?? trade.user_payment_method?.field_values?.bankName
@@ -307,6 +306,7 @@ export default function BuyerPaymentCard() {
   const price             = Number(trade.user_price).toFixed(2);
   const withFiat          = trade.current_status?.with_fiat ?? trade.p2p_ad?.with_fiat ?? '';
   const buyerName         = trade.customer?.name ?? 'Buyer';
+  const sellerName        = trade.client?.name ?? 'Seller';
   const isBuyerDispatched = trade.status === 5;
   const statusList = trade.status_list ?? [];
   const canRelease = statusList.includes(6);
@@ -326,22 +326,24 @@ export default function BuyerPaymentCard() {
     ? trade.p2p_ad?.asset ?? "USDT"
     : withFiat || "BDT";
 
+  // "From" is always the seller side, "To" is always the buyer side.
+  const fromName = trade.is_client_seller ? sellerName : buyerName;
+  const toName    = trade.is_client_seller ? buyerName : sellerName;
+  const fee       = Number(trade.charge_amount ?? 0);
+  const bonus     = Number(trade.bonus_amount ?? 0);
+
   const paymentModalDetails = [
     { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
     { label: "Price", value: `${withFiat || "BDT"} ${price}` },
     { label: `You receive (${trade.p2p_ad?.asset ?? "USDT"})`, value: `${cryptoAmountStr} ${trade.p2p_ad?.asset ?? "USDT"}` },
   ];
 
-  if (trade.type === "buy" && bonusPercent > 0) {
-    paymentModalDetails.push({ label: "Buy Bonus", value: `+${bonusPercent}%` });
-  }
-  if (trade.type === "sell" && sellFeePercent > 0) {
-    paymentModalDetails.push({ label: "Selling Fee", value: `${sellFeePercent}%` });
-  }
-  // paymentModalDetails.push({
-  //   label: "Total Amount",
-  //   value: `${totalAmountCurrency} ${adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`,
-  // });
+  // if (trade.type === "buy" && bonusPercent > 0) {
+  //   paymentModalDetails.push({ label: "Buy Bonus", value: `+${bonusPercent}%` });
+  // }
+  // if (trade.type === "sell" && sellFeePercent > 0) {
+  //   paymentModalDetails.push({ label: "Selling Fee", value: `${sellFeePercent}%` });
+  // }
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -563,51 +565,23 @@ export default function BuyerPaymentCard() {
                 </div>
               </div>
 
-              {/* Order details */}
-              <div className="p2pOrderDetails">
-                <button className="p2pOrderDetailsHeader" type="button">
-                  <span>Order details</span>
-                  <i className="fa-solid fa-angle-down" />
-                </button>
-                <div className="p2pOrderDetailsBody">
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">
-                      Fiat amount <i className="fa-regular fa-circle-question p2pInfo" />
-                    </span>
-                    <span className="p2pDetailVal text-danger">
-                      {withFiat} {fiatAmountStr}
-                      <CopyBtn text={String(trade.payable_amount)} />
-                    </span>
-                  </div>
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">Price</span>
-                    <span className="p2pDetailVal">{withFiat} {price}</span>
-                  </div>
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">Receive Quantity</span>
-                    <span className="p2pDetailVal">
-                      {cryptoAmountStr} <span className="usdt">{trade.p2p_ad?.asset ?? 'USDT'}</span>
-                    </span>
-                  </div>
-                  {trade.type === "buy" && bonusPercent > 0 && (
-                    <div className="p2pDetailRow">
-                      <span className="p2pMuted">Buy Bonus</span>
-                      <span className="p2pDetailVal text-warning">+{bonusPercent}%</span>
-                    </div>
-                  )}
-                  {trade.type === "sell" && sellFeePercent > 0 && (
-                    <div className="p2pDetailRow">
-                      <span className="p2pMuted">Selling Fee</span>
-                      <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
-                    </div>
-                  )}
-                  {/* <div className="p2pDetailRow">
-                    <span className="p2pMuted">Total Amount</span>
-                    <span className="p2pDetailVal text-success">
-                      {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                    </span>
-                  </div> */}
-                </div>
+              {/* Order details — matches "USDT Order details" card design */}
+              <div className="mt-3">
+                <OrderDetailsCard
+                  fromName={fromName}
+                  toName={toName}
+                  payWith={methodName}
+                  orderType={trade.type === "buy" ? "Buy" : "Sell"}
+                  type={trade.type}
+                  asset={trade.p2p_ad?.asset ?? "USDT"}
+                  fiatCurrency={withFiat}
+                  fiatAmount={Number(trade.payable_amount)}
+                  price={Number(trade.user_price)}
+                  totalQuantity={Number(trade.receivable_amount)}
+                  fee={fee}
+                  bonus={bonus}
+                  orderNo={orderId}
+                />
               </div>
             </div>
           </div>
@@ -661,40 +635,6 @@ export default function BuyerPaymentCard() {
               </div>
           </div>
 
-          {/* {isClientDispatched && (
-            <div className="p2pStepRow mt-3">
-              <div className="mt-3 p2pStepNo d-flex justify-content-center align-items-center bg-warning">2</div>
-              <div>
-                <div className="p2pStep2">
-                  <div className="p2pStep2Body">
-                    <div className="p2pStepTitle">Confirm payment is received.</div>
-                    <div className="p2pMuted p2pSmall">
-                      Once you have confirmed the payment has been credited to your account, click the button below to release the crypto.
-                    </div>
-                    <div className="p2pActions">
-                      <button
-                        className="p2pPrimaryBtn"
-                        type="button"
-                        onClick={handlePaymentReceived}
-                        disabled={submitting}
-                      >
-                        Payment Received
-                      </button>
-                      <button
-                        className="p2pGhostBtn"
-                        type="button"
-                        onClick={handleAppeal}
-                        disabled={submitting}
-                      >
-                        Appeal After {pad(mm)}:{pad(ss)}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )} */}
-
         </div>
         )
       )}
@@ -717,16 +657,6 @@ export default function BuyerPaymentCard() {
       {confirmPayment && <PaymentCompleted trade={trade} />}
 
       {/* ── PAYMENT RECEIVED MODAL ── */}
-      {/* {paymentReceived  && (
-        <PaymentReceivedModel
-          isOpen={paymentReceived}
-          onClose={() => setPaymentReceived(false)}
-          setConfirmPayment={trade?.is_client === false ? handleConfirmPaymentReceived : handleConfirmPayment}
-          buyerName={trade?.is_client === false ? clientName : buyerName}
-          amount={trade?.is_client === false ? trade.payable_amount : trade.receivable_amount}
-          currency={trade?.is_client === false ? withFiatCurrency : withFiat}
-        />
-      )} */}
       {paymentReceived && canRelease && (
         <PaymentReceivedModel
           isOpen={paymentReceived}
@@ -741,4 +671,3 @@ export default function BuyerPaymentCard() {
     </>
   );
 }
-
