@@ -36,7 +36,7 @@ const getStatusUI = (trade: Trade): { text: string; className: string } => {
   const { status, type } = trade;
   switch (status) {
     case 1:  return {
-      text: type === "Sell" ? "Waiting for seller to release crypto" : "Pending",
+      text: type === "Sell" ? "Waiting for Approved" : "Pending",
       className: "trade-status-pending",
     };
     case 2:  return { text: "Approved",           className: "trade-status-approved"  };

@@ -88,20 +88,29 @@ export default function OrderDetailsCard({
             <div className="p2pCardValue">{fmt(totalQuantity + fee + bonus)} {asset}</div>
           </div>
           <div className="p2pCardRow px-3 ps-4">
-            <div className="p2pCardLabel text-white-50">└ Release Quantity</div>
+            <div className="p2pCardLabel text-white-50 d-flex align-items-center gap-2">
+              <i className="fa-solid fa-chevron-right small text-white-50" />
+              <span>Release Quantity</span>
+            </div>
             <div className="p2pCardValue">{fmt(releaseQuantity)} {asset}</div>
           </div>
 
           { type == "buy" && (
             <div className="p2pCardRow px-3 ps-4">
-              <div className="p2pCardLabel text-white-50">└ Bonus</div>
+              <div className="p2pCardLabel text-white-50 d-flex align-items-center gap-2">
+                <i className="fa-solid fa-chevron-right small text-white-50" />
+                <span>Bonus</span>
+              </div>
               <div className="p2pCardValue">{fmt(bonus)} {asset}</div>
             </div>
           )}
 
           { type == "sell" && (
             <div className="p2pCardRow px-3 ps-4">
-              <div className="p2pCardLabel text-white-50">└ Selling Fee</div>
+              <div className="p2pCardLabel text-white-50 d-flex align-items-center gap-2">
+                <i className="fa-solid fa-chevron-right small text-white-50" />
+                <span>Selling Fee</span>
+              </div>
               <div className="p2pCardValue">{fmt(fee)} {asset}</div>
             </div>
           )}
