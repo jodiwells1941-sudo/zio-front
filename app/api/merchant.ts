@@ -86,6 +86,7 @@ export const getMerchantOrders = async (params: {
 export interface AppealRow {
   id: number | string;
   order_id: string;
+  p2p_order_id: string | number;
   type: string;
   side: string;
   amount: string;
@@ -125,6 +126,87 @@ export const getMerchantEarningsChart = async (
 ): Promise<EarningsChartResponse> => {
   const response = await apiClient.get('/user/merchant/earnings-chart', {
     params: { days },
+  });
+  return response?.data;
+};
+
+export interface AppealOverviewPoint {
+  label: string;
+  total: number;
+  resolved: number;
+  pending: number;
+  cancelled: number;
+}
+
+export interface AppealReasonSlice {
+  key: string;
+  label: string;
+  value: number;
+}
+
+export interface AppealStats {
+  total: number;
+  pending: number;
+  under_review: number;
+  resolved: number;
+  cancelled: number;
+  overview: AppealOverviewPoint[];
+  reasons: AppealReasonSlice[];
+}
+
+export const getMerchantAppealStats = async (days = 30): Promise<AppealStats> => {
+  const response = await apiClient.get('/user/merchant/appeal-stats', { params: { days } });
+  return response?.data;
+};
+
+export interface AppealOrderLookup {
+  order_id: string;
+  id: number | string;
+  side: 'Buy' | 'Sell';
+  asset: string;
+  amount: string;
+  price: string;
+  fiat: string;
+  merchant_name: string;
+  merchant_avatar?: string | null;
+  date: string;
+  status: string;
+  status_text: string;
+  /** false when the order is already completed and can no longer be appealed. */
+  appealable: boolean;
+}
+
+export const lookupMerchantOrderForAppeal = async (
+  orderId: string
+): Promise<{ data: AppealOrderLookup }> => {
+  const response = await apiClient.get('/user/merchant/appeal-order-lookup', {
+    params: { order_id: orderId },
+  });
+  return response?.data;
+};
+
+export interface CreateAppealPayload {
+  order_id: string;
+  type: string;
+  subject: string;
+  description: string;
+  amount_sent?: string;
+  payment_datetime?: string;
+  proof?: File | null;
+}
+
+export const createMerchantAppeal = async (payload: CreateAppealPayload) => {
+  const form = new FormData();
+  form.append('order_id', payload.order_id);
+  form.append('type', payload.type);
+  form.append('subject', payload.subject);
+  form.append('description', payload.description);
+  if (payload.amount_sent) form.append('amount_sent', payload.amount_sent);
+  if (payload.payment_datetime) form.append('payment_datetime', payload.payment_datetime);
+  if (payload.proof) form.append('proof', payload.proof);
+
+  const response = await apiClient.post('/user/merchant/appeal-create', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response?.data;
 };
