@@ -5,7 +5,7 @@ import { getTrade, updateTradeStatus } from "@/app/api/trade";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PaymentCompleted from "./PaymentCompleted";
@@ -92,6 +92,7 @@ function CopyBtn({ text }: { text: string }) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BuyerPaymentCard() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tradeId      = searchParams.get("trade_id");
   const tradeIdNum   = tradeId ? Number(tradeId) : NaN;
@@ -258,7 +259,9 @@ export default function BuyerPaymentCard() {
   };
 
   const handleClaimToAdmin = async () => {
-    await doUpdate(10, "Payment timeout claim submitted");
+    if (!trade) return;
+    const orderId = trade.order_id || String(trade.id);
+    router.push(`/dashboard/merchant/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
   };
 
   const handleApproveTrade = async () => {

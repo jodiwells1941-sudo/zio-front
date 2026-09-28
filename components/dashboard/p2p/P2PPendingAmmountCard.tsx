@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { CopyBtn, TradeData } from "./P2PTransferCard";
 import { getViewerOrderAmountDisplay } from "./p2pOrderDisplay";
@@ -21,6 +22,7 @@ interface Props {
 export default function P2PPendingAmmountCard({
   trade, canRelease, canDispute, canClaim, submitting, onStatusUpdate,
 }: Props) {
+  const router = useRouter();
   const releaseTimer = useExpiryTimer(
     trade.payment_expires_at ?? null,
     trade.status === 5 && (canDispute || canRelease || canClaim)
@@ -114,7 +116,10 @@ export default function P2PPendingAmmountCard({
                     <button
                       className="p2pGhostBtn"
                       type="button"
-                      onClick={() => onStatusUpdate(10, "Payment / release window expired — claim to admin")}
+                      onClick={() => {
+                        const orderId = trade.order_id || String(trade.id);
+                        router.push(`/dashboard/merchant/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
+                      }}
                       disabled={submitting !== null}
                     >
                       {submitting === 10

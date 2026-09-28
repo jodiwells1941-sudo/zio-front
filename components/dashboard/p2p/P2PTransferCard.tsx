@@ -4,7 +4,7 @@ import { getBonusFeesSettings, getMerchantAccount } from "@/app/api/merchant";
 import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -609,6 +609,7 @@ export default function P2PTransferCard({
   pendingExpireTime = null,
   onTradeExpired,
 }: P2PTransferCardProps = {}) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tradeId = searchParams.get("trade_id");
 
@@ -757,6 +758,12 @@ export default function P2PTransferCard({
   // ── Status Update ─────────────────────────────────────────────────────────
   const handleStatusUpdate = async (newStatus: number, notes?: string) => {
     if (!trade) return;
+
+    if (newStatus === 10) {
+      const orderId = trade.order_id || String(trade.id);
+      router.push(`/dashboard/merchant/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
+      return;
+    }
 
     const v = getViewerOrderAmountDisplay(trade);
 

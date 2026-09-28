@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import {
@@ -79,6 +79,7 @@ const APPEAL_TYPES: AppealTypeOption[] = [
 
 export default function CreateAppealPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [orderQuery, setOrderQuery] = useState("");
   const [order, setOrder] = useState<OrderSummary | null>(null);
@@ -112,6 +113,32 @@ export default function CreateAppealPage() {
 
   const SUBJECT_MAX = 100;
   const DESC_MAX = 1000;
+
+  useEffect(() => {
+    const initialOrderId = searchParams.get("order_id") ?? searchParams.get("trade_id");
+    if (!initialOrderId) return;
+
+    const value = initialOrderId.trim();
+    if (!value) return;
+
+    setOrderQuery(value);
+
+    const loadInitialOrder = async () => {
+      try {
+        const res = await lookupMerchantOrderForAppeal(value);
+        const nextOrder = res?.data ?? null;
+        setOrder(nextOrder);
+        if (nextOrder && !nextOrder.appealable) {
+          toast.error("This order is already completed and can no longer be appealed.");
+        }
+      } catch (e: any) {
+        toast.error(e?.response?.data?.message ?? e?.message ?? "Unable to load the selected order.");
+        setOrder(null);
+      }
+    };
+
+    void loadInitialOrder();
+  }, [searchParams]);
 
   const handleSearch = async () => {
     if (!orderQuery.trim()) {
