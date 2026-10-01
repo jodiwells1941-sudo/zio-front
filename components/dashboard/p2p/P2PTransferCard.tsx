@@ -761,7 +761,7 @@ export default function P2PTransferCard({
 
     if (newStatus === 10) {
       const orderId = trade.order_id || String(trade.id);
-      router.push(`/dashboard/merchant/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
+      router.push(`/dashboard/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
       return;
     }
 
