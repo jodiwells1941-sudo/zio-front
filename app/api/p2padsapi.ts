@@ -12,6 +12,7 @@ export type P2pAdsData = {
 
   price_type: "fixed" | "floating";
   fixed_price: number;
+  ad_create_type: "local" | "merchant";
 
   total_amount: number;
 
@@ -83,6 +84,7 @@ export interface P2pAdPayload {
   auto_reply?: string;
   display_region: string;
   status: boolean;
+  ad_create_type: "local" | "merchant";
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
@@ -131,5 +133,12 @@ export const toggleAdStatus = async (id: number) => {
 /** Soft-delete an ad */
 export const deleteAd = async (id: number) => {
   const response = await apiClient.delete(`/user/p2p/ads/${id}`);
+  return response?.data;
+};
+
+
+// get local ads 
+export const getMyLocalAds = async (params?: { type?: 'buy' | 'sell'; status?: boolean; page?: number }) => {
+  const response = await apiClient.get('/user/p2p/local/ads', { params });
   return response?.data;
 };
