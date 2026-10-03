@@ -15544,26 +15544,26 @@ span {
 ========================================================= */
 
 :root {
-  /* BACKGROUND — matched to template's --template-bg (#1d1e24) */
-  --merchant-bg: var(--template-bg, #1d1e24);
-  --merchant-bg-2: var(--tertiary-color, #23262b);
-  --merchant-card: var(--tertiary-color, #23262b);
-  --merchant-card-2: var(--quaternary-color, #2a2d33);
-  --merchant-border: var(--septenary-color, rgba(255, 255, 255, 0.2));
+  /* BACKGROUND — matched to the wallet panel palette */
+  --merchant-bg: #1d1e24;
+  --merchant-bg-2: #23262b;
+  --merchant-card: #2a2d34;
+  --merchant-card-2: #1d1e24;
+  --merchant-border: rgba(255, 255, 255, 0.08);
 
-  /* PRIMARY BRAND — matched to template's --primary-color (#9cecfe) */
-  --merchant-primary: var(--primary-color, #9cecfe);
+  /* PRIMARY BRAND — matched to wallet's cyan accent */
+  --merchant-primary: #9cecfe;
   --merchant-primary-light: #c3f5ff;
-  --merchant-primary-dark: #5fd0f0;
+  --merchant-primary-dark: #69c7d8;
 
-  --merchant-purple: #7c2cff;
-  --merchant-purple-light: #a653ff;
+  --merchant-purple: #9cecfe;
+  --merchant-purple-light: #c3f5ff;
 
   --merchant-green: #20d47b;
   --merchant-red: #ff5364;
-  --merchant-blue: #2877d6;
+  --merchant-blue: #69b7ff;
 
-  --merchant-text: var(--template-color, #ffffff);
+  --merchant-text: #ffffff;
   --merchant-muted: #98a7ba;
 }
 
@@ -15784,15 +15784,9 @@ span {
 
   border-radius: 5px 5px 12px 12px;
 
-  background:
-    linear-gradient(
-      90deg,
-      #6322d2,
-      #9e44f3 50%,
-      #5d1fc9
-    );
+  background: linear-gradient(90deg, #2d576d, #7acfe4 50%, #1f3949);
 
-  border: 2px solid #b35aff;
+  border: 2px solid rgba(156, 236, 254, 0.8);
 }
 
 .store-roof {
@@ -15808,10 +15802,10 @@ span {
 
   border-radius: 17px 17px 5px 5px;
 
-  background: #a54aff;
-  border: 2px solid #c06aff;
+  background: #9cecfe;
+  border: 2px solid rgba(156, 236, 254, 0.95);
 
-  box-shadow: 0 5px 15px rgba(116, 34, 219, 0.5);
+  box-shadow: 0 5px 15px rgba(156, 236, 254, 0.28);
 }
 
 .store-roof span {
@@ -15821,11 +15815,11 @@ span {
 }
 
 .store-roof span:nth-child(odd) {
-  background: #f3e7ff;
+  background: #e7fbff;
 }
 
 .store-roof span:nth-child(even) {
-  background: #7430df;
+  background: #78d0e2;
 }
 
 .store-window {
@@ -15842,8 +15836,8 @@ span {
 
   color: var(--merchant-primary);
 
-  border: 3px solid #e5aaff;
-  background: #32117c;
+  border: 3px solid rgba(156, 236, 254, 0.9);
+  background: #18222d;
 }
 
 .store-window i {
@@ -15862,20 +15856,16 @@ span {
   align-items: center;
   justify-content: center;
 
-  color: var(--merchant-primary);
+  color: #1f2d3d;
   font-size: 25px;
 
   border-radius: 12px;
   transform: rotate(-7deg);
 
-  background: linear-gradient(
-    135deg,
-    #7927e8,
-    #3e118e
-  );
+  background: linear-gradient(135deg, #dffcff, #9cecfe);
 
-  border: 3px solid #ba65ff;
-  box-shadow: 0 8px 20px rgba(100, 24, 208, 0.5);
+  border: 3px solid rgba(156, 236, 254, 0.9);
+  box-shadow: 0 8px 20px rgba(156, 236, 254, 0.2);
 }
 
 .coin {
@@ -16016,7 +16006,7 @@ span {
 }
 
 .benefit-icon.purple {
-  background: linear-gradient(135deg, #8b37ed, #48109e);
+  background: linear-gradient(135deg, #9cecfe, #5bbad4);
 }
 
 .benefit-icon.green {
@@ -16083,21 +16073,14 @@ span {
 
   margin: 0 auto 9px;
 
-  color: #fff;
+  color: #1b2431;
   font-size: 17px;
 
   border-radius: 50%;
 
-  background:
-    radial-gradient(
-      circle at 30% 25%,
-      #9f42ff,
-      #5011a6 65%,
-      #260657
-    );
+  background: linear-gradient(135deg, #dffcff, #9cecfe 55%, #7ccfe7);
 
-  box-shadow:
-    0 0 15px rgba(123, 39, 245, 0.25);
+  box-shadow: 0 0 15px rgba(156, 236, 254, 0.2);
 }
 
 .merchant-step h4 {
@@ -16196,30 +16179,21 @@ span {
   padding: 0 20px;
 
   border: 0;
-  border-radius: 5px;
+  border-radius: 8px;
 
-  color: #fff;
+  color: #222e48;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 
-  background:
-    linear-gradient(
-      135deg,
-      #7f25ec,
-      #4c0db1
-    );
-
-  box-shadow:
-    0 7px 20px rgba(97, 25, 219, 0.3);
+  background: var(--merchant-primary);
+  box-shadow: 0 8px 18px rgba(156, 236, 254, 0.22);
 
   transition: 0.25s ease;
 }
 
 .merchant-primary-btn:hover {
   transform: translateY(-2px);
-
-  box-shadow:
-    0 10px 25px rgba(111, 33, 233, 0.45);
+  box-shadow: 0 12px 24px rgba(156, 236, 254, 0.25);
 }
 
 .merchant-primary-btn i {
@@ -16270,22 +16244,16 @@ span {
   align-items: center;
   justify-content: center;
 
-  color: #fff;
+  color: #222e48;
   font-size: 21px;
 
   border-radius: 50%;
 
-  background:
-    radial-gradient(
-      circle at 35% 25%,
-      #932fff,
-      #41108e 70%
-    );
+  background: linear-gradient(135deg, #dffbff, #9cecfe 55%, #73c9e0);
 
-  border: 1px solid rgba(147, 47, 255, 0.55);
+  border: 1px solid rgba(156, 236, 254, 0.55);
 
-  box-shadow:
-    0 0 22px rgba(102, 27, 214, 0.25);
+  box-shadow: 0 0 22px rgba(156, 236, 254, 0.18);
 }
 
 .dashboard-brand h1 {
@@ -16343,15 +16311,10 @@ span {
   min-height: 115px;
   padding: 14px;
 
-  border: 1px solid rgba(66, 110, 160, 0.17);
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(8, 24, 43, 0.98),
-      rgba(4, 16, 30, 0.98)
-    );
+  background: linear-gradient(145deg, #2a2d34 0%, #1d1e24 100%);
 }
 
 .stat-card::before {
@@ -16368,39 +16331,19 @@ span {
 }
 
 .stat-card.purple {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(36, 16, 91, 0.8),
-      rgba(6, 19, 35, 0.95)
-    );
+  background: linear-gradient(135deg, rgba(156, 236, 254, 0.12), rgba(29, 30, 36, 0.98));
 }
 
 .stat-card.green {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(5, 53, 53, 0.65),
-      rgba(5, 19, 32, 0.96)
-    );
+  background: linear-gradient(135deg, rgba(32, 212, 123, 0.10), rgba(29, 30, 36, 0.98));
 }
 
 .stat-card.orange {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(44, 34, 20, 0.7),
-      rgba(5, 19, 32, 0.96)
-    );
+  background: linear-gradient(135deg, rgba(255, 187, 80, 0.10), rgba(29, 30, 36, 0.98));
 }
 
 .stat-card.blue {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(10, 38, 72, 0.75),
-      rgba(5, 19, 34, 0.96)
-    );
+  background: linear-gradient(135deg, rgba(105, 183, 255, 0.12), rgba(29, 30, 36, 0.98));
 }
 
 .stat-title {
@@ -16463,15 +16406,10 @@ span {
 
   padding: 13px;
 
-  border: 1px solid rgba(65, 108, 158, 0.15);
-  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(7, 24, 42, 0.98),
-      rgba(4, 16, 30, 0.98)
-    );
+  background: linear-gradient(145deg, #2a2d34 0%, #1d1e24 100%);
 }
 
 .card-heading {
@@ -16520,7 +16458,7 @@ span {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #8e35ed;
+  background: var(--merchant-primary);
 }
 
 .legend-yellow {
@@ -16599,8 +16537,8 @@ span {
   background:
     linear-gradient(
       to top,
-      #4f16a8,
-      #9337ee
+      #1d7aa6,
+      #9cecfe
     );
 
   opacity: 0.9;
@@ -16828,11 +16766,7 @@ span {
 
   border-radius: 50%;
 
-  background:
-    conic-gradient(
-      var(--merchant-primary) 0 50%,
-      #8c2ced 50% 100%
-    );
+  background: conic-gradient(var(--merchant-primary) 0 50%, #7bb6d8 50% 100%);
 
   position: relative;
 }
@@ -16899,7 +16833,7 @@ span {
 }
 
 .purple-dot {
-  background: #8c2ced;
+  background: #9cecfe;
 }
 
 .yellow-dot {
@@ -16948,10 +16882,10 @@ span {
 
   color: #dfe4eb;
 
-  border: 1px solid rgba(68, 109, 154, 0.13);
-  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
 
-  background: rgba(5, 18, 33, 0.7);
+  background: rgba(29, 30, 36, 0.82);
 
   transition: 0.2s ease;
 }
@@ -16970,17 +16904,12 @@ span {
   align-items: center;
   justify-content: center;
 
-  color: #e8d6ff;
+  color: #1f2d3d;
   font-size: 12px;
 
   border-radius: 50%;
 
-  background:
-    radial-gradient(
-      circle,
-      #7427d4,
-      #32106f
-    );
+  background: linear-gradient(135deg, #dffcff, #9cecfe);
 }
 
 .quick-action strong {
@@ -17013,7 +16942,7 @@ span {
 
   border: 0;
 
-  color: #9b48e9;
+  color: var(--merchant-primary);
   background: transparent;
 
   font-size: 14px;
@@ -17043,7 +16972,7 @@ span {
   font-weight: 500;
   white-space: nowrap;
 
-  border-bottom: 1px solid rgba(71, 109, 149, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .merchant-table td {
@@ -17052,7 +16981,7 @@ span {
   color: #c8d0da;
   white-space: nowrap;
 
-  border-bottom: 1px solid rgba(66, 103, 143, 0.09);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .merchant-table tbody tr:last-child td {
@@ -17388,10 +17317,10 @@ span {
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(162, 57, 255, .6);
+  border: 1px solid rgba(156, 236, 254, .75);
   border-radius: 50%;
 
-  color: #bd68ff;
+  color: #9cecfe;
 
   font-size: 15px;
 }
@@ -17493,24 +17422,24 @@ span {
 
 .progress-item.active .progress-circle,
 .progress-item.completed .progress-circle {
-  color: #fff;
+  color: #0f1724;
 
-  border-color: #8d2dff;
+  border-color: rgba(156, 236, 254, .7);
 
   background:
     linear-gradient(
       135deg,
-      #8729ef,
-      #4b0caa
+      #dffcff,
+      #9cecfe
     );
 
   box-shadow:
-    0 0 15px rgba(126, 38, 234, .32);
+    0 0 15px rgba(156, 236, 254, .22);
 }
 
 .progress-item.active .progress-title,
 .progress-item.completed .progress-title {
-  color: #d88cff;
+  color: #9cecfe;
 }
 
 .progress-connector {
@@ -17528,8 +17457,8 @@ span {
   background:
     linear-gradient(
       90deg,
-      #7b22e8,
-      #a53cff
+      #7ccfe7,
+      #9cecfe
     );
 }
 
@@ -20136,7 +20065,7 @@ span {
   background:
     radial-gradient(
       circle at 35% 0%,
-      rgba(101, 30, 211, 0.09),
+      rgba(156, 236, 254, 0.08),
       transparent 30%
     ),
     radial-gradient(
@@ -20146,9 +20075,9 @@ span {
     ),
     linear-gradient(
       135deg,
-      #020813 0%,
-      #031021 50%,
-      #020914 100%
+      #1d1e24 0%,
+      #171a20 50%,
+      #121418 100%
     );
 
   font-family:
@@ -20242,17 +20171,11 @@ span {
 
   padding: 0 15px;
 
-  border: 1px solid rgba(146, 40, 255, 0.55);
-  border-radius: 7px;
+  border: 1px solid rgba(156, 236, 254, 0.4);
+  border-radius: 8px;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(93, 20, 177, 0.08),
-      rgba(42, 9, 82, 0.05)
-    );
-
-  color: #c452ff;
+  background: rgba(156, 236, 254, 0.06);
+  color: var(--merchant-primary);
 
   font-size: 12px;
   font-weight: 500;
@@ -20264,11 +20187,11 @@ span {
 }
 
 .merchant-outline-btn:hover {
-  color: #e18aff;
+  color: #222e48;
 
-  border-color: #a846ff;
+  border-color: rgba(156, 236, 254, 0.8);
 
-  background: rgba(117, 27, 215, 0.13);
+  background: var(--merchant-primary);
 
   transform: translateY(-1px);
 }
@@ -20313,19 +20236,12 @@ span {
 
   width: 100%;
 
-  border: 1px solid var(--merchant-border);
-  border-radius: var(--merchant-radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(8, 23, 43, 0.98),
-      rgba(4, 15, 29, 0.98)
-    );
+  background: linear-gradient(145deg, #2a2d34 0%, #1d1e24 100%);
 
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.018),
-    0 8px 28px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
 
   overflow: hidden;
 }
@@ -20397,17 +20313,9 @@ span {
 
   border-radius: 50%;
 
-  background:
-    linear-gradient(
-      135deg,
-      #ad42ff,
-      #6419da,
-      #9b35ff
-    );
+  background: linear-gradient(135deg, #dffcff, #9cecfe 45%, #7acfe4);
 
-  box-shadow:
-    0 0 0 3px rgba(111, 28, 218, 0.10),
-    0 0 30px rgba(116, 28, 255, 0.20);
+  box-shadow: 0 0 0 3px rgba(156, 236, 254, 0.16), 0 0 30px rgba(156, 236, 254, 0.14);
 
   overflow: hidden;
 }
@@ -20504,12 +20412,12 @@ span {
 
   padding: 0 10px;
 
-  border: 1px solid rgba(150, 39, 255, 0.42);
+  border: 1px solid rgba(156, 236, 254, 0.35);
   border-radius: 5px;
 
-  background: rgba(111, 22, 215, 0.11);
+  background: rgba(156, 236, 254, 0.08);
 
-  color: #ca58ff;
+  color: var(--merchant-primary);
 
   font-size: 12px;
   font-weight: 500;
@@ -20730,9 +20638,9 @@ span {
   border-radius: 7px;
 
   background:
-    rgba(116, 28, 255, 0.11);
+    rgba(245, 177, 29, 0.12);
 
-  color: #b83cff;
+  color: #f5b11d;
 
   font-size: 12px;
 }
@@ -20814,11 +20722,11 @@ span {
   background:
     linear-gradient(
       145deg,
-      rgba(116, 28, 255, 0.28),
-      rgba(71, 16, 133, 0.25)
+      rgba(245, 177, 29, 0.22),
+      rgba(179, 118, 8, 0.22)
     );
 
-  color: #b940ff;
+  color: #f5b11d;
 
   font-size: 12px;
 }
@@ -22237,19 +22145,19 @@ span {
 ========================================================= */
 
 .merchant-earnings-page {
-  --earnings-bg: #030d1b;
-  --earnings-panel: #061427;
-  --earnings-panel-2: #08182d;
+  --earnings-bg: #1d1e24;
+  --earnings-panel: #2a2d34;
+  --earnings-panel-2: #20242b;
 
-  --earnings-border: rgba(73, 109, 153, 0.22);
+  --earnings-border: rgba(255, 255, 255, 0.08);
 
   --earnings-text: #f1f3f8;
   --earnings-muted: #8995a7;
   --earnings-muted-2: #657287;
 
-  --purple: #8b2cff;
-  --purple-light: #b34cff;
-  --purple-dark: #5f16cf;
+  --purple: #9cecfe;
+  --purple-light: #c3f5ff;
+  --purple-dark: #7bcfe1;
 
   --green: #19d66b;
   --yellow: #f3b51b;
@@ -22337,7 +22245,7 @@ span {
 }
 
 .earnings-date-picker:hover {
-  border-color: rgba(138, 44, 255, 0.45);
+  border-color: rgba(156, 236, 254, 0.45);
 
   color: #fff;
 }
@@ -22355,25 +22263,26 @@ span {
 
   padding: 0 15px;
 
-  border: 1px solid rgba(111, 27, 238, 0.5);
+  border: 1px solid rgba(156, 236, 254, 0.5);
   border-radius: 6px;
 
   background:
     linear-gradient(
       135deg,
-      #7522e8,
-      #5a12c4
+      #dffcff,
+      #9cecfe 58%,
+      #7ccfe7
     );
 
-  color: #fff;
+  color: #0f1724;
 
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
 
   cursor: pointer;
 
   box-shadow:
-    0 5px 18px rgba(96, 25, 207, 0.2);
+    0 5px 18px rgba(28, 150, 180, 0.18);
 
   transition: 0.2s ease;
 }
@@ -22382,8 +22291,9 @@ span {
   background:
     linear-gradient(
       135deg,
-      #8c32fa,
-      #6820d7
+      #effdff,
+      #9cecfe 58%,
+      #7ccfe7
     );
 
   transform: translateY(-1px);
@@ -22436,13 +22346,13 @@ span {
 
   border-radius: 50%;
 
-  background: rgba(125, 35, 255, 0.08);
+  background: rgba(156, 236, 254, 0.08);
 
   filter: blur(25px);
 }
 
 .earnings-summary-card:hover {
-  border-color: rgba(128, 48, 230, 0.32);
+  border-color: rgba(156, 236, 254, 0.32);
 
   transform: translateY(-1px);
 }
@@ -22476,12 +22386,12 @@ span {
 
   border-radius: 9px;
 
-  color: #a63dff;
+  color: #9cecfe;
 
   background:
-    rgba(119, 28, 225, 0.13);
+    rgba(156, 236, 254, 0.12);
 
-  border: 1px solid rgba(139, 44, 255, 0.22);
+  border: 1px solid rgba(156, 236, 254, 0.22);
 }
 
 .earnings-summary-icon i {
@@ -22584,19 +22494,19 @@ span {
 }
 
 .earnings-tabs button.active {
-  color: #c35aff;
+  color: #9cecfe;
 }
 
 .earnings-tabs button.active::after {
   background:
     linear-gradient(
       90deg,
-      #7020db,
-      #bd4dff
+      #7ccfe7,
+      #9cecfe
     );
 
   box-shadow:
-    0 0 8px rgba(170, 59, 255, 0.35);
+    0 0 8px rgba(156, 236, 254, 0.35);
 }
 
 .earnings-tabs button:hover {
@@ -22714,7 +22624,7 @@ span {
 }
 
 .legend-box.commission {
-  background: #9c35ee;
+  background: #9cecfe;
 }
 
 .legend-box.payout {
@@ -22767,7 +22677,7 @@ span {
 }
 
 .commission-area {
-  fill: rgba(146, 42, 235, 0.12);
+  fill: rgba(156, 236, 254, 0.12);
   stroke: none;
 }
 
@@ -22779,7 +22689,7 @@ span {
 .commission-line {
   fill: none;
 
-  stroke: #a237ee;
+  stroke: #9cecfe;
 
   stroke-width: 3;
 
@@ -22799,9 +22709,9 @@ span {
 }
 
 .commission-point {
-  fill: #a63cf0;
+  fill: #9cecfe;
 
-  stroke: #27114d;
+  stroke: #1b2a39;
 
   stroke-width: 2;
 }
@@ -22856,12 +22766,12 @@ span {
 
   background:
     conic-gradient(
-      #982cec 0deg 180deg,
-      #256ee4 180deg 360deg
+      #9cecfe 0deg 180deg,
+      #7ccfe7 180deg 360deg
     );
 
   box-shadow:
-    0 0 24px rgba(115, 38, 226, 0.1);
+    0 0 24px rgba(156, 236, 254, 0.1);
 }
 
 .commission-donut::after {
@@ -22939,11 +22849,11 @@ span {
 }
 
 .type-dot.buy {
-  background: #a32df0;
+  background: #9cecfe;
 }
 
 .type-dot.sell {
-  background: #2874e7;
+  background: #7ccfe7;
 }
 
 .commission-type-item > div {
@@ -23023,11 +22933,11 @@ span {
 }
 
 .buy-type {
-  color: #a943ed;
+  color: #9cecfe;
 }
 
 .sell-type {
-  color: #3d82eb;
+  color: #7ccfe7;
 }
 
 .commission-amount {
@@ -23067,12 +22977,12 @@ span {
   margin: 12px auto 0;
   padding: 5px 12px;
 
-  border: 1px solid rgba(129, 38, 220, 0.38);
+  border: 1px solid rgba(156, 236, 254, 0.38);
   border-radius: 5px;
 
-  background: rgba(91, 21, 165, 0.08);
+  background: rgba(156, 236, 254, 0.08);
 
-  color: #a94bdf;
+  color: #9cecfe;
 
   font-size: 12px;
 
@@ -23082,9 +22992,9 @@ span {
 }
 
 .view-records-btn:hover {
-  background: rgba(112, 25, 194, 0.16);
+  background: rgba(156, 236, 254, 0.16);
 
-  color: #c05cff;
+  color: #dffcff;
 }
 
 
@@ -23170,9 +23080,9 @@ span {
 
   border-radius: 7px;
 
-  color: #a840e9;
+  color: #9cecfe;
 
-  background: rgba(122, 29, 221, 0.12);
+  background: rgba(156, 236, 254, 0.12);
 }
 
 .settlement-icon i {
@@ -23225,14 +23135,15 @@ span {
   background:
     linear-gradient(
       135deg,
-      #7921e8,
-      #5d12c4
+      #dffcff,
+      #9cecfe 55%,
+      #7ccfe7
     );
 
-  color: #fff;
+  color: #0f1724;
 
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
 
   cursor: pointer;
 
@@ -23243,12 +23154,13 @@ span {
   background:
     linear-gradient(
       135deg,
-      #9132fa,
-      #6c1cda
+      #effdff,
+      #9cecfe 55%,
+      #7ccfe7
     );
 
   box-shadow:
-    0 5px 18px rgba(108, 28, 218, 0.2);
+    0 5px 18px rgba(28, 150, 180, 0.18);
 }
 
 .withdraw-earnings-btn i {
@@ -23342,19 +23254,19 @@ span {
 
   border-radius: 50%;
 
-  border: 1px solid rgba(143, 42, 239, 0.38);
+  border: 1px solid rgba(156, 236, 254, 0.38);
 
   background:
     radial-gradient(
       circle,
-      rgba(119, 29, 220, 0.25),
-      rgba(64, 17, 117, 0.13)
+      rgba(156, 236, 254, 0.20),
+      rgba(22, 60, 82, 0.12)
     );
 
-  color: #ae42ed;
+  color: #9cecfe;
 
   box-shadow:
-    0 0 17px rgba(118, 28, 219, 0.09);
+    0 0 17px rgba(156, 236, 254, 0.09);
 }
 
 .commission-step-icon i {
@@ -23426,9 +23338,9 @@ span {
 
   border-radius: 14px;
 
-  color: #a63cf0;
+  color: #9cecfe;
 
-  background: rgba(116, 30, 218, 0.12);
+  background: rgba(156, 236, 254, 0.12);
 }
 
 .earnings-empty-state i {
@@ -23643,19 +23555,19 @@ span {
 .level-history-btn {
   background: linear-gradient(
     135deg,
-    #33205d,
-    #5218a9
+    rgba(12, 37, 52, 0.98),
+    rgba(16, 109, 160, 0.92)
   );
-  border-color: rgba(150, 68, 255, 0.35);
+  border-color: rgba(156, 236, 254, 0.35);
 }
 
 .level-history-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(101, 35, 220, 0.25);
+  box-shadow: 0 8px 25px rgba(27, 120, 170, 0.22);
 }
 
 .level-history-btn i {
-  color: #d9b8ff;
+  color: #9cecfe;
 }
 
 /* ---------------------------------------------------------
@@ -23804,8 +23716,8 @@ span {
 }
 
 .level-card.platinum .level-badge {
-  color: #a65bff;
-  background: rgba(124, 31, 255, 0.16);
+  color: #9cecfe;
+  background: rgba(156, 236, 254, 0.12);
 }
 
 .level-card.diamond .level-badge {
@@ -23883,14 +23795,14 @@ span {
 }
 
 .progress-target strong {
-  color: #bd55ff;
+  color: #9cecfe;
   margin-top: 2px;
 }
 
 .progress-target b {
   display: block;
   margin-top: 2px;
-  color: #e568ff;
+  color: #7ccfe7;
   font-size: 20px;
 }
 
@@ -23997,8 +23909,8 @@ span {
 }
 
 .progress-stat-icon.purple {
-  color: #b14cff;
-  background: rgba(156, 45, 255, 0.12);
+  color: #9cecfe;
+  background: rgba(156, 236, 254, 0.12);
 }
 
 .progress-stat span,
@@ -24048,7 +23960,7 @@ span {
 .benefit-title i {
   width: 15px;
   text-align: center;
-  color: #c040ff;
+  color: #9cecfe;
 }
 
 .benefit-row strong {
@@ -24065,13 +23977,14 @@ span {
   margin-top: 12px;
   border: 0;
   border-radius: 6px;
-  color: #fff;
+  color: #0f1724;
   font-size: 12px;
   font-weight: 600;
   background: linear-gradient(
     90deg,
-    #4711bd,
-    #6618dc
+    #dffcff,
+    #9cecfe 55%,
+    #7ccfe7
   );
   display: flex;
   align-items: center;
@@ -24083,7 +23996,7 @@ span {
 .primary-level-btn:hover,
 .support-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(103, 25, 220, 0.3);
+  box-shadow: 0 8px 25px rgba(28, 150, 180, 0.26);
 }
 
 /* ---------------------------------------------------------
@@ -24152,8 +24065,8 @@ span {
 }
 
 .performance-icon.purple {
-  color: #bf42ff;
-  background: rgba(170, 30, 255, 0.07);
+  color: #9cecfe;
+  background: rgba(156, 236, 254, 0.08);
 }
 
 .performance-content strong {
@@ -24399,15 +24312,15 @@ span {
 ========================================================= */
 
 .merchant-settings-page {
-  --ms-bg: #020b18;
-  --ms-card: #061426;
-  --ms-card-2: #07182b;
-  --ms-border: rgba(92, 132, 190, 0.18);
-  --ms-border-hover: rgba(151, 67, 255, 0.42);
+  --ms-bg: #1d1e24;
+  --ms-card: #2a2d34;
+  --ms-card-2: #20242b;
+  --ms-border: rgba(255, 255, 255, 0.08);
+  --ms-border-hover: rgba(156, 236, 254, 0.42);
 
-  --ms-purple: #8b2cff;
-  --ms-purple-2: #6418d8;
-  --ms-purple-light: #bd72ff;
+  --ms-purple: #9cecfe;
+  --ms-purple-2: #7bcfe1;
+  --ms-purple-light: #c3f5ff;
 
   --ms-yellow: #f6c51b;
   --ms-green: #18d978;
@@ -24424,13 +24337,13 @@ span {
   background:
     radial-gradient(
       circle at 35% 0%,
-      rgba(76, 21, 150, 0.10),
+      rgba(156, 236, 254, 0.08),
       transparent 32%
     ),
     linear-gradient(
       180deg,
-      #020914 0%,
-      #020b18 100%
+      #1d1e24 0%,
+      #121418 100%
     );
 }
 
@@ -24533,17 +24446,12 @@ span {
   min-width: 128px;
   padding: 0 18px;
   border: 0;
-  border-radius: 7px;
-  color: #fff;
-  background: linear-gradient(
-    135deg,
-    #7c20e9,
-    #5311c9
-  );
-  box-shadow:
-    0 8px 22px rgba(100, 24, 216, 0.20);
+  border-radius: 8px;
+  color: #222e48;
+  background: var(--merchant-primary);
+  box-shadow: 0 8px 22px rgba(156, 236, 254, 0.15);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   transition: 0.2s ease;
 }
 
@@ -24553,13 +24461,9 @@ span {
 
 .settings-save-btn:hover {
   transform: translateY(-1px);
-  background: linear-gradient(
-    135deg,
-    #9239ff,
-    #6418d8
-  );
-  box-shadow:
-    0 10px 26px rgba(139, 44, 255, 0.30);
+  background: linear-gradient(135deg, #dffcff, #9cecfe);
+  color: #222e48;
+  box-shadow: 0 10px 26px rgba(156, 236, 254, 0.22);
 }
 
 
@@ -24594,7 +24498,7 @@ span {
 
 .merchant-settings-tabs button.active {
   color: #ffffff;
-  background: rgba(103, 24, 216, 0.16);
+  background: rgba(156, 236, 254, 0.08);
 }
 
 .merchant-settings-tabs button.active::after {
@@ -24604,13 +24508,8 @@ span {
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    #8a2cff,
-    #c65eff
-  );
-  box-shadow:
-    0 0 10px rgba(139, 44, 255, 0.7);
+  background: linear-gradient(90deg, #9cecfe, #7ccfe7);
+  box-shadow: 0 0 10px rgba(156, 236, 254, 0.7);
 }
 
 
@@ -24641,17 +24540,11 @@ span {
   overflow: hidden;
 
   border: 1px solid var(--ms-border);
-  border-radius: 8px;
+  border-radius: 12px;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(7, 23, 42, 0.98),
-      rgba(3, 14, 28, 0.98)
-    );
+  background: linear-gradient(145deg, #2a2d34 0%, #1d1e24 100%);
 
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.015);
 
   transition:
     border-color 0.2s ease,
@@ -24673,12 +24566,7 @@ span {
   left: 14px;
   right: 14px;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(144, 49, 255, 0.28),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(156, 236, 254, 0.32), transparent);
 }
 
 
@@ -24700,7 +24588,7 @@ span {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #bc66ff;
+  color: var(--merchant-primary);
   font-size: 15px;
 }
 
@@ -24842,13 +24730,8 @@ span {
 }
 
 .merchant-toggle.active {
-  background: linear-gradient(
-    90deg,
-    #7b1fe8,
-    #9f35ff
-  );
-  box-shadow:
-    0 0 10px rgba(139, 44, 255, 0.28);
+  background: linear-gradient(90deg, #9cecfe, #7ccfe7);
+  box-shadow: 0 0 10px rgba(156, 236, 254, 0.28);
 }
 
 .merchant-toggle.active span {
@@ -24920,7 +24803,7 @@ span {
 }
 
 .custom-radio input:checked + span {
-  border-color: #9a31ff;
+  border-color: var(--merchant-primary);
 }
 
 .custom-radio input:checked + span::after {
@@ -24931,8 +24814,8 @@ span {
   top: 2px;
   left: 2px;
   border-radius: 50%;
-  background: #a42fff;
-  box-shadow: 0 0 7px rgba(164, 47, 255, 0.7);
+  background: var(--merchant-primary);
+  box-shadow: 0 0 7px rgba(156, 236, 254, 0.7);
 }
 
 
@@ -25013,10 +24896,10 @@ span {
 .manage-api-btn {
   width: 100%;
   min-height: 34px;
-  border: 1px solid rgba(137, 38, 255, 0.52);
-  border-radius: 6px;
-  color: #d48aff;
-  background: rgba(89, 21, 180, 0.08);
+  border: 1px solid rgba(156, 236, 254, 0.4);
+  border-radius: 8px;
+  color: var(--merchant-primary);
+  background: rgba(156, 236, 254, 0.06);
   font-size: 12px;
   font-weight: 500;
   transition: 0.2s ease;
@@ -25025,9 +24908,9 @@ span {
 .outline-purple-btn:hover,
 .add-payment-btn:hover,
 .manage-api-btn:hover {
-  color: #fff;
-  background: rgba(117, 25, 218, 0.18);
-  border-color: #9c42ff;
+  color: #222e48;
+  background: var(--merchant-primary);
+  border-color: rgba(156, 236, 254, 0.75);
 }
 
 
@@ -25180,13 +25063,13 @@ span {
   border: 0;
   border-radius: 6px;
   color: #dce2ec;
-  background: rgba(90, 30, 190, 0.15);
+  background: rgba(156, 236, 254, 0.08);
   text-align: left;
   transition: 0.2s ease;
 }
 
 .quick-setting-btn:hover {
-  background: rgba(122, 35, 230, 0.25);
+  background: rgba(156, 236, 254, 0.16);
   transform: translateX(2px);
 }
 
@@ -25196,7 +25079,7 @@ span {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #d18aff;
+  color: var(--merchant-primary);
   font-size: 11px;
 }
 
@@ -25241,8 +25124,8 @@ span {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  color: #bf67ff;
-  background: rgba(117, 29, 225, 0.15);
+  color: var(--merchant-primary);
+  background: rgba(156, 236, 254, 0.12);
 }
 
 .security-info {
@@ -25336,15 +25219,11 @@ span {
   width: 100%;
   min-height: 35px;
   border: 0;
-  border-radius: 6px;
-  color: #fff;
-  background: linear-gradient(
-    135deg,
-    #711de2,
-    #5111bc
-  );
+  border-radius: 8px;
+  color: #222e48;
+  background: var(--merchant-primary);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
   transition: 0.2s ease;
 }
 
@@ -25353,13 +25232,9 @@ span {
 }
 
 .support-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #8d2eff,
-    #6418d8
-  );
-  box-shadow:
-    0 7px 18px rgba(104, 24, 216, 0.24);
+  background: linear-gradient(135deg, #dffcff, #9cecfe);
+  color: #222e48;
+  box-shadow: 0 7px 18px rgba(156, 236, 254, 0.18);
 }
 
 
@@ -25570,20 +25445,20 @@ span {
    ========================================================= */
 
 .merchant-reviews-v2 {
-  --mrv-bg: #020b18;
-  --mrv-card: #061426;
-  --mrv-card-2: #08182c;
-  --mrv-border: rgba(94, 139, 197, 0.18);
-  --mrv-border-hover: rgba(151, 71, 255, 0.42);
+  --mrv-bg: #1d1e24;
+  --mrv-card: #2a2d34;
+  --mrv-card-2: #20242b;
+  --mrv-border: rgba(255, 255, 255, 0.08);
+  --mrv-border-hover: rgba(156, 236, 254, 0.38);
 
-  --mrv-purple: #8b32ff;
-  --mrv-purple-2: #6419df;
-  --mrv-purple-soft: rgba(132, 44, 255, 0.16);
+  --mrv-purple: #9cecfe;
+  --mrv-purple-2: #7ccfe7;
+  --mrv-purple-soft: rgba(156, 236, 254, 0.12);
 
   --mrv-green: #18d978;
   --mrv-yellow: #ffc928;
   --mrv-red: #ff3e55;
-  --mrv-blue: #3188ff;
+  --mrv-blue: #69b7ff;
 
   --mrv-text: #f5f7ff;
   --mrv-text-2: #c5ccda;
@@ -25667,23 +25542,24 @@ span {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  color: #fff;
-  border: 1px solid rgba(160, 74, 255, 0.35);
+  color: #0f1724;
+  border: 1px solid rgba(156, 236, 254, 0.35);
   background: linear-gradient(
     135deg,
-    #7924ef 0%,
-    #5c10c9 100%
+    #dffcff 0%,
+    #9cecfe 55%,
+    #7ccfe7 100%
   );
   box-shadow:
-    0 8px 25px rgba(101, 22, 220, 0.18),
-    inset 0 1px 0 rgba(255,255,255,0.1);
+    0 8px 25px rgba(28, 150, 180, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 .merchant-reviews-v2 .merchant-primary-btn:hover {
   transform: translateY(-1px);
   box-shadow:
-    0 10px 30px rgba(117, 28, 240, 0.3),
-    inset 0 1px 0 rgba(255,255,255,0.12);
+    0 10px 30px rgba(28, 150, 180, 0.28),
+    inset 0 1px 0 rgba(255,255,255,0.14);
 }
 
 
@@ -25946,10 +25822,10 @@ span {
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    #7220eb,
-    #a342ff
+    #7ccfe7,
+    #9cecfe
   );
-  box-shadow: 0 0 10px rgba(145, 47, 255, 0.35);
+  box-shadow: 0 0 10px rgba(156, 236, 254, 0.35);
 }
 
 .merchant-reviews-v2 .rating-donut-wrapper {
@@ -25968,12 +25844,12 @@ span {
   border-radius: 50%;
   background:
     conic-gradient(
-      #7d24ec 0deg,
-      #a23dff 288deg,
+      #7ccfe7 0deg,
+      #9cecfe 288deg,
       #16253c 288deg 360deg
     );
   box-shadow:
-    0 0 28px rgba(125, 37, 239, 0.14);
+    0 0 28px rgba(156, 236, 254, 0.12);
 }
 
 .merchant-reviews-v2 .rating-donut-center {
@@ -26044,8 +25920,8 @@ span {
   height: 4px;
   display: inline-block;
   border-radius: 10px;
-  background: #a43dff;
-  box-shadow: 0 0 8px rgba(164,61,255,0.55);
+  background: #9cecfe;
+  box-shadow: 0 0 8px rgba(156,236,254,0.55);
 }
 
 .merchant-reviews-v2 .rating-chart {
@@ -26097,8 +25973,8 @@ span {
   opacity: 0.7;
   background: linear-gradient(
     to bottom,
-    rgba(132, 39, 244, 0.18),
-    rgba(132, 39, 244, 0)
+    rgba(156, 236, 254, 0.18),
+    rgba(156, 236, 254, 0)
   );
   clip-path: polygon(
     0 57%,
@@ -26148,8 +26024,8 @@ span {
     115deg,
     transparent 0%,
     transparent 3%,
-    #a33fff 3.2%,
-    #a33fff 7%,
+    #9cecfe 3.2%,
+    #9cecfe 7%,
     transparent 7.2%,
     transparent 100%
   );
@@ -26162,10 +26038,10 @@ span {
   height: 6px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: #a940ff;
-  border: 1px solid #d47cff;
+  background: #9cecfe;
+  border: 1px solid #dffcff;
   box-shadow:
-    0 0 7px rgba(166, 57, 255, 0.8);
+    0 0 7px rgba(156, 236, 254, 0.8);
 }
 
 .merchant-reviews-v2 .trend-line i:nth-child(1) { left: 0%; }
@@ -26290,18 +26166,18 @@ span {
   min-height: 36px;
   margin: 7px 13px 13px;
   border-radius: 6px;
-  color: #c274ff;
-  border: 1px solid rgba(147, 49, 255, 0.5);
-  background: rgba(116, 28, 227, 0.04);
+  color: #9cecfe;
+  border: 1px solid rgba(156, 236, 254, 0.45);
+  background: rgba(156, 236, 254, 0.04);
   font-size: 12px;
   font-weight: 600;
   transition: 0.2s ease;
 }
 
 .merchant-reviews-v2 .outline-purple-btn:hover {
-  color: #fff;
-  background: rgba(127, 34, 240, 0.14);
-  border-color: #963cff;
+  color: #0f1724;
+  background: rgba(156, 236, 254, 0.16);
+  border-color: #9cecfe;
 }
 
 
@@ -26349,11 +26225,11 @@ span {
   border-radius: 50%;
   background: linear-gradient(
     135deg,
-    #5013a7,
-    #9c32ff
+    #7ccfe7,
+    #9cecfe
   );
-  border: 1px solid rgba(164, 72, 255, 0.35);
-  color: #fff;
+  border: 1px solid rgba(156, 236, 254, 0.35);
+  color: #0f1724;
 }
 
 .merchant-reviews-v2 .review-avatar img {
@@ -26453,8 +26329,8 @@ span {
 }
 
 .merchant-reviews-v2 .review-side.sell {
-  color: #c47cff;
-  background: rgba(139,50,255,0.1);
+  color: #9cecfe;
+  background: rgba(156,236,254,0.1);
 }
 
 .merchant-reviews-v2 .buy-value,
@@ -26468,7 +26344,7 @@ span {
 }
 
 .merchant-reviews-v2 .sell-value {
-  color: #bf5cff;
+  color: #9cecfe;
 }
 
 .merchant-reviews-v2 .view-all-reviews {
@@ -26478,17 +26354,17 @@ span {
   margin: 8px auto 13px;
   padding: 0 18px;
   border-radius: 6px;
-  color: #c46cff;
-  background: rgba(110, 26, 214, 0.04);
-  border: 1px solid rgba(142, 45, 245, 0.45);
+  color: #0f1724;
+  background: linear-gradient(135deg, #dffcff, #9cecfe 55%, #7ccfe7);
+  border: 1px solid rgba(156, 236, 254, 0.45);
   font-size: 12px;
   font-weight: 600;
   transition: 0.2s ease;
 }
 
 .merchant-reviews-v2 .view-all-reviews:hover {
-  color: #fff;
-  background: rgba(126, 31, 234, 0.15);
+  color: #0f1724;
+  background: linear-gradient(135deg, #effdff, #9cecfe 55%, #7ccfe7);
 }
 
 
@@ -26522,7 +26398,7 @@ span {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #9d3cff;
+  color: #9cecfe;
   font-size: 24px;
   transition:
     transform 0.2s ease,
@@ -26531,7 +26407,7 @@ span {
 
 .merchant-reviews-v2 .experience-stars button:hover {
   transform: scale(1.12);
-  color: #c369ff;
+  color: #dffcff;
 }
 
 .merchant-reviews-v2 .write-review-btn {
@@ -26754,10 +26630,10 @@ span {
    ========================================================= */
 
 .merchant-review-bottom-layout {
-  --review-border: rgba(116, 72, 190, 0.22);
-  --review-border-hover: rgba(139, 67, 255, 0.45);
-  --review-purple: #8b3dff;
-  --review-purple-light: #b66cff;
+  --review-border: rgba(122, 142, 162, 0.22);
+  --review-border-hover: rgba(156, 236, 254, 0.45);
+  --review-purple: #9cecfe;
+  --review-purple-light: #dffcff;
   --review-text: #f4f1ff;
   --review-muted: #9ca3b8;
 }
@@ -27624,15 +27500,15 @@ span {
   background:
     radial-gradient(
       circle at 15% 10%,
-      rgba(123, 47, 247, 0.10),
+      rgba(156, 236, 254, 0.10),
       transparent 30%
     ),
     radial-gradient(
       circle at 90% 80%,
-      rgba(0, 183, 255, 0.07),
+      rgba(124, 207, 231, 0.08),
       transparent 28%
     ),
-    #070220;
+    #121418;
 }
 
 .appeal-container {
@@ -27663,12 +27539,12 @@ span {
   align-items: center;
   gap: 9px;
   padding: 8px 15px;
-  border: 1px solid rgba(255, 176, 0, 0.38);
+  border: 1px solid rgba(156, 236, 254, 0.28);
   border-radius: 30px;
-  background: rgba(255, 176, 0, 0.035);
+  background: rgba(156, 236, 254, 0.04);
   box-shadow:
-    0 0 16px rgba(255, 176, 0, 0.10),
-    inset 0 0 10px rgba(255, 176, 0, 0.02);
+    0 0 16px rgba(156, 236, 254, 0.08),
+    inset 0 0 10px rgba(156, 236, 254, 0.02);
   color: rgba(255, 255, 255, 0.82);
   font-size: 12px;
   line-height: 1;
@@ -27678,7 +27554,7 @@ span {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffb000;
+  color: #9cecfe;
   font-size: 11px;
 }
 
@@ -27715,13 +27591,13 @@ span {
   align-items: center;
   gap: 14px;
   padding: 15px 18px;
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(156, 236, 254, 0.18);
   border-radius: 15px;
   background:
     linear-gradient(
       135deg,
-      rgba(26, 18, 48, 0.98),
-      rgba(15, 12, 39, 0.98)
+      rgba(26, 32, 42, 0.98),
+      rgba(15, 20, 24, 0.98)
     );
   box-shadow:
     0 14px 35px rgba(0, 0, 0, 0.22),
@@ -27736,15 +27612,10 @@ span {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  color: #ffffff;
+  color: #0f1724;
   font-size: 18px;
-  background: linear-gradient(
-    135deg,
-    #7c3aed,
-    #c026d3
-  );
-  box-shadow:
-    0 8px 22px rgba(168, 85, 247, 0.28);
+  background: linear-gradient(135deg, #dffcff, #9cecfe 55%, #7ccfe7);
+  box-shadow: 0 8px 22px rgba(156, 236, 254, 0.24);
 }
 
 .appeal-total-label {
@@ -27771,8 +27642,8 @@ span {
   background:
     linear-gradient(
       145deg,
-      rgba(26, 18, 48, 0.98),
-      rgba(12, 8, 30, 0.98)
+      rgba(25, 29, 35, 0.98),
+      rgba(10, 14, 18, 0.98)
     );
   box-shadow:
     0 25px 60px rgba(0, 0, 0, 0.25),
@@ -27797,7 +27668,7 @@ span {
 }
 
 .appeal-content-title i {
-  color: #a855f7;
+  color: #9cecfe;
 }
 
 .appeal-content-subtitle {
@@ -27808,10 +27679,10 @@ span {
 
 .appeal-count {
   padding: 7px 13px;
-  border: 1px solid rgba(0, 183, 255, 0.20);
+  border: 1px solid rgba(156, 236, 254, 0.2);
   border-radius: 30px;
-  color: #00b7ff;
-  background: rgba(0, 183, 255, 0.06);
+  color: #9cecfe;
+  background: rgba(156, 236, 254, 0.06);
   font-size: 12px;
   font-weight: 600;
 }
@@ -27864,7 +27735,7 @@ span {
 }
 
 .appeal-table tbody tr:hover {
-  background: rgba(168, 85, 247, 0.045);
+  background: rgba(156, 236, 254, 0.035);
 }
 
 .appeal-table tbody tr:last-child td {
@@ -27876,7 +27747,7 @@ span {
 ========================================================= */
 
 .appeal-id {
-  color: #a855f7;
+  color: #9cecfe;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
@@ -27898,7 +27769,7 @@ span {
 }
 
 .appeal-type i {
-  color: #ffb000;
+  color: #9cecfe;
   font-size: 12px;
 }
 
@@ -27918,9 +27789,9 @@ span {
   height: 40px;
   flex: 0 0 40px;
   overflow: hidden;
-  border: 1px solid rgba(168, 85, 247, 0.30);
+  border: 1px solid rgba(156, 236, 254, 0.25);
   border-radius: 50%;
-  background: #21173b;
+  background: #1b2530;
 }
 
 .appeal-user-avatar img {
@@ -27973,15 +27844,15 @@ span {
 }
 
 .appeal-status-pending {
-  border: 1px solid rgba(255, 176, 0, 0.25);
-  color: #ffb000;
-  background: rgba(255, 176, 0, 0.09);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  color: #ffc107;
+  background: rgba(255, 193, 7, 0.09);
 }
 
 .appeal-status-review {
-  border: 1px solid rgba(0, 183, 255, 0.25);
-  color: #00b7ff;
-  background: rgba(0, 183, 255, 0.09);
+  border: 1px solid rgba(156, 236, 254, 0.25);
+  color: #9cecfe;
+  background: rgba(156, 236, 254, 0.09);
 }
 
 .appeal-status-resolved {
@@ -28015,7 +27886,7 @@ span {
 }
 
 .appeal-date i {
-  color: #a855f7;
+  color: #9cecfe;
 }
 
 /* =========================================================
@@ -28064,9 +27935,9 @@ span {
 }
 
 .pagination-btn:hover:not(:disabled) {
-  border-color: rgba(168, 85, 247, 0.45);
+  border-color: rgba(156, 236, 254, 0.45);
   color: #ffffff;
-  background: rgba(168, 85, 247, 0.12);
+  background: rgba(156, 236, 254, 0.12);
 }
 
 .pagination-btn:disabled {
@@ -28080,17 +27951,13 @@ span {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(168, 85, 247, 0.45);
+  border: 1px solid rgba(156, 236, 254, 0.45);
   border-radius: 8px;
-  color: #ffffff;
-  background: linear-gradient(
-    135deg,
-    #7c3aed,
-    #c026d3
-  );
+  color: #0f1724;
+  background: linear-gradient(135deg, #dffcff, #9cecfe 55%, #7ccfe7);
   font-size: 12px;
   font-weight: 600;
-  box-shadow: 0 5px 16px rgba(168, 85, 247, 0.20);
+  box-shadow: 0 5px 16px rgba(156, 236, 254, 0.18);
 }
 
 /* =========================================================
@@ -28114,12 +27981,12 @@ span {
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
-  border: 1px solid rgba(168, 85, 247, 0.20);
+  border: 1px solid rgba(156, 236, 254, 0.2);
   border-radius: 50%;
-  color: #a855f7;
-  background: rgba(168, 85, 247, 0.08);
+  color: #9cecfe;
+  background: rgba(156, 236, 254, 0.08);
   font-size: 25px;
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.10);
+  box-shadow: 0 0 30px rgba(156, 236, 254, 0.10);
 }
 
 .appeal-empty h4 {
@@ -28229,7 +28096,7 @@ span {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.045),
-    rgba(168, 85, 247, 0.10),
+    rgba(156, 236, 254, 0.10),
     rgba(255, 255, 255, 0.045)
   );
   background-size: 200% 100%;
