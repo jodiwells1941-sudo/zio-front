@@ -12,6 +12,7 @@ import PaymentModal from '@/components/dashboard/p2pProfile/Paymentmodal';
 import AddSecurityMoneyModal from '@/app/dashboard/ads/AddSecurityMonyModal';
 import { useAuth } from '@/hooks/useAuth';
 import './CreateRequest.css';
+import Link from 'next/link';
 
 /* ───────────── Types ───────────── */
 interface Conditions { registered: boolean; registerDays: number; holdingsBTC: boolean; holdingsAmount: number; }
@@ -136,7 +137,7 @@ const money = (n: number, d = 2) => (Number.isFinite(n) ? n.toLocaleString('en-U
 export default function CreateRequest({ onBack, onDone, editId }: { onBack: () => void; onDone?: () => void; editId?: number }) {
   const router = useRouter();
   const { user } = useAuth();
-  const finish = onDone ?? (() => router.push('/dashboard/ads/'));
+  const finish = onDone ?? (() => router.push('/dashboard/local-buy-sell/my-ads/'));
   const isEdit = Boolean(editId);
   const [loadingAd, setLoadingAd] = useState(isEdit);
   const skipSync = useRef(false);   // don't re-derive amounts from rounded inputs right after loading an ad
@@ -394,9 +395,9 @@ export default function CreateRequest({ onBack, onDone, editId }: { onBack: () =
           <h2>{isEdit ? 'Edit Request' : 'Create Your Own Request'}</h2>
           <p>{isEdit ? 'Update the details of your request.' : `Post a ${isSell ? 'withdraw' : 'deposit'} request and let traders come to you.`}</p>
         </div>
-        <button type="button" className="cr-back" onClick={onBack}>
+        <Link href="/dashboard/local-buy-sell" className="cr-back">
           <i className="fa-solid fa-arrow-left" /> {isEdit ? 'Back to my ads' : 'Back to market'}
-        </button>
+        </Link>
       </div>
 
       <div className="cr-grid">
@@ -608,7 +609,7 @@ export default function CreateRequest({ onBack, onDone, editId }: { onBack: () =
       {depositOpen && (
         <AddSecurityMoneyModal
           walletBalance={user?.wallet?.amount ?? 0}
-          currentSecurityDeposit={user?.wallet?.security_amount_for_ads ?? 0}
+          currentSecurityDeposit={depositRequired ?? 0}
           requiredSecurityAmount={depositRequired}
           onClose={() => { setDepositOpen(false); setDepositRequired(0); finish(); }}
           onSuccess={() => { /* refetch wallet here if needed */ }}

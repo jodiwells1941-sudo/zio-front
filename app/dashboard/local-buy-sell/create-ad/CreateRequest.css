@@ -9,6 +9,7 @@
 .cr-back {
   display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px; font-size: 13px;
+  color: var(--text); text-decoration: none;   /* it is a <Link> now */
   transition: border-color .15s;
 }
 .cr-back:hover { border-color: rgba(140, 180, 255, .45); }
@@ -98,7 +99,7 @@
 .cr-seg button.is-active { background: var(--accent-d); color: #fff; font-weight: 600; }
 
 /* ---- summary ---- */
-.cr-sum { position: sticky; top: 12px; display: grid; gap: 14px; padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.cr-sum { position: sticky; top: var(--cr-sticky-top, 84px);   /* clears a fixed dashboard header; change if yours is taller */ display: grid; gap: 14px; padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
 .cr-sum h3 { margin: 0; font-size: 16px; font-weight: 600; }
 .cr-sum dl { margin: 0; display: grid; }
 .cr-sum dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(110, 150, 255, .1); font-size: 13px; }
@@ -128,3 +129,6 @@
   .cr-stats { grid-template-columns: 1fr; }
   .cr-card-body { padding: 14px; }
 }
+
+/* Buy/Sell can't be switched while editing */
+.cr-type-btn:disabled { cursor: not-allowed; }

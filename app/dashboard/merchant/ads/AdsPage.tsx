@@ -37,6 +37,7 @@ export interface FormData {
   displayRegion: string;
   conditions: Conditions;
   status: boolean;
+  ad_create_type: 'merchant' | 'local';
 }
 
 export type StepErrors = Record<string, string>;
@@ -84,6 +85,8 @@ function validateStep3(d: FormData): StepErrors {
 // ─── Map camelCase form → snake_case API payload ──────────────────────────────
 
 function toPayload(d: FormData): P2pAdPayload {
+  const adCreateType = d.ad_create_type ?? 'merchant';
+
   return {
     type:                 d.type,
     asset:                d.asset,
@@ -100,6 +103,7 @@ function toPayload(d: FormData): P2pAdPayload {
     auto_reply:           d.autoReply,
     display_region:       d.displayRegion,
     status:               d.status,
+    ad_create_type:       adCreateType,
   };
 }
 
@@ -122,6 +126,7 @@ const DEFAULT_FORM: FormData = {
   displayRegion: '',
   conditions: { registered: false, registerDays: 0, holdingsBTC: false, holdingsAmount: 0 },
   status: true,
+  ad_create_type: 'merchant',
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────

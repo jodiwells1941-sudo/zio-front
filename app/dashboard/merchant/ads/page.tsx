@@ -43,6 +43,7 @@ export default function Page() {
           displayRegion: ad.display_region ?? "all",
           conditions: ad.conditions ?? {},
           status: Boolean(ad.status),
+          ad_create_type: ad.ad_create_type ?? "merchant",
         });
       } catch (err) {        
         toast.error("Ads data not found. Please try again.");

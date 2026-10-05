@@ -91,8 +91,11 @@ export default function LeftSidebar({
       label: "Local Buy & Sell", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake",
       subItems: [
         { label: "Marketplace", href: "/dashboard/local-buy-sell", newTab: false },
+        { label: "Create Ad", href: "/dashboard/local-buy-sell/create-ad", newTab: false },
         { label: "My Orders", href: "/dashboard/local-buy-sell/my-orders", newTab: false },
+        { label: "My Ads", href: "/dashboard/local-buy-sell/my-ads", newTab: false },
         { label: "My Requests", href: "/dashboard/local-buy-sell/my-requests", newTab: false },
+        { label: "Appeal & Dispute", href: "/dashboard/local-buy-sell/appeal-center", newTab: false },
       ],
     },
     { label: "Lottery", href: "/dashboard/lottery", iconClass: "fa-regular fa-futbol" },

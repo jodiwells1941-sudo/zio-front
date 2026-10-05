@@ -75,7 +75,7 @@ export default function AddSecurityMoneyModal({
 
   const parsedAmount     = parseFloat(amountRaw) || 0;
   const previewBalance   = Math.max(walletBalance - parsedAmount, 0);
-  const previewSecurity  = currentSecurityDeposit + parsedAmount;
+  const previewSecurity  = currentSecurityDeposit;
   const hasValidAmount   = parsedAmount >= MIN_AMOUNT && parsedAmount <= walletBalance;
 
   // ── Handlers ─────────────────────────────────────────────────────────────

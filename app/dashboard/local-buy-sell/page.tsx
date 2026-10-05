@@ -1,12 +1,13 @@
 'use client';
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactSelect from "react-select";
 import countryList from "react-select-country-list";
-import CreateRequest from "./CreateRequest";
+import { toast } from "react-toastify";
+import { getLocalAds, P2pAdsData } from "@/app/api/p2padsapi";
 import "./localBuySell.css";
+import Link from "next/link";
 
-/* ---------------- Data ---------------- */
-// Your currency list
+/* ---------------- Static data ---------------- */
 const CURRENCIES = [
   { code: "USD", name: "US Dollar" },
   { code: "EUR", name: "Euro" },
@@ -28,68 +29,65 @@ const COUNTRY_CUR: Record<string, string> = {
     ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES", "HR"].map(c => [c, "EUR"])
   ),
 };
-// currency -> home country (EUR has no single country)
 const CUR_HOME: Record<string, string> = { BDT: "BD", INR: "IN", PKR: "PK", USD: "US", GBP: "GB", AUD: "AU", CAD: "CA", JPY: "JP", CNY: "CN", CHF: "CH", EUR: "" };
-// currency -> flag file
 const CUR_FLAG: Record<string, string> = { BDT: "bd", INR: "in", PKR: "pk", USD: "us", GBP: "gb", EUR: "eu", AUD: "au", CAD: "ca", JPY: "jp", CNY: "cn", CHF: "ch" };
 
-// quick pills (country code "" = Euro zone)
-const PILLS = [
-  { cc: "BD", name: "Bangladesh", cur: "BDT" },
-  { cc: "IN", name: "India", cur: "INR" },
-  { cc: "PK", name: "Pakistan", cur: "PKR" },
-  { cc: "US", name: "USA", cur: "USD" },
-  { cc: "GB", name: "UK", cur: "GBP" },
-  { cc: "", name: "Europe", cur: "EUR" },
-  { cc: "AU", name: "Australia", cur: "AUD" },
-  { cc: "CA", name: "Canada", cur: "CAD" },
-  { cc: "JP", name: "Japan", cur: "JPY" },
-  { cc: "CN", name: "China", cur: "CNY" },
-  { cc: "CH", name: "Switzerland", cur: "CHF" },
-];
-
-const METHODS: Record<string, { label: string; color: string; glyph: string }> = {
-  bKash: { label: "bKash", color: "#e2136e", glyph: "b" },
-  Nagad: { label: "Nagad", color: "#f26522", glyph: "N" },
-  Rocket: { label: "Rocket", color: "#8c3494", glyph: "R" },
-  "Bank Transfer": { label: "Bank Transfer", color: "#1d6fe0", glyph: "⌂" },
+// icon colours for well-known methods; anything else gets a neutral tile
+const METHOD_STYLE: Record<string, { color: string; glyph: string }> = {
+  bKash: { color: "#e2136e", glyph: "b" },
+  Nagad: { color: "#f26522", glyph: "N" },
+  Rocket: { color: "#8c3494", glyph: "R" },
+  "Bank Transfer": { color: "#1d6fe0", glyph: "⌂" },
 };
-
-type Offer = { user: string; rating: number; trades: number; rate: number; available: number; min: number; max: number; method: string };
-type Option = { label: string; value: string };
-
-const BUY: Offer[] = [
-  { user: "Alamin H.", rating: 4.9, trades: 125, rate: 121.5, available: 500, min: 10, max: 500, method: "bKash" },
-  { user: "Nusrat F.", rating: 5.0, trades: 320, rate: 121.8, available: 1200, min: 50, max: 1000, method: "Nagad" },
-  { user: "Rashid K.", rating: 4.8, trades: 210, rate: 122.0, available: 800, min: 20, max: 800, method: "Bank Transfer" },
-  { user: "Shakil A.", rating: 4.7, trades: 98, rate: 122.1, available: 300, min: 10, max: 300, method: "Rocket" },
-  { user: "Tanvir H.", rating: 4.9, trades: 178, rate: 122.2, available: 1000, min: 50, max: 1000, method: "Bank Transfer" },
-  { user: "Mahmud R.", rating: 4.8, trades: 96, rate: 122.3, available: 650, min: 20, max: 650, method: "bKash" },
-  { user: "Tania R.", rating: 4.9, trades: 290, rate: 122.5, available: 400, min: 10, max: 400, method: "Nagad" },
-  { user: "Karim S.", rating: 4.7, trades: 75, rate: 122.6, available: 900, min: 50, max: 900, method: "Bank Transfer" },
-];
-const SELL: Offer[] = [
-  { user: "Karim S.", rating: 4.8, trades: 112, rate: 122.8, available: 300, min: 10, max: 300, method: "bKash" },
-  { user: "Mim A.", rating: 4.9, trades: 205, rate: 123.0, available: 600, min: 20, max: 600, method: "Bank Transfer" },
-  { user: "Rasel M.", rating: 4.7, trades: 78, rate: 123.1, available: 250, min: 10, max: 250, method: "Nagad" },
-  { user: "Nayeem H.", rating: 4.8, trades: 130, rate: 123.2, available: 1000, min: 50, max: 1000, method: "Rocket" },
-  { user: "Shuvo D.", rating: 4.6, trades: 52, rate: 123.3, available: 500, min: 20, max: 500, method: "bKash" },
-  { user: "Parvez K.", rating: 4.8, trades: 98, rate: 123.5, available: 350, min: 10, max: 350, method: "Bank Transfer" },
-  { user: "Rita S.", rating: 4.9, trades: 165, rate: 123.6, available: 800, min: 50, max: 800, method: "Nagad" },
-  { user: "Jahid H.", rating: 4.8, trades: 88, rate: 123.8, available: 450, min: 20, max: 450, method: "Rocket" },
-];
-
-// what your API would return for the selected currency
-const availableMethods = Object.keys(METHODS).map(name => ({ name }));
-
 const AVATAR_COLORS = ["#2563eb", "#0d9488", "#7c3aed", "#db2777", "#ea580c", "#16a34a"];
-const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0 });
+
+type Option = { label: string; value: string };
+type Kind = "buy" | "sell";   // what the VIEWER wants to do
+
+// A viewer who wants to BUY USDT needs ads where the owner wants to SELL, and vice-versa.
+const API_TYPE: Record<Kind, "buy" | "sell"> = { buy: "sell", sell: "buy" };
+
+type Bucket = {
+  items: P2pAdsData[]; page: number; last: number; total: number;
+  from: number; to: number; loading: boolean; updated: string;
+};
+const EMPTY: Bucket = { items: [], page: 1, last: 1, total: 0, from: 0, to: 0, loading: true, updated: "" };
+
+const n2 = (v: number | string, d = 2) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }) : "-";
+};
+const apiMsg = (e: any, fb: string) => e?.response?.data?.message ?? e?.message ?? fb;
+const clock = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+/** value after `ms` of quiet; `flush()` applies the latest value immediately */
+function useDebounced<T>(value: T, ms: number): [T, () => void] {
+  const [v, setV] = useState(value);
+  const key = JSON.stringify(value);
+  const latest = useRef(value);
+  latest.current = value;
+  useEffect(() => {
+    const t = setTimeout(() => setV(latest.current), ms);
+    return () => clearTimeout(t);
+  }, [key, ms]);
+  return [v, () => setV(latest.current)];
+}
+
+/** 1 … 4 5 6 … 20 */
+function pageItems(page: number, last: number): (number | "…")[] {
+  const set = new Set([1, last, page - 1, page, page + 1]);
+  if (page <= 3) { set.add(2); set.add(3); }
+  if (page >= last - 2) { set.add(last - 1); set.add(last - 2); }
+  const nums = [...set].filter(n => n >= 1 && n <= last).sort((a, b) => a - b);
+  const out: (number | "…")[] = [];
+  nums.forEach((n, i) => { if (i && n - nums[i - 1] > 1) out.push("…"); out.push(n); });
+  return out;
+}
 
 /* ---------------- Small parts ---------------- */
 const Flag = ({ cc, size = 20 }: { cc: string; size?: number }) => (
   <img className="pf-flag" src={`https://flagcdn.com/w40/${cc.toLowerCase()}.png`} srcSet={`https://flagcdn.com/w80/${cc.toLowerCase()}.png 2x`} width={size} height={size} alt="" loading="lazy" />
 );
-
 const Chevron = () => (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
 );
@@ -101,27 +99,58 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div className="pf-field"><label className="pf-label">{label}</label>{children}</div>;
 }
 
-function Row({ o, kind, idx }: { o: Offer; kind: "buy" | "sell"; idx: number }) {
-  const m = METHODS[o.method];
+function Row({ ad, kind, onTrade }: { ad: P2pAdsData; kind: Kind; onTrade: (ad: P2pAdsData, kind: Kind) => void }) {
+  const method = ad.payment_method?.sell_method?.name ?? "—";
+  const style = METHOD_STYLE[method] ?? { color: "#3b82f6", glyph: method[0] ?? "?" };
+  const name = ad.user?.name ?? "—";
   return (
     <div className="pf-row">
       <div className="pf-user">
-        <span className="pf-avatar" style={{ background: AVATAR_COLORS[(o.user.charCodeAt(0) + idx) % AVATAR_COLORS.length] }}>{o.user[0]}</span>
+        {ad.user?.avatar
+          ? <img className="pf-avatar pf-avatar--img" src={ad.user.avatar} alt="" loading="lazy" />
+          : <span className="pf-avatar" style={{ background: AVATAR_COLORS[(name.charCodeAt(0) + ad.id) % AVATAR_COLORS.length] }}>{name[0]}</span>}
         <div>
-          <div className="pf-name">{o.user}</div>
-          <div className="pf-rating"><span className="pf-star">★</span> {o.rating.toFixed(1)} ({o.trades} trades)</div>
+          <div className="pf-name">{name}</div>
+          <div className="pf-rating"><i className="fa-regular fa-clock" /> {ad.payment_time_limit} min</div>
         </div>
       </div>
-      <div className={`pf-rate pf-rate--${kind}`}>{o.rate.toFixed(2)}</div>
-      <div className="pf-cell">{o.available.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-      <div className="pf-cell">{o.min} – {fmt(o.max)}</div>
-      <div className="pf-method"><span className="pf-mico" style={{ background: m.color }}>{m.glyph}</span>{m.label}</div>
-      <button className={`pf-cta pf-cta--${kind}`}>{kind === "buy" ? "Buy" : "Sell"} USDT</button>
+      <div className={`pf-rate pf-rate--${kind}`}>{n2(ad.fixed_price)} <small className="pf-unit">{ad.with_fiat}</small></div>
+      <div className="pf-cell">{n2(ad.total_amount)}</div>
+      <div className="pf-cell">{n2(ad.order_limit_min, 0)} – {n2(ad.order_limit_max, 0)}</div>
+      <div className="pf-method"><span className="pf-mico" style={{ background: style.color }}>{style.glyph}</span>{method}</div>
+      <button type="button" className={`pf-cta pf-cta--${kind}`} onClick={() => onTrade(ad, kind)}>{kind === "buy" ? "Buy" : "Sell"} USDT</button>
     </div>
   );
 }
 
-function Panel({ kind, offers, cur }: { kind: "buy" | "sell"; offers: Offer[]; cur: string }) {
+function Pager({ b, onPage }: { b: Bucket; onPage: (p: number) => void }) {
+  if (b.total === 0) return null;
+  return (
+    <nav className="pf-pager" aria-label="Offers pagination">
+      <span className="pf-pager-info">Showing <b>{b.from}–{b.to}</b> of <b>{b.total}</b> offers</span>
+      {b.last > 1 && (
+        <div className="pf-pager-btns">
+          <button type="button" className="pf-pg" disabled={b.page <= 1 || b.loading} onClick={() => onPage(b.page - 1)} aria-label="Previous page">
+            <i className="fa-solid fa-chevron-left" />
+          </button>
+          {pageItems(b.page, b.last).map((it, i) =>
+            it === "…"
+              ? <span key={`e${i}`} className="pf-pg-gap">…</span>
+              : <button key={it} type="button" className={`pf-pg ${it === b.page ? "is-active" : ""}`} aria-current={it === b.page ? "page" : undefined} disabled={b.loading} onClick={() => onPage(it)}>{it}</button>
+          )}
+          <button type="button" className="pf-pg" disabled={b.page >= b.last || b.loading} onClick={() => onPage(b.page + 1)} aria-label="Next page">
+            <i className="fa-solid fa-chevron-right" />
+          </button>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function Panel({ kind, b, cur, onRefresh, onPage, onTrade }: {
+  kind: Kind; b: Bucket; cur: string;
+  onRefresh: () => void; onPage: (p: number) => void; onTrade: (ad: P2pAdsData, kind: Kind) => void;
+}) {
   const buy = kind === "buy";
   return (
     <section className={`pf-panel pf-panel--${kind}`}>
@@ -132,10 +161,10 @@ function Panel({ kind, offers, cur }: { kind: "buy" | "sell"; offers: Offer[]; c
           <p>{buy ? "Pay with your local currency to buy USDT" : "Receive your local currency by selling USDT"}</p>
         </div>
         <div className="pf-panel-meta">
-          <span>Total Offers: <b>{offers.length}</b></span>
-          <span className="pf-muted">Update: Just now</span>
+          <span>Total Offers: <b>{b.total}</b></span>
+          <span className="pf-muted">{b.updated ? `Updated ${b.updated}` : "Loading…"}</span>
         </div>
-        <button className="pf-refresh" aria-label="Refresh offers">
+        <button type="button" className={`pf-refresh ${b.loading ? "is-spinning" : ""}`} aria-label="Refresh offers" onClick={onRefresh} disabled={b.loading}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>
         </button>
       </header>
@@ -143,41 +172,127 @@ function Panel({ kind, offers, cur }: { kind: "buy" | "sell"; offers: Offer[]; c
       <div className="pf-scroll">
         <div className="pf-table">
           <div className="pf-row pf-row--head">
-            <div>User</div><div>Rate ({cur || "—"})</div><div>Available (USDT)</div><div>Limit (USDT)</div><div>Payment Method</div><div>Action</div>
+            <div>User</div><div>Rate{cur ? ` (${cur})` : ""}</div><div>Available (USDT)</div><div>Limit (USDT)</div><div>Payment Method</div><div>Action</div>
           </div>
-          {offers.length === 0 && <div className="pf-empty">No offers match these filters. Try widening the amount or rate range.</div>}
-          {offers.map((o, i) => <Row key={o.user + i} o={o} kind={kind} idx={i} />)}
+
+          {b.loading && b.items.length === 0 &&
+            [0, 1, 2, 3, 4].map(i => <div key={i} className="pf-row pf-skel"><span /><span /><span /><span /><span /><span /></div>)}
+
+          {!b.loading && b.items.length === 0 && (
+            <div className="pf-empty">No offers match these filters. Try widening the amount or rate range.</div>
+          )}
+
+          <div className={b.loading && b.items.length > 0 ? "pf-fading" : undefined}>
+            {b.items.map(ad => <Row key={ad.id} ad={ad} kind={kind} onTrade={onTrade} />)}
+          </div>
         </div>
       </div>
+
+      <Pager b={b} onPage={onPage} />
     </section>
   );
 }
 
 /* ---------------- Page ---------------- */
 export default function Page() {
-  // filters (same names as your original filter code)
+  // filters
   const [country, setCountry] = useState("BD");           // ISO2, "" = none
   const [filterFiat, setFilterFiat] = useState("BDT");
   const [filterMethod, setFilterMethod] = useState("");
   const [amt, setAmt] = useState({ min: "", max: "" });
   const [rate, setRate] = useState({ min: "", max: "" });
 
-  const [tab, setTab] = useState<"buy" | "sell">("buy");
-  const [more, setMore] = useState(false);
+  const [tab, setTab] = useState<Kind>("buy");
   const [view, setView] = useState<"market" | "create">("market");
 
-  const countryOptions = useMemo(() => countryList().getData() as Option[], []);
-  const currencyOptions = useMemo<Option[]>(
-    () => CURRENCIES.map(c => ({ value: c.code, label: `${c.code} — ${c.name}` })),
-    []
-  );
+  // data
+  const [data, setData] = useState<Record<Kind, Bucket>>({ buy: EMPTY, sell: EMPTY });
+  const [methodNames, setMethodNames] = useState<string[]>([]);
+  const [tick, setTick] = useState(0);
+  const reqId = useRef<Record<Kind, number>>({ buy: 0, sell: 0 });
 
+  const countryOptions = useMemo(() => countryList().getData() as Option[], []);
+  const currencyOptions = useMemo<Option[]>(() => CURRENCIES.map(c => ({ value: c.code, label: `${c.code} — ${c.name}` })), []);
   const countryValue = countryOptions.find(o => o.value === country) ?? null;
   const currencyValue = currencyOptions.find(o => o.value === filterFiat) ?? null;
-  const methods = useMemo(() => [...new Map(availableMethods.map(m => [m.name, m])).values()], []);
-  const pills = more ? PILLS : PILLS.slice(0, 6);
 
-  /* handlers */
+  // selects apply instantly, typed ranges after a short pause
+  const [filters, flushFilters] = useDebounced(
+    { fiat: filterFiat, method: filterMethod, amtMin: amt.min, amtMax: amt.max, rateMin: rate.min, rateMax: rate.max },
+    400
+  );
+
+  const methodOptions = useMemo(
+    () => (filterMethod && !methodNames.includes(filterMethod) ? [...methodNames, filterMethod] : methodNames),
+    [methodNames, filterMethod]
+  );
+
+  /* ---- fetching ---- */
+  const fetchBucket = useCallback(async (kind: Kind, page = 1) => {
+    const id = ++reqId.current[kind];
+    setData(p => ({ ...p, [kind]: { ...p[kind], loading: true } }));
+    try {
+      const params: Record<string, string | number | undefined> = {
+        type: API_TYPE[kind],
+        page,
+        withFiat: filters.fiat || undefined,
+        payment_method: filters.method || undefined,
+        amount_min: filters.amtMin || undefined,
+        amount_max: filters.amtMax || undefined,
+        rate_min: filters.rateMin || undefined,
+        rate_max: filters.rateMax || undefined,
+      };
+      const res = await getLocalAds(params as any);
+      if (id !== reqId.current[kind]) return;             // a newer request is in flight
+      if (res?.error) throw new Error(res.message);
+
+      const d = res?.data;
+      const items: P2pAdsData[] = Array.isArray(d) ? d : d?.data ?? [];
+
+      setMethodNames(prev => {
+        const set = new Set(prev);
+        items.forEach(a => { const n = a.payment_method?.sell_method?.name; if (n) set.add(n); });
+        return set.size === prev.length ? prev : [...set].sort();
+      });
+
+      setData(p => ({
+        ...p,
+        [kind]: {
+          items,
+          page: d?.current_page ?? page,
+          last: d?.last_page ?? 1,
+          total: d?.total ?? items.length,
+          from: d?.from ?? (items.length ? 1 : 0),
+          to: d?.to ?? items.length,
+          loading: false,
+          updated: clock(),
+        },
+      }));
+    } catch (e: any) {
+      if (id !== reqId.current[kind]) return;
+      toast.error(apiMsg(e, "Failed to load offers."));
+      setData(p => ({ ...p, [kind]: { ...p[kind], loading: false } }));
+    }
+  }, [filters]);
+
+  // new filters / Search / coming back from the create form -> reload both tabs from page 1
+  useEffect(() => {
+    if (view !== "market") return;
+    fetchBucket("buy", 1);
+    fetchBucket("sell", 1);
+  }, [fetchBucket, tick, view]);
+
+  const goToPage = (kind: Kind, p: number) => {
+    fetchBucket(kind, p);
+    document.getElementById("pf-offers")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleTrade = (ad: P2pAdsData, kind: Kind) => {
+    // TODO: open your order flow for this ad, e.g. router.push(`/dashboard/p2p/local/${ad.id}?side=${kind}`)
+    toast.info(`${kind === "buy" ? "Buy" : "Sell"} flow for ad #${ad.id} isn't connected yet.`);
+  };
+
+  /* ---- filter handlers ---- */
   const handleCountry = (opt: Option | null) => {
     const cc = opt?.value ?? "";
     setCountry(cc);
@@ -187,7 +302,7 @@ export default function Page() {
       setFilterFiat(cur);
     }
   };
-  const handleChange = (cur: string) => {              // currency changed
+  const handleChange = (cur: string) => {
     setFilterFiat(cur);
     setFilterMethod("");
     if (cur && cur in CUR_HOME) setCountry(CUR_HOME[cur]);
@@ -196,30 +311,15 @@ export default function Page() {
     setCountry(""); setFilterFiat(""); setFilterMethod("");
     setAmt({ min: "", max: "" }); setRate({ min: "", max: "" });
   };
+  const handleSearch = () => { flushFilters(); setTick(t => t + 1); };
 
   const hasFilter = !!(filterFiat || filterMethod || amt.min || amt.max || rate.min || rate.max);
-
-  const run = (list: Offer[]) =>
-    list.filter(o =>
-      (!filterMethod || o.method === filterMethod) &&
-      (!amt.min || o.max >= +amt.min) && (!amt.max || o.min <= +amt.max) &&
-      (!rate.min || o.rate >= +rate.min) && (!rate.max || o.rate <= +rate.max)
-    );
-  const buy = useMemo(() => run(BUY), [filterMethod, amt, rate]);
-  const sell = useMemo(() => run(SELL), [filterMethod, amt, rate]);
   const num = (v: string) => v.replace(/[^\d.]/g, "");
-
   const formatOption = (o: Option, flag: string) => (
     <span className="pfs-opt"><Flag cc={flag} size={18} />{o.label}</span>
   );
 
-  if (view === "create") {
-    return (
-      <main className="pf">
-        <CreateRequest onBack={() => setView("market")} />
-      </main>
-    );
-  }
+  const cur = data[tab];
 
   return (
     <main className="pf">
@@ -259,7 +359,7 @@ export default function Page() {
           <div className="pf-selwrap">
             <select className="pf-input pf-sel" value={filterMethod} onChange={e => setFilterMethod(e.target.value)} disabled={!filterFiat}>
               <option value="">{filterFiat ? "All Methods" : "Select currency first"}</option>
-              {methods.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+              {methodOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
             <Chevron />
           </div>
@@ -285,56 +385,42 @@ export default function Page() {
           {hasFilter && (
             <button type="button" className="pf-clear" onClick={clearFilters}>Clear filters</button>
           )}
-          <button type="button" className="pf-search">
+          <button type="button" className="pf-search" onClick={handleSearch}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></svg>
             Search
           </button>
         </div>
       </div>
 
-      {/* Country pills */}
-      {/* <div className="pf-pills">
-        {pills.map(p => {
-          const active = p.cc ? country === p.cc : filterFiat === p.cur && !country;
-          return (
-            <button
-              key={p.name}
-              type="button"
-              className={`pf-pill ${active ? "is-active" : ""}`}
-              aria-pressed={active}
-              onClick={() => { setCountry(p.cc); setFilterFiat(p.cur); setFilterMethod(""); }}
-            >
-              <Flag cc={p.cc || "eu"} size={18} />{p.name}
-            </button>
-          );
-        })}
-        <button type="button" className="pf-pill pf-pill--more" onClick={() => setMore(m => !m)}>{more ? "Less" : "More"} <Chevron /></button>
-      </div> */}
-
       {/* Action cards (tabs) */}
       <div className="pf-actions mt-3" role="tablist" aria-label="Offer type">
-        <button role="tab" aria-selected={tab === "buy"} className={`pf-action pf-action--buy ${tab === "buy" ? "is-active" : ""}`} onClick={() => setTab("buy")}>
+        <button type="button" role="tab" aria-selected={tab === "buy"} className={`pf-action pf-action--buy ${tab === "buy" ? "is-active" : ""}`} onClick={() => setTab("buy")}>
           <span className="pf-bigicon"><Cart /></span>
           <span className="pf-action-text"><b>I Want to Buy USDT</b><small>Find users who want to sell (Deposit Requests)</small></span>
-          <span className="pf-count">{buy.length}</span>
+          <span className="pf-count">{data.buy.loading && !data.buy.total ? "…" : data.buy.total}</span>
         </button>
-        <button role="tab" aria-selected={tab === "sell"} className={`pf-action pf-action--sell ${tab === "sell" ? "is-active" : ""}`} onClick={() => setTab("sell")}>
+        <button type="button" role="tab" aria-selected={tab === "sell"} className={`pf-action pf-action--sell ${tab === "sell" ? "is-active" : ""}`} onClick={() => setTab("sell")}>
           <span className="pf-bigicon"><Cart /></span>
           <span className="pf-action-text"><b>I Want to Sell USDT</b><small>Find users who want to buy (Withdraw Requests)</small></span>
-          <span className="pf-count">{sell.length}</span>
+          <span className="pf-count">{data.sell.loading && !data.sell.total ? "…" : data.sell.total}</span>
         </button>
-        <button type="button" className="pf-action pf-action--create" onClick={() => setView("create")}>
+        <Link href="/dashboard/local-buy-sell/create-ad" className="pf-action pf-action--create">
           <span className="pf-bigicon pf-bigicon--plus">+</span>
           <span className="pf-action-text"><b>Create Your Own Request</b><small>Create Deposit or Withdraw request</small></span>
           <span className="pf-arrow"><Chevron /></span>
-        </button>
+        </Link>
       </div>
 
       {/* Table for the active tab */}
-      <div className="pf-tables" role="tabpanel">
-        {tab === "buy"
-          ? <Panel kind="buy" offers={buy} cur={filterFiat} />
-          : <Panel kind="sell" offers={sell} cur={filterFiat} />}
+      <div id="pf-offers" className="pf-tables" role="tabpanel">
+        <Panel
+          kind={tab}
+          b={cur}
+          cur={filterFiat}
+          onRefresh={() => fetchBucket(tab, cur.page)}
+          onPage={p => goToPage(tab, p)}
+          onTrade={handleTrade}
+        />
       </div>
     </main>
   );
