@@ -102,8 +102,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   const availableValue = Math.max(walletBalance - sellValue, 0);
   const totalValue    = walletBalance;
 
-  const sellerName   = ad.merchant.full_name          ?? 'Unknown';
-  const sellerAvatar = ad.merchant.avatar         ?? '';
+  const sellerName   = ad.user.name          ?? 'Unknown';
+  const sellerAvatar = ad.user.avatar         ?? '';
   const methodName   = ad.payment_method?.sell_method?.name
                     ?? ad.payment_method?.sell_method?.name
                     ?? 'N/A';
@@ -149,7 +149,9 @@ export default function LocalSellModal({ onClose, ad }: Props) {
 
       toast.success("Sell trade created successfully!");
       onClose();
-      router.push(`/dashboard/wallet/sell?trade_id=${tradeId}`);
+      // router.push(`/dashboard/wallet/sell?trade_id=${tradeId}`);
+      router.push(`/dashboard/local-buy-sell/my-orders/sell-view?trade_id=${tradeId}`);
+
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? e?.message ?? "Failed to create trade.");
     } finally {
@@ -372,7 +374,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
                   </button>
                   <button
                     type="button"
-                    className="bg-danger rounded-pill py-2 text-sm d-flex align-items-center justify-content-center w-100"
+                    className="bg-danger fw-bold rounded-pill py-2 text-sm d-flex align-items-center justify-content-center w-100"
                     onClick={handleSell}
                     disabled={submitting}
                   >

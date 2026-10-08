@@ -63,10 +63,12 @@ export function useTradeChat(tradeId: number | null) {
 
         if (trade.type === 'sell') {
           // const cp = meId === trade.client_id ? trade.customer?.name : trade.client?.name;
-          const cp = meId === trade.client_id ? trade.merchant?.name : trade.client?.name;
+          const cp = meId === trade.client_id ? trade.merchant?.name ? trade.merchant?.name : trade.customer?.name : trade.client?.name;
+          // const cp = meId === trade.client_id ? trade.merchant?.name : trade.client?.name;
           setCounterpartyName(cp || "Counterparty");
         }else{
-          const cp = meId === trade.client_id ? trade.customer?.name : trade.merchant?.name;
+          // const cp = meId === trade.client_id ? trade.customer?.name : trade.merchant?.name;
+          const cp = meId === trade.client_id ? trade.customer?.name : trade.merchant?.name ? trade.merchant?.name : trade.client?.name;
           setCounterpartyName(cp || "Counterparty");
         }
 

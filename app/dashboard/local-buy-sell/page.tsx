@@ -4,6 +4,8 @@ import ReactSelect from "react-select";
 import countryList from "react-select-country-list";
 import { toast } from "react-toastify";
 import { getLocalAds, P2pAdsData } from "@/app/api/p2padsapi";
+import LocalBuyModal from "./localBuyModal";
+import LocalSellModal from "./localSellModal";
 import "./localBuySell.css";
 import Link from "next/link";
 
@@ -204,6 +206,7 @@ export default function Page() {
 
   const [tab, setTab] = useState<Kind>("buy");
   const [view, setView] = useState<"market" | "create">("market");
+  const [tradeModal, setTradeModal] = useState<{ ad: P2pAdsData; kind: Kind } | null>(null);
 
   // data
   const [data, setData] = useState<Record<Kind, Bucket>>({ buy: EMPTY, sell: EMPTY });
@@ -288,8 +291,7 @@ export default function Page() {
   };
 
   const handleTrade = (ad: P2pAdsData, kind: Kind) => {
-    // TODO: open your order flow for this ad, e.g. router.push(`/dashboard/p2p/local/${ad.id}?side=${kind}`)
-    toast.info(`${kind === "buy" ? "Buy" : "Sell"} flow for ad #${ad.id} isn't connected yet.`);
+    setTradeModal({ ad, kind });
   };
 
   /* ---- filter handlers ---- */
@@ -422,6 +424,14 @@ export default function Page() {
           onTrade={handleTrade}
         />
       </div>
+
+      {tradeModal && tradeModal.kind === "buy" && (
+        <LocalBuyModal ad={tradeModal.ad} onClose={() => setTradeModal(null)} />
+      )}
+
+      {tradeModal && tradeModal.kind === "sell" && (
+        <LocalSellModal ad={tradeModal.ad} onClose={() => setTradeModal(null)} />
+      )}
     </main>
   );
 }

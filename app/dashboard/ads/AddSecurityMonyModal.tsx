@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { addSecurityMoney } from "@/app/api/common"; // adjust import path as needed
+// import { addSecurityMoney } from "@/app/api/common"; // adjust import path as needed
 import { toast } from "react-toastify";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -109,8 +109,8 @@ export default function AddSecurityMoneyModal({
     setApiError("");
 
     try {
-      const res = await addSecurityMoney({ amount: parsedAmount });
-      onSuccess(res?.data?.new_security_deposit ?? previewSecurity);
+      // const res = await addSecurityMoney({ amount: parsedAmount });
+      // onSuccess(res?.data?.new_security_deposit ?? previewSecurity);
       onClose();
       toast.success("Security deposit added successfully!");
     } catch (err: unknown) {
@@ -292,7 +292,7 @@ export default function AddSecurityMoneyModal({
               </>
             ) : (
               <>
-                Confirm Deposit <span className="arrow">›</span>
+                Ok <span className="arrow">›</span>
               </>
             )}
           </button>

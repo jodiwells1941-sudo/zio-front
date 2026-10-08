@@ -352,7 +352,7 @@ export default function AdsTable() {
       {loading ? (
         <p className="text-center py-5">Loading...</p>
       ) : filteredTrades.length === 0 ? (
-        <p className="text-center py-5 text-muted">No trades found.</p>
+        <p className="text-center py-5 text-warning">No trades found.</p>
       ) : (
         <>
           <div className="d-none d-md-block">

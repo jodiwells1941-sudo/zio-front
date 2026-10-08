@@ -1,6 +1,6 @@
 "use client";
 
-import { getLocalTrades, updateTradeStatus } from "@/app/api/trade";
+import { getLocalMyTrades, updateTradeStatus } from "@/app/api/trade";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -82,7 +82,7 @@ export default function Page() {
         ...(toDate   ? { to_date: toDate }     : {}),
       };
 
-      const res = await (getLocalTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
+      const res = await (getLocalMyTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
 
       const paginated = (res as any)?.data;
       setTrades(paginated?.data ?? paginated ?? []);
@@ -243,7 +243,7 @@ export default function Page() {
 
   /**
    * Fiat payer after approve uses P2PTransferCard (`/local-buy-sell/my-orders/buy-view`).
-   * Crypto seller / fiat receiver for release step uses BuyerPaymentCard (`/local-buy-sell/my-orders/sell-view`).
+   * Crypto seller / fiat receiver for release step uses BuyerPaymentCard (`/wallet/sell`).
    */
   const getTradeDetailsPath = (trade: Trade) => {
     const side = trade.order_side;
@@ -270,7 +270,8 @@ export default function Page() {
 
   return (
     <div className="h-screen">
-      <h5 className="my-3 py-3 ">My Order List</h5>
+
+      <h5 className="my-3 py-3 ">My Send Requests</h5>
 
       {/* ── Toolbar ── */}
       <div className="trades-toolbar">

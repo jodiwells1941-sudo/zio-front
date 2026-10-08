@@ -139,3 +139,14 @@ export const generateTradeReview = async (data: any) => {
   return response?.data;
 };
 
+// Get all trades for the authenticated user (paginated)
+export const getLocalTrades = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/local-trade', { params });
+  return response?.data;
+};
+
+export const getLocalMyTrades = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/local-trade/my', { params });
+  return response?.data;
+};
+

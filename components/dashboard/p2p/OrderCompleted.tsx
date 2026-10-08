@@ -23,7 +23,7 @@ function CopyBtn({ text, id }: { text: string; id: string }) {
   );
 }
 
-export default function OrderCompleted({ trade }: { trade?: any }) {
+export default function OrderCompleted({ trade, from }: { trade?: any; from?: string }) {
   const [feedback,   setFeedback]   = useState<"positive" | "negative" | null>(null);
   const [tags,       setTags]       = useState<string[]>([]);
   const [comment,    setComment]    = useState("");
@@ -225,6 +225,7 @@ export default function OrderCompleted({ trade }: { trade?: any }) {
                       tradeId={trade.id}
                       buyerId={trade.customer_id}
                       clientId={trade.client_id}
+                      from={from}
                     />
                   ) : (
                     <div className="bg-dark p-3 rounded-3 text-center">

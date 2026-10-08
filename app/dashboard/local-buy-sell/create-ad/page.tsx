@@ -594,7 +594,7 @@ export default function CreateRequest({ onBack, onDone, editId }: { onBack: () =
             </p>
           )}
 
-          <button type="button" className="cr-submit" onClick={handleSubmit} disabled={submitting}>
+          <button type="button" className="cr-submit bg-warning" onClick={handleSubmit} disabled={submitting}>
             {submitting ? (isEdit ? 'Saving…' : 'Posting…') : (isEdit ? 'Update request' : 'Post request')}
             {!submitting && <i className="fa-solid fa-paper-plane" />}
           </button>

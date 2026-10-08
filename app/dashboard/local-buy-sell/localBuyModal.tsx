@@ -137,7 +137,9 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
 
       toast.success("Trade created successfully!");
       onClose();
-      router.push(`/dashboard/wallet/p2p/?trade_id=${tradeId}`);
+      // router.push(`/dashboard/wallet/p2p/?trade_id=${tradeId}`);
+      router.push(`/dashboard/local-buy-sell/my-orders/buy-view?trade_id=${tradeId}`);
+
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? e?.message ?? "Failed to create trade.");
     } finally {
@@ -359,7 +361,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
                   </button>
                   <button
                     type="button"
-                    className="btn--primary py-2 text-sm d-flex align-items-center justify-content-center w-100"
+                    className="btn--primary text-black fw-bold py-2 text-sm d-flex align-items-center justify-content-center w-100"
                     onClick={handleBuy}
                     disabled={submitting}
                   >

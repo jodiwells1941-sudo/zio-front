@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getMyLocalAds, toggleAdStatus, deleteAd, P2pAdsData } from '@/app/api/p2padsapi';
 import './LocalMyAds.css';
+import Link from 'next/link';
 
 type Kind = 'buy' | 'sell';
 type Bucket = { items: P2pAdsData[]; page: number; last: number; total: number; loading: boolean };
@@ -130,11 +131,9 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
     <div className={`ma ma--${tab}`}>
       <div className="ma-head justify-content-between mt-3">
         <button type="button" className="ma-back" onClick={onBack}><i className="fa-solid fa-arrow-left" /> Back to market</button>
-        {/* <div className="ma-title">
-          <h2>My Local Ads</h2>
-          <p>Manage the requests you posted from the marketplace.</p>
-        </div> */}
-        <button type="button" className="ma-create" onClick={onCreate}><i className="fa-solid fa-plus" /> Create request</button>
+        <Link href="/dashboard/local-buy-sell/create-ad" type="button" className="ma-create">
+          <i className="fa-solid fa-plus" /> Create Ad
+        </Link>
       </div>
 
       <div className="ma-tabs" role="tablist" aria-label="Ad type">

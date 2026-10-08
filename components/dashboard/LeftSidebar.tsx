@@ -95,6 +95,7 @@ export default function LeftSidebar({
         { label: "My Orders", href: "/dashboard/local-buy-sell/my-orders", newTab: false },
         { label: "My Ads", href: "/dashboard/local-buy-sell/my-ads", newTab: false },
         { label: "My Requests", href: "/dashboard/local-buy-sell/my-requests", newTab: false },
+        { label: "Chat List", href: "/dashboard/local-buy-sell/chat-list", newTab: false },
         { label: "Appeal & Dispute", href: "/dashboard/local-buy-sell/appeal-center", newTab: false },
       ],
     },

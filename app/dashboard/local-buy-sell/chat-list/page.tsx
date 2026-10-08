@@ -1,6 +1,5 @@
 "use client";
 
-import P2PTopNav from "@/components/dashboard/p2p/P2PTopNav";
 import { chatAvatarColor } from "@/components/dashboard/chat/ChatData";
 import { getTrades, type TradeListRow } from "@/app/api/trade";
 import { useTradeChat } from "@/hooks/useTradeChat";
@@ -72,7 +71,7 @@ export default function ChatPage() {
 
   const selectTrade = (id: number) => {
     setActiveTradeId(id);
-    router.replace(`/dashboard/chat?trade_id=${id}`, { scroll: false });
+    router.replace(`/dashboard/local-buy-sell/chat-list?trade_id=${id}`, { scroll: false });
   };
 
   const activeRow = trades.find((t) => t.id === activeTradeId);
@@ -82,7 +81,6 @@ export default function ChatPage() {
 
   return (
     <div className="p2pPage mt-5 border border-dark-light">
-      <P2PTopNav />
       <div className="chat-page">
         <aside className="chat-sidebar">
           <div className="chat-search-wrapper">
@@ -152,7 +150,7 @@ export default function ChatPage() {
                   className="chat-mobile-close"
                   onClick={() => {
                     setActiveTradeId(null);
-                    router.replace("/dashboard/chat", { scroll: false });
+                    router.replace("/dashboard/local-buy-sell/chat-list", { scroll: false });
                   }}
                   aria-label="Back to list"
                 >
