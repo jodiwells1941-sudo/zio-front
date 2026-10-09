@@ -600,6 +600,7 @@ export default function BuyerPaymentCard() {
                       Once you have confirmed the payment has been credited to your account, click the button below to release the crypto.
                     </div>
                     <div className="p2pActions">
+                      
                       {isBuyerDispatched && canRelease && (
                         <button
                           className="p2pPrimaryBtn"
@@ -610,6 +611,7 @@ export default function BuyerPaymentCard() {
                           Payment Received
                         </button>
                       )}
+
                       {canDispute && (
                         <button
                           className="p2pGhostBtn"
