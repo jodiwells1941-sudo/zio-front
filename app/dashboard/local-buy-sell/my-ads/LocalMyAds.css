@@ -101,3 +101,125 @@
 .pf-myads:hover { border-color: rgba(140, 180, 255, .5); }
 /* Buy/Sell can't be switched while editing an ad */
 .cr-type-btn:disabled { cursor: not-allowed; }
+
+/* ── Header title block ─────────────────────────────────── */
+.ma-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+.ma-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #7b8ba3;
+}
+
+/* ── Action buttons bar ─────────────────────────────────── */
+.ma-actions-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 16px 0 18px;
+}
+
+.ma-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 20px;
+  border: 1.5px solid;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: #fff;
+  font-family: inherit;
+  transition: transform .15s, filter .15s, box-shadow .15s;
+}
+.ma-cta:hover { transform: translateY(-2px); filter: brightness(1.06); }
+.ma-cta:active { transform: translateY(0); }
+
+.ma-cta--buy {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+  border-color: rgba(52, 211, 153, .55);
+  box-shadow: 0 10px 26px rgba(16, 185, 129, .22);
+}
+.ma-cta--buy:hover { box-shadow: 0 14px 34px rgba(16, 185, 129, .35); }
+
+.ma-cta--sell {
+  background: linear-gradient(135deg, #4c0519 0%, #7f1d1d 60%, #991b1b 100%);
+  border-color: rgba(248, 113, 113, .55);
+  box-shadow: 0 10px 26px rgba(239, 68, 68, .22);
+}
+.ma-cta--sell:hover { box-shadow: 0 14px 34px rgba(239, 68, 68, .35); }
+
+.ma-cta-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .12);
+  font-size: 19px;
+  color: #fff;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .15) inset;
+}
+
+.ma-cta-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ma-cta-text b {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: .1px;
+}
+.ma-cta-text small {
+  font-size: 12px;
+  color: rgba(255, 255, 255, .72);
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.ma-cta-plus {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .15);
+  font-size: 13px;
+  color: #fff;
+  transition: transform .15s;
+}
+.ma-cta:hover .ma-cta-plus { transform: rotate(90deg); }
+
+/* ── Empty-state create button coloring ──────────────────── */
+.ma-create--buy {
+  background: linear-gradient(180deg, #22c55e, #15803d);
+  color: #fff;
+  border-color: transparent;
+}
+.ma-create--buy:hover { filter: brightness(1.08); }
+
+.ma-create--sell {
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  color: #fff;
+  border-color: transparent;
+}
+.ma-create--sell:hover { filter: brightness(1.08); }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .ma-actions-bar { grid-template-columns: 1fr; }
+  .ma-title { font-size: 19px; }
+}

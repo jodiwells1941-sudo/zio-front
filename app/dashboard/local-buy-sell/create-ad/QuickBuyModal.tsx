@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactSelect from 'react-select';
 import { toast } from 'react-toastify';
-import { createAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
+import { createAd, getAd, updateAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
 import { createUserPaymentMethod, getUserPaymentMethods } from '@/app/api/common';
 import PaymentModal from '@/components/dashboard/p2pProfile/Paymentmodal';
 import { ModalMode, PaymentFormData } from '@/types/P2PProfileTypes';
@@ -14,15 +14,16 @@ import { getDepositBonusApi } from '@/app/api/wallet';
 type Option = { value: string; label: string };
 
 type DepositBonusData = {
-  deposit_amount: number;   // fiat amount (BDT)
-  bonus_amount: number;     // ← USDT (per backend)
-  total_credit: number;     // ← USDT (per backend)
+  deposit_amount: number;
+  bonus_amount: number;
+  total_credit: number;
   tier_id: number | null;
 };
 
 interface Props {
   onClose: () => void;
   onSuccess?: () => void;
+  editId?: number;
 }
 
 /* ───────────── Constants ───────────── */
@@ -41,10 +42,8 @@ const CURRENCIES = [
 ];
 
 const ASSET_CODE = 'USDT';
-
 const QUICK_BDT = [500, 1000, 5000, 10000, 50000];
 const FALLBACK_RATE = 121.5;
-
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
 
 const PAYMENT_ICONS: Record<string, { glyph: string; color: string }> = {
@@ -72,18 +71,18 @@ const money = (n: number, d = 2) =>
 const num = (v: string) => v.replace(/[^\d.]/g, '');
 
 /* ───────────── Component ───────────── */
-export default function QuickBuyModal({ onClose, onSuccess }: Props) {
+export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
+  const isEdit = Boolean(editId);
+  const [loadingAd, setLoadingAd] = useState(isEdit);
   const [step, setStep] = useState<1 | 2>(1);
 
   /* ── step 1 state ── */
   const [fiat, setFiat] = useState('BDT');
   const [amountBdt, setAmountBdt] = useState('5000');
 
-  // rate = price of 1 USDT in the selected fiat (from getLocalCurrencyRates)
   const [rate, setRate] = useState(FALLBACK_RATE);
   const [rateLoading, setRateLoading] = useState(false);
 
-  // bonus_amount + total_credit from API are in USDT
   const [bonus, setBonus] = useState<DepositBonusData>({
     deposit_amount: 0,
     bonus_amount: 0,
@@ -106,17 +105,11 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
   const fiatIcon = cur.icon;
 
   const amountBdtNum = parseFloat(amountBdt) || 0;
-
-  // Base USDT = fiat amount ÷ price of 1 USDT
   const baseUsdt = rate > 0 ? amountBdtNum / rate : 0;
-
-  // Bonus (USDT) — comes DIRECTLY from backend
   const bonusUsdt = Number(bonus.bonus_amount ?? 0);
-
-  // Total USDT = base + bonus
   const totalUsdt = baseUsdt + bonusUsdt;
 
-  /* ── Load market price (1 USDT = X fiat) ── */
+  /* ── Load market price ── */
   useEffect(() => {
     let cancelled = false;
     setRateLoading(true);
@@ -125,14 +118,43 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
         const res = await getLocalCurrencyRates({ currency_code: fiat });
         const amount = Number(res?.data?.amount ?? 0);
         if (!cancelled && Number.isFinite(amount) && amount > 0) setRate(amount);
-      } catch {
-        /* keep fallback */
-      } finally {
-        if (!cancelled) setRateLoading(false);
-      }
+      } catch { /* keep fallback */ }
+      finally { if (!cancelled) setRateLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [fiat]);
+
+  /* ── Load ad when editing ── */
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingAd(true);
+      try {
+        const res = await getAd(editId);
+        const ad = res?.data;
+        if (cancelled) return;
+        if (!ad) throw new Error('not found');
+
+        const p = Number(ad.fixed_price ?? 0);
+        const totalUsdtVal = Number(ad.total_amount ?? 0);
+        setFiat(ad.with_fiat ?? 'BDT');
+        setRate(p > 0 ? p : FALLBACK_RATE);
+        setAmountBdt(String(+(totalUsdtVal * p).toFixed(2)));
+        setMethodId(Number(ad.payment_method_id ?? 0));
+        setTimeLimit(String(ad.payment_time_limit ?? '15'));
+        setRemarks(ad.remarks ?? '');
+      } catch {
+        if (!cancelled) {
+          toast.error('Ad not found.');
+          onClose();
+        }
+      } finally {
+        if (!cancelled) setLoadingAd(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editId, onClose]);
 
   /* ── Load deposit bonus (debounced, USDT) ── */
   const bonusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,8 +174,8 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
         const d = res?.data ?? {};
         setBonus({
           deposit_amount: Number(d.deposit_amount ?? amountBdtNum),
-          bonus_amount:   Number(d.bonus_amount ?? 0),   // USDT
-          total_credit:   Number(d.total_credit ?? 0),   // USDT
+          bonus_amount:   Number(d.bonus_amount ?? 0),
+          total_credit:   Number(d.total_credit ?? 0),
           tier_id:        d.tier_id ?? null,
         });
       } catch {
@@ -226,8 +248,13 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
         ad_create_type: 'local',
       };
 
-      await createAd(payload);
-      toast.success('Buy request created successfully!');
+      if (isEdit && editId) {
+        await updateAd(editId, payload);
+        toast.success('Ad updated successfully!');
+      } else {
+        await createAd(payload);
+        toast.success('Buy request created successfully!');
+      }
       onSuccess?.();
       onClose();
     } catch (e: any) {
@@ -248,8 +275,22 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
   );
 
   /* ───────────── Render ───────────── */
+  if (loadingAd) {
+    return (
+      <div className="qbm-overlay mt-5" role="dialog" aria-modal="true">
+        <div className="qbm-modal">
+          <div className="qbm-body" style={{ padding: 40, textAlign: 'center' }}>
+            <div style={{ color: '#34d399', fontSize: 14, fontWeight: 600 }}>
+              Loading ad…
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="qbm-overlay mt-5" role="dialog" aria-modal="true" aria-label="Create Buy Request">
+    <div className="qbm-overlay mt-5" role="dialog" aria-modal="true" aria-label={isEdit ? 'Edit Buy Request' : 'Create Buy Request'}>
       <div className="qbm-modal">
 
         {/* Header */}
@@ -263,8 +304,8 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
             <span className="qbm-head-plus">+</span>
           </span>
           <div className="qbm-head-text">
-            <h2 className='fs-5'><b>Create Buy Request</b></h2>
-            <p>Buy {ASSET_CODE} from trusted sellers and add to your wallet.</p>
+            <h2 className='fs-5'><b>{isEdit ? 'Edit Buy Request' : 'Create Buy Request'}</b></h2>
+            <p>{isEdit ? 'Update your buy request details.' : `Buy ${ASSET_CODE} from trusted sellers and add to your wallet.`}</p>
           </div>
           <button type="button" className="qbm-close" onClick={onClose} aria-label="Close">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -355,7 +396,6 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
                   <span className="qbm-bd-value">{money(amountBdtNum)} {fiat}</span>
                 </div>
 
-                {/* Market Price = getLocalCurrencyRates.data.amount (1 USDT → fiat) */}
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-chart-line" /></span>
                   <span className="qbm-bd-label">
@@ -379,7 +419,6 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
                   </span>
                 </div>
 
-                {/* Bonus — already in USDT from backend */}
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-gift" /></span>
                   <span className="qbm-bd-label">Bonus</span>
@@ -399,48 +438,6 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
                   {bonusLoading ? '…' : `${money(totalUsdt)} ${ASSET_CODE}`}
                 </b>
               </div>
-
-              {/* Payment method */}
-              {/* <div className="qbm-field">
-                <label className="qbm-label">
-                  <i className="fa-solid fa-credit-card" /> Select Preferred Payment Method (Optional)
-                </label>
-                <div className="qbm-methods">
-                  {loadingMethods && <div className="qbm-muted">Loading payment methods…</div>}
-
-                  {methods.map(m => {
-                    const icon = iconFor(m?.method_name);
-                    const active = Number(m.id) === methodId;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        className={`qbm-method ${active ? 'is-active' : ''}`}
-                        onClick={() => setMethodId(Number(m.id))}
-                      >
-                        <span className="qbm-method-icon" style={{ background: icon.color }}>
-                          {icon.glyph}
-                        </span>
-                        <span className="qbm-method-name">{m?.method_name ?? '—'}</span>
-                        {active && (
-                          <span className="qbm-method-check">
-                            <i className="fa-solid fa-circle-check" />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-
-                  <button
-                    type="button"
-                    className="qbm-method qbm-method--add"
-                    onClick={() => setModalMode('add')}
-                  >
-                    <span className="qbm-method-icon" style={{ background: '#4b5563' }}>…</span>
-                    <span className="qbm-method-name">Other</span>
-                  </button>
-                </div>
-              </div> */}
             </>
           )}
 
@@ -536,7 +533,7 @@ export default function QuickBuyModal({ onClose, onSuccess }: Props) {
                 onClick={handleSubmit}
                 disabled={submitting}
               >
-                {submitting ? 'Creating…' : 'Confirm & Create'}
+                {submitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Confirm & Update' : 'Confirm & Create')}
                 {!submitting && <i className="fa-solid fa-circle-check" />}
               </button>
             </div>

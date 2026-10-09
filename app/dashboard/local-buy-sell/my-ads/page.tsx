@@ -4,15 +4,20 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getMyLocalAds, toggleAdStatus, deleteAd, P2pAdsData } from '@/app/api/p2padsapi';
 import './LocalMyAds.css';
-import Link from 'next/link';
+import QuickBuyModal from '../create-ad/QuickBuyModal';
+import QuickSellModal from '../create-ad/QuickSellModal';
 
 type Kind = 'buy' | 'sell';
 type Bucket = { items: P2pAdsData[]; page: number; last: number; total: number; loading: boolean };
 
 const EMPTY: Bucket = { items: [], page: 1, last: 1, total: 0, loading: true };
-const METHOD_COLORS: Record<string, string> = { bKash: '#e2136e', Nagad: '#f26522', Rocket: '#8c3494', 'Bank Transfer': '#1d6fe0' };
+const METHOD_COLORS: Record<string, string> = {
+  bKash: '#e2136e',
+  Nagad: '#f26522',
+  Rocket: '#8c3494',
+  'Bank Transfer': '#1d6fe0',
+};
 
-// ads created from the market page (treat a missing field as local so nothing disappears if the API omits it)
 const isLocal = (a: P2pAdsData) => !a.ad_create_type || a.ad_create_type === 'local';
 const n2 = (v: number | string, d = 2) => {
   const n = Number(v);
@@ -23,7 +28,9 @@ const apiMsg = (e: any, fallback: string) => e?.response?.data?.message ?? e?.me
 /* ───────────── Row ───────────── */
 function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
   ad: P2pAdsData; busy: boolean;
-  onToggle: (a: P2pAdsData) => void; onEdit: (id: number) => void; onDelete: (a: P2pAdsData) => void;
+  onToggle: (a: P2pAdsData) => void;
+  onEdit: (a: P2pAdsData) => void;
+  onDelete: (a: P2pAdsData) => void;
 }) {
   const method = ad.payment_method?.sell_method?.name ?? '—';
   const price = Number(ad.fixed_price);
@@ -44,14 +51,18 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
       </div>
       <div className="ma-status">
         <button
-          type="button" role="switch" aria-checked={ad.status} disabled={busy}
+          type="button"
+          role="switch"
+          aria-checked={ad.status}
+          disabled={busy}
           aria-label={`${ad.status ? 'Deactivate' : 'Activate'} ad ${ad.id}`}
-          className={`ma-switch ${ad.status ? 'is-on' : ''}`} onClick={() => onToggle(ad)}
+          className={`ma-switch ${ad.status ? 'is-on' : ''}`}
+          onClick={() => onToggle(ad)}
         />
         <span>{ad.status ? 'Active' : 'Inactive'}</span>
       </div>
       <div className="ma-actions">
-        <button type="button" className="ma-icon" title="Edit" aria-label={`Edit ad ${ad.id}`} onClick={() => onEdit(ad.id)}>
+        <button type="button" className="ma-icon" title="Edit" aria-label={`Edit ad ${ad.id}`} onClick={() => onEdit(ad)}>
           <i className="fa-solid fa-pen" />
         </button>
         <button type="button" className="ma-icon ma-icon--danger" title="Delete" aria-label={`Delete ad ${ad.id}`} onClick={() => onDelete(ad)}>
@@ -63,14 +74,15 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
 }
 
 /* ───────────── Page ───────────── */
-export default function LocalMyAds({ onBack, onCreate, onEdit }: {
-  onBack: () => void; onCreate: () => void; onEdit: (id: number) => void;
-}) {
+export default function LocalMyAds() {
   const [tab, setTab] = useState<Kind>('buy');
   const [data, setData] = useState<Record<Kind, Bucket>>({ buy: EMPTY, sell: EMPTY });
   const [toggling, setToggling] = useState<number | null>(null);
   const [toDelete, setToDelete] = useState<P2pAdsData | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Modal state — create or edit
+  const [modal, setModal] = useState<{ kind: Kind; editId?: number } | null>(null);
 
   const load = useCallback(async (type: Kind, page = 1) => {
     setData(p => ({ ...p, [type]: { ...p[type], loading: true } }));
@@ -81,7 +93,13 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
       const items = raw.filter(a => a.type === type && isLocal(a));
       setData(p => ({
         ...p,
-        [type]: { items, page: d?.current_page ?? page, last: d?.last_page ?? 1, total: d?.total ?? items.length, loading: false },
+        [type]: {
+          items,
+          page: d?.current_page ?? page,
+          last: d?.last_page ?? 1,
+          total: d?.total ?? items.length,
+          loading: false,
+        },
       }));
     } catch (e: any) {
       toast.error(apiMsg(e, 'Failed to load your ads.'));
@@ -89,7 +107,12 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
     }
   }, []);
 
-  useEffect(() => { load('buy'); load('sell'); }, [load]);
+  const reloadAll = useCallback(() => {
+    load('buy', 1);
+    load('sell', 1);
+  }, [load]);
+
+  useEffect(() => { reloadAll(); }, [reloadAll]);
 
   const handleToggle = async (ad: P2pAdsData) => {
     setToggling(ad.id);
@@ -97,7 +120,10 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
       await toggleAdStatus(ad.id);
       setData(p => ({
         ...p,
-        [ad.type]: { ...p[ad.type], items: p[ad.type].items.map(a => (a.id === ad.id ? { ...a, status: !a.status } : a)) },
+        [ad.type]: {
+          ...p[ad.type],
+          items: p[ad.type].items.map(a => (a.id === ad.id ? { ...a, status: !a.status } : a)),
+        },
       }));
       toast.success(ad.status ? 'Ad deactivated.' : 'Ad activated.');
     } catch (e: any) {
@@ -129,22 +155,65 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
 
   return (
     <div className={`ma ma--${tab}`}>
+      {/* Header */}
       <div className="ma-head justify-content-between mt-3">
-        <button type="button" className="ma-back" onClick={onBack}><i className="fa-solid fa-arrow-left" /> Back to market</button>
-        <Link href="/dashboard/local-buy-sell/create-ad" type="button" className="ma-create">
-          <i className="fa-solid fa-plus" /> Create Ad
-        </Link>
+        <div>
+          <h2 className="ma-title">My Ads</h2>
+          <p className="ma-subtitle">Manage your local buy &amp; sell requests</p>
+        </div>
       </div>
 
+      {/* Action buttons — Create Buy / Create Sell */}
+      <div className="ma-actions-bar">
+        <button
+          type="button"
+          className="ma-cta ma-cta--buy"
+          onClick={() => setModal({ kind: 'buy' })}
+        >
+          <span className="ma-cta-icon">
+            <i className="fa-solid fa-cart-shopping" />
+          </span>
+          <span className="ma-cta-text">
+            <b>Create Buy Ad</b>
+            <small>Post a buy request</small>
+          </span>
+          <i className="fa-solid fa-plus ma-cta-plus" />
+        </button>
+
+        <button
+          type="button"
+          className="ma-cta ma-cta--sell"
+          onClick={() => setModal({ kind: 'sell' })}
+        >
+          <span className="ma-cta-icon">
+            <i className="fa-solid fa-arrow-up-from-bracket" />
+          </span>
+          <span className="ma-cta-text">
+            <b>Create Sell Ad</b>
+            <small>Post a sell request</small>
+          </span>
+          <i className="fa-solid fa-plus ma-cta-plus" />
+        </button>
+      </div>
+
+      {/* Tabs */}
       <div className="ma-tabs" role="tablist" aria-label="Ad type">
         {(['buy', 'sell'] as Kind[]).map(k => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`ma-tab ma-tab--${k} ${tab === k ? 'is-active' : ''}`} onClick={() => setTab(k)}>
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={tab === k}
+            className={`ma-tab ma-tab--${k} ${tab === k ? 'is-active' : ''}`}
+            onClick={() => setTab(k)}
+          >
             {k === 'buy' ? 'Buy Ads' : 'Sell Ads'}
             <span className="ma-count">{data[k].loading && !data[k].total ? '…' : data[k].total}</span>
           </button>
         ))}
       </div>
 
+      {/* Table */}
       <section className="ma-panel" role="tabpanel">
         <div className="pf-scroll">
           <div className="ma-table">
@@ -152,19 +221,37 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
               <div>Ad</div><div>Price</div><div>Amount</div><div>Order limit</div><div>Payment</div><div>Status</div><div>Actions</div>
             </div>
 
-            {cur.loading && [0, 1, 2].map(i => <div key={i} className="ma-row ma-skel"><span /><span /><span /><span /><span /><span /><span /></div>)}
+            {cur.loading && [0, 1, 2].map(i => (
+              <div key={i} className="ma-row ma-skel">
+                <span /><span /><span /><span /><span /><span /><span />
+              </div>
+            ))}
 
             {!cur.loading && cur.items.length === 0 && (
               <div className="ma-empty">
                 <i className="fa-regular fa-folder-open" />
                 <b>No {tab} ads yet</b>
                 <p>Requests you create from the marketplace will show up here.</p>
-                <button type="button" className="ma-create" onClick={onCreate}><i className="fa-solid fa-plus" /> Create request</button>
+                <button
+                  type="button"
+                  className={`ma-create ma-create--${tab}`}
+                  onClick={() => setModal({ kind: tab })}
+                >
+                  <i className="fa-solid fa-plus" />
+                  Create {tab === 'buy' ? 'Buy' : 'Sell'} Ad
+                </button>
               </div>
             )}
 
             {!cur.loading && cur.items.map(ad => (
-              <AdRow key={ad.id} ad={ad} busy={toggling === ad.id} onToggle={handleToggle} onEdit={onEdit} onDelete={setToDelete} />
+              <AdRow
+                key={ad.id}
+                ad={ad}
+                busy={toggling === ad.id}
+                onToggle={handleToggle}
+                onEdit={a => setModal({ kind: a.type === 'sell' ? 'sell' : 'buy', editId: a.id })}
+                onDelete={setToDelete}
+              />
             ))}
           </div>
         </div>
@@ -178,6 +265,7 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
         )}
       </section>
 
+      {/* Delete confirm */}
       {toDelete && (
         <div className="ma-modal" role="dialog" aria-modal="true" aria-labelledby="ma-del-title">
           <button type="button" className="ma-modal-bg" aria-label="Close" onClick={() => !deleting && setToDelete(null)} />
@@ -188,10 +276,30 @@ export default function LocalMyAds({ onBack, onCreate, onEdit }: {
             </p>
             <div className="ma-modal-actions">
               <button type="button" className="ma-ghost" onClick={() => setToDelete(null)} disabled={deleting}>Cancel</button>
-              <button type="button" className="ma-danger" onClick={confirmDelete} disabled={deleting}>{deleting ? 'Deleting…' : 'Delete'}</button>
+              <button type="button" className="ma-danger" onClick={confirmDelete} disabled={deleting}>
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Create/Edit Buy modal */}
+      {modal && modal.kind === 'buy' && (
+        <QuickBuyModal
+          editId={modal.editId}
+          onClose={() => setModal(null)}
+          onSuccess={reloadAll}
+        />
+      )}
+
+      {/* Create/Edit Sell modal */}
+      {modal && modal.kind === 'sell' && (
+        <QuickSellModal
+          editId={modal.editId}
+          onClose={() => setModal(null)}
+          onSuccess={reloadAll}
+        />
       )}
     </div>
   );

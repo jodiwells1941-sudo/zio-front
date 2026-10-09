@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactSelect from 'react-select';
 import { toast } from 'react-toastify';
-import { createAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
+import { createAd, getAd, updateAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
 import { createUserPaymentMethod, getUserPaymentMethods } from '@/app/api/common';
 import PaymentModal from '@/components/dashboard/p2pProfile/Paymentmodal';
 import { ModalMode, PaymentFormData } from '@/types/P2PProfileTypes';
@@ -16,6 +16,7 @@ type Option = { value: string; label: string };
 interface Props {
   onClose: () => void;
   onSuccess?: () => void;
+  editId?: number;
 }
 
 /* ───────────── Constants ───────────── */
@@ -36,7 +37,7 @@ const CURRENCIES = [
 const ASSET_CODE = 'USDT';
 const QUICK_USDT = [10, 25, 50, 100, 500];
 const FALLBACK_RATE = 121.5;
-const DEFAULT_FEE_PCT = 3;   // fallback if API fails
+const DEFAULT_FEE_PCT = 3;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
 
 const PAYMENT_ICONS: Record<string, { glyph: string; color: string }> = {
@@ -64,7 +65,9 @@ const money = (n: number, d = 2) =>
 const num = (v: string) => v.replace(/[^\d.]/g, '');
 
 /* ───────────── Component ───────────── */
-export default function QuickSellModal({ onClose, onSuccess }: Props) {
+export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
+  const isEdit = Boolean(editId);
+  const [loadingAd, setLoadingAd] = useState(isEdit);
   const [step, setStep] = useState<1 | 2>(1);
 
   /* ── step 1 ── */
@@ -74,7 +77,6 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
   const [rate, setRate] = useState(FALLBACK_RATE);
   const [rateLoading, setRateLoading] = useState(false);
 
-  // Fee percentage from API (e.g., 3 means 3%)
   const [feePercent, setFeePercent] = useState<number>(DEFAULT_FEE_PCT);
   const [feeLoading, setFeeLoading] = useState(false);
 
@@ -92,15 +94,9 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
   const fiatIcon = cur.icon;
 
   const amountUsdtNum = parseFloat(amountUsdt) || 0;
-
-  // Fiat value of the USDT amount
   const fiatAmount = amountUsdtNum * rate;
-
-  // Fee calculated from percentage
   const feeUsdt = (amountUsdtNum * feePercent) / 100;
   const feeFiat = (fiatAmount   * feePercent) / 100;
-
-  // User receives (fiat)
   const receiveFiat = fiatAmount - feeFiat;
 
   /* ── Load market price ── */
@@ -130,11 +126,9 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
           const pct = Number(res?.data?.withdraw_charge ?? DEFAULT_FEE_PCT);
           setFeePercent(Number.isFinite(pct) && pct >= 0 ? pct : DEFAULT_FEE_PCT);
         } else {
-          console.error('Failed to fetch withdraw charge:', res?.message);
           setFeePercent(DEFAULT_FEE_PCT);
         }
-      } catch (err) {
-        console.error('withdraw-charge API error:', err);
+      } catch {
         if (!cancelled) setFeePercent(DEFAULT_FEE_PCT);
       } finally {
         if (!cancelled) setFeeLoading(false);
@@ -142,6 +136,36 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  /* ── Load ad when editing ── */
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingAd(true);
+      try {
+        const res = await getAd(editId);
+        const ad = res?.data;
+        if (cancelled) return;
+        if (!ad) throw new Error('not found');
+
+        setFiat(ad.with_fiat ?? 'BDT');
+        setRate(Number(ad.fixed_price ?? FALLBACK_RATE));
+        setAmountUsdt(String(ad.total_amount ?? ''));
+        setMethodId(Number(ad.payment_method_id ?? 0));
+        setTimeLimit(String(ad.payment_time_limit ?? '15'));
+        setRemarks(ad.remarks ?? '');
+      } catch {
+        if (!cancelled) {
+          toast.error('Ad not found.');
+          onClose();
+        }
+      } finally {
+        if (!cancelled) setLoadingAd(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editId, onClose]);
 
   /* ── Payment methods ── */
   const loadMethods = useCallback(async () => {
@@ -172,14 +196,13 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
     }
   };
 
-  /* ── Next ── */
+  /* ── Next / Submit ── */
   const handleNext = () => {
     if (amountUsdtNum <= 0) { toast.error('Please enter a valid USDT amount.'); return; }
     if (!methodId)          { toast.error('Please select a payment method.'); return; }
     setStep(2);
   };
 
-  /* ── Submit ── */
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
@@ -202,8 +225,13 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
         ad_create_type: 'local',
       };
 
-      await createAd(payload);
-      toast.success('Sell request created successfully!');
+      if (isEdit && editId) {
+        await updateAd(editId, payload);
+        toast.success('Ad updated successfully!');
+      } else {
+        await createAd(payload);
+        toast.success('Sell request created successfully!');
+      }
       onSuccess?.();
       onClose();
     } catch (e: any) {
@@ -224,8 +252,22 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
   );
 
   /* ───────────── Render ───────────── */
+  if (loadingAd) {
+    return (
+      <div className="qsm-overlay" role="dialog" aria-modal="true">
+        <div className="qsm-modal">
+          <div className="qsm-body" style={{ padding: 40, textAlign: 'center' }}>
+            <div style={{ color: '#fca5a5', fontSize: 14, fontWeight: 600 }}>
+              Loading ad…
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="qsm-overlay" role="dialog" aria-modal="true" aria-label="Create Sell Request">
+    <div className="qsm-overlay" role="dialog" aria-modal="true" aria-label={isEdit ? 'Edit Sell Request' : 'Create Sell Request'}>
       <div className="qsm-modal">
 
         {/* Header */}
@@ -239,8 +281,8 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
             <span className="qsm-head-arrow">↑</span>
           </span>
           <div className="qsm-head-text">
-            <h2>Create Sell Request</h2>
-            <p>Sell your {ASSET_CODE} and receive local currency.</p>
+            <h2>{isEdit ? 'Edit Sell Request' : 'Create Sell Request'}</h2>
+            <p>{isEdit ? 'Update your sell request details.' : `Sell your ${ASSET_CODE} and receive local currency.`}</p>
           </div>
           <button type="button" className="qsm-close" onClick={onClose} aria-label="Close">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -352,7 +394,6 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
                   </span>
                 </div>
 
-                {/* Fee — now shows % and calculated amount */}
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico qsm-bd-ico--red"><i className="fa-solid fa-percent" /></span>
                   <span className="qsm-bd-label">
@@ -522,7 +563,7 @@ export default function QuickSellModal({ onClose, onSuccess }: Props) {
                 onClick={handleSubmit}
                 disabled={submitting}
               >
-                {submitting ? 'Creating…' : 'Confirm & Create'}
+                {submitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Confirm & Update' : 'Confirm & Create')}
                 {!submitting && <i className="fa-solid fa-circle-check" />}
               </button>
             </div>
