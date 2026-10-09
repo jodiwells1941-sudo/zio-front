@@ -138,7 +138,7 @@ function Row({
   return (
     <div className="lbs-row">
       <div className="lbs-cell lbs-cell--amount">
-        <span className={`lbs-pill lbs-pill--${kind}`}>{n2(ad.order_limit_min, 0)}</span>
+        <span className={`lbs-pill lbs-pill--${kind}`}>{n2(ad.fixed_price * ad.total_amount, 0)}</span>
       </div>
       <div className="lbs-cell lbs-cell--price">{n2(ad.fixed_price)}</div>
       <div className="lbs-cell lbs-cell--avail">{n2(ad.total_amount)}</div>
@@ -155,10 +155,10 @@ function Row({
       <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit}</div>
       <div className="lbs-cell lbs-cell--methods">
         <span className="lbs-mico" style={{ background: style.color }}>{style.glyph}</span>
-        <span className="lbs-mico" style={{ background: '#22c55e' }}>?</span>
+        {/* <span className="lbs-mico" style={{ background: '#22c55e' }}>?</span>
         <span className="lbs-mico" style={{ background: '#a855f7' }}>?</span>
         <span className="lbs-mico" style={{ background: '#3b82f6' }}>?</span>
-        <span className="lbs-mico" style={{ background: '#f43f5e' }}>?</span>
+        <span className="lbs-mico" style={{ background: '#f43f5e' }}>?</span> */}
       </div>
       <div className="lbs-cell lbs-cell--action">
         <button
@@ -247,7 +247,7 @@ function Panel({
             <div className="lbs-cell">USDT Amount</div>
             <div className="lbs-cell">
               {buy ? 'Bonus' : 'Fee'} (USDT)
-              {pct > 0 && <small style={{ marginLeft: 4, opacity: 0.75 }}>({n2(pct, 2)}%)</small>}
+              {/* {pct > 0 && <small style={{ marginLeft: 4, opacity: 0.75 }}>({n2(pct, 2)}%)</small>} */}
             </div>
             <div className="lbs-cell">Time (Min)</div>
             <div className="lbs-cell">Payment Methods</div>

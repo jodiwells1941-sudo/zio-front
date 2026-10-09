@@ -652,7 +652,7 @@ html body .lbs .lbs-table { min-width: 720px !important; }
 
 html body .lbs .lbs-row {
   display: grid !important;
-  grid-template-columns: 0.9fr 0.9fr 0.9fr 0.85fr 0.7fr 1.7fr 0.7fr !important;
+  grid-template-columns: 0.1fr 0.1fr 0.1fr 0.1fr 0.1fr 0.1fr 0.1fr !important;
   align-items: center !important;
   column-gap: 8px !important;
   padding: 8px 14px !important;
@@ -670,7 +670,7 @@ html body .lbs .lbs-row--head {
   padding-bottom: 9px !important;
   border-top: 0 !important;
 }
-html body .lbs .lbs-row--head .lbs-cell { text-align: center !important; }
+html body .lbs .lbs-row--head .lbs-cell { text-align: center !important; width: 50px !important; }
 
 html body .lbs .lbs-cell {
   color: var(--lbs-text) !important;
