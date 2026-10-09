@@ -161,3 +161,9 @@ export const getLocalAds = async (params?: LocalAdsParams) => {
   return response?.data;
 };
 
+// get local currency ret api 
+export const getLocalCurrencyRates = async (params?: { currency_code?: string }) => {
+  const response = await apiClient.get('/user/local-currency-rate', { params });
+  return response?.data;
+}
+
