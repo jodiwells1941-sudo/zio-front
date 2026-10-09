@@ -91,6 +91,14 @@ export default function LocalSellModal({ onClose, ad }: Props) {
     }
   }, [ad]);
 
+  // Auto-fill sell/receive amounts from ad when modal opens and prevent manual typing
+  useEffect(() => {
+    const minCrypto = ad?.order_limit_min ?? 0;
+    setSellAmount(String(minCrypto));
+    setReceiveAmt((minCrypto * ad.fixed_price).toFixed(2));
+    setErrors({});
+  }, [ad]);
+
   const handleAll = () => setSellAmount(String(ad.total_amount));
 
   // ─── Fee & net receivable calculation ───────────────────────────────────────
@@ -273,10 +281,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
                     className="input text-light placeholder-texr-color"
                     placeholder={`${ad.order_limit_min} - ${ad.order_limit_max}`}
                     value={sellAmount}
-                    onChange={e => {
-                      setSellAmount(e.target.value);
-                      setReceiveAmt((Number(e.target.value) * ad.fixed_price).toFixed(2));
-                    }}
+                    readOnly
                     aria-label="You Sell"
                   />
                   <div className="inputRight">
@@ -303,10 +308,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
                     type="number"
                     className="input text-light placeholder-texr-color"
                     value={receiveAmt}
-                    onChange={e => {
-                      setReceiveAmt(e.target.value);
-                      setSellAmount((Number(e.target.value) / ad.fixed_price).toFixed(2));
-                    }}
+                    readOnly
                     placeholder="0.00"
                     aria-label="You Receive"
                   />

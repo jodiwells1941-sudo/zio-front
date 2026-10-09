@@ -61,6 +61,14 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
     }
   }, [ad]);
 
+  // Auto-fill amounts from ad when modal opens and prevent manual typing
+  useEffect(() => {
+    const minCrypto = ad?.order_limit_min ?? 0;
+    setReceiveAmt(String(minCrypto));
+    setPayAmount((minCrypto * ad.fixed_price).toFixed(2));
+    setFieldErrors({});
+  }, [ad]);
+
   // Derive "you receive" whenever user types in "you pay"
 
   const parseAmount = (raw: string): number => {
@@ -273,11 +281,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
                     placeholder={`${(ad.order_limit_min * ad.fixed_price).toFixed(2)} - ${(ad.order_limit_max * ad.fixed_price).toFixed(2)}`}
                     type="number"
                     value={payAmount}
-                    onChange={e => {
-                      setPayAmount(e.target.value);
-                      setReceiveAmt((Number(e.target.value) / ad.fixed_price).toFixed(2));
-                      if (fieldErrors.payAmount || fieldErrors.receiveAmt) setFieldErrors({});
-                    }}
+                    readOnly
                     aria-label="you pay"
                   />
                   <div className="inputRight">
@@ -300,11 +304,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
                     className="input text-light placeholder-texr-color"
                     value={receiveAmt}
                     aria-label="you receive"
-                    onChange={e => {
-                      setReceiveAmt(e.target.value);
-                      setPayAmount((Number(e.target.value) * ad.fixed_price).toFixed(2));
-                      if (fieldErrors.payAmount || fieldErrors.receiveAmt) setFieldErrors({});
-                    }}
+                    readOnly
                     placeholder={`${ad.order_limit_min} - ${ad.order_limit_max}`}
                   />
                   <div className="inputRight">
@@ -355,7 +355,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="btn--secondary py-2 d-flex align-items-center justify-content-center"
+                    className="btn--secondary w-25 border py-2 d-flex align-items-center justify-content-center"
                   >
                     Cancel
                   </button>
