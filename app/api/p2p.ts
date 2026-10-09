@@ -1,25 +1,5 @@
 import apiClient from "@/utils/apiClient";
 
-// export const P2PTradeListAPI = async (params) => {
-//     const response = await apiClient.get("/user/trade", { params });
-//     return response.data;
-// };
-
-// export const P2PBuyAPI = async (data) => {
-//     const response = await apiClient.post("/user/trade", data);
-//     return response.data;
-// };
-
-// export const P2PSellAPI = async (data) => {
-//     const response = await apiClient.post("/user/trade", data);
-//     return response.data;
-// };
-
-// export const GetP2PTradeListApi = async (params) => {
-//     const response = await apiClient.get("/user/trade/list", params);
-//     return response.data;
-// };
-
 export const GetUserApi = async (params: { userId: string }) => {
     const response = await apiClient.get(`/user/wallet-transfer/user/${params.userId}`);
     return response.data;
@@ -61,3 +41,5 @@ export const GetCurrencyLimitApi = async (params: { currency: string; order_type
     const response = await apiClient.get("/user/currency-limit", { params });
     return response.data;
 };
+
+

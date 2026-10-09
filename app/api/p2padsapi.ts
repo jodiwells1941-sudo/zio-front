@@ -12,6 +12,7 @@ export type P2pAdsData = {
 
   price_type: "fixed" | "floating";
   fixed_price: number;
+  ad_create_type: "local" | "merchant";
 
   total_amount: number;
 
@@ -83,6 +84,20 @@ export interface P2pAdPayload {
   auto_reply?: string;
   display_region: string;
   status: boolean;
+  ad_create_type: "local" | "merchant";
+}
+
+export interface LocalAdsParams {
+  type?: 'buy' | 'sell';        // the AD's type (a sell ad is what a buyer wants to see)
+  status?: boolean;
+  page?: number;
+  per_page?: number;
+  with_fiat?: string;           // currency code, e.g. BDT
+  payment_method?: string;      // sell-method name, e.g. bKash
+  amount_min?: number | string; // USDT — overlaps the ad's order limit range
+  amount_max?: number | string;
+  rate_min?: number | string;   // price per USDT in with_fiat
+  rate_max?: number | string;
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
@@ -133,3 +148,22 @@ export const deleteAd = async (id: number) => {
   const response = await apiClient.delete(`/user/p2p/ads/${id}`);
   return response?.data;
 };
+
+
+// get local ads 
+export const getMyLocalAds = async (params?: { type?: 'buy' | 'sell'; status?: boolean; page?: number }) => {
+  const response = await apiClient.get('/user/p2p/local/my-ads', { params });
+  return response?.data;
+};
+
+export const getLocalAds = async (params?: LocalAdsParams) => {
+  const response = await apiClient.get('/user/p2p/local/ads', { params });
+  return response?.data;
+};
+
+// get local currency ret api 
+export const getLocalCurrencyRates = async (params?: { currency_code?: string }) => {
+  const response = await apiClient.get('/user/local-currency-rate', { params });
+  return response?.data;
+}
+

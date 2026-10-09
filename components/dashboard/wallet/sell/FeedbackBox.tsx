@@ -9,6 +9,7 @@ interface FeedbackBoxProps {
   tradeId: number;
   buyerId: number;
   clientId: number;
+  from?: string;
 }
 
 interface FormErrors {
@@ -24,7 +25,7 @@ const TAGS = [
   "Safe and trustworthy",
 ];
 
-export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxProps) {
+export default function FeedbackBox({ tradeId, buyerId, clientId, from }: FeedbackBoxProps) {
   const [type, setType] = useState<"positive" | "negative" | "">("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
@@ -82,7 +83,12 @@ export default function FeedbackBox({ tradeId, buyerId, clientId }: FeedbackBoxP
       setSelectedTags([]);
       setComment("");
       setErrors({});
-      route.push("/dashboard/orders");
+
+      if (from == 'local') {
+        route.push("/dashboard/local-buy-sell/my-orders");
+      } else {
+        route.push("/dashboard/orders");
+      }
 
     } catch (err: unknown) {
       const data = (err as { response?: { data?: unknown } })?.response?.data;

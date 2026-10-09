@@ -87,6 +87,17 @@ export default function LeftSidebar({
         { label: "Merchant Apply", href: "/dashboard/merchant", newTab: true },
       ],
     },
+    {
+      label: "Local Buy & Sell", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake",
+      subItems: [
+        { label: "Marketplace", href: "/dashboard/local-buy-sell", newTab: false },
+        { label: "My Orders", href: "/dashboard/local-buy-sell/my-orders", newTab: false },
+        { label: "My Ads", href: "/dashboard/local-buy-sell/my-ads", newTab: false },
+        { label: "My Requests", href: "/dashboard/local-buy-sell/my-requests", newTab: false },
+        { label: "Chat List", href: "/dashboard/local-buy-sell/chat-list", newTab: false },
+        { label: "Appeal & Dispute", href: "/dashboard/local-buy-sell/appeal-center", newTab: false },
+      ],
+    },
     { label: "Lottery", href: "/dashboard/lottery", iconClass: "fa-regular fa-futbol" },
     { label: "Investment", href: "/dashboard/investment", iconClass: "fa-solid fa-chart-line" },
     { label: "Lottery Winner", href: "/dashboard/lottery-winner", iconClass: "fa-solid fa-trophy" },

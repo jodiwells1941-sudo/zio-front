@@ -1,6 +1,6 @@
 "use client";
 
-import { getTrades, updateTradeStatus } from "@/app/api/trade";
+import { getLocalMyTrades, updateTradeStatus } from "@/app/api/trade";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -54,7 +54,7 @@ const getStatusUI = (trade: Trade): { text: string; className: string } => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function AdsTable() {
+export default function Page() {
   const [trades,    setTrades]    = useState<Trade[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [syncing,   setSyncing]   = useState(false);
@@ -82,7 +82,7 @@ export default function AdsTable() {
         ...(toDate   ? { to_date: toDate }     : {}),
       };
 
-      const res = await (getTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
+      const res = await (getLocalMyTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
 
       const paginated = (res as any)?.data;
       setTrades(paginated?.data ?? paginated ?? []);
@@ -242,7 +242,7 @@ export default function AdsTable() {
   };
 
   /**
-   * Fiat payer after approve uses P2PTransferCard (`/wallet/p2p`).
+   * Fiat payer after approve uses P2PTransferCard (`/local-buy-sell/my-orders/buy-view`).
    * Crypto seller / fiat receiver for release step uses BuyerPaymentCard (`/wallet/sell`).
    */
   const getTradeDetailsPath = (trade: Trade) => {
@@ -251,13 +251,13 @@ export default function AdsTable() {
       const useP2p =
         (side === 'buy' && !trade.isCustomer) || (side === 'sell' && trade.isCustomer);
       return useP2p
-        ? `/dashboard/wallet/p2p?trade_id=${trade.id}`
-        : `/dashboard/wallet/sell?trade_id=${trade.id}`;
+        ? `/dashboard/local-buy-sell/my-orders/buy-view?trade_id=${trade.id}`
+        : `/dashboard/local-buy-sell/my-orders/sell-view?trade_id=${trade.id}`;
     }
-    if (trade?.isCustomer && trade.type === 'Sell') return `/dashboard/wallet/p2p?trade_id=${trade.id}`;
-    if (trade?.isCustomer && trade.type === 'Buy') return `/dashboard/wallet/sell?trade_id=${trade.id}`;
-    if (!trade?.isCustomer && trade.type === 'Buy') return `/dashboard/wallet/p2p?trade_id=${trade.id}`;
-    return `/dashboard/wallet/sell?trade_id=${trade.id}`;
+    if (trade?.isCustomer && trade.type === 'Sell') return `/dashboard/local-buy-sell/my-orders/buy-view?trade_id=${trade.id}`;
+    if (trade?.isCustomer && trade.type === 'Buy') return `/dashboard/local-buy-sell/my-orders/sell-view?trade_id=${trade.id}`;
+    if (!trade?.isCustomer && trade.type === 'Buy') return `/dashboard/local-buy-sell/my-orders/buy-view?trade_id=${trade.id}`;
+    return `/dashboard/local-buy-sell/my-orders/sell-view?trade_id=${trade.id}`;
   };
 
   // ─── Copy helper ─────────────────────────────────────────────────────────────
@@ -269,7 +269,9 @@ export default function AdsTable() {
   // ─── Render ───────────────────────────────────────────────────────────────────  
 
   return (
-    <div>
+    <div className="h-screen">
+
+      <h5 className="my-3 py-3 ">My Send Requests</h5>
 
       {/* ── Toolbar ── */}
       <div className="trades-toolbar">
@@ -300,7 +302,7 @@ export default function AdsTable() {
           </button>
 
           {/* Create Ad */}
-          <Link href="/dashboard/ads" className="btn btn-warning btn-sm d-flex align-items-center gap-1">
+          <Link href="/dashboard/local-buy-sell/create-ad" className="btn btn-warning btn-sm d-flex align-items-center gap-1">
             <i className="fa-solid fa-plus" />
             <span className="d-none d-md-inline">Ads Create</span>
           </Link>
@@ -413,7 +415,7 @@ export default function AdsTable() {
                       {/* Counterparty */}
                       <td>
                         <div className="trade-counterparty-cell">
-                          <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="trade-link">
+                          <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="trade-link">
                             {trade.counterparty}
                             <span className="trade-chat-icon">
                               <i className="fa-regular fa-comment" />
@@ -486,7 +488,7 @@ export default function AdsTable() {
 
                   <div className="d-flex justify-content-between mt-3">
                     <div className="trade-counterparty-cell">
-                      <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="text-xs text-white-50">
+                      <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="text-xs text-white-50">
                         {trade.counterparty}
                       </Link>
                       <span className="trade-chat-icon">

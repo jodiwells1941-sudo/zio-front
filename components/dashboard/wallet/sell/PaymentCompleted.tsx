@@ -32,9 +32,10 @@ interface TradeData {
 
 type Props = {
   trade: TradeData;
+  from?: string;
 };
 
-export default function PaymentCompleted({ trade }: Props) {
+export default function PaymentCompleted({ trade, from }: Props) {
   const withFiat     = trade.current_status?.with_fiat ?? trade.p2pAd?.with_fiat ?? '';
   const asset        = trade.p2pAd?.asset ?? 'USDT';
   const methodName   = trade.current_status?.method
@@ -219,6 +220,7 @@ export default function PaymentCompleted({ trade }: Props) {
                 tradeId={trade.id}
                 buyerId={trade.customer_id}
                 clientId={trade.client_id}
+                from={from}
               />
             ) : (
               <div className="bg-dark p-3 rounded-3 text-center">

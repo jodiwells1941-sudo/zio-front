@@ -1,17 +1,17 @@
 "use client";
 
-import { getBonusFeesSettings, getMerchantAccount } from "@/app/api/merchant";
+import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
+import OrderCompleted from "@/components/dashboard/p2p/OrderCompleted";
+import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import P2PPendingAmmountCard from "@/components/dashboard/p2p/P2PPendingAmmountCard";
+import OrderDetailsCard from "@/components/dashboard/wallet/sell/OrderDetailsCard";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import OrderCompleted from "./OrderCompleted";
-import { getViewerOrderAmountDisplay } from "./p2pOrderDisplay";
-import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
-import OrderDetailsCard from "../wallet/sell/OrderDetailsCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -603,7 +603,7 @@ export function PaymentInfoCard({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function P2PTransferCard({
+export default function BuyDetailsCard({
   pendingStatus = 0,
   pendingTimeLeft = 0,
   pendingExpireTime = null,
@@ -620,20 +620,6 @@ export default function P2PTransferCard({
   const [submitting, setSubmitting] = useState<number | null>(null);
   const [timerExpired, setTimerExpired] = useState(false);
   const [showProofModal, setShowProofModal] = useState(false);
-  const [isMerchant, setIsMerchant] = useState(false);
-
-  useEffect(() => {
-    const checkMerchant = async () => {
-      try {
-        const res = await getMerchantAccount();
-        setIsMerchant(res?.data?.application?.status === "approved");
-      } catch {
-        setIsMerchant(false);
-      }
-    };
-
-    void checkMerchant();
-  }, []);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchTrade = useCallback(async () => {
@@ -761,7 +747,7 @@ export default function P2PTransferCard({
 
     if (newStatus === 10) {
       const orderId = trade.order_id || String(trade.id);
-      router.push(`/dashboard/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
+      router.push(`/dashboard/local-buy-sell/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
       return;
     }
 
@@ -942,7 +928,7 @@ export default function P2PTransferCard({
   const isPending = trade.status === 1;
   const pendingMm = Math.floor(pendingTimeLeft / 60);
   const pendingSs = pendingTimeLeft % 60;
-  const backToP2PHref = isMerchant ? "/dashboard/merchant/orders/" : "/dashboard/wallet/?tab=tab3";
+  const backToP2PHref = "/dashboard/local-buy-sell/my-orders";
 
   // "From" is always the seller side, "To" is always the buyer side —
   // matches the "USDT Order details" card in the merchant screenshots.
@@ -980,7 +966,7 @@ export default function P2PTransferCard({
               </span>
             </span>
             {trade.status != 1 && (
-              <Link href="/dashboard/chat/" className="chat-notification d-md-none">
+              <Link href="/dashboard/local-buy-sell/chat-list/" className="chat-notification d-md-none">
                 <i className="fa-solid fa-message" />
                 <span className="chat-badge">0</span>
               </Link>
@@ -1022,7 +1008,7 @@ export default function P2PTransferCard({
               )}
             </h2>
             {trade.status != 1 && (
-              <Link href="/dashboard/chat/" className="chat-notification d-md-none">
+              <Link href="/dashboard/local-buy-sell/chat-list/" className="chat-notification d-md-none">
                 <i className="fa-solid fa-message" />
                 <span className="chat-badge">0</span>
               </Link>
@@ -1193,7 +1179,7 @@ export default function P2PTransferCard({
       {/* ══════════════════════════════════════════════════════════════════
           COMPLETED  (status 6 or 9)
       ══════════════════════════════════════════════════════════════════ */}
-      {uiStatus === "completed" && <OrderCompleted trade={trade} />}
+      {uiStatus === "completed" && <OrderCompleted trade={trade} from="local" />}
 
       {/* ══════════════════════════════════════════════════════════════════
           REJECTED / CANCELLED  (status 3, 4, 7, 8, 10)

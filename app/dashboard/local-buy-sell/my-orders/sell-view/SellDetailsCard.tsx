@@ -1,16 +1,16 @@
-"use client";
+ "use client";
 
-import { getBonusFeesSettings, getMerchantAccount } from "@/app/api/merchant";
+import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
+import OrderDetailsCard from "@/components/dashboard/wallet/sell/OrderDetailsCard";
+import PaymentCompleted from "@/components/dashboard/wallet/sell/PaymentCompleted";
+import { PaymentReceivedModel } from "@/components/dashboard/wallet/sell/PaymentReceivedModel";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import PaymentCompleted from "./PaymentCompleted";
-import { PaymentReceivedModel } from "./PaymentReceivedModel";
-import OrderDetailsCard from "./OrderDetailsCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ function CopyBtn({ text }: { text: string }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function BuyerPaymentCard() {
+export default function SellDetailsCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tradeId      = searchParams.get("trade_id");
@@ -102,22 +102,9 @@ export default function BuyerPaymentCard() {
   const [submitting,      setSubmitting]      = useState(false);
   const [paymentReceived, setPaymentReceived] = useState(false);
   const [confirmPayment,  setConfirmPayment]  = useState(false);
-  const [isMerchant,      setIsMerchant]      = useState(false);
   const [bonusPercent,    setBonusPercent]    = useState(0);
   const [sellFeePercent,  setSellFeePercent]  = useState(0);
 
-  useEffect(() => {
-    const checkMerchant = async () => {
-      try {
-        const res = await getMerchantAccount();
-        setIsMerchant(res?.data?.application?.status === "approved");
-      } catch {
-        setIsMerchant(false);
-      }
-    };
-
-    void checkMerchant();
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -261,7 +248,7 @@ export default function BuyerPaymentCard() {
   const handleClaimToAdmin = async () => {
     if (!trade) return;
     const orderId = trade.order_id || String(trade.id);
-    router.push(`/dashboard/merchant/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
+    router.push(`/dashboard/local-buy-sell/appeal-center/create?order_id=${encodeURIComponent(orderId)}&trade_id=${trade.id}`);
   };
 
   const handleApproveTrade = async () => {
@@ -321,13 +308,7 @@ export default function BuyerPaymentCard() {
   const approvalWindowExpired =
     trade.status === 1 && !!trade.pending_time_limit && pendingApprovalTimer.expired;
   const showExpiredPendingState = approvalWindowExpired || trade.status === 3 || trade.status === 4 || trade.status === 8;
-  const backToP2PHref = isMerchant ? "/dashboard/merchant/orders/" : "/dashboard/orders";
-  const adjustedTotalAmount = trade.type === "buy"
-    ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
-    : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
-  const totalAmountCurrency = trade.type === "buy"
-    ? trade.p2p_ad?.asset ?? "USDT"
-    : withFiat || "BDT";
+  const backToP2PHref = "/dashboard/local-buy-sell/my-orders";
 
   // "From" is always the seller side, "To" is always the buyer side.
   const fromName = trade.is_client_seller ? sellerName : buyerName;
@@ -340,13 +321,6 @@ export default function BuyerPaymentCard() {
     { label: "Price", value: `${withFiat || "BDT"} ${price}` },
     { label: `You receive (${trade.p2p_ad?.asset ?? "USDT"})`, value: `${cryptoAmountStr} ${trade.p2p_ad?.asset ?? "USDT"}` },
   ];
-
-  // if (trade.type === "buy" && bonusPercent > 0) {
-  //   paymentModalDetails.push({ label: "Buy Bonus", value: `+${bonusPercent}%` });
-  // }
-  // if (trade.type === "sell" && sellFeePercent > 0) {
-  //   paymentModalDetails.push({ label: "Selling Fee", value: `${sellFeePercent}%` });
-  // }
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -397,7 +371,7 @@ export default function BuyerPaymentCard() {
               </span>
             </span>
             {trade.status != 1 && (
-              <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="chat-notification d-md-none">
+              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
                 <i className="fa-solid fa-message" />
               </Link>
             )}
@@ -416,7 +390,7 @@ export default function BuyerPaymentCard() {
               )}
             </h2>
             {trade.status != 1 && (
-              <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="chat-notification d-md-none">
+              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
                 <i className="fa-solid fa-message" />
               </Link>
             )}
@@ -600,7 +574,6 @@ export default function BuyerPaymentCard() {
                       Once you have confirmed the payment has been credited to your account, click the button below to release the crypto.
                     </div>
                     <div className="p2pActions">
-                      
                       {isBuyerDispatched && canRelease && (
                         <button
                           className="p2pPrimaryBtn"
@@ -611,7 +584,6 @@ export default function BuyerPaymentCard() {
                           Payment Received
                         </button>
                       )}
-
                       {canDispute && (
                         <button
                           className="p2pGhostBtn"
@@ -659,7 +631,7 @@ export default function BuyerPaymentCard() {
       )}
 
       {/* ── COMPLETED ── */}
-      {confirmPayment && <PaymentCompleted trade={trade} />}
+      {confirmPayment && <PaymentCompleted trade={trade} from="local" />}
 
       {/* ── PAYMENT RECEIVED MODAL ── */}
       {paymentReceived && canRelease && (
