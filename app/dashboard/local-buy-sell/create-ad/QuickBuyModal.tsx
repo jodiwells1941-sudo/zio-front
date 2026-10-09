@@ -220,7 +220,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   /* ── Next / Submit ── */
   const handleNext = () => {
     if (amountBdtNum <= 0) { toast.error('Please enter a valid amount.'); return; }
-    if (!methodId)         { toast.error('Please select a payment method.'); return; }
+    // if (!methodId)         { toast.error('Please select a payment method.'); return; }
     setStep(2);
   };
 
