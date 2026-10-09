@@ -220,7 +220,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   /* ── Next / Submit ── */
   const handleNext = () => {
     if (amountBdtNum <= 0) { toast.error('Please enter a valid amount.'); return; }
-    // if (!methodId)         { toast.error('Please select a payment method.'); return; }
+    if (!methodId)         { toast.error('Please select a payment method.'); return; }
     setStep(2);
   };
 
@@ -437,6 +437,49 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <b className="qbm-total-value">
                   {bonusLoading ? '…' : `${money(totalUsdt)} ${ASSET_CODE}`}
                 </b>
+              </div>
+
+              <div className="qsm-field">
+                <label className="qsm-label">
+                  <i className="fa-solid fa-credit-card" /> Select Preferred Payment Method (Required)
+                </label>
+                <div className="qsm-methods">
+                  {loadingMethods && <div className="qsm-muted">Loading payment methods…</div>}
+
+                  {methods.map(m => {
+                    const icon = iconFor(m?.method_name);
+                    const active = Number(m.id) === methodId;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className={`qsm-method ${active ? 'is-active' : ''}`}
+                        onClick={() => setMethodId(Number(m.id))}
+                      >
+                        <span className="qsm-method-icon" style={{ background: icon.color }}>
+                          {icon.glyph}
+                        </span>
+                        <span className="qsm-method-name">{m?.method_name ?? '—'}</span>
+                        {active && (
+                          <span className="qsm-method-check">
+                            <i className="fa-solid fa-circle-check" />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    className="qsm-method qsm-method--add"
+                    onClick={() => setModalMode('add')}
+                  >
+                    <span className="qsm-method-icon qsm-method-icon--add">
+                      <i className="fa-solid fa-plus" />
+                    </span>
+                    <span className="qsm-method-name">Add Payment Method</span>
+                  </button>
+                </div>
               </div>
             </>
           )}
