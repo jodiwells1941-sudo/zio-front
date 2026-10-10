@@ -55,6 +55,8 @@ const CURRENCIES = [
 
 const ASSET_CODE = 'USDT';
 const QUICK_BDT = [500, 1000, 5000, 10000, 50000];
+const MIN_AMOUNT_USDT = 10;
+const MAX_AMOUNT_USDT = 500;
 const FALLBACK_RATE = 121.5;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
 
@@ -123,6 +125,8 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
   const amountBdtNum = parseFloat(amountBdt) || 0;
   const baseUsdt = rate > 0 ? amountBdtNum / rate : 0;
+  const minimumFiatAmount = Math.ceil(MIN_AMOUNT_USDT * rate * 100) / 100;
+  const maximumFiatAmount = Math.floor(MAX_AMOUNT_USDT * rate * 100) / 100;
   const bonusUsdt = Number(bonus.bonus_amount ?? 0);
   const totalUsdt = baseUsdt + bonusUsdt;
   const selectedPaymentCurrency = paymentCurrencies.find(
@@ -171,6 +175,11 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
       ? `${minimumLabel}+ ${fiat}`
       : `${minimumLabel} - ${fiatIcon}${money(maximum, 0)} ${fiat}`;
   };
+
+  const tierBonusLabel = (tier: DepositBonusTier) =>
+    tier.bonus_type === 'percentage'
+      ? `${money(Number(tier.bonus_value), 0)}% Bonus`
+      : `${money(Number(tier.bonus_value))} USDT Bonus`;
 
   /* ── Load market price ── */
   useEffect(() => {
@@ -303,8 +312,18 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   };
 
   /* ── Next / Submit ── */
+  const validateAmount = () => {
+    if (!Number.isFinite(baseUsdt) || baseUsdt < MIN_AMOUNT_USDT || baseUsdt > MAX_AMOUNT_USDT) {
+      toast.error(
+        `Amount must be between ${money(minimumFiatAmount)} and ${money(maximumFiatAmount)} ${fiat} (${MIN_AMOUNT_USDT}–${MAX_AMOUNT_USDT} USDT).`,
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
-    if (amountBdtNum <= 0) { toast.error('Please enter a valid amount.'); return; }
+    if (!validateAmount()) return;
     if (!currencyMethods.some(method => method.id === methodId)) {
       toast.error('Please select a payment method for the selected currency.');
       return;
@@ -313,6 +332,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   };
 
   const handleSubmit = async () => {
+    if (!validateAmount()) return;
     setSubmitting(true);
     try {
       const usdtAmount = baseUsdt;
@@ -467,7 +487,17 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     (1 {ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`})
                   </span>
                 </div>
+                <small className="qbm-amount-limits">
+                  Min {money(minimumFiatAmount)} {fiat} · Max {money(maximumFiatAmount)} {fiat}
+                  <span> ({MIN_AMOUNT_USDT}–{MAX_AMOUNT_USDT} {ASSET_CODE})</span>
+                </small>
                 <div className="qbm-bonus-options">
+                  <div className="qbm-bonus-head">
+                    <span className="qbm-bonus-title">
+                      <i className="fa-solid fa-gift" /> Deposit Bonus
+                    </span>
+                    <span className="qbm-bonus-badge">Limited Time Offer</span>
+                  </div>
                   {bonusTiersLoading ? (
                     <small className="qbm-bonus-tiers-message">Loading bonus offers…</small>
                   ) : bonusTiersError ? (
@@ -475,7 +505,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                       Bonus offers could not be loaded.
                     </small>
                   ) : bonusTiers.length > 0 ? (
-                    <div className="qbm-chips">
+                    <div className="qbm-bonus-tier-list">
                       {bonusTiers.map(tier => {
                         const min = Number(tier.min_amount);
                         const max = tier.max_amount === null ? null : Number(tier.max_amount);
@@ -485,11 +515,18 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                           <button
                             key={tier.id}
                             type="button"
-                            className={`qbm-chip ${isActive ? 'is-active' : ''}`}
+                            className={`qbm-bonus-tier ${isActive ? 'is-active' : ''}`}
                             onClick={() => selectBonusTier(tier)}
                             aria-label={`Enter ${tierAmountRange(tier)} to qualify for this bonus.`}
                           >
-                            {tierAmountRange(tier)}
+                            <span className="qbm-bonus-tier-icon">
+                              <i className="fa-solid fa-gift" />
+                            </span>
+                            <span className="qbm-bonus-tier-copy">
+                              <span className="qbm-bonus-tier-range">Deposit {tierAmountRange(tier)}</span>
+                              <span className="qbm-bonus-tier-value">Get <strong>{tierBonusLabel(tier)}</strong></span>
+                            </span>
+                            {isActive && <span className="qbm-bonus-tier-tag">Your Tier</span>}
                           </button>
                         );
                       })}
@@ -521,7 +558,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-coins" /></span>
                   <span className="qbm-bd-label">
-                    {ASSET_CODE} Amount <small>(Base)</small>
+                    Buy Amount <small>(Base)</small>
                   </span>
                   <span className="qbm-bd-value qbm-bd-value--green">
                     {money(baseUsdt)} {ASSET_CODE}
@@ -531,16 +568,38 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   </span>
                 </div>
 
+                {/* show bonus  */}
+                <div className="qbm-bd-row">
+                  <span className="qbm-bd-ico"><i className="fa-solid fa-gift" /></span>
+                  <span className="qbm-bd-label">
+                    Bonus <small>(Deposit Bonus)</small>
+                  </span>
+                  <span className="qbm-bd-value qbm-bd-value--green">
+                    {money(bonusUsdt)} {ASSET_CODE}
+                  </span>
+                </div>
+
               </div>
 
               {/* Total */}
-              <div className="qbm-total">
+              {/* <div className="qbm-total">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
                   <span>Total You Will Receive</span>
                 </div>
                 <b className="qbm-total-value">
                   {bonusLoading ? '…' : `${money(totalUsdt)} ${ASSET_CODE}`}
+                </b>
+              </div> */}
+
+              {/* pay amount show  */}
+              <div className="qbm-total">
+                <div className="qbm-total-left">
+                  <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
+                  <span>Total You Will Pay</span>
+                </div>
+                <b className="qbm-total-value">
+                  {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
                 </b>
               </div>
 

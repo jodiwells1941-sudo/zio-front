@@ -41,6 +41,8 @@ const CURRENCIES = [
 
 const ASSET_CODE = 'USDT';
 const QUICK_USDT = [10, 25, 50, 100, 500];
+const MIN_AMOUNT_USDT = 10;
+const MAX_AMOUNT_USDT = 500;
 const FALLBACK_RATE = 121.5;
 const DEFAULT_FEE_PCT = 3;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
@@ -111,6 +113,25 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   );
   const currencyMethods = selectedPaymentCurrency
     ? methods.filter(method => method.currency_id === selectedPaymentCurrency.value && method.is_active)
+    : [];
+  const selectedMethod = currencyMethods.find(method => Number(method.id) === methodId);
+  const selectedMethodDetails = selectedMethod
+    ? (selectedMethod.fields?.length
+        ? selectedMethod.fields
+        : Object.entries(selectedMethod.field_values ?? {}).map(([key]) => ({
+            key,
+            label: key.replace(/[_-]+/g, ' ').replace(/\b\w/g, character => character.toUpperCase()),
+          })))
+        .map(field => ({
+          key: field.key,
+          label: field.label,
+          value: String(
+            Object.entries(selectedMethod).find(([key]) => key === field.key)?.[1]
+              ?? selectedMethod.field_values?.[field.key]
+              ?? ''
+          ).trim(),
+        }))
+        .filter(detail => Boolean(detail.value))
     : [];
 
   /* ── Load market price ── */
@@ -226,6 +247,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   };
 
   const handleEditMethod = (method: UserPaymentMethod) => {
+    setMethodId(Number(method.id));
     setEditingMethod(method);
     setModalMode('edit');
   };
@@ -236,8 +258,16 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   };
 
   /* ── Next / Submit ── */
+  const validateAmount = () => {
+    if (!Number.isFinite(amountUsdtNum) || amountUsdtNum < MIN_AMOUNT_USDT || amountUsdtNum > MAX_AMOUNT_USDT) {
+      toast.error(`Amount must be between ${MIN_AMOUNT_USDT} and ${MAX_AMOUNT_USDT} ${ASSET_CODE}.`);
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
-    if (amountUsdtNum <= 0) { toast.error('Please enter a valid USDT amount.'); return; }
+    if (!validateAmount()) return;
     if (!currencyMethods.some(method => method.id === methodId)) {
       toast.error('Please select a payment method for the selected currency.');
       return;
@@ -246,6 +276,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   };
 
   const handleSubmit = async () => {
+    if (!validateAmount()) return;
     setSubmitting(true);
     try {
       const payload: P2pAdPayload = {
@@ -396,7 +427,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     placeholder="0"
                   />
                 </div>
-                <small className='p-2 text-warning'>Fees {money(feeUsdt)} USDT ({money(feePercent, 2)}%)</small>
+                <div className="d-flex justify-content-between align-items-center">
+                  <small className="qsm-amount-limits">
+                    Min {MIN_AMOUNT_USDT} · Max {MAX_AMOUNT_USDT} {ASSET_CODE}
+                  </small>
+                  <small className='p-2 text-warning'>Fees {money(feeUsdt)} USDT ({money(feePercent, 2)}%)</small>
+                </div>
                 {/* <div className="qsm-chips">
                   {QUICK_USDT.map(v => (
                     <button
@@ -415,7 +451,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               <div className="qsm-breakdown">
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico"><i className="fa-solid fa-coins" /></span>
-                  <span className="qsm-bd-label">{ASSET_CODE} Amount</span>
+                  <span className="qsm-bd-label">Sell Amount</span>
                   <span className="qsm-bd-value">
                     {money(totalUsdtWithFee)} {ASSET_CODE}
                     <small className="qsm-bd-sub">
@@ -436,7 +472,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico"><i className="fa-solid fa-money-bill-wave" /></span>
-                  <span className="qsm-bd-label">Amount ({fiat})</span>
+                  <span className="qsm-bd-label">Recived Amount ({fiat})</span>
                   <span className="qsm-bd-value qsm-bd-value--green">
                     {money(fiatAmount)} {fiat}
                     <small className="qsm-bd-sub">
@@ -451,10 +487,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     Fee <small>({money(feePercent, 2)}%)</small>
                   </span>
                   <span className="qsm-bd-value qsm-bd-value--green">
-                    {feeLoading ? '…' : `- ${money(feeFiat)} ${fiat}`}
+                    {feeLoading ? '…' : `- ${money(feeUsdt)} ${ASSET_CODE}`}
                     {!feeLoading && (
                       <small className="qsm-bd-sub">
-                        {money(feeUsdt)} {ASSET_CODE}
+                        {money(feeFiat)} {fiat}
                       </small>
                     )}
                   </span>
@@ -492,33 +528,24 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     const icon = iconFor(m?.method_name);
                     const active = Number(m.id) === methodId;
                     return (
-                      <div key={m.id} className="qsm-method-choice">
-                        <button
-                          type="button"
-                          className={`qsm-method ${active ? 'is-active' : ''}`}
-                          onClick={() => setMethodId(Number(m.id))}
-                          aria-pressed={active}
-                        >
-                          <span className="qsm-method-icon" style={{ background: icon.color }}>
-                            {icon.glyph}
+                      <button
+                        key={m.id}
+                        type="button"
+                        className={`qsm-method ${active ? 'is-active' : ''}`}
+                        onClick={() => handleEditMethod(m)}
+                        aria-label={`Select and edit ${m.method_name} payment method`}
+                        aria-pressed={active}
+                      >
+                        <span className="qsm-method-icon" style={{ background: icon.color }}>
+                          {icon.glyph}
+                        </span>
+                        <span className="qsm-method-name">{m?.method_name ?? '—'}</span>
+                        {active && (
+                          <span className="qsm-method-check">
+                            <i className="fa-solid fa-circle-check" />
                           </span>
-                          <span className="qsm-method-name">{m?.method_name ?? '—'}</span>
-                          {active && (
-                            <span className="qsm-method-check">
-                              <i className="fa-solid fa-circle-check" />
-                            </span>
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          className="qsm-method-edit"
-                          onClick={() => handleEditMethod(m)}
-                          aria-label={`Edit ${m.method_name} payment method`}
-                          title="Edit payment method"
-                        >
-                          <i className="fa-solid fa-pen" />
-                        </button>
-                      </div>
+                        )}
+                      </button>
                     );
                   })}
 
@@ -570,6 +597,38 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <b>{money(receiveFiat)} {fiat}</b>
                 </div>
               </div>
+
+              {selectedMethod && (
+                <div className="qsm-payment-details">
+                  <div className="qsm-payment-details-head">
+                    <span className="qsm-payment-details-icon">
+                      <i className="fa-solid fa-credit-card" />
+                    </span>
+                    <span>
+                      <strong>{selectedMethod.method_name}</strong>
+                      <small>{selectedMethod.currency_name || fiat} payment details</small>
+                    </span>
+                  </div>
+                  {selectedMethodDetails.length > 0 ? (
+                    <dl className="qsm-payment-details-list">
+                      {selectedMethodDetails.map(detail => (
+                        <div className="qsm-payment-details-row" key={detail.key}>
+                          <dt>{detail.label}</dt>
+                          <dd>{detail.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : (
+                    <p className="qsm-payment-details-empty">No saved payment details for this method.</p>
+                  )}
+                  {selectedMethod.remarks && (
+                    <div className="qsm-payment-details-extra">
+                      <span>Remarks</span>
+                      <p>{selectedMethod.remarks}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Time limit */}
               <div className="qsm-field">
