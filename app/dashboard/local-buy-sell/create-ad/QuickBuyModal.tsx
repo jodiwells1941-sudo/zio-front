@@ -596,7 +596,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               <div className="qbm-total">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
-                  <span>Total You Will Pay</span>
+                  <span>Pay Amount </span>
                 </div>
                 <b className="qbm-total-value">
                   {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
@@ -680,6 +680,16 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   <span>Total You Will Receive</span>
                   <b>{money(totalUsdt)} {ASSET_CODE}</b>
                 </div>
+              </div>
+
+              <div className="qbm-total">
+                <div className="qbm-total-left">
+                  <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
+                  <span>Pay Amount</span>
+                </div>
+                <b className="qbm-total-value">
+                  {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
+                </b>
               </div>
 
               {/* Order time limit */}
