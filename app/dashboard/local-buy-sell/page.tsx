@@ -697,7 +697,6 @@ export default function Page() {
       {/* ═════════ BOTTOM DASHBOARD ═════════ */}
       <div className="lbs-dashboard">
         <RecentRequestsCard />
-        {/* <MyActiveAdsCard /> */}
       </div>
 
       {tradeModal && tradeModal.kind === 'buy' && (
