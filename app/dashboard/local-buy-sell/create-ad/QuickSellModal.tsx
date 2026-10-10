@@ -101,9 +101,6 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   const [timeLimit, setTimeLimit] = useState('15');
   const [submitting, setSubmitting] = useState(false);
 
-  const cur = CURRENCIES.find(c => c.code === fiat) ?? CURRENCIES[3];
-  const fiatIcon = cur.icon;
-
   const amountUsdtNum = parseFloat(amountUsdt) || 0;
   const fiatAmount = amountUsdtNum * rate;
   const feeUsdt = (amountUsdtNum * feePercent) / 100;
@@ -557,6 +554,16 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
+              <div className="qsm-total">
+                <div className="qsm-total-left">
+                  <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
+                  <span>Total Received Amount</span>
+                </div>
+                <b className="qsm-total-value">
+                  {feeLoading ? '…' : `${money(receiveFiat)} ${fiat}`}
+                </b>
+              </div>
+
               {/* Payment method */}
               <div className="qsm-field">
                 <label className="qsm-label">
@@ -730,6 +737,16 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qsm-summary-row">
                   <span>Currency</span><b>{fiat}</b>
                 </div>
+              </div>
+
+              <div className="qsm-total">
+                <div className="qsm-total-left">
+                  <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
+                  <span>Total Received Amount</span>
+                </div>
+                <b className="qsm-total-value">
+                  {feeLoading ? '…' : `${money(receiveFiat)} ${fiat}`}
+                </b>
               </div>
 
               {selectedMethod && (
