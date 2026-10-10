@@ -270,10 +270,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     setMethodDetailsDirty(false);
   };
 
-  const saveSelectedMethod = async () => {
+  const saveSelectedMethod = async (): Promise<boolean> => {
     if (!selectedMethod || !selectedPaymentCurrency) {
       toast.error('Select a payment method before saving its details.');
-      return;
+      return false;
     }
 
     const errors: Record<string, string> = {};
@@ -292,7 +292,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
       }
     }
     setMethodFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) return false;
 
     const payload: PaymentFormData = {
       sell_method_id: selectedMethod.sell_method_id,
@@ -316,9 +316,11 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
       setMethodQrFile(null);
       setMethodDetailsDirty(false);
       toast.success('Payment method updated successfully.');
+      return true;
     } catch (error) {
       console.error('Failed to update payment method:', error);
       toast.error('Failed to update payment method.');
+      return false;
     } finally {
       setMethodSubmitting(false);
     }
@@ -333,21 +335,26 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     return true;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!validateAmount()) return;
     if (!currencyMethods.some(method => method.id === methodId)) {
       toast.error('Please select a payment method for the selected currency.');
       return;
     }
     if (methodDetailsDirty) {
-      toast.error('Save your payment method changes before continuing.');
-      return;
+      const paymentMethodSaved = await saveSelectedMethod();
+      if (!paymentMethodSaved) return;
     }
     setStep(2);
   };
 
   const handleSubmit = async () => {
     if (!validateAmount()) return;
+    if (methodDetailsDirty) {
+      const paymentMethodSaved = await saveSelectedMethod();
+      if (!paymentMethodSaved) return;
+    }
+
     setSubmitting(true);
     try {
       const payload: P2pAdPayload = {
@@ -525,7 +532,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span className="qsm-bd-label">Sell Amount</span>
                   <span className="qsm-bd-value">
                     {money(amountUsdtNum)} {ASSET_CODE}
-                    <small className="qsm-bd-sub">Amount entered</small>
+                    {/* <small className="qsm-bd-sub">Amount entered</small> */}
                   </span>
                 </div>
 
@@ -536,11 +543,11 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   </span>
                   <span className="qsm-bd-value qsm-bd-value--green">
                     {feeLoading ? '…' : `+ ${money(feeUsdt)} ${ASSET_CODE}`}
-                    {!feeLoading && (
+                    {/* {!feeLoading && (
                       <small className="qsm-bd-sub">
                         deducted from fiat received: {money(feeFiat)} {fiat}
                       </small>
-                    )}
+                    )} */}
                   </span>
                 </div>
 
@@ -567,11 +574,11 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span className="qsm-bd-label">Received Amount ({fiat})</span>
                   <span className="qsm-bd-value qsm-bd-value--green">
                     {feeLoading ? '…' : `${money(receiveFiat)} ${fiat}`}
-                    {!feeLoading && (
+                    {/* {!feeLoading && (
                       <small className="qsm-bd-sub">
                         {money(fiatAmount)} − {money(feeFiat)} fee
                       </small>
-                    )}
+                    )} */}
                   </span>
                 </div>
               </div>
@@ -632,7 +639,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
               {selectedMethod && (
                 <div className="qsm-method-editor">
-                  <div className="qsm-method-editor-head">
+                  {/* <div className="qsm-method-editor-head">
                     <span className="qsm-method-editor-head-icon">
                       <i className="fa-solid fa-building-columns" />
                     </span>
@@ -641,7 +648,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                       <strong>Edit {selectedMethod.method_name} details</strong>
                       <small>These details are shared with buyers for this payment method.</small>
                     </div>
-                  </div>
+                  </div> */}
 
                   {methodEditorFields.length > 0 ? (
                     <div className="qsm-method-editor-fields">
@@ -677,7 +684,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     </p>
                   )}
 
-                  <label className="qsm-method-editor-field qsm-method-editor-remarks">
+                  {/* <label className="qsm-method-editor-field qsm-method-editor-remarks">
                     <span>Remarks <small>(Optional)</small></span>
                     <textarea
                       className="qsm-textarea"
@@ -689,9 +696,9 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                         setMethodDetailsDirty(true);
                       }}
                     />
-                  </label>
+                  </label> */}
 
-                  <label className="qsm-method-editor-field qsm-method-editor-qr">
+                  {/* <label className="qsm-method-editor-field qsm-method-editor-qr">
                     <span>QR Code <small>(Optional)</small></span>
                     <input
                       className="qsm-input"
@@ -705,9 +712,9 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     <small className="qsm-method-editor-hint">
                       {methodQrFile?.name ?? (selectedMethod.qr_code ? 'Current QR code is saved. Choose a file to replace it.' : 'Optional · PNG, JPG or WebP')}
                     </small>
-                  </label>
+                  </label> */}
 
-                  <div className="qsm-method-editor-actions">
+                  {/* <div className="qsm-method-editor-actions">
                     <button
                       type="button"
                       className="qsm-method-save"
@@ -721,7 +728,8 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     {methodDetailsDirty && !methodSubmitting && (
                       <small><i className="fa-solid fa-circle-info" /> Save your changes before continuing.</small>
                     )}
-                  </div>
+                  </div> */}
+
                 </div>
               )}
             </>
@@ -734,17 +742,20 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <h4 className="qsm-summary-title">Order Summary</h4>
 
                 <div className="qsm-summary-row">
+                  <span>Currency</span><b>{fiat}</b>
+                </div>
+                <div className="qsm-summary-row">
                   <span>Sell Amount</span>
                   <b>
                     {money(amountUsdtNum)} {ASSET_CODE}
-                    <small className="qsm-summary-sub">Amount entered</small>
+                    {/* <small className="qsm-summary-sub">Amount entered</small> */}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
                   <span>Fee ({money(feePercent, 2)}%)</span>
                   <b className="qsm-green">
                     + {money(feeUsdt)} {ASSET_CODE}
-                    <small className="qsm-summary-sub">Deducted from fiat: {money(feeFiat)} {fiat}</small>
+                    {/* <small className="qsm-summary-sub">Deducted from fiat: {money(feeFiat)} {fiat}</small> */}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
@@ -759,11 +770,8 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span>Received Amount ({fiat})</span>
                   <b className="qsm-green">
                     {money(receiveFiat)} {fiat}
-                    <small className="qsm-summary-sub">{money(fiatAmount)} − {money(feeFiat)} fee</small>
+                    {/* <small className="qsm-summary-sub">{money(fiatAmount)} − {money(feeFiat)} fee</small> */}
                   </b>
-                </div>
-                <div className="qsm-summary-row">
-                  <span>Currency</span><b>{fiat}</b>
                 </div>
               </div>
 
@@ -850,8 +858,14 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
         {/* Footer */}
         <footer className="qsm-footer">
           {step === 1 && (
-            <button type="button" className="qsm-next" onClick={handleNext}>
-              Next <i className="fa-solid fa-arrow-right" />
+            <button
+              type="button"
+              className="qsm-next"
+              onClick={() => void handleNext()}
+              disabled={methodSubmitting}
+            >
+              {methodSubmitting ? 'Saving payment method…' : 'Next'}
+              {!methodSubmitting && <i className="fa-solid fa-arrow-right" />}
             </button>
           )}
 
@@ -868,8 +882,8 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               <button
                 type="button"
                 className="qsm-next"
-                onClick={handleSubmit}
-                disabled={submitting}
+                onClick={() => void handleSubmit()}
+                disabled={submitting || methodSubmitting}
               >
                 {submitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Confirm & Update' : 'Confirm & Create')}
                 {!submitting && <i className="fa-solid fa-circle-check" />}
