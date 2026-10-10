@@ -578,7 +578,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     );
                   })}
 
-                  <button
+                  {/* <button
                     type="button"
                     className="qsm-method qsm-method--add"
                     onClick={() => setModalMode('add')}
@@ -587,7 +587,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                       <i className="fa-solid fa-plus" />
                     </span>
                     <span className="qsm-method-name">Add Payment Method</span>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </>
