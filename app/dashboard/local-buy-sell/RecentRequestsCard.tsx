@@ -177,8 +177,8 @@ export default function RecentRequestsCard() {
           <div className="lbs-card-row lbs-card-row--head lbs-card-row--requests">
             <div>#</div>
             <div>Type</div>
-            <div>Amount (BDT)</div>
-            <div>Price (BDT)</div>
+            <div>Amount</div>
+            <div>Price </div>
             <div>USDT Amount</div>
             <div>Bonus/Fee</div>
             <div>Time (Min)</div>
@@ -223,6 +223,7 @@ export default function RecentRequestsCard() {
 
             const timeLimit = t.timeLimit ?? 15;
             const status = t.status;
+            const viewUrl = typeBuy ? `/dashboard/local-buy-sell/my-orders/buy-view/?trade_id=${t.id}` : `/dashboard/local-buy-sell/my-orders/sell-view/?trade_id=${t.id}`;
 
             return (
               <div key={t.id} className="lbs-card-row lbs-card-row--requests">
@@ -270,7 +271,7 @@ export default function RecentRequestsCard() {
 
                 <div style={{ textAlign: 'center' }}>
                   <Link
-                    href={`/dashboard/local-buy-sell/my-orders?trade_id=${t.id}`}
+                    href={viewUrl}
                     className="lbs-view-btn"
                   >
                     View

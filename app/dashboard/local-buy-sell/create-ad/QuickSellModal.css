@@ -494,6 +494,94 @@
   filter: drop-shadow(0 0 6px rgba(239, 68, 68, .6));
 }
 
+.qsm-method-editor {
+  margin: 12px 0 18px;
+  padding: 14px;
+  border: 1px solid var(--qsm-line-2);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(239, 68, 68, .06), rgba(255, 255, 255, .015));
+}
+.qsm-method-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.qsm-method-editor-head strong,
+.qsm-method-editor-head small {
+  display: block;
+}
+.qsm-method-editor-head strong {
+  color: #fff;
+  font-size: 13px;
+}
+.qsm-method-editor-head small,
+.qsm-method-editor-hint {
+  margin-top: 3px;
+  color: var(--qsm-muted);
+  font-size: 11px;
+}
+.qsm-method-editor-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.qsm-method-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  color: var(--qsm-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.qsm-method-editor-remarks,
+.qsm-method-editor-qr {
+  margin-top: 12px;
+}
+.qsm-method-editor-qr .qsm-input {
+  height: auto;
+  min-height: 42px;
+  padding: 9px;
+  font-size: 11px;
+}
+.qsm-method-editor-hint {
+  overflow-wrap: anywhere;
+}
+.qsm-method-editor-empty {
+  margin: 0;
+  color: var(--qsm-muted);
+  font-size: 11.5px;
+}
+.qsm-method-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.qsm-method-save {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(248, 113, 113, .45);
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.qsm-method-save:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.qsm-method-save:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+.qsm-method-editor-actions > small {
+  color: #fca5a5;
+  font-size: 10.5px;
+}
+
 /* Payment Details */
 .qsm-two {
   display: grid;
@@ -638,6 +726,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.qsm-summary-sub {
+  display: block;
+  margin-top: 3px;
+  color: #a88989;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
 }
 .qsm-summary-row--total {
   margin-top: 8px;
@@ -1139,4 +1236,6 @@
   .qsm-modal .qsm-amount input { font-size: 17px !important; }
   .qsm-modal .qsm-total-value { font-size: 19px !important; }
   .qsm-modal .qsm-method-name { font-size: 12.5px !important; }
+  .qsm-method-editor-fields { grid-template-columns: 1fr; }
+  .qsm-method-editor-actions { align-items: flex-start; flex-direction: column; }
 }
