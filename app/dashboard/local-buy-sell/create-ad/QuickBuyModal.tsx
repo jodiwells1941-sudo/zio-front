@@ -4,11 +4,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactSelect from 'react-select';
 import { toast } from 'react-toastify';
 import { createAd, getAd, updateAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
-import { createUserPaymentMethod, getUserPaymentMethods } from '@/app/api/common';
+import {
+  createUserPaymentMethod,
+  currencyOptions as getPaymentCurrencies,
+  getUserPaymentMethods,
+} from '@/app/api/common';
 import PaymentModal from '@/components/dashboard/p2pProfile/Paymentmodal';
-import { ModalMode, PaymentFormData } from '@/types/P2PProfileTypes';
+import { CurrencyOption, ModalMode, PaymentFormData, UserPaymentMethod } from '@/types/P2PProfileTypes';
 import './QuickBuyModal.css';
-import { getDepositBonusApi } from '@/app/api/wallet';
+import { getDepositBonusApi, getDepositBonusTiersApi } from '@/app/api/wallet';
 
 /* ───────────── Types ───────────── */
 type Option = { value: string; label: string };
@@ -18,6 +22,14 @@ type DepositBonusData = {
   bonus_amount: number;
   total_credit: number;
   tier_id: number | null;
+};
+
+type DepositBonusTier = {
+  id: number;
+  min_amount: string | number;
+  max_amount: string | number | null;
+  bonus_type: 'fixed' | 'percentage';
+  bonus_value: string | number;
 };
 
 interface Props {
@@ -90,8 +102,13 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
     tier_id: null,
   });
   const [bonusLoading, setBonusLoading] = useState(false);
+  const [bonusError, setBonusError] = useState(false);
+  const [bonusTiers, setBonusTiers] = useState<DepositBonusTier[]>([]);
+  const [bonusTiersLoading, setBonusTiersLoading] = useState(true);
+  const [bonusTiersError, setBonusTiersError] = useState(false);
 
-  const [methods, setMethods] = useState<any[]>([]);
+  const [methods, setMethods] = useState<UserPaymentMethod[]>([]);
+  const [paymentCurrencies, setPaymentCurrencies] = useState<CurrencyOption[]>([]);
   const [loadingMethods, setLoadingMethods] = useState(false);
   const [methodId, setMethodId] = useState<number>(0);
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
@@ -108,6 +125,52 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   const baseUsdt = rate > 0 ? amountBdtNum / rate : 0;
   const bonusUsdt = Number(bonus.bonus_amount ?? 0);
   const totalUsdt = baseUsdt + bonusUsdt;
+  const selectedPaymentCurrency = paymentCurrencies.find(
+    currency => currency.label.trim().toUpperCase() === fiat
+  );
+  const currencyMethods = selectedPaymentCurrency
+    ? methods.filter(method => method.currency_id === selectedPaymentCurrency.value && method.is_active)
+    : [];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadBonusTiers = async () => {
+      setBonusTiersLoading(true);
+      setBonusTiersError(false);
+      try {
+        const res = await getDepositBonusTiersApi();
+        if (res?.error) throw new Error('Unable to load deposit bonus tiers.');
+        if (!cancelled) setBonusTiers(res?.data ?? []);
+      } catch (error) {
+        console.error('Error fetching deposit bonus tiers:', error);
+        if (!cancelled) setBonusTiersError(true);
+      } finally {
+        if (!cancelled) setBonusTiersLoading(false);
+      }
+    };
+
+    loadBonusTiers();
+    return () => { cancelled = true; };
+  }, []);
+
+  const selectBonusTier = (tier: DepositBonusTier) => {
+    const minimumUsdt = Number(tier.min_amount);
+    if (!Number.isFinite(minimumUsdt) || minimumUsdt <= 0 || rate <= 0) return;
+
+    const amountInFiat = Math.ceil((minimumUsdt * rate - Number.EPSILON) * 100) / 100;
+    setAmountBdt(amountInFiat.toFixed(2));
+  };
+
+  const tierAmountRange = (tier: DepositBonusTier) => {
+    const minimum = Number(tier.min_amount) * rate;
+    const maximum = tier.max_amount === null ? null : Number(tier.max_amount) * rate;
+    const minimumLabel = `${fiatIcon}${money(minimum, 0)}`;
+
+    return maximum === null
+      ? `${minimumLabel}+ ${fiat}`
+      : `${minimumLabel} - ${fiatIcon}${money(maximum, 0)} ${fiat}`;
+  };
 
   /* ── Load market price ── */
   useEffect(() => {
@@ -163,54 +226,76 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
     if (amountBdtNum <= 0) {
       setBonus({ deposit_amount: 0, bonus_amount: 0, total_credit: 0, tier_id: null });
+      setBonusLoading(false);
+      setBonusError(false);
       return;
     }
     const baseUsdtForBonus = rate > 0 ? amountBdtNum / rate : 0;
 
     setBonusLoading(true);
+    setBonusError(false);
+    let cancelled = false;
     bonusTimer.current = setTimeout(async () => {
       try {
         const res = await getDepositBonusApi(baseUsdtForBonus);
+        if (res?.error) throw new Error('Unable to check deposit bonus.');
         const d = res?.data ?? {};
-        setBonus({
-          deposit_amount: Number(d.deposit_amount ?? amountBdtNum),
-          bonus_amount:   Number(d.bonus_amount ?? 0),
-          total_credit:   Number(d.total_credit ?? 0),
-          tier_id:        d.tier_id ?? null,
-        });
+        if (!cancelled) {
+          setBonus({
+            deposit_amount: Number(d.deposit_amount ?? baseUsdtForBonus),
+            bonus_amount:   Number(d.bonus_amount ?? 0),
+            total_credit:   Number(d.total_credit ?? 0),
+            tier_id:        d.tier_id ?? null,
+          });
+        }
       } catch {
-        setBonus({ deposit_amount: amountBdtNum, bonus_amount: 0, total_credit: 0, tier_id: null });
+        if (!cancelled) {
+          setBonus({ deposit_amount: baseUsdtForBonus, bonus_amount: 0, total_credit: 0, tier_id: null });
+          setBonusError(true);
+        }
       } finally {
-        setBonusLoading(false);
+        if (!cancelled) setBonusLoading(false);
       }
     }, 400);
 
-    return () => { if (bonusTimer.current) clearTimeout(bonusTimer.current); };
-  }, [amountBdtNum]);
+    return () => {
+      cancelled = true;
+      if (bonusTimer.current) clearTimeout(bonusTimer.current);
+    };
+  }, [amountBdtNum, rate]);
 
   /* ── Payment methods ── */
   const loadMethods = useCallback(async () => {
     setLoadingMethods(true);
     try {
-      const res = await getUserPaymentMethods();
-      const list = res?.data ?? [];
-      setMethods(list);
-      if (list.length && !methodId) setMethodId(Number(list[0].id));
+      const [methodsRes, currenciesRes] = await Promise.all([
+        getUserPaymentMethods(),
+        getPaymentCurrencies(),
+      ]);
+      setMethods(methodsRes?.data ?? []);
+      setPaymentCurrencies(currenciesRes?.data ?? []);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? 'Failed to load payment methods.');
     } finally {
       setLoadingMethods(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { loadMethods(); }, [loadMethods]);
+
+  useEffect(() => {
+    if (!currencyMethods.some(method => method.id === methodId)) {
+      setMethodId(Number(currencyMethods[0]?.id ?? 0));
+    }
+  }, [currencyMethods, methodId]);
 
   const handleAddMethod = async (data: PaymentFormData) => {
     try {
       const res = await createUserPaymentMethod(data);
       toast.success('Payment method added.');
       setMethods(prev => [res.data, ...prev]);
-      setMethodId(Number(res.data?.id) || 0);
+      if (res.data?.currency_id === selectedPaymentCurrency?.value) {
+        setMethodId(Number(res.data.id) || 0);
+      }
       setModalMode(null);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? 'Save failed.');
@@ -220,7 +305,10 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   /* ── Next / Submit ── */
   const handleNext = () => {
     if (amountBdtNum <= 0) { toast.error('Please enter a valid amount.'); return; }
-    if (!methodId)         { toast.error('Please select a payment method.'); return; }
+    if (!currencyMethods.some(method => method.id === methodId)) {
+      toast.error('Please select a payment method for the selected currency.');
+      return;
+    }
     setStep(2);
   };
 
@@ -361,9 +449,11 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
               {/* Amount */}
               <div className="qbm-field">
-                <label className="qbm-label">
-                  <i className="fa-solid fa-coins" /> Enter Amount ({fiat})
-                </label>
+                <div className="qbm-amount-label">
+                  <label className="qbm-label">
+                    <i className="fa-solid fa-coins" /> Enter Amount ({fiat})
+                  </label>
+                </div>
                 <div className="qbm-amount">
                   <span className="qbm-amount-icon">{fiatIcon}</span>
                   <input
@@ -373,18 +463,40 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     onChange={e => setAmountBdt(num(e.target.value))}
                     placeholder="0"
                   />
+                  <span className="qbm-rate-label">
+                    (1 {ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`})
+                  </span>
                 </div>
-                <div className="qbm-chips">
-                  {QUICK_BDT.map(v => (
-                    <button
-                      key={v}
-                      type="button"
-                      className={`qbm-chip ${amountBdtNum === v ? 'is-active' : ''}`}
-                      onClick={() => setAmountBdt(String(v))}
-                    >
-                      {v.toLocaleString()}
-                    </button>
-                  ))}
+                <div className="qbm-bonus-options">
+                  {bonusTiersLoading ? (
+                    <small className="qbm-bonus-tiers-message">Loading bonus offers…</small>
+                  ) : bonusTiersError ? (
+                    <small className="qbm-bonus-tiers-message qbm-bonus-tiers-message--error">
+                      Bonus offers could not be loaded.
+                    </small>
+                  ) : bonusTiers.length > 0 ? (
+                    <div className="qbm-chips">
+                      {bonusTiers.map(tier => {
+                        const min = Number(tier.min_amount);
+                        const max = tier.max_amount === null ? null : Number(tier.max_amount);
+                        const isActive = baseUsdt >= min && (max === null || baseUsdt <= max);
+
+                        return (
+                          <button
+                            key={tier.id}
+                            type="button"
+                            className={`qbm-chip ${isActive ? 'is-active' : ''}`}
+                            onClick={() => selectBonusTier(tier)}
+                            aria-label={`Enter ${tierAmountRange(tier)} to qualify for this bonus.`}
+                          >
+                            {tierAmountRange(tier)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <small className="qbm-bonus-tiers-message">No active bonus offers right now.</small>
+                  )}
                 </div>
               </div>
 
@@ -419,13 +531,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   </span>
                 </div>
 
-                <div className="qbm-bd-row">
-                  <span className="qbm-bd-ico"><i className="fa-solid fa-gift" /></span>
-                  <span className="qbm-bd-label">Bonus</span>
-                  <span className="qbm-bd-value qbm-bd-value--green">
-                    {bonusLoading ? '…' : `+ ${money(bonusUsdt)} ${ASSET_CODE}`}
-                  </span>
-                </div>
               </div>
 
               {/* Total */}
@@ -441,25 +546,29 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
               <div className="qsm-field">
                 <label className="qsm-label">
-                  <i className="fa-solid fa-credit-card" /> Select Preferred Payment Method (Required)
+                  <i className="fa-solid fa-credit-card" /> Payment Method
                 </label>
                 <div className="qsm-methods">
                   {loadingMethods && <div className="qsm-muted">Loading payment methods…</div>}
 
-                  {methods.map(m => {
-                    const icon = iconFor(m?.method_name);
-                    const active = Number(m.id) === methodId;
+                  {!loadingMethods && selectedPaymentCurrency && currencyMethods.length === 0 && (
+                    <div className="qsm-muted">No saved payment methods for {fiat}. Add one to continue.</div>
+                  )}
+
+                  {currencyMethods.map(method => {
+                    const icon = iconFor(method.method_name);
+                    const active = method.id === methodId;
                     return (
                       <button
-                        key={m.id}
+                        key={method.id}
                         type="button"
                         className={`qsm-method ${active ? 'is-active' : ''}`}
-                        onClick={() => setMethodId(Number(m.id))}
+                        onClick={() => setMethodId(method.id)}
                       >
                         <span className="qsm-method-icon" style={{ background: icon.color }}>
                           {icon.glyph}
                         </span>
-                        <span className="qsm-method-name">{m?.method_name ?? '—'}</span>
+                        <span className="qsm-method-name">{method.method_name || '—'}</span>
                         {active && (
                           <span className="qsm-method-check">
                             <i className="fa-solid fa-circle-check" />

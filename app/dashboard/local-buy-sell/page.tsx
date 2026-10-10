@@ -442,7 +442,7 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
         <div className="lbs-hero-left">
           <span className="lbs-hero-icon"><CartIcon size={26} /></span>
           <div>
-            <h1 className="lbs-hero-title">13.01&nbsp;&nbsp;Local Buy &amp; Sell Marketplace</h1>
+            <h1 className="lbs-hero-title">Local Buy &amp; Sell Marketplace</h1>
             <p className="lbs-hero-sub">
               Buy and sell USDT locally with verified users. Fast, secure and hassle-free transactions.
             </p>
