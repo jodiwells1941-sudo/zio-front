@@ -633,9 +633,13 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               {selectedMethod && (
                 <div className="qsm-method-editor">
                   <div className="qsm-method-editor-head">
+                    <span className="qsm-method-editor-head-icon">
+                      <i className="fa-solid fa-building-columns" />
+                    </span>
                     <div>
-                      <strong>Edit {selectedMethod.method_name} Details</strong>
-                      <small>Update the saved payment details for this method.</small>
+                      <span className="qsm-method-editor-eyebrow">Payment details</span>
+                      <strong>Edit {selectedMethod.method_name} details</strong>
+                      <small>These details are shared with buyers for this payment method.</small>
                     </div>
                   </div>
 
@@ -699,7 +703,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                       }}
                     />
                     <small className="qsm-method-editor-hint">
-                      {methodQrFile?.name ?? (selectedMethod.qr_code ? 'An existing QR code is saved.' : 'Upload a QR code image if needed.')}
+                      {methodQrFile?.name ?? (selectedMethod.qr_code ? 'Current QR code is saved. Choose a file to replace it.' : 'Optional · PNG, JPG or WebP')}
                     </small>
                   </label>
 
@@ -710,10 +714,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                       onClick={() => void saveSelectedMethod()}
                       disabled={methodSubmitting}
                     >
-                      {methodSubmitting ? 'Saving payment method…' : 'Save Payment Method'}
+                      {methodSubmitting
+                        ? <><i className="fa-solid fa-spinner fa-spin" /> Saving changes…</>
+                        : <><i className="fa-solid fa-floppy-disk" /> Save Payment Method</>}
                     </button>
                     {methodDetailsDirty && !methodSubmitting && (
-                      <small>Save changes before continuing.</small>
+                      <small><i className="fa-solid fa-circle-info" /> Save your changes before continuing.</small>
                     )}
                   </div>
                 </div>
