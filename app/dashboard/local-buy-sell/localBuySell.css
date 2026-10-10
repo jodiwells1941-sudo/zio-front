@@ -416,6 +416,12 @@ html body .lbs .lbs-input:focus-visible {
   border-color: var(--lbs-cyan) !important;
   box-shadow: 0 0 0 3px rgba(34, 211, 238, .18) !important;
 }
+html body .lbs .lbs-filter-message {
+  color: var(--lbs-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+}
+html body .lbs .lbs-filter-message--error { color: #fca5a5 !important; }
 
 html body .lbs .lbs-range {
   display: flex !important;

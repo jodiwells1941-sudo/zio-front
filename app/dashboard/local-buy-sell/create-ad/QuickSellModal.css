@@ -442,6 +442,11 @@
 
 /* Payment methods */
 .qsm-methods { display: flex; gap: 10px; flex-wrap: wrap; }
+.qsm-method-choice {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+}
 .qsm-method {
   position: relative;
   display: inline-flex;
@@ -458,6 +463,22 @@
   transition: all .15s;
 }
 .qsm-method:hover { border-color: var(--qsm-line-2); background: var(--qsm-surface-2); transform: translateY(-1px); }
+.qsm-method-edit {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  border: 1.5px solid var(--qsm-line);
+  border-radius: 9px;
+  background: var(--qsm-surface);
+  color: var(--qsm-muted);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.qsm-method-edit:hover {
+  border-color: var(--qsm-line-2);
+  background: var(--qsm-surface-2);
+  color: var(--qsm-text);
+}
 .qsm-method.is-active {
   background: rgba(239, 68, 68, .14);
   border-color: var(--qsm-red-l);
