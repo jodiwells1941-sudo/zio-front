@@ -1,10 +1,11 @@
 'use client';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReactSelect from 'react-select';
 import countryList from 'react-select-country-list';
 import { toast } from 'react-toastify';
-import { getLocalAds, P2pAdsData } from '@/app/api/p2padsapi';
+import { getLocalAds, LocalAdsParams, P2pAdsData } from '@/app/api/p2padsapi';
+import { currencyOptions as getPaymentCurrencies, sellMethodsByCurrency } from '@/app/api/common';
 import { getBonusFeesSettings } from '@/app/api/merchant';
+import { CurrencyOption, SellMethodOption } from '@/types/P2PProfileTypes';
 import LocalBuyModal from './localBuyModal';
 import LocalSellModal from './localSellModal';
 import RecentRequestsCard from './RecentRequestsCard';
@@ -35,7 +36,6 @@ const COUNTRY_CUR: Record<string, string> = {
   ),
 };
 const CUR_HOME: Record<string, string> = { BDT: 'BD', INR: 'IN', PKR: 'PK', USD: 'US', GBP: 'GB', AUD: 'AU', CAD: 'CA', JPY: 'JP', CNY: 'CN', CHF: 'CH', EUR: '' };
-const CUR_FLAG: Record<string, string> = { BDT: 'bd', INR: 'in', PKR: 'pk', USD: 'us', GBP: 'gb', EUR: 'eu', AUD: 'au', CAD: 'ca', JPY: 'jp', CNY: 'cn', CHF: 'ch' };
 
 const METHOD_STYLE: Record<string, { color: string; glyph: string }> = {
   bKash: { color: '#e2136e', glyph: 'b' },
@@ -43,19 +43,23 @@ const METHOD_STYLE: Record<string, { color: string; glyph: string }> = {
   Rocket: { color: '#8c3494', glyph: 'R' },
   'Bank Transfer': { color: '#1d6fe0', glyph: '⌂' },
 };
-const AVATAR_COLORS = ['#2563eb', '#0d9488', '#7c3aed', '#db2777', '#ea580c', '#16a34a'];
-
-const QUICK_AMOUNTS = [1000, 5000, 10000, 50000, 100000, 500000];
 
 type Option = { label: string; value: string };
 type Kind = 'buy' | 'sell';
+type OfferView = Kind | 'all';
 const API_TYPE: Record<Kind, 'buy' | 'sell'> = { buy: 'sell', sell: 'buy' };
 
 type Bucket = {
-  items: P2pAdsData[]; page: number; last: number; total: number;
-  from: number; to: number; loading: boolean; updated: string;
+  items: P2pAdsData[];
+  page: number;
+  last: number;
+  total: number;
+  from: number;
+  to: number;
+  loading: boolean;
+  updated: string;
 };
-const EMPTY: Bucket = { items: [], page: 1, last: 1, total: 0, from: 0, to: 0, loading: true, updated: '' };
+const EMPTY: Bucket = { items: [], page: 1, last: 1, total: 0, from: 0, to: 0, loading: false, updated: '' };
 
 const n2 = (v: number | string, d = 2) => {
   const n = Number(v);
@@ -76,16 +80,6 @@ function useDebounced<T>(value: T, ms: number): [T, () => void] {
   return [v, () => setV(latest.current)];
 }
 
-function pageItems(page: number, last: number): (number | '…')[] {
-  const set = new Set([1, last, page - 1, page, page + 1]);
-  if (page <= 3) { set.add(2); set.add(3); }
-  if (page >= last - 2) { set.add(last - 1); set.add(last - 2); }
-  const nums = [...set].filter(n => n >= 1 && n <= last).sort((a, b) => a - b);
-  const out: (number | '…')[] = [];
-  nums.forEach((n, i) => { if (i && n - nums[i - 1] > 1) out.push('…'); out.push(n); });
-  return out;
-}
-
 /* ───────────────── Icons ───────────────── */
 const Flag = ({ cc, size = 20 }: { cc: string; size?: number }) => (
   <img className="lbs-flag" src={`https://flagcdn.com/w40/${cc.toLowerCase()}.png`} srcSet={`https://flagcdn.com/w80/${cc.toLowerCase()}.png 2x`} width={size} height={size} alt="" loading="lazy" />
@@ -101,9 +95,6 @@ const DownloadIcon = ({ size = 22 }: { size?: number }) => (
 );
 const SearchIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></svg>
-);
-const FilterIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
 );
 const RefreshIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>
@@ -126,11 +117,7 @@ function Row({
   const method = ad.payment_method?.sell_method?.name ?? '—';
   const style = METHOD_STYLE[method] ?? { color: '#3b82f6', glyph: method[0] ?? '?' };
 
-  // Base = USDT amount available on this ad
   const usdtAmount = Number(ad.total_amount ?? 0);
-
-  // BUY panel → Bonus in green (+)
-  // SELL panel → Fee in red (-)
   const isBuy = kind === 'buy';
   const pct = isBuy ? bonusPercent : feePercent;
   const bonusFee = (usdtAmount * pct) / 100;
@@ -143,7 +130,6 @@ function Row({
       <div className="lbs-cell lbs-cell--price">{n2(ad.fixed_price)}</div>
       <div className="lbs-cell lbs-cell--avail">{n2(ad.total_amount)}</div>
 
-      {/* Bonus / Fee cell — driven by getBonusFeesSettings */}
       <div className="lbs-cell lbs-cell--bonus">
         <span className={isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}>
           {isBuy ? '+' : '-'}
@@ -155,10 +141,6 @@ function Row({
       <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit}</div>
       <div className="lbs-cell lbs-cell--methods">
         <span className="lbs-mico" style={{ background: style.color }}>{style.glyph}</span>
-        {/* <span className="lbs-mico" style={{ background: '#22c55e' }}>?</span>
-        <span className="lbs-mico" style={{ background: '#a855f7' }}>?</span>
-        <span className="lbs-mico" style={{ background: '#3b82f6' }}>?</span>
-        <span className="lbs-mico" style={{ background: '#f43f5e' }}>?</span> */}
       </div>
       <div className="lbs-cell lbs-cell--action">
         <button
@@ -173,30 +155,6 @@ function Row({
   );
 }
 
-function Pager({ b, onPage }: { b: Bucket; onPage: (p: number) => void }) {
-  if (b.total === 0) return null;
-  return (
-    <nav className="lbs-pager" aria-label="Offers pagination">
-      <span className="lbs-pager-info">Showing <b>{b.from}–{b.to}</b> of <b>{b.total}</b> offers</span>
-      {b.last > 1 && (
-        <div className="lbs-pager-btns">
-          <button type="button" className="lbs-pg" disabled={b.page <= 1 || b.loading} onClick={() => onPage(b.page - 1)} aria-label="Previous page">
-            <i className="fa-solid fa-chevron-left" />
-          </button>
-          {pageItems(b.page, b.last).map((it, i) =>
-            it === '…'
-              ? <span key={`e${i}`} className="lbs-pg-gap">…</span>
-              : <button key={it} type="button" className={`lbs-pg ${it === b.page ? 'is-active' : ''}`} disabled={b.loading} onClick={() => onPage(it)}>{it}</button>
-          )}
-          <button type="button" className="lbs-pg" disabled={b.page >= b.last || b.loading} onClick={() => onPage(b.page + 1)} aria-label="Next page">
-            <i className="fa-solid fa-chevron-right" />
-          </button>
-        </div>
-      )}
-    </nav>
-  );
-}
-
 /* ───────────────── Panel ───────────────── */
 function Panel({
   kind,
@@ -205,8 +163,8 @@ function Panel({
   bonusPercent,
   feePercent,
   onRefresh,
-  onPage,
   onTrade,
+  sentinelRef,
 }: {
   kind: Kind;
   b: Bucket;
@@ -214,11 +172,10 @@ function Panel({
   bonusPercent: number;
   feePercent: number;
   onRefresh: () => void;
-  onPage: (p: number) => void;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
+  sentinelRef?: (el: HTMLDivElement | null) => void;
 }) {
   const buy = kind === 'buy';
-  const pct = buy ? bonusPercent : feePercent;
 
   return (
     <section id={`lbs-panel-${kind}`} className={`lbs-panel lbs-panel--${kind}`}>
@@ -234,7 +191,13 @@ function Panel({
           <span>Total Offers: <b>{b.total}</b></span>
           <Link href="/dashboard/local-buy-sell/my-orders" className="lbs-view-all">View All →</Link>
         </div>
-        <button type="button" className={`lbs-refresh ${b.loading ? 'is-spinning' : ''}`} onClick={onRefresh} disabled={b.loading} aria-label="Refresh">
+        <button
+          type="button"
+          className={`lbs-refresh ${b.loading ? 'is-spinning' : ''}`}
+          onClick={onRefresh}
+          disabled={b.loading}
+          aria-label="Refresh"
+        >
           <RefreshIcon />
         </button>
       </header>
@@ -245,10 +208,7 @@ function Panel({
             <div className="lbs-cell">{buy ? 'Buy Amount (BDT)' : 'Sell Amount (BDT)'}</div>
             <div className="lbs-cell">Price (BDT)</div>
             <div className="lbs-cell">USDT Amount</div>
-            <div className="lbs-cell">
-              {buy ? 'Bonus' : 'Fee'} (USDT)
-              {/* {pct > 0 && <small style={{ marginLeft: 4, opacity: 0.75 }}>({n2(pct, 2)}%)</small>} */}
-            </div>
+            <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'} (USDT)</div>
             <div className="lbs-cell">Time (Min)</div>
             <div className="lbs-cell">Payment Methods</div>
             <div className="lbs-cell">Action</div>
@@ -268,7 +228,7 @@ function Panel({
           <div className={b.loading && b.items.length > 0 ? 'lbs-fading' : undefined}>
             {b.items.map((ad, i) => (
               <Row
-                key={ad.id ?? i}
+                key={`${kind}-${ad.id ?? i}`}
                 ad={ad}
                 kind={kind}
                 bonusPercent={bonusPercent}
@@ -280,7 +240,20 @@ function Panel({
         </div>
       </div>
 
-      <Pager b={b} onPage={onPage} />
+      {/* Infinite scroll sentinel + status */}
+      <div ref={sentinelRef} className="lbs-sentinel" aria-hidden="true">
+        {b.loading && b.items.length > 0 && (
+          <div className="lbs-loadmore">
+            <span className="lbs-loadmore-spinner" />
+            Loading more…
+          </div>
+        )}
+        {!b.loading && b.items.length > 0 && b.page >= b.last && (
+          <div className="lbs-loadmore lbs-loadmore--end">
+            You’ve reached the end — {b.total} offer{b.total === 1 ? '' : 's'} total
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -289,39 +262,41 @@ function Panel({
    Page
    ═══════════════════════════════════════════════════════════════ */
 export default function Page() {
-  // ── Filter state ──
-  const [country, setCountry] = useState('BD');
-  const [filterFiat, setFilterFiat] = useState('BDT');
+  /* ── Filter state ── */
+  const [country, setCountry] = useState('');
+  const [filterFiat, setFilterFiat] = useState('');
   const [filterMethod, setFilterMethod] = useState('');
   const [amt, setAmt] = useState({ min: '', max: '' });
-  const [rate, setRate] = useState({ min: '', max: '' });
-  const [sortBy, setSortBy] = useState('best');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [sortBy, setSortBy] = useState<OfferView>('all');
   const [tradeModal, setTradeModal] = useState<{ ad: P2pAdsData; kind: Kind } | null>(null);
 
-  // ── Bonus / Fee settings ──
+  /* ── Bonus / Fee settings ── */
   const [bonusPercent, setBonusPercent] = useState(0);
   const [feePercent, setFeePercent] = useState(0);
 
+  /* ── Data ── */
   const [data, setData] = useState<Record<Kind, Bucket>>({ buy: EMPTY, sell: EMPTY });
-  const [methodNames, setMethodNames] = useState<string[]>([]);
+  const [paymentCurrencies, setPaymentCurrencies] = useState<CurrencyOption[]>([]);
+  const [currencyMethods, setCurrencyMethods] = useState<SellMethodOption[]>([]);
+  const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(false);
+  const [paymentMethodsError, setPaymentMethodsError] = useState(false);
   const [tick, setTick] = useState(0);
   const reqId = useRef<Record<Kind, number>>({ buy: 0, sell: 0 });
+
+  /* ── Modals ── */
   const [quickBuyOpen, setQuickBuyOpen] = useState(false);
+  const [quickSellOpen, setQuickSellOpen] = useState(false);
+
   const countryOptions = useMemo(() => countryList().getData() as Option[], []);
-  const currencyOptions = useMemo<Option[]>(() => CURRENCIES.map(c => ({ value: c.code, label: `${c.code} — ${c.name}` })), []);
-  const countryValue = countryOptions.find(o => o.value === country) ?? null;
-  const currencyValue = currencyOptions.find(o => o.value === filterFiat) ?? null;
-const [quickSellOpen, setQuickSellOpen] = useState(false);
+
   const [filters, flushFilters] = useDebounced(
-    { fiat: filterFiat, method: filterMethod, amtMin: amt.min, amtMax: amt.max, rateMin: rate.min, rateMax: rate.max },
+    { fiat: filterFiat, method: filterMethod, amtMin: amt.min, amtMax: amt.max },
     400
   );
 
-  const methodOptions = useMemo(
-    () => (filterMethod && !methodNames.includes(filterMethod) ? [...methodNames, filterMethod] : methodNames),
-    [methodNames, filterMethod]
-  );
+  /* ── Infinite scroll refs ── */
+  const sentinelRef = useRef<Record<Kind, HTMLDivElement | null>>({ buy: null, sell: null });
+  const observerRef = useRef<Record<Kind, IntersectionObserver | null>>({ buy: null, sell: null });
 
   /* ── Load Bonus & Fee settings once ── */
   useEffect(() => {
@@ -345,33 +320,80 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
     return () => { mounted = false; };
   }, []);
 
-  /* ── Fetch offers ── */
+  /* ── Payment currencies ── */
+  useEffect(() => {
+    let cancelled = false;
+    getPaymentCurrencies()
+      .then(res => {
+        if (!cancelled) setPaymentCurrencies(res?.data ?? []);
+      })
+      .catch(error => {
+        console.error('Failed to load payment currencies:', error);
+        if (!cancelled) toast.error('Failed to load payment currencies.');
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const paymentCurrency = paymentCurrencies.find(
+    currency => currency.label.trim().toUpperCase() === filterFiat
+  );
+
+  useEffect(() => {
+    if (!paymentCurrency) {
+      setCurrencyMethods([]);
+      setPaymentMethodsLoading(false);
+      setPaymentMethodsError(false);
+      return;
+    }
+
+    let cancelled = false;
+    setCurrencyMethods([]);
+    setPaymentMethodsLoading(true);
+    setPaymentMethodsError(false);
+
+    sellMethodsByCurrency(paymentCurrency.value)
+      .then(res => {
+        if (!cancelled) setCurrencyMethods(res?.data ?? []);
+      })
+      .catch(error => {
+        console.error(`Failed to load payment methods for ${filterFiat}:`, error);
+        if (!cancelled) setPaymentMethodsError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setPaymentMethodsLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [paymentCurrency, filterFiat]);
+
+  /* ── Fetch first page ── */
   const fetchBucket = useCallback(async (kind: Kind, page = 1) => {
+    if (!filters.fiat) {
+      setData(previous => ({
+        ...previous,
+        [kind]: { ...EMPTY, loading: false },
+      }));
+      return;
+    }
+
     const id = ++reqId.current[kind];
     setData(p => ({ ...p, [kind]: { ...p[kind], loading: true } }));
+
     try {
-      const params: Record<string, string | number | undefined> = {
+      const params: LocalAdsParams = {
         type: API_TYPE[kind],
         page,
-        withFiat: filters.fiat || undefined,
+        with_fiat: filters.fiat,
         payment_method: filters.method || undefined,
         amount_min: filters.amtMin || undefined,
         amount_max: filters.amtMax || undefined,
-        rate_min: filters.rateMin || undefined,
-        rate_max: filters.rateMax || undefined,
       };
-      const res = await getLocalAds(params as any);
+      const res = await getLocalAds(params);
       if (id !== reqId.current[kind]) return;
       if (res?.error) throw new Error(res.message);
 
       const d = res?.data;
       const items: P2pAdsData[] = Array.isArray(d) ? d : d?.data ?? [];
-
-      setMethodNames(prev => {
-        const set = new Set(prev);
-        items.forEach(a => { const n = a.payment_method?.sell_method?.name; if (n) set.add(n); });
-        return set.size === prev.length ? prev : [...set].sort();
-      });
 
       setData(p => ({
         ...p,
@@ -393,16 +415,100 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
     }
   }, [filters]);
 
+  /* ── Load next page (append) ── */
+  const loadMore = useCallback(async (kind: Kind) => {
+    const current = data[kind];
+    if (current.loading) return;
+    if (current.page >= current.last) return;
+    if (!filters.fiat) return;
+
+    const nextPage = current.page + 1;
+    const id = ++reqId.current[kind];
+    setData(p => ({ ...p, [kind]: { ...p[kind], loading: true } }));
+
+    try {
+      const params: LocalAdsParams = {
+        type: API_TYPE[kind],
+        page: nextPage,
+        with_fiat: filters.fiat,
+        payment_method: filters.method || undefined,
+        amount_min: filters.amtMin || undefined,
+        amount_max: filters.amtMax || undefined,
+      };
+      const res = await getLocalAds(params);
+      if (id !== reqId.current[kind]) return;
+      if (res?.error) throw new Error(res.message);
+
+      const d = res?.data;
+      const items: P2pAdsData[] = Array.isArray(d) ? d : d?.data ?? [];
+
+      setData(p => ({
+        ...p,
+        [kind]: {
+          ...p[kind],
+          items: [...p[kind].items, ...items],
+          page: d?.current_page ?? nextPage,
+          last: d?.last_page ?? 1,
+          total: d?.total ?? p[kind].total,
+          to: d?.to ?? p[kind].items.length + items.length,
+          loading: false,
+          updated: clock(),
+        },
+      }));
+    } catch (e: any) {
+      if (id !== reqId.current[kind]) return;
+      toast.error(apiMsg(e, 'Failed to load more offers.'));
+      setData(p => ({ ...p, [kind]: { ...p[kind], loading: false } }));
+    }
+  }, [data, filters]);
+
+  /* ── Initial fetch & refetch on filter change ── */
   useEffect(() => {
+    if (!filters.fiat) {
+      reqId.current.buy += 1;
+      reqId.current.sell += 1;
+      setData({ buy: { ...EMPTY }, sell: { ...EMPTY } });
+      return;
+    }
     fetchBucket('buy', 1);
     fetchBucket('sell', 1);
-  }, [fetchBucket, tick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchBucket, filters.fiat, tick]);
 
-  const goToPage = (kind: Kind, p: number) => {
-    fetchBucket(kind, p);
-    document.getElementById(`lbs-panel-${kind}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  /* ── Infinite scroll observers ── */
+  useEffect(() => {
+    if (!filterFiat) return;
 
+    (['buy', 'sell'] as const).forEach(kind => {
+      observerRef.current[kind]?.disconnect();
+
+      const el = sentinelRef.current[kind];
+      if (!el) return;
+
+      const observer = new IntersectionObserver(
+        entries => {
+          const entry = entries[0];
+          if (!entry?.isIntersecting) return;
+          const b = data[kind];
+          if (!b.loading && b.items.length > 0 && b.page < b.last) {
+            void loadMore(kind);
+          }
+        },
+        { rootMargin: '120px 0px' }
+      );
+
+      observer.observe(el);
+      observerRef.current[kind] = observer;
+    });
+
+    return () => {
+      observerRef.current.buy?.disconnect();
+      observerRef.current.sell?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterFiat, data.buy.page, data.sell.page, data.buy.last, data.sell.last]);
+
+  /* ── Handlers ── */
   const handleTrade = (ad: P2pAdsData, kind: Kind) => setTradeModal({ ad, kind });
 
   const handleCountry = (opt: Option | null) => {
@@ -410,31 +516,41 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
     setCountry(cc);
     if (cc) {
       const cur = COUNTRY_CUR[cc] ?? '';
-      if (cur !== filterFiat) setFilterMethod('');
+      if (cur !== filterFiat) {
+        setFilterMethod('');
+        reqId.current.buy += 1;
+        reqId.current.sell += 1;
+        setData({ buy: { ...EMPTY }, sell: { ...EMPTY } });
+      }
       setFilterFiat(cur);
     }
   };
 
   const handleChange = (cur: string) => {
+    if (cur !== filterFiat) {
+      reqId.current.buy += 1;
+      reqId.current.sell += 1;
+      setData({ buy: { ...EMPTY }, sell: { ...EMPTY } });
+    }
     setFilterFiat(cur);
     setFilterMethod('');
-    if (cur && cur in CUR_HOME) setCountry(CUR_HOME[cur]);
-  };
-
-  const clearFilters = () => {
-    setCountry(''); setFilterFiat(''); setFilterMethod('');
-    setAmt({ min: '', max: '' }); setRate({ min: '', max: '' });
+    setCountry(cur && cur in CUR_HOME ? CUR_HOME[cur] : '');
   };
 
   const handleSearch = () => { flushFilters(); setTick(t => t + 1); };
-  const handleRefresh = () => { fetchBucket('buy', data.buy.page); fetchBucket('sell', data.sell.page); };
 
-  const hasFilter = !!(filterFiat || filterMethod || amt.min || amt.max || rate.min || rate.max);
+  const handleRefresh = () => {
+    if (!filterFiat) return;
+    reqId.current.buy += 1;
+    reqId.current.sell += 1;
+    setData({ buy: { ...EMPTY, loading: true }, sell: { ...EMPTY, loading: true } });
+    fetchBucket('buy', 1);
+    fetchBucket('sell', 1);
+  };
+
   const num = (v: string) => v.replace(/[^\d.]/g, '');
-  const formatOption = (o: Option, flag: string) => (
-    <span className="lbs-opt"><Flag cc={flag} size={18} />{o.label}</span>
-  );
 
+  /* ───────────────── Render ───────────────── */
   return (
     <main className="lbs">
       {/* ═════════ HERO / HEADER BANNER ═════════ */}
@@ -442,7 +558,7 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
         <div className="lbs-hero-left">
           <span className="lbs-hero-icon"><CartIcon size={26} /></span>
           <div>
-            <h1 className="lbs-hero-title">13.01&nbsp;&nbsp;Local Buy &amp; Sell Marketplace</h1>
+            <h1 className="lbs-hero-title">Local Buy &amp; Sell Marketplace</h1>
             <p className="lbs-hero-sub">
               Buy and sell USDT locally with verified users. Fast, secure and hassle-free transactions.
             </p>
@@ -489,11 +605,19 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
       {/* ═════════ TOP BAR ═════════ */}
       <section className="lbs-topbar">
         <div className="lbs-topbar-tabs">
-          <button type="button" onClick={() => setQuickBuyOpen(true)} className="lbs-topbar-tab lbs-topbar-tab--buy is-active">
+          <button
+            type="button"
+            onClick={() => setQuickBuyOpen(true)}
+            className="lbs-topbar-tab lbs-topbar-tab--buy is-active"
+          >
             <CartIcon size={18} />
             <span>Buy USDT</span>
           </button>
-          <button type="button" className="lbs-topbar-tab lbs-topbar-tab--sell" onClick={() => setQuickSellOpen(true)}>
+          <button
+            type="button"
+            className="lbs-topbar-tab lbs-topbar-tab--sell"
+            onClick={() => setQuickSellOpen(true)}
+          >
             <DownloadIcon size={18} />
             <span>Sell USDT</span>
           </button>
@@ -508,10 +632,10 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
             </span>
             <select
               className="lbs-topbar-select-input"
-              value={filterFiat || 'USDT'}
+              value={filterFiat}
               onChange={e => handleChange(e.target.value)}
             >
-              <option value="USDT">USDT</option>
+              <option value="">Select currency *</option>
               {CURRENCIES.map(c => (
                 <option key={c.code} value={c.code}>{c.code}</option>
               ))}
@@ -528,6 +652,7 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
               value={country}
               onChange={e => handleCountry({ label: '', value: e.target.value })}
             >
+              <option value="">Select country (optional)</option>
               {countryOptions.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
@@ -547,9 +672,21 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
         <div className="lbs-field">
           <label className="lbs-label">Deposit Amount ({filterFiat || 'BDT'})</label>
           <div className="lbs-range">
-            <input className="lbs-input" inputMode="decimal" placeholder="Min" value={amt.min} onChange={e => setAmt({ ...amt, min: num(e.target.value) })} />
+            <input
+              className="lbs-input"
+              inputMode="decimal"
+              placeholder="Min"
+              value={amt.min}
+              onChange={e => setAmt({ ...amt, min: num(e.target.value) })}
+            />
             <span className="lbs-range-sep">–</span>
-            <input className="lbs-input" inputMode="decimal" placeholder="Max" value={amt.max} onChange={e => setAmt({ ...amt, max: num(e.target.value) })} />
+            <input
+              className="lbs-input"
+              inputMode="decimal"
+              placeholder="Max"
+              value={amt.max}
+              onChange={e => setAmt({ ...amt, max: num(e.target.value) })}
+            />
           </div>
         </div>
 
@@ -561,121 +698,77 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
                 <path d="M12 2 2 8v2h20V8L12 2zM4 12v6h3v-6H4zm6 0v6h4v-6h-4zm7 0v6h3v-6h-3zM2 20h20v2H2v-2z" />
               </svg>
             </span>
-            <select className="lbs-input lbs-select" value={filterMethod} onChange={e => setFilterMethod(e.target.value)}>
+            <select
+              className="lbs-input lbs-select"
+              value={filterMethod}
+              disabled={!filterFiat || paymentMethodsLoading || paymentMethodsError}
+              onChange={e => setFilterMethod(e.target.value)}
+            >
               <option value="">All Payment Methods</option>
-              {methodOptions.map(m => <option key={m} value={m}>{m}</option>)}
+              {currencyMethods.map(method => (
+                <option key={method.value} value={method.label}>{method.label}</option>
+              ))}
             </select>
             <span className="lbs-sel-chevron"><Chevron /></span>
           </div>
+          {paymentMethodsLoading && <small className="lbs-filter-message">Loading methods for {filterFiat}…</small>}
+          {paymentMethodsError && <small className="lbs-filter-message lbs-filter-message--error">Could not load methods for {filterFiat}.</small>}
+          {!paymentMethodsLoading && !paymentMethodsError && filterFiat && currencyMethods.length === 0 && (
+            <small className="lbs-filter-message">No payment methods available for {filterFiat}.</small>
+          )}
         </div>
 
         <div className="lbs-field">
-          <label className="lbs-label">
-            Sort By
-            <span className="lbs-info-dot" title="Best rate first">i</span>
-          </label>
+          <label className="lbs-label">Sort By</label>
           <div className="lbs-selwrap">
-            <select className="lbs-input lbs-select lbs-select--plain" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-              <option value="best">Best Rate</option>
-              <option value="low">Lowest Price</option>
-              <option value="high">Highest Price</option>
-              <option value="new">Newest First</option>
+            <select
+              className="lbs-input lbs-select lbs-select--plain"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as OfferView)}
+            >
+              <option value="all">All</option>
+              <option value="buy">Buy</option>
+              <option value="sell">Sell</option>
             </select>
             <span className="lbs-sel-chevron"><Chevron /></span>
           </div>
         </div>
 
-        <div className="lbs-field lbs-field--btn">
-          <button type="button" className="lbs-adv-btn" onClick={() => setShowAdvanced(s => !s)}>
-            <FilterIcon /> Advanced Filter
-          </button>
-        </div>
-
-        <div className="lbs-field lbs-field--btn">
-          <button type="button" className="lbs-search-btn" onClick={handleSearch}>
+        <div className="lbs-field lbs-field--btn mt-4 pt-2">
+          <button type="button" className="lbs-search-btn mt-4" onClick={handleSearch}>
             <SearchIcon /> Search Offers
           </button>
         </div>
-
-        <div className="lbs-chips-row">
-          {QUICK_AMOUNTS.map(v => (
-            <button
-              key={v}
-              type="button"
-              className={`lbs-chip ${String(v) === (amt.min || '') ? 'is-active' : ''}`}
-              onClick={() => setAmt({ ...amt, min: String(v), max: String(v + 1000) })}
-            >
-              {v.toLocaleString()}
-            </button>
-          ))}
-        </div>
-
-        {showAdvanced && (
-          <div className="lbs-filters-advanced">
-            <div className="lbs-field">
-              <label className="lbs-label">Rate Range ({filterFiat || '—'})</label>
-              <div className="lbs-range">
-                <input className="lbs-input" inputMode="decimal" placeholder="Min" value={rate.min} onChange={e => setRate({ ...rate, min: num(e.target.value) })} />
-                <span className="lbs-range-sep">–</span>
-                <input className="lbs-input" inputMode="decimal" placeholder="Max" value={rate.max} onChange={e => setRate({ ...rate, max: num(e.target.value) })} />
-              </div>
-            </div>
-
-            <div className="lbs-field" style={{ display: 'none' }}>
-              <ReactSelect<Option>
-                instanceId="lbsCurrency"
-                classNamePrefix="lbs-sel2"
-                options={currencyOptions}
-                value={currencyValue}
-                onChange={v => handleChange((v as Option | null)?.value ?? '')}
-                placeholder="Select currency"
-                isSearchable
-                isClearable
-                components={{ IndicatorSeparator: null }}
-                formatOptionLabel={o => formatOption(o, CUR_FLAG[o.value])}
-              />
-            </div>
-
-            <div className="lbs-field lbs-field--btn">
-              {hasFilter && (
-                <button type="button" className="lbs-clear-btn" onClick={clearFilters}>
-                  <i className="fa-solid fa-xmark" /> Clear filters
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </section>
 
       {/* ═════════ TWO PANELS ═════════ */}
-      <div className="lbs-panels">
-        <Panel
-          kind="buy"
-          b={data.buy}
-          cur={filterFiat}
-          bonusPercent={bonusPercent}
-          feePercent={feePercent}
-          onRefresh={() => fetchBucket('buy', data.buy.page)}
-          onPage={p => goToPage('buy', p)}
-          onTrade={handleTrade}
-        />
-        <Panel
-          kind="sell"
-          b={data.sell}
-          cur={filterFiat}
-          bonusPercent={bonusPercent}
-          feePercent={feePercent}
-          onRefresh={() => fetchBucket('sell', data.sell.page)}
-          onPage={p => goToPage('sell', p)}
-          onTrade={handleTrade}
-        />
-      </div>
+      {!filterFiat ? (
+        <div className="lbs-empty lbs-currency-required">Select a currency to view offers.</div>
+      ) : (
+        <div className="lbs-panels">
+          {(['buy', 'sell'] as const)
+            .filter(kind => sortBy === 'all' || sortBy === kind)
+            .map(kind => (
+              <Panel
+                key={kind}
+                kind={kind}
+                b={data[kind]}
+                cur={filterFiat}
+                bonusPercent={bonusPercent}
+                feePercent={feePercent}
+                onRefresh={() => fetchBucket(kind, 1)}
+                onTrade={handleTrade}
+                sentinelRef={el => { sentinelRef.current[kind] = el; }}
+              />
+            ))}
+        </div>
+      )}
 
+      {/* ═════════ QUICK MODALS ═════════ */}
       {quickBuyOpen && (
         <QuickBuyModal
           onClose={() => setQuickBuyOpen(false)}
           onSuccess={() => {
-            // Optional: refresh buckets after ad is created
             fetchBucket('buy', 1);
             fetchBucket('sell', 1);
           }}
@@ -695,7 +788,6 @@ const [quickSellOpen, setQuickSellOpen] = useState(false);
       {/* ═════════ BOTTOM DASHBOARD ═════════ */}
       <div className="lbs-dashboard">
         <RecentRequestsCard />
-        {/* <MyActiveAdsCard /> */}
       </div>
 
       {tradeModal && tradeModal.kind === 'buy' && (

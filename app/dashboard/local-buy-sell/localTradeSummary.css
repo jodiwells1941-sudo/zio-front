@@ -1,0 +1,214 @@
+.local-trade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, .68);
+}
+
+.local-trade-overlay--red {
+  --trade-accent: #f87171;
+  --trade-accent-border: rgba(239, 68, 68, .38);
+  --trade-muted: #d1b3b3;
+}
+
+.local-trade-overlay--green {
+  --trade-accent: #34d399;
+  --trade-accent-border: rgba(52, 211, 153, .38);
+  --trade-muted: #a8c9bb;
+}
+
+.local-trade-modal {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 470px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  border: 1px solid var(--trade-accent-border);
+  border-radius: 14px;
+  background: #17191f;
+  color: #f8fafc;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+}
+
+.local-trade-modal .rt-modal-head {
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.local-trade-modal .rt-modal-title {
+  font-size: 16px;
+}
+
+.local-trade-content {
+  padding: 14px 16px 16px;
+}
+
+.local-trade-summary {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--trade-accent-border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.12));
+}
+
+.local-trade-summary-title {
+  margin: 0 0 7px;
+  color: var(--trade-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+}
+
+.local-trade-row,
+.local-trade-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, .09);
+  color: var(--trade-muted);
+  font-size: 12.5px;
+}
+
+.local-trade-row b,
+.local-trade-field b {
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
+
+.local-trade-row--total {
+  margin-top: 5px;
+  padding-top: 11px;
+  border-top: 1px solid var(--trade-accent-border);
+  border-bottom: 0;
+  color: #fff;
+  font-weight: 700;
+}
+
+.local-trade-row--total b {
+  color: var(--trade-accent);
+  font-size: 15px;
+}
+
+.local-trade-negative {
+  color: #f87171 !important;
+}
+
+.local-trade-positive {
+  color: #34d399 !important;
+}
+
+.local-trade-field {
+  align-items: flex-start;
+  padding: 9px 2px;
+}
+
+.local-trade-label {
+  color: var(--trade-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.local-trade-field--note {
+  display: block;
+  border-bottom: 0;
+}
+
+.local-trade-field--note p {
+  max-height: 72px;
+  overflow-y: auto;
+  margin: 5px 0 0;
+  color: #f8fafc;
+  font-size: 12.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.local-trade-method {
+  display: block;
+}
+
+.local-trade-method select {
+  display: block;
+  width: 100%;
+  min-height: 38px;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  background: #20232b;
+  color: #fff;
+}
+
+.local-trade-error {
+  display: block;
+  margin-top: 4px;
+  color: #f87171;
+  font-size: 12px;
+}
+
+.local-trade-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.local-trade-actions button {
+  min-height: 40px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.local-trade-actions .btn--secondary {
+  flex: 0 0 95px;
+}
+
+.local-trade-actions .btn--primary,
+.local-trade-sell-button {
+  flex: 1;
+  border: 0;
+  background: #ef4444;
+  color: #fff;
+}
+
+.local-trade-overlay--green .local-trade-actions .btn--primary,
+.local-trade-overlay--green .local-trade-sell-button {
+  background: #10b981;
+  color: #071310;
+}
+
+.local-trade-actions button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+@media (max-width: 480px) {
+  .local-trade-overlay {
+    padding: 10px;
+  }
+
+  .local-trade-modal {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .local-trade-content {
+    padding: 11px 12px 13px;
+  }
+
+  .local-trade-summary {
+    padding: 10px 11px;
+  }
+
+  .local-trade-row,
+  .local-trade-field {
+    font-size: 12px;
+  }
+}
