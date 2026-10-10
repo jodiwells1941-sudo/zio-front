@@ -125,19 +125,35 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
             placeholder: '',
           })))
     : [];
+  const methodEditorFields = (() => {
+    const walletNumberIndex = selectedMethodFields.findIndex(field => field.key === 'walletNumber');
+    if (walletNumberIndex < 0) return selectedMethodFields;
+
+    const configuredNameField = selectedMethodFields.find(field => field.key === 'name');
+    const nameField: SellMethodField = configuredNameField
+      ? { ...configuredNameField, label: configuredNameField.label || 'Name', required: true }
+      : {
+          key: 'name',
+          label: 'Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter account holder name',
+        };
+    const fields = selectedMethodFields.filter(field => field.key !== 'name');
+    const walletIndex = fields.findIndex(field => field.key === 'walletNumber');
+    fields.splice(walletIndex + 1, 0, nameField);
+    return fields;
+  })();
   const selectedMethodDetails = selectedMethod
-    ? (selectedMethod.fields?.length
-        ? selectedMethod.fields
-        : Object.entries(selectedMethod.field_values ?? {}).map(([key]) => ({
-            key,
-            label: key.replace(/[_-]+/g, ' ').replace(/\b\w/g, character => character.toUpperCase()),
-          })))
+    ? methodEditorFields
         .map(field => ({
           key: field.key,
           label: field.label,
           value: String(
-            Object.entries(selectedMethod).find(([key]) => key === field.key)?.[1]
-              ?? selectedMethod.field_values?.[field.key]
+            selectedMethod.field_values?.[field.key]
+              ?? (field.key === 'name' ? selectedMethod.name : undefined)
+              ?? (field.key === 'walletNumber' ? selectedMethod.walletNumber : undefined)
+              ?? (field.key === 'bankName' ? selectedMethod.bankName : undefined)
               ?? ''
           ).trim(),
         }))
@@ -235,11 +251,17 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     setMethodId(Number(method.id));
     const initialValues: Record<string, string> = {};
     for (const field of method.fields ?? []) {
-      const value = method.field_values?.[field.key];
+      const value = method.field_values?.[field.key]
+        ?? (field.key === 'name' ? method.name : undefined)
+        ?? (field.key === 'walletNumber' ? method.walletNumber : undefined)
+        ?? (field.key === 'bankName' ? method.bankName : undefined);
       if (value !== undefined && value !== null) initialValues[field.key] = String(value);
     }
     for (const [key, value] of Object.entries(method.field_values ?? {})) {
       if (initialValues[key] === undefined) initialValues[key] = value;
+    }
+    if (initialValues.name === undefined && method.name) {
+      initialValues.name = method.name;
     }
     setMethodFieldValues(initialValues);
     setMethodRemarks(method.remarks ?? '');
@@ -255,7 +277,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     }
 
     const errors: Record<string, string> = {};
-    for (const field of selectedMethodFields) {
+    for (const field of methodEditorFields) {
       const value = (methodFieldValues[field.key] ?? '').trim();
       if (field.required && !value) {
         errors[field.key] = `${field.label} is required.`;
@@ -617,9 +639,9 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     </div>
                   </div>
 
-                  {selectedMethodFields.length > 0 ? (
+                  {methodEditorFields.length > 0 ? (
                     <div className="qsm-method-editor-fields">
-                      {selectedMethodFields.map(field => (
+                      {methodEditorFields.map(field => (
                         <label className="qsm-method-editor-field" key={field.key}>
                           <span>
                             {field.label}
