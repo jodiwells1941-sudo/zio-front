@@ -288,6 +288,12 @@
   font-variant-numeric: tabular-nums;
 }
 .qsm-amount input::placeholder { color: var(--qsm-muted-2); font-weight: 500; }
+.qsm-amount-limits {
+  display: block;
+  margin: -7px 0 8px;
+  color: var(--qsm-muted);
+  font-size: 10px;
+}
 
 /* Chips */
 .qsm-chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
@@ -442,11 +448,6 @@
 
 /* Payment methods */
 .qsm-methods { display: flex; gap: 10px; flex-wrap: wrap; }
-.qsm-method-choice {
-  display: inline-flex;
-  align-items: stretch;
-  gap: 4px;
-}
 .qsm-method {
   position: relative;
   display: inline-flex;
@@ -463,22 +464,6 @@
   transition: all .15s;
 }
 .qsm-method:hover { border-color: var(--qsm-line-2); background: var(--qsm-surface-2); transform: translateY(-1px); }
-.qsm-method-edit {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  border: 1.5px solid var(--qsm-line);
-  border-radius: 9px;
-  background: var(--qsm-surface);
-  color: var(--qsm-muted);
-  cursor: pointer;
-  transition: color .15s, border-color .15s, background .15s;
-}
-.qsm-method-edit:hover {
-  border-color: var(--qsm-line-2);
-  background: var(--qsm-surface-2);
-  color: var(--qsm-text);
-}
 .qsm-method.is-active {
   background: rgba(239, 68, 68, .14);
   border-color: var(--qsm-red-l);
@@ -671,6 +656,82 @@
 }
 .qsm-green { color: #fca5a5 !important; }
 .qsm-red   { color: #f87171 !important; }
+
+/* Selected payment method details on the confirmation step */
+.qsm-payment-details {
+  margin: -6px 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--qsm-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .025);
+}
+.qsm-payment-details-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(239, 68, 68, .12);
+}
+.qsm-payment-details-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(239, 68, 68, .12);
+  color: var(--qsm-red-l);
+}
+.qsm-payment-details-head strong,
+.qsm-payment-details-head small {
+  display: block;
+}
+.qsm-payment-details-head strong {
+  color: #fff;
+  font-size: 12.5px;
+}
+.qsm-payment-details-head small {
+  margin-top: 2px;
+  color: var(--qsm-muted);
+  font-size: 10.5px;
+}
+.qsm-payment-details-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.qsm-payment-details-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 11.5px;
+}
+.qsm-payment-details-row dt {
+  color: var(--qsm-muted);
+}
+.qsm-payment-details-row dd {
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.qsm-payment-details-extra {
+  margin-top: 10px;
+  color: var(--qsm-muted);
+  font-size: 11.5px;
+}
+.qsm-payment-details-extra p {
+  margin: 4px 0 0;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+.qsm-payment-details-empty {
+  margin: 10px 0 0;
+  color: var(--qsm-muted);
+  font-size: 11px;
+}
 
 /* Footer */
 .qsm-footer {

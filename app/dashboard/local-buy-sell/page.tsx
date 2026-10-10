@@ -44,6 +44,10 @@ const METHOD_STYLE: Record<string, { color: string; glyph: string }> = {
   'Bank Transfer': { color: '#1d6fe0', glyph: '⌂' },
 };
 
+/* ── localStorage keys ── */
+const LS_FIAT_KEY    = 'lbs_filter_fiat';
+const LS_COUNTRY_KEY = 'lbs_filter_country';
+
 type Option = { label: string; value: string };
 type Kind = 'buy' | 'sell';
 type OfferView = Kind | 'all';
@@ -141,6 +145,7 @@ function Row({
       <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit}</div>
       <div className="lbs-cell lbs-cell--methods">
         <span className="lbs-mico" style={{ background: style.color }}>{style.glyph}</span>
+        <span className="lbs-method-name" title={method}>{method}</span>
       </div>
       <div className="lbs-cell lbs-cell--action">
         <button
@@ -205,8 +210,8 @@ function Panel({
       <div className="lbs-scroll">
         <div className="lbs-table">
           <div className="lbs-row lbs-row--head">
-            <div className="lbs-cell">{buy ? 'Buy Amount (BDT)' : 'Sell Amount (BDT)'}</div>
-            <div className="lbs-cell">Price (BDT)</div>
+            <div className="lbs-cell">Amount {cur}</div>
+            <div className="lbs-cell">Price {cur}</div>
             <div className="lbs-cell">USDT Amount</div>
             <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'} (USDT)</div>
             <div className="lbs-cell">Time (Min)</div>
@@ -297,6 +302,59 @@ export default function Page() {
   /* ── Infinite scroll refs ── */
   const sentinelRef = useRef<Record<Kind, HTMLDivElement | null>>({ buy: null, sell: null });
   const observerRef = useRef<Record<Kind, IntersectionObserver | null>>({ buy: null, sell: null });
+
+  /* ─────────────────────────────────────────────────────────────
+     localStorage: hydrate on mount (once)
+     ───────────────────────────────────────────────────────────── */
+  const hasHydrated = useRef(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const savedFiat = window.localStorage.getItem(LS_FIAT_KEY) ?? '';
+      const savedCountry = window.localStorage.getItem(LS_COUNTRY_KEY) ?? '';
+
+      // Only accept values that exist in our known lists
+      const validFiat = CURRENCIES.some(c => c.code === savedFiat) ? savedFiat : '';
+      const validCountry = countryOptions.some(o => o.value === savedCountry) ? savedCountry : '';
+
+      // Prefer stored values; if fiat stored but no country, infer country from map
+      const inferredCountry = validCountry || (validFiat && CUR_HOME[validFiat]) || '';
+
+      if (validFiat)   setFilterFiat(validFiat);
+      if (inferredCountry) setCountry(inferredCountry);
+    } catch (e) {
+      console.warn('Failed to read filter from localStorage:', e);
+    } finally {
+      hasHydrated.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ─────────────────────────────────────────────────────────────
+     localStorage: persist on change (only after hydration)
+     ───────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (!hasHydrated.current) return;
+    if (typeof window === 'undefined') return;
+    try {
+      if (filterFiat) window.localStorage.setItem(LS_FIAT_KEY, filterFiat);
+      else            window.localStorage.removeItem(LS_FIAT_KEY);
+    } catch (e) {
+      console.warn('Failed to persist fiat to localStorage:', e);
+    }
+  }, [filterFiat]);
+
+  useEffect(() => {
+    if (!hasHydrated.current) return;
+    if (typeof window === 'undefined') return;
+    try {
+      if (country) window.localStorage.setItem(LS_COUNTRY_KEY, country);
+      else         window.localStorage.removeItem(LS_COUNTRY_KEY);
+    } catch (e) {
+      console.warn('Failed to persist country to localStorage:', e);
+    }
+  }, [country]);
 
   /* ── Load Bonus & Fee settings once ── */
   useEffect(() => {

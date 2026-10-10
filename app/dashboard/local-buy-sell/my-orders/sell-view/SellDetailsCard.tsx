@@ -2,7 +2,7 @@
 
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
-import OrderDetailsCard from "@/components/dashboard/wallet/sell/OrderDetailsCard";
+import TradeOrderSummary from "../TradeOrderSummary";
 import PaymentCompleted from "@/components/dashboard/wallet/sell/PaymentCompleted";
 import { PaymentReceivedModel } from "@/components/dashboard/wallet/sell/PaymentReceivedModel";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
@@ -41,9 +41,11 @@ interface TradeData {
     order_limit_min: number;
     order_limit_max: number;
     payment_time_limit: number;
+    remarks?: string | null;
     payment_method?: {
       field_values?: { walletNumber?: string; bankName?: string };
       bankName?: string;
+      remarks?: string | null;
       sell_method?: { name: string };
     };
   };
@@ -102,7 +104,6 @@ export default function SellDetailsCard() {
   const [submitting,      setSubmitting]      = useState(false);
   const [paymentReceived, setPaymentReceived] = useState(false);
   const [confirmPayment,  setConfirmPayment]  = useState(false);
-  const [bonusPercent,    setBonusPercent]    = useState(0);
   const [sellFeePercent,  setSellFeePercent]  = useState(0);
 
 
@@ -113,16 +114,13 @@ export default function SellDetailsCard() {
       try {
         const res = await getBonusFeesSettings();
         const settings = res?.data ?? {};
-        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
         const nextFee = Number(settings?.user_sell_charge ?? 0);
 
         if (!mounted) return;
-        setBonusPercent(trade?.type === "buy" ? nextBonus : 0);
         setSellFeePercent(trade?.type === "sell" ? nextFee : 0);
       } catch (error) {
         console.error("Failed to load bonus & fees settings:", error);
         if (mounted) {
-          setBonusPercent(0);
           setSellFeePercent(0);
         }
       }
@@ -296,7 +294,6 @@ export default function SellDetailsCard() {
   const price             = Number(trade.user_price).toFixed(2);
   const withFiat          = trade.current_status?.with_fiat ?? trade.p2p_ad?.with_fiat ?? '';
   const buyerName         = trade.customer?.name ?? 'Buyer';
-  const sellerName        = trade.client?.name ?? 'Seller';
   const isBuyerDispatched = trade.status === 5;
   const statusList = trade.status_list ?? [];
   const canRelease = statusList.includes(6);
@@ -311,10 +308,17 @@ export default function SellDetailsCard() {
   const backToP2PHref = "/dashboard/local-buy-sell/my-orders";
 
   // "From" is always the seller side, "To" is always the buyer side.
-  const fromName = trade.is_client_seller ? sellerName : buyerName;
-  const toName    = trade.is_client_seller ? buyerName : sellerName;
-  const fee       = Number(trade.charge_amount ?? 0);
-  const bonus     = Number(trade.bonus_amount ?? 0);
+  const fiatAmount = Number(trade.payable_amount);
+  const cryptoAmount = Number(trade.receivable_amount);
+  const feeCryptoAmount = Number(trade.charge_amount ?? 0);
+  const feeAmount = feeCryptoAmount > 0
+    ? feeCryptoAmount * Number(trade.user_price)
+    : fiatAmount * sellFeePercent / 100;
+  const displayedFeePercent =
+    fiatAmount > 0 && feeAmount > 0
+      ? feeAmount / fiatAmount * 100
+      : sellFeePercent;
+  const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;
 
   const paymentModalDetails = [
     { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
@@ -406,6 +410,20 @@ export default function SellDetailsCard() {
           </div>
         </div>
       </div>
+
+      <TradeOrderSummary
+        kind="sell"
+        asset={trade.p2p_ad?.asset ?? "USDT"}
+        currency={withFiat}
+        fiatAmount={fiatAmount}
+        price={Number(trade.user_price)}
+        cryptoAmount={cryptoAmount}
+        paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
+        note={note}
+        paymentMethod={methodName}
+        feeAmount={feeAmount}
+        feePercent={displayedFeePercent}
+      />
 
       {/* ── STEPS (shown while not yet completed; not when appealed status 10) ── */}
       {!confirmPayment && trade.status !== 10 && showExpiredPendingState ? (
@@ -542,24 +560,6 @@ export default function SellDetailsCard() {
                 </div>
               </div>
 
-              {/* Order details — matches "USDT Order details" card design */}
-              <div className="mt-3">
-                <OrderDetailsCard
-                  fromName={fromName}
-                  toName={toName}
-                  payWith={methodName}
-                  orderType={trade.type === "buy" ? "Buy" : "Sell"}
-                  type={trade.type}
-                  asset={trade.p2p_ad?.asset ?? "USDT"}
-                  fiatCurrency={withFiat}
-                  fiatAmount={Number(trade.payable_amount)}
-                  price={Number(trade.user_price)}
-                  totalQuantity={Number(trade.receivable_amount)}
-                  fee={fee}
-                  bonus={bonus}
-                  orderNo={orderId}
-                />
-              </div>
             </div>
           </div>
 

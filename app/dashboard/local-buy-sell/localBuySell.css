@@ -613,7 +613,7 @@
     minmax(0, 0.9fr)
     minmax(0, 0.9fr)
     minmax(0, 0.6fr)
-    minmax(0, 0.7fr)
+    minmax(0, 1.2fr)
     minmax(0, 0.7fr);
   align-items: center;
   column-gap: 6px;
@@ -678,10 +678,11 @@
 
 .lbs .lbs-cell--methods {
   display: flex;
-  gap: 3px;
-  justify-content: center;
-  flex-wrap: nowrap;
-  overflow: hidden;
+  justify-content: flex-start;
+  gap: 6px;
+  flex-wrap: wrap;
+  overflow: visible;
+  white-space: normal;
 }
 .lbs .lbs-mico {
   flex: none;
@@ -693,6 +694,12 @@
   color: #fff;
   font-weight: 700;
   font-size: 10px;
+}
+.lbs .lbs-method-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+  line-height: 1.25;
 }
 
 .lbs .lbs-trade-btn {

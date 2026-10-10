@@ -5,7 +5,7 @@ import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import OrderCompleted from "@/components/dashboard/p2p/OrderCompleted";
 import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import P2PPendingAmmountCard from "@/components/dashboard/p2p/P2PPendingAmmountCard";
-import OrderDetailsCard from "@/components/dashboard/wallet/sell/OrderDetailsCard";
+import TradeOrderSummary from "../TradeOrderSummary";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -62,6 +62,7 @@ export interface TradeData {
     asset: string;
     with_fiat: string;
     payment_time_limit: number;
+    remarks?: string | null;
     payment_method: {
       remarks: string | null;
       qr_code: string | null;
@@ -904,13 +905,6 @@ export default function BuyDetailsCard({
   const fiat = vd.fiat;
   const asset = vd.asset;
   const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "N/A";
-  const orderDetailRows = [...vd.detailRows];
-  if (trade.type === "buy" && bonusPercent > 0) {
-    orderDetailRows.push({ label: "Buy Bonus", value: `+${bonusPercent}%`, copyText: `${bonusPercent}%` });
-  }
-  if (trade.type === "sell" && sellFeePercent > 0) {
-    orderDetailRows.push({ label: "Selling Fee", value: `${sellFeePercent}%`, copyText: `${sellFeePercent}%` });
-  }
   const mm = Math.floor(secondsLeft / 60);
   const ss = secondsLeft % 60;
 
@@ -930,12 +924,25 @@ export default function BuyDetailsCard({
   const pendingSs = pendingTimeLeft % 60;
   const backToP2PHref = "/dashboard/local-buy-sell/my-orders";
 
-  // "From" is always the seller side, "To" is always the buyer side —
-  // matches the "USDT Order details" card in the merchant screenshots.
-  const fromName = trade.is_client_seller ? trade.client?.name ?? "—" : trade.customer?.name ?? "—";
-  const toName    = trade.is_client_seller ? trade.customer?.name ?? "—" : trade.client?.name ?? "—";
-  const fee       = Number(trade.charge_amount ?? 0);
-  const bonus     = Number(trade.bonus_amount ?? 0);
+  const fiatAmount = Number(trade.payable_amount);
+  const cryptoAmount = Number(trade.receivable_amount);
+  const price = Number(trade.user_price);
+  const bonusAmount = Number(
+    trade.bonus_amount ?? (trade.type === "buy" ? cryptoAmount * bonusPercent / 100 : 0),
+  );
+  const displayedBonusPercent =
+    cryptoAmount > 0 && bonusAmount > 0
+      ? bonusAmount / cryptoAmount * 100
+      : (trade.type === "buy" ? bonusPercent : 0);
+  const feeCryptoAmount = Number(trade.charge_amount ?? 0);
+  const feeAmount = feeCryptoAmount > 0
+    ? feeCryptoAmount * price
+    : fiatAmount * sellFeePercent / 100;
+  const displayedFeePercent =
+    fiatAmount > 0 && feeAmount > 0
+      ? feeAmount / fiatAmount * 100
+      : sellFeePercent;
+  const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -1025,6 +1032,19 @@ export default function BuyDetailsCard({
         </div>
       </div>
 
+      <TradeOrderSummary
+        kind="buy"
+        asset={asset}
+        currency={fiat}
+        fiatAmount={fiatAmount}
+        price={price}
+        cryptoAmount={cryptoAmount}
+        paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
+        note={note}
+        bonusAmount={bonusAmount}
+        bonusPercent={displayedBonusPercent}
+      />
+
       {/* ══════════════════════════════════════════════════════════════════
           PAYMENT PHASE  (trade.status = 1 or 2)
       ══════════════════════════════════════════════════════════════════ */}
@@ -1047,24 +1067,6 @@ export default function BuyDetailsCard({
                 <PaymentInfoCard trade={trade} view={vd}  />
               )}
 
-              {/* Order details — matches "USDT Order details" merchant card design */}
-              <div className="mt-3">
-                <OrderDetailsCard
-                  fromName={fromName}
-                  toName={toName}
-                  payWith={methodName}
-                  orderType={trade.type === "buy" ? "Buy" : "Sell"}
-                  type={trade.type}
-                  asset={asset}
-                  fiatCurrency={fiat}
-                  fiatAmount={Number(trade.payable_amount)}
-                  price={Number(trade.user_price)}
-                  totalQuantity={Number(trade.receivable_amount)}
-                  fee={fee}
-                  bonus={bonus}
-                  orderNo={orderId}
-                />
-              </div>
             </div>
           </div>
 
