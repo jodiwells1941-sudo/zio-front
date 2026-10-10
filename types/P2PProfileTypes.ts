@@ -39,6 +39,9 @@ export type UserPaymentMethod = {
   currency_name: string;  // e.g. "BDT"
   fields: SellMethodField[];        // field definitions (for display labels)
   field_values: Record<string, string>;  // actual values
+  name?: string;
+  walletNumber?: string;
+  bankName?: string;
   remarks?: string;
   qr_code?: string;
   is_active: boolean;

@@ -579,6 +579,17 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   </span>
                 </div>
 
+                {/* show total  */}
+                <div className="qbm-bd-row">
+                  <span className="qbm-bd-ico"><i className="fa-solid fa-sack-dollar" /></span>
+                  <span className="qbm-bd-label">
+                    Total You Will Receive <small>(Base + Bonus)</small>
+                  </span>
+                  <span className="qbm-bd-value qbm-bd-value--green">
+                    {bonusLoading ? '…' : `${money(totalUsdt)} ${ASSET_CODE}`}
+                  </span>
+                </div>
+
               </div>
 
               {/* Total */}
