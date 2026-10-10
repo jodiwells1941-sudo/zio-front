@@ -83,10 +83,7 @@ export default function OrderDetailsCard({
             <div className="p2pCardLabel">{asset} Price</div>
             <div className="p2pCardValue">{fiatCurrency} {fmt(price)}</div>
           </div>
-          <div className="p2pCardRow px-3">
-            <div className="p2pCardLabel">Total Quantity</div>
-            <div className="p2pCardValue">{fmt(totalQuantity + fee + bonus)} {asset}</div>
-          </div>
+          
           <div className="p2pCardRow px-3 ps-4">
             <div className="p2pCardLabel text-white-50 d-flex align-items-center gap-2">
               <i className="fa-solid fa-chevron-right small text-white-50" />
@@ -114,6 +111,11 @@ export default function OrderDetailsCard({
               <div className="p2pCardValue">{fmt(fee)} {asset}</div>
             </div>
           )}
+
+          <div className="p2pCardRow px-3">
+            <div className="p2pCardLabel">Total Quantity</div>
+            <div className="p2pCardValue">{fmt(totalQuantity + fee + bonus)} {asset}</div>
+          </div>
 
           <div className="p2pCardRow px-3 border-top border-dark-light">
             <div className="p2pCardLabel">Order No.</div>

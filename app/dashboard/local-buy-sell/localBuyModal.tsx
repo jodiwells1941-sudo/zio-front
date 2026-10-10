@@ -169,9 +169,9 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             <p>{ad.remarks || "No additional note provided."}</p>
           </div>
           <div className="local-trade-actions">
-            <button type="button" onClick={onClose} className="btn--secondary">Cancel</button>
-            <button type="button" className="btn--primary" onClick={handleBuy} disabled={submitting}>
-              {submitting ? 'Processing...' : `Buy ${ad.asset}`}
+            <button type="button" onClick={onClose} className="btn--secondary d-flex justify-content-center">Cancel</button>
+            <button type="button" className="btn--primary d-flex justify-content-center" onClick={handleBuy} disabled={submitting}>
+              {submitting ? 'Processing...' : 'Accept request'}
             </button>
           </div>
         </div>

@@ -193,9 +193,9 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             {errors.paymentMethodId && <span className="local-trade-error">{errors.paymentMethodId}</span>}
           </div>
           <div className="local-trade-actions">
-            <button type="button" onClick={onClose} className="btn--secondary">Cancel</button>
-            <button type="button" className="local-trade-sell-button" onClick={handleSell} disabled={submitting}>
-              {submitting ? 'Processing...' : `Sell ${ad.asset}`}
+            <button type="button" onClick={onClose} className="btn--secondary d-flex justify-content-center">Cancel</button>
+            <button type="button" className="local-trade-sell-button d-flex justify-content-center" onClick={handleSell} disabled={submitting}>
+              {submitting ? 'Processing...' : 'Accept request'}
             </button>
           </div>
         </div>

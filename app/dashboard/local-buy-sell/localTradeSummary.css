@@ -158,36 +158,72 @@
 .local-trade-actions {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
 }
 
 .local-trade-actions button {
-  min-height: 40px;
-  border-radius: 8px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
   font-weight: 700;
+  letter-spacing: .01em;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
 }
 
 .local-trade-actions .btn--secondary {
   flex: 0 0 95px;
+  border-color: rgba(255, 255, 255, .16);
+  background: #242831;
+  color: #d6d9e0;
+}
+
+.local-trade-actions .btn--secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, .3);
+  background: #303541;
+  color: #fff;
 }
 
 .local-trade-actions .btn--primary,
 .local-trade-sell-button {
   flex: 1;
-  border: 0;
-  background: #ef4444;
+  border-color: rgba(248, 113, 113, .48);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: #fff;
+  box-shadow: 0 5px 14px rgba(239, 68, 68, .2);
 }
 
 .local-trade-overlay--green .local-trade-actions .btn--primary,
 .local-trade-overlay--green .local-trade-sell-button {
-  background: #10b981;
-  color: #071310;
+  border-color: rgba(52, 211, 153, .5);
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: #06251b;
+  box-shadow: 0 5px 14px rgba(16, 185, 129, .2);
+}
+
+.local-trade-actions .btn--primary:hover:not(:disabled),
+.local-trade-actions .local-trade-sell-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 7px 18px rgba(239, 68, 68, .32);
+  transform: translateY(-1px);
+}
+
+.local-trade-overlay--green .local-trade-actions .btn--primary:hover:not(:disabled) {
+  box-shadow: 0 7px 18px rgba(16, 185, 129, .32);
+}
+
+.local-trade-actions button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 .local-trade-actions button:disabled {
   cursor: wait;
   opacity: .65;
+  box-shadow: none;
+  transform: none;
 }
 
 @media (max-width: 480px) {
