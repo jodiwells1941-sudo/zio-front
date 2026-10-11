@@ -583,7 +583,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
-              <div className="qsm-total">
+              <div className="qsm-total qsm-total--hero">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
                   <span>Total Received Amount</span>
@@ -775,7 +775,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
-              <div className="qsm-total">
+              <div className="qsm-total qsm-total--hero">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
                   <span>Total Received Amount</span>

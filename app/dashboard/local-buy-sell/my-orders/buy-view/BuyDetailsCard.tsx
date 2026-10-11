@@ -2,10 +2,10 @@
 
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
-import OrderCompleted from "@/components/dashboard/p2p/OrderCompleted";
+import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
-import P2PPendingAmmountCard from "@/components/dashboard/p2p/P2PPendingAmmountCard";
-import TradeOrderSummary from "../TradeOrderSummary";
+import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
+import TradeOrderSummary from "./TradeOrderSummary";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -121,9 +121,9 @@ export function parseApiDateToMs(dateStr?: string | null): number | null {
 function StatusBanner({ status }: { status: number }) {
   const map: Record<number, React.ReactElement> = {
     1: (
-      <div className="toast-body p-2 rounded-2 text-white toast-bg-warning">
-        <span className="spinner-border spinner-border-sm me-2" role="status" />
-        Pending — waiting for seller to approve
+      <div className="p2pPendingStatus" role="status" aria-live="polite">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+        <span>Pending — Waiting for seller to approve</span>
       </div>
     ),
     2: (
@@ -949,19 +949,38 @@ export default function BuyDetailsCard({
     <>
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="p2pOrderHeader">
-        <StatusBanner status={trade.status} />
-
-        {/* Pending countdown banner (status === 1) */}
-        {isPending && pendingExpireTime && (
-          <div className="alert bg-warning alert-warning d-flex justify-content-between align-items-center mt-4 mb-2 py-2">
-            <span className="d-flex align-items-center gap-2">
-              <i className="fa-regular fa-clock" />
-              Waiting for approval — expires in
-            </span>
-            <strong className="font-monospace fs-20">
-              {pad(pendingMm)}:{pad(pendingSs)}
-            </strong>
+        {isPending ? (
+          <div className={`p2pPendingCard ${pendingTimeLeft > 0 && pendingTimeLeft <= 60 ? "is-urgent" : ""}`}>
+            <div className="p2pPendingMain">
+              <span className="p2pPendingIcon" aria-hidden="true">
+                <i className={`fa-solid ${canApprove || canReject ? "fa-clipboard-check" : "fa-hourglass-half"}`} />
+              </span>
+              <div className="p2pPendingCopy" role="status">
+                <span className="p2pPendingEyebrow">
+                  {canApprove || canReject ? "Action required" : "Request submitted"}
+                </span>
+                <h3>{canApprove || canReject ? "Review trade request" : "Waiting for seller approval"}</h3>
+                <p>
+                  {canApprove || canReject
+                    ? "Review the order details below and accept or decline this request."
+                    : "Your request is with the seller. We’ll update you as soon as it’s reviewed."}
+                </p>
+              </div>
+            </div>
+            {pendingExpireTime && (
+              <div className="p2pPendingCountdown" role="timer" aria-live="off">
+                <span className="p2pCountdownIcon" aria-hidden="true">
+                  <i className="fa-regular fa-clock" />
+                </span>
+                <span className="p2pCountdownLabel">Time left</span>
+                <strong aria-label={`${pad(pendingMm)} minutes ${pad(pendingSs)} seconds remaining`}>
+                  {pad(pendingMm)}:{pad(pendingSs)}
+                </strong>
+              </div>
+            )}
           </div>
+        ) : (
+          <StatusBanner status={trade.status} />
         )}
 
         {uiStatus === "completed" ? (
@@ -985,7 +1004,7 @@ export default function BuyDetailsCard({
               {trade.current_status?.status_text ?? "Order Cancelled"}
             </h2>
           </div>
-        ) : (
+        ) : isPending ? null : (
           <div className="d-flex justify-content-between align-items-center">
             <h2 className="p2pTitle">
               {/* Payment countdown for status=2 */}
@@ -1023,7 +1042,7 @@ export default function BuyDetailsCard({
           </div>
         )}
 
-        <div className="p2pSubRow">
+        <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
           <div className="p2pOrderNo">
             <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>

@@ -164,7 +164,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               <div className="local-trade-row"><span>Fee ({money(feePercent)}%)</span><b className="local-trade-negative">- {money(feeFiat)} {ad.with_fiat}</b></div>
             )}
             <div className="local-trade-row"><span>Payment Method</span><b>{ad.payment_method?.sell_method?.name ?? "N/A"}</b></div>
-            <div className="local-trade-row local-trade-row--total"><span>Total You Will Receive</span><b>{money(totalFiatReceive)} {ad.with_fiat}</b></div>
+            <div className="local-trade-row local-trade-row--total"><span>Total You Will Receive</span><b>{money(grossReceive)} {ad.with_fiat}</b></div>
           </div>
           <div className="local-trade-field">
             <span className="local-trade-label">Order Time Limit</span>

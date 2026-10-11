@@ -2,9 +2,9 @@
 
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
-import TradeOrderSummary from "../TradeOrderSummary";
-import PaymentCompleted from "@/components/dashboard/wallet/sell/PaymentCompleted";
-import { PaymentReceivedModel } from "@/components/dashboard/wallet/sell/PaymentReceivedModel";
+import TradeOrderSummary from "./TradeOrderSummary";
+import PaymentCompleted from "./PaymentCompleted";
+import { PaymentReceivedModel } from "./PaymentReceivedModel";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
@@ -43,7 +43,7 @@ interface TradeData {
     payment_time_limit: number;
     remarks?: string | null;
     payment_method?: {
-      field_values?: { walletNumber?: string; bankName?: string };
+      field_values?: Record<string, string>;
       bankName?: string;
       remarks?: string | null;
       sell_method?: { name: string };
@@ -319,6 +319,15 @@ export default function SellDetailsCard() {
       ? feeAmount / fiatAmount * 100
       : sellFeePercent;
   const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;
+  const paymentDetails = Object.entries(trade.p2p_ad?.payment_method?.field_values ?? {})
+    .filter(([, value]) => Boolean(value?.trim()))
+    .map(([label, value]) => ({
+      label: label
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, character => character.toUpperCase()),
+      value,
+    }));
 
   const paymentModalDetails = [
     { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
@@ -332,30 +341,40 @@ export default function SellDetailsCard() {
      <>
       <div className="p2pOrderHeader">
 
-        {/* Status toasts */}
-        {trade.status === 1 && (
-          <div className="toast-body p-2 rounded-2 text-white toast-bg-warning">
-            <div className="spinner-border spinner-border-sm me-2" role="status" />
-            {isPendingReview
-              ? "Pending — approve or reject this trade request"
-              : "Pending trade request"}
+        {trade.status === 1 ? (
+          <div className={`p2pPendingCard ${pendingApprovalTimer.secondsLeft > 0 && pendingApprovalTimer.secondsLeft <= 60 ? "is-urgent" : ""}`}>
+            <div className="p2pPendingMain">
+              <span className="p2pPendingIcon" aria-hidden="true">
+                <i className={`fa-solid ${isPendingReview ? "fa-clipboard-check" : "fa-hourglass-half"}`} />
+              </span>
+              <div className="p2pPendingCopy" role="status">
+                <span className="p2pPendingEyebrow">
+                  {isPendingReview ? "Action required" : "Request submitted"}
+                </span>
+                <h3>{isPendingReview ? "Review trade request" : "Waiting for seller approval"}</h3>
+                <p>
+                  {isPendingReview
+                    ? "Review the order details below and accept or decline this request."
+                    : "Your request is with the seller. We'll update you as soon as it's reviewed."}
+                </p>
+              </div>
+            </div>
+            {trade.pending_time_limit && (
+              <div className="p2pPendingCountdown" role="timer" aria-live="off">
+                <span className="p2pCountdownIcon" aria-hidden="true">
+                  <i className="fa-regular fa-clock" />
+                </span>
+                <span className="p2pCountdownLabel">Time left</span>
+                <strong aria-label={`${pad(pendingApprovalMm)} minutes ${pad(pendingApprovalSs)} seconds remaining`}>
+                  {pad(pendingApprovalMm)}:{pad(pendingApprovalSs)}
+                </strong>
+              </div>
+            )}
           </div>
-        )}
-        {trade.status === 2 && (
+        ) : trade.status === 2 && (
           <div className="toast-body p-2 rounded-2 text-white toast-bg-success d-flex align-items-center">
             <i className="fas fa-check me-2" />
             Your Sell Request Is Accepted
-          </div>
-        )}
-        {trade.status === 1 && trade.pending_time_limit && (
-          <div className="alert bg-warning alert-warning d-flex justify-content-between align-items-center mt-4 mb-2 py-2">
-            <span className="d-flex align-items-center gap-2">
-              <i className="fa-regular fa-clock" />
-              Waiting for approval — expires in
-            </span>
-            <strong className="font-monospace fs-20">
-              {pad(pendingApprovalMm)}:{pad(pendingApprovalSs)}
-            </strong>
           </div>
         )}
         {trade.status === 10 && (
@@ -366,7 +385,7 @@ export default function SellDetailsCard() {
         )}
 
         {/* Title */}
-        {confirmPayment ? (
+        {trade.status === 1 ? null : confirmPayment ? (
           <div className="d-flex justify-content-between align-items-center">
             <h2 className="p2pTitle text-white">Payment Completed</h2>
             <span className="w-15 h-15 mt-3 border border-success rounded-pill d-flex justify-content-center align-items-center">
@@ -402,7 +421,7 @@ export default function SellDetailsCard() {
         )}
 
         {/* Order number */}
-        <div className="p2pSubRow">
+        <div className={`p2pSubRow ${trade.status === 1 ? "p2pPendingOrderId" : ""}`}>
           <div className="p2pOrderNo">
             <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>
@@ -421,6 +440,7 @@ export default function SellDetailsCard() {
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
         paymentMethod={methodName}
+        paymentDetails={paymentDetails}
         feeAmount={feeAmount}
         feePercent={displayedFeePercent}
       />

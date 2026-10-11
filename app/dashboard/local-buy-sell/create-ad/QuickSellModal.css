@@ -1189,6 +1189,34 @@
   text-shadow: 0 0 28px rgba(252, 165, 165, .55) !important;
 }
 
+.qsm-modal .qsm-total--hero {
+  min-height: 96px;
+  gap: 18px;
+  padding: 20px 22px !important;
+  margin: 8px 0 20px !important;
+  border-width: 2px !important;
+  border-radius: 17px !important;
+  background:
+    radial-gradient(140% 140% at 0% 50%, rgba(248, 113, 113, .42), transparent 65%),
+    linear-gradient(100deg, #571117 0%, #390c13 100%) !important;
+  box-shadow:
+    0 16px 38px rgba(239, 68, 68, .3),
+    0 1px 0 rgba(255, 255, 255, .1) inset !important;
+}
+.qsm-modal .qsm-total--hero .qsm-total-left {
+  gap: 14px;
+  font-size: 15px !important;
+}
+.qsm-modal .qsm-total--hero .qsm-total-icon {
+  width: 48px !important;
+  height: 48px !important;
+  font-size: 19px !important;
+}
+.qsm-modal .qsm-total--hero .qsm-total-value {
+  font-size: clamp(25px, 5vw, 32px) !important;
+  letter-spacing: -.5px !important;
+}
+
 /* ── Payment method tiles — bigger, roomier ───────────────── */
 .qsm-modal .qsm-methods {
   gap: 12px !important;
@@ -1319,6 +1347,20 @@
   .qsm-modal .qsm-amount { height: 54px !important; }
   .qsm-modal .qsm-amount input { font-size: 17px !important; }
   .qsm-modal .qsm-total-value { font-size: 19px !important; }
+  .qsm-modal .qsm-total--hero {
+    min-height: 84px;
+    gap: 10px;
+    padding: 15px 13px !important;
+  }
+  .qsm-modal .qsm-total--hero .qsm-total-left { gap: 9px; font-size: 13px !important; }
+  .qsm-modal .qsm-total--hero .qsm-total-icon {
+    width: 39px !important;
+    height: 39px !important;
+    font-size: 16px !important;
+  }
+  .qsm-modal .qsm-total--hero .qsm-total-value {
+    font-size: clamp(21px, 6vw, 26px) !important;
+  }
   .qsm-modal .qsm-method-name { font-size: 12.5px !important; }
   .qsm-method-editor-fields { grid-template-columns: 1fr; }
   .qsm-method-editor { padding: 14px; }

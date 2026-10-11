@@ -94,6 +94,125 @@
 }
 
 .p2pTimer{ color: var(--yellow); }
+.p2pPendingCard{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  margin:0 0 12px;
+  padding:16px;
+  border:1px solid rgba(255,193,7,.2);
+  border-radius:12px;
+  background:linear-gradient(115deg, rgba(115,79,23,.26), rgba(32,37,46,.96) 72%);
+  box-shadow:0 8px 24px rgba(0,0,0,.14);
+}
+.p2pPendingMain{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  min-width:0;
+}
+.p2pPendingIcon{
+  display:grid;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  place-items:center;
+  border:1px solid rgba(255,193,7,.25);
+  border-radius:12px;
+  background:rgba(255,193,7,.11);
+  color:#ffd166;
+  font-size:18px;
+}
+.p2pPendingCopy{
+  min-width:0;
+}
+.p2pPendingEyebrow{
+  display:block;
+  margin-bottom:3px;
+  color:#ffd166;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.1em;
+  line-height:1.2;
+  text-transform:uppercase;
+}
+.p2pPendingCopy h3{
+  margin:0;
+  color:#f8fafc;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.35;
+}
+.p2pPendingCopy p{
+  margin:3px 0 0;
+  color:rgba(255,255,255,.66);
+  font-size:12px;
+  line-height:1.45;
+}
+.p2pPendingCountdown{
+  display:grid;
+  flex:0 0 auto;
+  grid-template-columns:auto auto;
+  align-items:center;
+  column-gap:8px;
+  row-gap:1px;
+  min-width:128px;
+  padding:9px 12px;
+  border:1px solid rgba(255,193,7,.3);
+  border-radius:10px;
+  background:rgba(255,193,7,.09);
+  color:#ffe7a3;
+}
+.p2pCountdownIcon{
+  grid-row:span 2;
+  display:grid;
+  width:28px;
+  height:28px;
+  place-items:center;
+  border-radius:8px;
+  background:rgba(255,193,7,.14);
+  color:#ffd166;
+}
+.p2pCountdownLabel{
+  color:rgba(255,255,255,.64);
+  font-size:10px;
+  font-weight:600;
+  line-height:1.2;
+}
+.p2pPendingCountdown strong{
+  color:#ffe08a;
+  font-family:var(--bs-font-monospace);
+  font-size:20px;
+  font-variant-numeric:tabular-nums;
+  font-weight:800;
+  letter-spacing:.04em;
+  line-height:1.2;
+}
+.p2pPendingCard.is-urgent{
+  border-color:rgba(255,112,91,.34);
+  background:linear-gradient(115deg, rgba(130,47,39,.25), rgba(32,37,46,.96) 72%);
+}
+.p2pPendingCard.is-urgent .p2pPendingEyebrow,
+.p2pPendingCard.is-urgent .p2pPendingIcon,
+.p2pPendingCard.is-urgent .p2pPendingCountdown,
+.p2pPendingCard.is-urgent .p2pCountdownIcon,
+.p2pPendingCard.is-urgent .p2pPendingCountdown strong{
+  color:#ff9b8a;
+}
+.p2pPendingCard.is-urgent .p2pPendingIcon,
+.p2pPendingCard.is-urgent .p2pCountdownIcon{
+  border-color:rgba(255,112,91,.25);
+  background:rgba(255,112,91,.11);
+}
+.p2pPendingCard.is-urgent .p2pPendingCountdown{
+  border-color:rgba(255,112,91,.28);
+  background:rgba(255,112,91,.08);
+}
+.p2pPendingOrderId{
+  margin-top:0;
+  padding:0 2px 4px;
+}
 .p2pSubRow{ display:flex; align-items:center; }
 .p2pOrderNo{
   display:flex;
@@ -108,6 +227,46 @@
 }
 .p2pCopyBtn{
   color: rgba(255, 255, 255, 0.52);
+}
+
+@media (max-width: 480px){
+  .p2pPendingCard{
+    align-items:stretch;
+    flex-direction:column;
+    gap:12px;
+    padding:13px;
+  }
+  .p2pPendingMain{
+    align-items:flex-start;
+    gap:10px;
+  }
+  .p2pPendingIcon{
+    flex-basis:36px;
+    width:36px;
+    height:36px;
+    border-radius:10px;
+    font-size:15px;
+  }
+  .p2pPendingCopy h3{
+    font-size:14px;
+  }
+  .p2pPendingCopy p{
+    font-size:11px;
+  }
+  .p2pPendingCountdown{
+    grid-template-columns:auto 1fr auto;
+    min-width:0;
+    padding:8px 10px;
+  }
+  .p2pCountdownIcon{
+    grid-row:auto;
+  }
+  .p2pCountdownLabel{
+    font-size:11px;
+  }
+  .p2pPendingCountdown strong{
+    font-size:18px;
+  }
 }
 
 /* Steps */
