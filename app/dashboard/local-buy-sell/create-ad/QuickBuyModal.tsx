@@ -604,7 +604,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div> */}
 
               {/* pay amount show  */}
-              <div className="qbm-total">
+              <div className="qbm-total qbm-total--hero">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
                   <span>Pay Amount </span>
@@ -693,7 +693,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
-              <div className="qbm-total">
+              <div className="qbm-total qbm-total--hero">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
                   <span>Pay Amount</span>

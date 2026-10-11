@@ -131,12 +131,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
     const configuredNameField = selectedMethodFields.find(field => field.key === 'name');
     const nameField: SellMethodField = configuredNameField
-      ? { ...configuredNameField, label: configuredNameField.label || 'Name', required: true }
+      ? { ...configuredNameField, label: configuredNameField.label || 'Name', required: false }
       : {
           key: 'name',
           label: 'Name',
           type: 'text',
-          required: true,
+          required: false,
           placeholder: 'Enter account holder name',
         };
     const fields = selectedMethodFields.filter(field => field.key !== 'name');
@@ -583,7 +583,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
-              <div className="qsm-total">
+              <div className="qsm-total qsm-total--hero">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
                   <span>Total Received Amount</span>
@@ -775,7 +775,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
-              <div className="qsm-total">
+              <div className="qsm-total qsm-total--hero">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
                   <span>Total Received Amount</span>
