@@ -131,12 +131,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
     const configuredNameField = selectedMethodFields.find(field => field.key === 'name');
     const nameField: SellMethodField = configuredNameField
-      ? { ...configuredNameField, label: configuredNameField.label || 'Name', required: true }
+      ? { ...configuredNameField, label: configuredNameField.label || 'Name', required: false }
       : {
           key: 'name',
           label: 'Name',
           type: 'text',
-          required: true,
+          required: false,
           placeholder: 'Enter account holder name',
         };
     const fields = selectedMethodFields.filter(field => field.key !== 'name');
