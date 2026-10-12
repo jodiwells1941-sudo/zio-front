@@ -5,7 +5,7 @@ type Props = {
   currentStep: 2 | 3;
 };
 
-const steps = ["Request Details", "Confirm", "Submitted"] as const;
+const steps = ["Request Details", "Confirm", "Completed"] as const;
 
 export default function TradeProgressSteps({ tone, currentStep }: Props) {
   return (
