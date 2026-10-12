@@ -519,14 +519,14 @@ export default function SellDetailsCard() {
 
           {/* Payment confirmation actions from backend status_list */}
           <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">1</div>
+            {/* <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">1</div> */}
             <div>
               <div className="p2pStep2">
                 <div className="p2pStep2Body">
-                  <div className="p2pStepTitle">Confirm payment is received.</div>
+                  {/* <div className="p2pStepTitle">Confirm payment is received.</div>
                   <div className="p2pMuted p2pSmall">
                     Once you have confirmed the payment has been credited to your account, click the button below to release the crypto.
-                  </div>
+                  </div> */}
                   <div className="p2pActions">
                     {isBuyerDispatched && canRelease && (
                       <button
