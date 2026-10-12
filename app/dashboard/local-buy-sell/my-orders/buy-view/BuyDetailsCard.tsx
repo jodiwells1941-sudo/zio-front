@@ -6,6 +6,7 @@ import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
 import TradeOrderSummary from "./TradeOrderSummary";
+import TradeProgressSteps from "../TradeProgressSteps";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -233,8 +234,9 @@ function PaymentProofModal({
   onSuccess: () => void;
 }) {
   const [note, setNote] = useState("I have paid the seller.");
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [proofFiles, setProofFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [uploadedProofCount, setUploadedProofCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [proofError, setProofError] = useState(false);
   const [bonusPercent, setBonusPercent] = useState(0);
@@ -273,13 +275,19 @@ function PaymentProofModal({
   }, [trade]);
 
   useEffect(() => {
+    const urls = proofFiles.map(file => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+
+    return () => {
+      urls.forEach(URL.revokeObjectURL);
+    };
+  }, [proofFiles]);
+
+  useEffect(() => {
     if (!isOpen) {
-      setProofFile(null);
+      setProofFiles([]);
+      setUploadedProofCount(0);
       setNote("I have paid the seller.");
-      setPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
       setSubmitting(false);
       setProofError(false);
       return;
@@ -289,23 +297,29 @@ function PaymentProofModal({
   if (!isOpen || !trade) return null;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    if (!file) {
-      setProofFile(null);
-      setProofError(true);
-      setPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
+    const selectedFiles = Array.from(event.target.files ?? []);
+    const supportedImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const imageFiles = selectedFiles.filter(file => supportedImageTypes.includes(file.type));
+
+    if (uploadedProofCount > 0) {
+      toast.error("Finish submitting the selected proof images before adding or removing images.");
+      event.target.value = "";
       return;
     }
 
-    setProofFile(file);
-    setProofError(false);
-    setPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
+    if (imageFiles.length !== selectedFiles.length) {
+      toast.error("Only image files can be used as payment proof.");
+    }
+    if (imageFiles.length > 0) {
+      setProofFiles(current => [...current, ...imageFiles]);
+      setProofError(false);
+    }
+    event.target.value = "";
+  };
+
+  const removeProof = (indexToRemove: number) => {
+    if (uploadedProofCount > 0) return;
+    setProofFiles(current => current.filter((_, index) => index !== indexToRemove));
   };
 
   const adjustedTotalAmount = trade?.type === "buy"
@@ -316,26 +330,41 @@ function PaymentProofModal({
     : trade?.p2p_ad?.with_fiat ?? orderView?.fiat ?? "BDT";
 
   const handleSubmit = async () => {
-    if (!proofFile) {
+    if (proofFiles.length === 0) {
       setProofError(true);
-      toast.error("Please upload a payment proof image before submitting.");
+      toast.error("Please upload at least one payment proof image before submitting.");
       return;
     }
 
     setProofError(false);
 
     setSubmitting(true);
+    let uploadedCount = uploadedProofCount;
     try {
-      await sendTradeMessage(trade.id, {
-        message: note.trim() || "I have paid the seller.",
-        attachment: proofFile,
-      });
+      const proofMessage = note.trim() || "I have paid the seller.";
+      for (let index = uploadedCount; index < proofFiles.length; index += 1) {
+        await sendTradeMessage(trade.id, {
+          message: index === 0 ? proofMessage : `Additional payment proof image ${index + 1} of ${proofFiles.length}.`,
+          attachment: proofFiles[index],
+        });
+        uploadedCount = index + 1;
+        setUploadedProofCount(uploadedCount);
+      }
       await updateTradeStatus(trade.id, 5, "Buyer confirms payment sent with proof attachment");
       toast.success("Payment proof sent successfully.");
       onSuccess();
       onClose();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? "Failed to send payment proof.");
+      const errorMessage = e?.response?.data?.message ?? "Please try again.";
+      if (uploadedCount > 0) {
+        toast.error(
+          uploadedCount === proofFiles.length
+            ? `All proof images were uploaded, but the order status was not updated. Retry to notify the seller. ${errorMessage}`
+            : `${uploadedCount} of ${proofFiles.length} proof images were uploaded. Retry to send the remaining images. ${errorMessage}`,
+        );
+      } else {
+        toast.error(e?.response?.data?.message ?? "Failed to send payment proof.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -360,9 +389,9 @@ function PaymentProofModal({
           className="w-100"
           onSubmit={(event) => {
             event.preventDefault();
-            if (!proofFile) {
+            if (proofFiles.length === 0) {
               setProofError(true);
-              toast.error("Please upload a payment proof image before submitting.");
+              toast.error("Please upload at least one payment proof image before submitting.");
               return;
             }
             setProofError(false);
@@ -423,26 +452,55 @@ function PaymentProofModal({
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
+                multiple
                 className={`form-control bg-dark text-light ${proofError ? "border-danger is-invalid" : "border-dark"}`}
                 onChange={handleFileChange}
-                required
+                disabled={submitting || uploadedProofCount > 0}
                 aria-required="true"
                 aria-invalid={proofError}
               />
+              <div className="form-text text-white-50">
+                {uploadedProofCount > 0
+                  ? `${uploadedProofCount} of ${proofFiles.length} images uploaded.`
+                  : "Select one or more images. You can add more images in multiple selections."}
+              </div>
               {proofError && (
-                <div className="text-danger small mt-2">Please upload a payment proof image.</div>
+                <div className="text-danger small mt-2">Please upload at least one payment proof image.</div>
               )}
             </div>
 
-            {previewUrl && (
-              <div className="mb-3 ">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewUrl}
-                  alt="Payment proof preview"
-                  className="img-fluid rounded border border-secondary"
-                  style={{ maxHeight: 60, objectFit: "contain" }}
-                />
+            {proofFiles.length > 0 && (
+              <div className="mb-3">
+                <div className="text-white-50 small mb-2">Selected proof images ({proofFiles.length})</div>
+                <div className="d-flex flex-wrap gap-2">
+                  {proofFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.lastModified}-${index}`}
+                      className="position-relative rounded border border-secondary p-1"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={previewUrls[index]}
+                        alt={`Payment proof ${index + 1}`}
+                        className="rounded"
+                        style={{ width: 88, height: 72, objectFit: "cover" }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger position-absolute top-0 end-0 translate-middle"
+                        aria-label={`Remove ${file.name}`}
+                        title={`Remove ${file.name}`}
+                        onClick={() => removeProof(index)}
+                        disabled={submitting || uploadedProofCount > 0}
+                      >
+                        <i className="fa-solid fa-xmark" />
+                      </button>
+                      <span className="d-block text-white-50 small text-truncate" style={{ maxWidth: 88 }}>
+                        {file.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -456,7 +514,13 @@ function PaymentProofModal({
               className="p2pPrimaryBtn me-3"
               disabled={submitting}
             >
-              {submitting ? "Submitting…" : "Submit Proof"}
+              {submitting
+                ? "Submitting…"
+                : uploadedProofCount === proofFiles.length && uploadedProofCount > 0
+                  ? "Retry Notification"
+                  : uploadedProofCount > 0
+                    ? "Send Remaining Proof"
+                    : "Submit Proof"}
             </button>
           </div>
         </form>
@@ -904,7 +968,16 @@ export default function BuyDetailsCard({
   const vd = getViewerOrderAmountDisplay(trade);
   const fiat = vd.fiat;
   const asset = vd.asset;
-  const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "N/A";
+  const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "Payment Method";
+  const paymentMethodFields = trade.p2p_ad?.payment_method?.sell_method?.fields ?? [];
+  const paymentFieldValues = trade.p2p_ad?.payment_method?.field_values ?? {};
+  const paymentDetails = paymentMethodFields
+    .filter(field => /(number|wallet|phone|mobile|account)/i.test(`${field.key} ${field.label}`))
+    .map(field => ({
+      label: field.label,
+      value: paymentFieldValues[field.key]?.trim() ?? "",
+    }))
+    .filter(detail => detail.value);
   const mm = Math.floor(secondsLeft / 60);
   const ss = secondsLeft % 60;
 
@@ -1051,6 +1124,10 @@ export default function BuyDetailsCard({
         </div>
       </div>
 
+      {uiStatus !== "rejected" && (
+        <TradeProgressSteps tone="buy" currentStep={uiStatus === "completed" ? 3 : 2} />
+      )}
+
       <TradeOrderSummary
         kind="buy"
         asset={asset}
@@ -1060,6 +1137,8 @@ export default function BuyDetailsCard({
         cryptoAmount={cryptoAmount}
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
+        paymentMethod={methodName}
+        paymentDetails={paymentDetails}
         bonusAmount={bonusAmount}
         bonusPercent={displayedBonusPercent}
       />
@@ -1070,29 +1149,9 @@ export default function BuyDetailsCard({
       {uiStatus === "payment" && (
         <div className="p2pStepWrap">
           <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
+            {/* <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
               1
-            </div>
-            <div className="p2pStepContent">
-              <div className="p2pStepTop">
-                <div className="p2pStepTitle">
-                  Transfer via : <span className="p2pMethod">{methodName}</span>
-                </div>
-                <button className="p2pTipBtn" type="button">
-                  <i className="fa-regular fa-circle-question" /> Payment Tips
-                </button>
-              </div>
-              { !isPending && (
-                <PaymentInfoCard trade={trade} view={vd}  />
-              )}
-
-            </div>
-          </div>
-
-          <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
-              2
-            </div>
+            </div> */}
 
             <div className="p2pStep2">
               <div className="p2pStep2Body">

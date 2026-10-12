@@ -1097,3 +1097,205 @@
     width: 100% !important;
   }
 }
+
+/* Compact confirmation dialog based on the two-step request design. */
+.qbm-overlay {
+  padding: 16px;
+}
+.qbm-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 100%);
+  max-width: 400px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  border-radius: 15px;
+}
+.qbm-modal .qbm-head {
+  flex: 0 0 auto;
+  gap: 12px;
+  padding: 17px 18px 12px;
+}
+.qbm-modal .qbm-head-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+}
+.qbm-modal .qbm-head-icon svg {
+  width: 23px;
+  height: 23px;
+}
+.qbm-modal .qbm-head-plus {
+  width: 19px;
+  height: 19px;
+  font-size: 12px;
+}
+.qbm-modal .qbm-head-text h2 {
+  font-size: 16px !important;
+  letter-spacing: -.2px !important;
+}
+.qbm-modal .qbm-head-text p {
+  margin-top: 4px;
+  font-size: 10.5px;
+}
+.qbm-modal .qbm-close {
+  width: 30px;
+  height: 30px;
+}
+.qbm-modal .qbm-steps {
+  flex: 0 0 auto;
+  gap: 7px;
+  padding: 2px 18px 13px !important;
+  font-size: 10px;
+}
+.qbm-modal .qbm-step {
+  gap: 6px;
+}
+.qbm-modal .qbm-step span {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+.qbm-modal .qbm-step-line {
+  min-width: 8px;
+}
+.qbm-modal .qbm-body {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(66vh, 560px);
+  max-height: min(66dvh, 560px);
+  padding: 0 18px 10px !important;
+}
+.qbm-modal .qbm-summary {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+.qbm-modal .qbm-summary-title {
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.qbm-modal .qbm-summary-row {
+  min-height: 27px;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+.qbm-modal .qbm-summary-row--total {
+  margin-top: 4px;
+  padding-top: 9px;
+  font-size: 12px;
+}
+.qbm-modal .qbm-summary-row--total b {
+  font-size: 14px;
+}
+.qbm-modal .qbm-total--hero {
+  min-height: 72px;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-width: 1.5px;
+  border-radius: 13px;
+  background:
+    radial-gradient(125% 140% at 0% 50%, rgba(52, 211, 153, .38), transparent 64%),
+    linear-gradient(100deg, #087653 0%, #06442f 100%);
+  border-color: rgba(52, 211, 153, .72);
+  box-shadow:
+    0 10px 26px rgba(16, 185, 129, .22),
+    0 1px 0 rgba(255, 255, 255, .1) inset;
+}
+.qbm-modal .qbm-total--hero .qbm-total-left {
+  gap: 10px;
+  font-size: 12px;
+}
+.qbm-modal .qbm-total--hero .qbm-total-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
+}
+.qbm-modal .qbm-total--hero .qbm-total-value {
+  font-size: clamp(19px, 5vw, 24px);
+  white-space: nowrap;
+}
+.qbm-modal .qbm-field {
+  margin-bottom: 13px;
+}
+.qbm-modal .qbm-label {
+  gap: 7px;
+  margin-bottom: 7px;
+  font-size: 10.5px;
+}
+.qbm-modal .qbm-footer {
+  flex: 0 0 auto;
+  padding: 10px 18px 16px !important;
+}
+.qbm-modal .qbm-next,
+.qbm-modal .qbm-back {
+  height: 48px !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 480px) {
+  .qbm-overlay {
+    align-items: center;
+    padding: 14px 12px;
+  }
+  .qbm-modal {
+    width: min(400px, 100%);
+    max-width: 400px;
+    max-height: calc(100vh - 28px);
+    max-height: calc(100dvh - 28px);
+  }
+  .qbm-modal .qbm-head {
+    padding: 15px 16px 10px !important;
+  }
+  .qbm-modal .qbm-head-icon {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .qbm-modal .qbm-head-text h2 {
+    font-size: 15px !important;
+  }
+  .qbm-modal .qbm-head-text p {
+    font-size: 10px;
+  }
+  .qbm-modal .qbm-steps {
+    padding: 2px 16px 11px !important;
+  }
+  .qbm-modal .qbm-body {
+    max-height: min(68vh, 560px);
+    max-height: min(68dvh, 560px);
+    padding: 0 16px 9px !important;
+  }
+  .qbm-modal .qbm-total--hero {
+    min-height: 66px;
+    padding: 10px 11px;
+  }
+  .qbm-modal .qbm-total--hero .qbm-total-left {
+    gap: 8px;
+    font-size: 11px;
+  }
+  .qbm-modal .qbm-total--hero .qbm-total-icon {
+    width: 31px;
+    height: 31px;
+    font-size: 13px;
+  }
+  .qbm-modal .qbm-total--hero .qbm-total-value {
+    font-size: clamp(17px, 5.4vw, 22px);
+  }
+  .qbm-modal .qbm-footer {
+    padding: 9px 16px 13px !important;
+  }
+  .qbm-modal .qbm-next,
+  .qbm-modal .qbm-back {
+    height: 44px !important;
+  }
+}
+
+@media (min-width: 481px) {
+  .qbm-modal .qbm-summary-row {
+    min-height: 30px;
+    padding: 6px 0;
+  }
+}

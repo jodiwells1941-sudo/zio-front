@@ -385,7 +385,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   /* ───────────── Render ───────────── */
   if (loadingAd) {
     return (
-      <div className="qbm-overlay mt-5" role="dialog" aria-modal="true">
+      <div className="qbm-overlay" role="dialog" aria-modal="true">
         <div className="qbm-modal">
           <div className="qbm-body" style={{ padding: 40, textAlign: 'center' }}>
             <div style={{ color: '#34d399', fontSize: 14, fontWeight: 600 }}>
@@ -398,7 +398,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   }
 
   return (
-    <div className="qbm-overlay mt-5" role="dialog" aria-modal="true" aria-label={isEdit ? 'Edit Buy Request' : 'Create Buy Request'}>
+    <div className="qbm-overlay" role="dialog" aria-modal="true" aria-label={isEdit ? 'Edit Buy Request' : 'Create Buy Request'}>
       <div className="qbm-modal">
 
         {/* Header */}

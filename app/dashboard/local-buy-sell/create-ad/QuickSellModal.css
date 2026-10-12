@@ -1368,3 +1368,266 @@
   .qsm-method-save { width: 100%; }
   .qsm-method-editor-actions > small { justify-content: center; }
 }
+
+/* Compact confirmation dialog based on the two-step request design. */
+.qsm-overlay {
+  padding: 16px;
+}
+.qsm-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 100%);
+  max-width: 400px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  border-radius: 15px;
+}
+.qsm-modal .qsm-head {
+  flex: 0 0 auto;
+  gap: 12px;
+  padding: 17px 18px 12px !important;
+}
+.qsm-modal .qsm-head-icon {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 13px !important;
+}
+.qsm-modal .qsm-head-icon svg {
+  width: 23px !important;
+  height: 23px !important;
+}
+.qsm-modal .qsm-head-arrow {
+  width: 19px !important;
+  height: 19px !important;
+  font-size: 12px !important;
+}
+.qsm-modal .qsm-head-text h2 {
+  font-size: 16px !important;
+  letter-spacing: -.2px !important;
+}
+.qsm-modal .qsm-head-text p {
+  margin-top: 4px !important;
+  font-size: 10.5px !important;
+}
+.qsm-modal .qsm-close {
+  width: 30px;
+  height: 30px;
+}
+.qsm-modal .qsm-steps {
+  flex: 0 0 auto;
+  gap: 7px;
+  padding: 2px 18px 13px !important;
+  font-size: 10px;
+}
+.qsm-modal .qsm-step {
+  gap: 6px;
+}
+.qsm-modal .qsm-step span {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+.qsm-modal .qsm-step-line {
+  min-width: 8px;
+}
+.qsm-modal .qsm-body {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(66vh, 560px);
+  max-height: min(66dvh, 560px);
+  padding: 0 18px 10px !important;
+}
+.qsm-modal .qsm-summary {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+.qsm-modal .qsm-summary-title {
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.qsm-modal .qsm-summary-row {
+  min-height: 27px;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+.qsm-modal .qsm-summary-row--total {
+  margin-top: 4px;
+  padding-top: 9px;
+  font-size: 12px;
+}
+.qsm-modal .qsm-summary-row--total b {
+  font-size: 14px;
+}
+.qsm-modal .qsm-total--hero {
+  min-height: 76px;
+  gap: 12px;
+  margin: 0 0 13px !important;
+  padding: 12px 14px !important;
+  border-width: 1.5px !important;
+  border-radius: 13px !important;
+}
+.qsm-modal .qsm-total--hero .qsm-total-left {
+  gap: 10px;
+  font-size: 12px !important;
+}
+.qsm-modal .qsm-total--hero .qsm-total-icon {
+  width: 35px !important;
+  height: 35px !important;
+  font-size: 14px !important;
+}
+.qsm-modal .qsm-total--hero .qsm-total-value {
+  font-size: clamp(19px, 5vw, 24px) !important;
+  white-space: nowrap;
+}
+.qsm-modal .qsm-payment-details {
+  margin: 0 0 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.qsm-modal .qsm-payment-details-head {
+  padding-bottom: 8px;
+}
+.qsm-modal .qsm-payment-details-list {
+  gap: 6px;
+  margin-top: 8px;
+}
+.qsm-modal .qsm-payment-details-extra {
+  margin-top: 8px;
+  font-size: 10.5px;
+}
+.qsm-modal .qsm-field {
+  margin-bottom: 13px !important;
+}
+.qsm-modal .qsm-label {
+  gap: 7px;
+  margin-bottom: 7px !important;
+  font-size: 10.5px !important;
+}
+.qsm-modal .qsm-footer {
+  flex: 0 0 auto;
+  padding: 10px 18px 16px !important;
+}
+.qsm-modal .qsm-next,
+.qsm-modal .qsm-back {
+  height: 48px !important;
+}
+
+@media (max-width: 480px) {
+  .qsm-overlay {
+    align-items: center;
+    padding: 14px 12px;
+  }
+  .qsm-modal {
+    width: min(400px, 100%);
+    max-width: 400px;
+    max-height: calc(100vh - 28px);
+    max-height: calc(100dvh - 28px);
+  }
+  .qsm-modal .qsm-head {
+    padding: 15px 16px 10px !important;
+  }
+  .qsm-modal .qsm-head-icon {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .qsm-modal .qsm-head-text h2 {
+    font-size: 15px !important;
+  }
+  .qsm-modal .qsm-head-text p {
+    font-size: 10px !important;
+  }
+  .qsm-modal .qsm-steps {
+    padding: 2px 16px 11px !important;
+  }
+  .qsm-modal .qsm-body {
+    max-height: min(68vh, 560px);
+    max-height: min(68dvh, 560px);
+    padding: 0 16px 9px !important;
+  }
+  .qsm-modal .qsm-total--hero {
+    min-height: 68px;
+    padding: 10px 11px !important;
+  }
+  .qsm-modal .qsm-total--hero .qsm-total-left {
+    gap: 8px;
+    font-size: 11px !important;
+  }
+  .qsm-modal .qsm-total--hero .qsm-total-icon {
+    width: 31px !important;
+    height: 31px !important;
+    font-size: 13px !important;
+  }
+  .qsm-modal .qsm-total--hero .qsm-total-value {
+    font-size: clamp(17px, 5.4vw, 22px) !important;
+  }
+  .qsm-modal .qsm-footer {
+    padding: 9px 16px 13px !important;
+  }
+  .qsm-modal .qsm-next,
+  .qsm-modal .qsm-back {
+    height: 44px !important;
+  }
+}
+
+.qsm-modal .qsm-summary-row {
+  line-height: 1.35;
+}
+.qsm-modal .qsm-total--sell-hero {
+  min-height: 98px;
+  padding: 14px 17px !important;
+  background:
+    radial-gradient(140% 140% at 0% 50%, rgba(248, 113, 113, .48), transparent 65%),
+    linear-gradient(100deg, #922a33 0%, #570f19 100%) !important;
+  border-color: rgba(248, 113, 113, .7) !important;
+  box-shadow:
+    0 14px 32px rgba(239, 68, 68, .26),
+    0 1px 0 rgba(255, 255, 255, .1) inset !important;
+}
+.qsm-modal .qsm-total--sell-hero .qsm-total-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.qsm-modal .qsm-total--sell-hero .qsm-total-left > span:last-child {
+  max-width: 80px;
+  line-height: 1.08;
+  font-size: 12px !important;
+}
+.qsm-modal .qsm-total--sell-hero .qsm-total-icon {
+  width: 36px !important;
+  height: 36px !important;
+  flex: 0 0 36px;
+  font-size: 15px !important;
+}
+.qsm-modal .qsm-total--sell-hero .qsm-total-value {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 24px !important;
+  line-height: 1.03;
+  white-space: normal;
+}
+.qsm-modal .qsm-total--sell-hero .qsm-total-value span:last-child {
+  font-size: .88em;
+}
+
+@media (min-width: 481px) {
+  .qsm-modal .qsm-summary-row {
+    min-height: 29px;
+    padding: 6px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .qsm-modal .qsm-total--sell-hero {
+    min-height: 90px;
+    padding: 12px !important;
+  }
+  .qsm-modal .qsm-total--sell-hero .qsm-total-value {
+    font-size: 21px !important;
+  }
+}

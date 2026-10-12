@@ -72,7 +72,7 @@ export default function P2PPendingAmmountCard({
 
   return (
     <div className="p2pStepWrap">
-      <div className="p2pStepRow">
+      {/* <div className="p2pStepRow">
         <div className="p2pStepContent">
           <div className="p2pCard p-0">
             <div className="p2pCardRow px-3 bg-dark rounded-top-3">
@@ -99,7 +99,7 @@ export default function P2PPendingAmmountCard({
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="p2pStepRow mt-3">
         <div className="p2pStepContent">

@@ -3,6 +3,7 @@
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
 import TradeOrderSummary from "./TradeOrderSummary";
+import TradeProgressSteps from "../TradeProgressSteps";
 import PaymentCompleted from "./PaymentCompleted";
 import { PaymentReceivedModel } from "./PaymentReceivedModel";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
@@ -275,12 +276,8 @@ export default function SellDetailsCard() {
 
   // ─── Derived values ──────────────────────────────────────────────────────────
 
-  const byerPaymentMethod = trade.user_payment_method?.sell_method?.name;
-  const byerWalletNumber  = trade.user_payment_method?.field_values?.walletNumber
-                         ?? trade.user_payment_method?.field_values?.bankName
-                         ?? trade.p2p_ad?.payment_method?.field_values?.walletNumber ?? '--';
-  const methodName        = trade.current_status?.method
-                         ?? trade.p2p_ad?.payment_method?.sell_method?.name
+  const methodName        = trade.p2p_ad?.payment_method?.sell_method?.name
+                         ?? trade.current_status?.method
                          ?? 'N/A';
   const orderId           = trade.order_id;
   const fiatAmountStr = Number(trade.payable_amount).toLocaleString(undefined, {
@@ -320,7 +317,7 @@ export default function SellDetailsCard() {
       : sellFeePercent;
   const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;
   const paymentDetails = Object.entries(trade.p2p_ad?.payment_method?.field_values ?? {})
-    .filter(([, value]) => Boolean(value?.trim()))
+    .filter(([key, value]) => Boolean(value?.trim()) && /(number|wallet|phone|mobile|account)/i.test(key))
     .map(([label, value]) => ({
       label: label
         .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -430,6 +427,13 @@ export default function SellDetailsCard() {
         </div>
       </div>
 
+      {![3, 4, 7, 8, 10].includes(trade.status) && (
+        <TradeProgressSteps
+          tone="sell"
+          currentStep={confirmPayment || [6, 9].includes(trade.status) ? 3 : 2}
+        />
+      )}
+
       <TradeOrderSummary
         kind="sell"
         asset={trade.p2p_ad?.asset ?? "USDT"}
@@ -513,123 +517,53 @@ export default function SellDetailsCard() {
         ) : (
         <div className="p2pStepWrap">
 
-          {/* Step 1 */}
+          {/* Payment confirmation actions from backend status_list */}
           <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">1</div>
-            <div className="p2pStepContent">
-              <div className="p2pStepTitle">
-                <span className="p2pMethod fw-7 text-lg">
-                  Confirm payment from buyer: {buyerName}
-                </span>
-              </div>
-
-              <div className="p2pCard p-0">
-                {/* You Receive */}
-                <div className="p2pCardRow px-3 bg-dark rounded-top-3">
-                  <div className="p2pCardLabel">You Receive</div>
-                  <div className="p2pCardValue text-danger">
-                    {withFiat} {fiatAmountStr}
-                    <CopyBtn text={String(trade.payable_amount)} />
-                  </div>
-                </div>
-
-                {/* Method */}
-                <div className="p2pCardRow px-3">
-                  <div className="p2pCardLabel">
-                    <div className="d-flex gap-1 align-items-center">
-                      <span className="methodIcon">i</span>
-                      <span>{methodName}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reference */}
-                <div className="p2pCardRow px-3">
-                  <div className="p2pCardLabel">
-                    Reference message <i className="fa-regular fa-circle-question p2pInfo" />
-                  </div>
-                  <div className="p2pCardValue">
-                    {orderId}
-                    <CopyBtn text={orderId} />
-                  </div>
-                </div>
-
-                {trade.status != 1 && (
-                  <div className="p2pCardRow px-3">
-                    <div className="p2pCardLabel">{byerPaymentMethod} Number</div>
-                    <div className="p2pCardValue">
-                      {byerWalletNumber}
-                      <CopyBtn text={byerWalletNumber} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Buyer name input */}
-                <div className="px-2 pb-3">
-                  <div className="inputWrap">
-                    <input
-                      className="input ccyText"
-                      defaultValue="Buyer's name"
-                      aria-label="buyer name"
-                      readOnly
-                    />
-                    <div className="inputRight">
-                      <span className="ccyText text-white">{buyerName}</span>
-                    </div>
+            {/* <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">1</div> */}
+            <div>
+              <div className="p2pStep2">
+                <div className="p2pStep2Body">
+                  {/* <div className="p2pStepTitle">Confirm payment is received.</div>
+                  <div className="p2pMuted p2pSmall">
+                    Once you have confirmed the payment has been credited to your account, click the button below to release the crypto.
+                  </div> */}
+                  <div className="p2pActions">
+                    {isBuyerDispatched && canRelease && (
+                      <button
+                        className="p2pPrimaryBtn"
+                        type="button"
+                        onClick={handlePaymentReceived}
+                        disabled={submitting}
+                      >
+                        Payment Received
+                      </button>
+                    )}
+                    {canDispute && (
+                      <button
+                        className="p2pGhostBtn"
+                        type="button"
+                        onClick={handleAppeal}
+                        disabled={submitting || appealCountdownBlocking}
+                      >
+                        {appealCountdownBlocking
+                          ? `Appeal after ${pad(mm)}:${pad(ss)}`
+                          : "Appeal"}
+                      </button>
+                    )}
+                    {canClaim && (
+                      <button
+                        className="p2pGhostBtn"
+                        type="button"
+                        onClick={handleClaimToAdmin}
+                        disabled={submitting}
+                      >
+                        Time Expired, Claim to Admin
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
-
             </div>
-          </div>
-
-          {/* Step 2 — action buttons from backend status_list */}
-          <div className="p2pStepRow mt-3">
-              <div className="mt-3 p2pStepNo d-flex justify-content-center align-items-center bg-warning">2</div>
-              <div>
-                <div className="p2pStep2">
-                  <div className="p2pStep2Body">
-                    <div className="p2pStepTitle">Confirm payment is received.</div>
-                    <div className="p2pMuted p2pSmall">
-                      Once you have confirmed the payment has been credited to your account, click the button below to release the crypto.
-                    </div>
-                    <div className="p2pActions">
-                      {isBuyerDispatched && canRelease && (
-                        <button
-                          className="p2pPrimaryBtn"
-                          type="button"
-                          onClick={handlePaymentReceived}
-                          disabled={submitting}
-                        >
-                          Payment Received
-                        </button>
-                      )}
-                      {canDispute && (
-                        <button
-                          className="p2pGhostBtn"
-                          type="button"
-                          onClick={handleAppeal}
-                          disabled={submitting || appealCountdownBlocking}
-                        >
-                          {appealCountdownBlocking
-                            ? `Appeal after ${pad(mm)}:${pad(ss)}`
-                            : "Appeal"}
-                        </button>
-                      )}
-                      {canClaim && (
-                        <button
-                          className="p2pGhostBtn"
-                          type="button"
-                          onClick={handleClaimToAdmin}
-                          disabled={submitting}
-                        >
-                          Time Expired, Claim to Admin
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
           </div>
 
         </div>

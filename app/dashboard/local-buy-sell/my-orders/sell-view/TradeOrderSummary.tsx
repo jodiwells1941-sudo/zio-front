@@ -109,7 +109,7 @@ export default function TradeOrderSummary({
         <span>{isBuy ? "Pay Amount" : "Total Received Amount"}</span>
         <b>{formatAmount(totalReceived)} {currency}</b>
       </div>
-      {!isBuy && (
+      {(paymentMethod || paymentDetails.length > 0) && (
         <div className={styles.paymentCard}>
           <div className={styles.paymentHead}>
             <span className={styles.paymentIcon}><i className="fa-solid fa-credit-card" /></span>
