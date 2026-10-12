@@ -85,12 +85,19 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   const sellValue     = Number(sellAmount || 0);
   const feeUsdt = (sellValue * feePercent) / 100;
   const totalUsdtWithFee = sellValue + feeUsdt;
-  const feeFiat = (grossReceive * feePercent) / 100;
-  const totalFiatReceive = Math.max(grossReceive - feeFiat, 0);
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+  const paymentDetails = Object.entries(ad.payment_method?.field_values ?? {})
+    .filter(([key, value]) => Boolean(value?.trim()) && /(number|wallet|phone|mobile|account)/i.test(key))
+    .map(([key, value]) => ({
+      label: key
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, character => character.toUpperCase()),
+      value,
+    }));
 
   // ─── Submit ────────────────────────────────────────────────────────────────
 
@@ -148,32 +155,75 @@ export default function LocalSellModal({ onClose, ad }: Props) {
       <button className="rt-modal-backdrop" type="button" onClick={onClose} aria-label="Close" />
 
       <div className="local-trade-modal local-trade-modal--red">
-        <div className="rt-modal-head">
-          <h6 className="rt-modal-title">Sell {ad.asset}</h6>
-          <button type="button" className="rt-modal-x" onClick={onClose} aria-label="Close">✕</button>
+        <header className="local-trade-head">
+          <span className="local-trade-head-icon" aria-hidden="true">
+            <i className="fa-solid fa-cart-shopping" />
+            <span className="local-trade-head-badge">↑</span>
+          </span>
+          <div className="local-trade-head-copy">
+            <h2>Create Sell Request</h2>
+            <p>Sell your {ad.asset} and receive local currency.</p>
+          </div>
+          <button type="button" className="local-trade-close" onClick={onClose} aria-label="Close">×</button>
+        </header>
+
+        <div className="local-trade-steps" aria-label="Request progress">
+          <span className="local-trade-step is-done"><b>1</b> <small>Request Details</small></span>
+          <i className="local-trade-step-line" />
+          <span className="local-trade-step is-active" aria-current="step"><b>2</b> <small>Confirm</small></span>
+          <i className="local-trade-step-line" />
+          <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
         <div className="local-trade-content">
           <div className="local-trade-summary">
             <h4 className="local-trade-summary-title">Order Summary</h4>
             <div className="local-trade-row"><span>Currency</span><b>{ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>{ad.asset} Amount</span><b>{money(totalUsdtWithFee)} {ad.asset}</b></div>
+            <div className="local-trade-row"><span>Sell Amount</span><b>{money(sellValue)} {ad.asset}</b></div>
+            <div className="local-trade-row"><span>Fee ({money(feePercent)}%)</span><b className="local-trade-positive">+ {money(feeUsdt)} {ad.asset}</b></div>
+            <div className="local-trade-row"><span>Total Amount</span><b>{money(totalUsdtWithFee)} {ad.asset}</b></div>
             <div className="local-trade-row"><span>Market Price (1 {ad.asset})</span><b>{money(ad.fixed_price)} {ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>Amount ({ad.with_fiat})</span><b>{money(grossReceive)} {ad.with_fiat}</b></div>
-            {ad.type === "buy" && (
-              <div className="local-trade-row"><span>Fee ({money(feePercent)}%)</span><b className="local-trade-negative">- {money(feeFiat)} {ad.with_fiat}</b></div>
+            <div className="local-trade-row"><span>Received Amount ({ad.with_fiat})</span><b className="local-trade-positive">{money(grossReceive)} {ad.with_fiat}</b></div>
+          </div>
+          <div className="local-trade-total-banner">
+            <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
+            <span className="local-trade-total-label">Total Received Amount</span>
+            <strong><span>{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
+          </div>
+
+          <div className="local-trade-payment-details">
+            <div className="local-trade-payment-head">
+              <span className="local-trade-payment-icon"><i className="fa-solid fa-credit-card" /></span>
+              <span>
+                <strong>{ad.payment_method?.sell_method?.name ?? "Payment Method"}</strong>
+                <small>{ad.with_fiat} Payment Details</small>
+              </span>
+            </div>
+            {paymentDetails.length > 0 ? (
+              <dl>
+                {paymentDetails.map(detail => (
+                  <div className="local-trade-payment-row" key={detail.label}>
+                    <dt>{detail.label}</dt>
+                    <dd>{detail.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="local-trade-payment-empty">No payment details available.</p>
             )}
-            <div className="local-trade-row"><span>Payment Method</span><b>{ad.payment_method?.sell_method?.name ?? "N/A"}</b></div>
-            <div className="local-trade-row local-trade-row--total"><span>Total You Will Receive</span><b>{money(grossReceive)} {ad.with_fiat}</b></div>
           </div>
-          <div className="local-trade-field">
-            <span className="local-trade-label">Order Time Limit</span>
-            <b>{ad.payment_time_limit} min</b>
+
+          <div className="local-trade-info">
+            <div className="local-trade-field">
+              <span className="local-trade-label"><i className="fa-solid fa-hourglass-half" /> Order Time Limit</span>
+              <b>{ad.payment_time_limit} min</b>
+            </div>
+            <div className="local-trade-field local-trade-field--note">
+              <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
+              <p>{ad.remarks || "No additional note provided."}</p>
+            </div>
           </div>
-          <div className="local-trade-field local-trade-field--note">
-            <span className="local-trade-label">Additional Note</span>
-            <p>{ad.remarks || "No additional note provided."}</p>
-          </div>
+
           <div className="local-trade-field local-trade-method">
             <label className="local-trade-label" htmlFor="local-sell-payment-method">Payment Method</label>
             <select

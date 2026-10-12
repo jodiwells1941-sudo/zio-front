@@ -50,19 +50,17 @@ export default function PaymentCompleted({ trade, from }: Props) {
     
   return (
     <>
-      <div className="p2pStepWrap">
+      {/* <div className="p2pStepWrap">
         <div className="p2pStepRow">
           <div className="p2pStepContent">
             <div className="p2pCard p-0">
 
-              {/* Header */}
               <div className="p2pCardRow px-3 bg-dark rounded-top-3">
                 <div className="p2pCardValue text-danger">
                   Sell <span className="text-light">{asset}</span>
                 </div>
               </div>
 
-              {/* Fiat Amount */}
               <div className="p2pCardRow px-3">
                 <div className="p2pCardLabel">
                   Fiat Amount <i className="fa-regular fa-circle-question p2pInfo" />
@@ -72,25 +70,21 @@ export default function PaymentCompleted({ trade, from }: Props) {
                 </div>
               </div>
 
-              {/* Price */}
               <div className="p2pCardRow px-3">
                 <div className="p2pCardLabel">Price</div>
                 <div className="p2pCardValue">{withFiat} {price}</div>
               </div>
 
-              {/* Total Quantity */}
               <div className="p2pCardRow px-3">
                 <div className="p2pCardLabel">Total Quantity</div>
                 <div className="p2pCardValue">{receivable} {asset}</div>
               </div>
 
-              {/* Time Created */}
               <div className="p2pCardRow px-3 border-top border-dark-light">
                 <div className="p2pCardLabel">Time Created</div>
                 <div className="p2pCardValue">{timeCreated}</div>
               </div>
 
-              {/* Payment Method */}
               <div className="p2pCardRow px-3">
                 <div className="p2pCardLabel">Payment Method</div>
                 <div className="p2pCardValue">{methodName}</div>
@@ -99,7 +93,7 @@ export default function PaymentCompleted({ trade, from }: Props) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* ── Review Section — only when order is completed (status 9) ── */}
       {trade?.status === 9 && (() => {

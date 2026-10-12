@@ -1,0 +1,109 @@
+.steps {
+  --progress-accent: #19d39a;
+  --progress-border: rgba(25, 211, 154, .28);
+  --progress-glow: rgba(25, 211, 154, .2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--progress-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, .24);
+  color: rgba(203, 221, 214, .4);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.sell {
+  --progress-accent: #f66b78;
+  --progress-border: rgba(246, 107, 120, .28);
+  --progress-glow: rgba(246, 107, 120, .2);
+}
+
+.item {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  min-width: 0;
+}
+
+.item:first-child {
+  flex: 0 0 auto;
+}
+
+.step {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.step b {
+  display: grid;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 1px solid rgba(203, 221, 214, .2);
+  border-radius: 50%;
+  color: inherit;
+  font-size: 9px;
+}
+
+.done {
+  color: var(--progress-accent);
+}
+
+.done b {
+  border-color: var(--progress-accent);
+  background: var(--progress-accent);
+  color: #07120e;
+}
+
+.active {
+  color: var(--progress-accent);
+  font-weight: 700;
+}
+
+.active b {
+  border-color: var(--progress-accent);
+  background: var(--progress-accent);
+  color: #07120e;
+  box-shadow: 0 0 0 4px var(--progress-glow), 0 0 14px var(--progress-glow);
+}
+
+.line {
+  flex: 1 1 auto;
+  min-width: 8px;
+  height: 1px;
+  margin-right: 8px;
+  background: rgba(203, 221, 214, .16);
+}
+
+.lineDone {
+  background: var(--progress-accent);
+}
+
+@media (max-width: 480px) {
+  .steps {
+    gap: 6px;
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+
+  .step {
+    gap: 4px;
+  }
+
+  .step b {
+    flex-basis: 18px;
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
+  }
+
+  .line {
+    margin-right: 6px;
+  }
+}

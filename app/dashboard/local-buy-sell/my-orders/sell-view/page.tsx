@@ -40,7 +40,7 @@ export default function SellPage() {
   return (
     <div className="p2pPage mt-5">
 
-      <div className="container p2pContainer">
+      <div className="px-4 p2pContainer">
         <div className="row g-4">
           <div className={showChatPanel ? "col-lg-7 col-12" : "col-12 w-100"}>
             <SellDetailsCard />

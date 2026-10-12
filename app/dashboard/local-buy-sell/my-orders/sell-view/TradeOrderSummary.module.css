@@ -139,7 +139,7 @@
 }
 
 .paymentHead b {
-  color: #f8fafc;
+  color: var(--summary-accent);
   font-size: 14px;
 }
 

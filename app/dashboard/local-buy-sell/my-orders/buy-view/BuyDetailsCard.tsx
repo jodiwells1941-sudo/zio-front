@@ -6,6 +6,7 @@ import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
 import TradeOrderSummary from "./TradeOrderSummary";
+import TradeProgressSteps from "../TradeProgressSteps";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -904,7 +905,16 @@ export default function BuyDetailsCard({
   const vd = getViewerOrderAmountDisplay(trade);
   const fiat = vd.fiat;
   const asset = vd.asset;
-  const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "N/A";
+  const methodName = trade.p2p_ad?.payment_method?.sell_method?.name ?? "Payment Method";
+  const paymentMethodFields = trade.p2p_ad?.payment_method?.sell_method?.fields ?? [];
+  const paymentFieldValues = trade.p2p_ad?.payment_method?.field_values ?? {};
+  const paymentDetails = paymentMethodFields
+    .filter(field => /(number|wallet|phone|mobile|account)/i.test(`${field.key} ${field.label}`))
+    .map(field => ({
+      label: field.label,
+      value: paymentFieldValues[field.key]?.trim() ?? "",
+    }))
+    .filter(detail => detail.value);
   const mm = Math.floor(secondsLeft / 60);
   const ss = secondsLeft % 60;
 
@@ -1051,6 +1061,10 @@ export default function BuyDetailsCard({
         </div>
       </div>
 
+      {uiStatus !== "rejected" && (
+        <TradeProgressSteps tone="buy" currentStep={uiStatus === "completed" ? 3 : 2} />
+      )}
+
       <TradeOrderSummary
         kind="buy"
         asset={asset}
@@ -1060,6 +1074,8 @@ export default function BuyDetailsCard({
         cryptoAmount={cryptoAmount}
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
+        paymentMethod={methodName}
+        paymentDetails={paymentDetails}
         bonusAmount={bonusAmount}
         bonusPercent={displayedBonusPercent}
       />
@@ -1072,26 +1088,6 @@ export default function BuyDetailsCard({
           <div className="p2pStepRow">
             <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
               1
-            </div>
-            <div className="p2pStepContent">
-              <div className="p2pStepTop">
-                <div className="p2pStepTitle">
-                  Transfer via : <span className="p2pMethod">{methodName}</span>
-                </div>
-                <button className="p2pTipBtn" type="button">
-                  <i className="fa-regular fa-circle-question" /> Payment Tips
-                </button>
-              </div>
-              { !isPending && (
-                <PaymentInfoCard trade={trade} view={vd}  />
-              )}
-
-            </div>
-          </div>
-
-          <div className="p2pStepRow">
-            <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
-              2
             </div>
 
             <div className="p2pStep2">

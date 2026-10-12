@@ -69,12 +69,11 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
 
   return (
     <>
-      <div className="p2pStepWrap">
+      {/* <div className="p2pStepWrap">
         <div className="p2pStepRow">
           <div className="p2pStepContent">
             <div className="p2pCard p-0">
 
-              {/* Header */}
               <div className="p2pCardRow px-3 bg-dark rounded-top-3">
                 <div className="p2pCardValue green">
                   {orderSideLabel} <span className="text-light">{asset}</span>
@@ -91,13 +90,11 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
                 </div>
               ))}
 
-              {/* Time created */}
               <div className="p2pCardRow px-3 border-top border-dark-light">
                 <div className="p2pCardLabel">Time Created</div>
                 <div className="p2pCardValue">{createdAt}</div>
               </div>
 
-              {/* Payment method */}
               <div className="p2pCardRow px-3">
                 <div className="p2pCardLabel">Payment Method</div>
                 <div className="p2pCardValue">{methodName}</div>
@@ -106,7 +103,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* ── Feedback / reviews — only after order is fully completed (status 9) for buyer & seller ── */}
             {trade?.status === 9 && (() => {
