@@ -1,0 +1,183 @@
+.extension {
+  --extension-accent: #19d39a;
+  --extension-border: rgba(25, 211, 154, .28);
+  --extension-glow: rgba(25, 211, 154, .1);
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--extension-border);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--extension-glow), rgba(12, 17, 24, .72));
+}
+
+.sell {
+  --extension-accent: #ff6577;
+  --extension-border: rgba(255, 101, 119, .28);
+  --extension-glow: rgba(255, 101, 119, .1);
+}
+
+.trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.icon {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--extension-border);
+  border-radius: 10px;
+  background: var(--extension-glow);
+  color: var(--extension-accent);
+  font-size: 15px;
+}
+
+.copy {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+}
+
+.title {
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hint {
+  color: rgba(226, 232, 240, .62);
+  font-size: 11px;
+}
+
+.triggerChevron {
+  color: var(--extension-accent);
+  font-size: 12px;
+  transition: transform .18s ease;
+}
+
+.trigger[aria-expanded="true"] .triggerChevron {
+  transform: rotate(180deg);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 4px 2px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.duration {
+  min-width: 70px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: rgba(8, 12, 18, .66);
+  color: rgba(241, 245, 249, .78);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.duration:hover:not(:disabled) {
+  border-color: var(--extension-border);
+  color: #fff;
+}
+
+.durationSelected {
+  border-color: var(--extension-accent);
+  background: var(--extension-glow);
+  color: var(--extension-accent);
+  box-shadow: 0 0 0 2px var(--extension-glow);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.submit,
+.cancel {
+  min-height: 34px;
+  padding: 6px 13px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.submit {
+  border: 1px solid var(--extension-accent);
+  background: var(--extension-accent);
+  color: #07120e;
+}
+
+.cancel {
+  border: 1px solid rgba(255, 255, 255, .15);
+  background: rgba(255, 255, 255, .04);
+  color: rgba(241, 245, 249, .8);
+}
+
+.submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.cancel:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+}
+
+.submit:focus-visible,
+.cancel:focus-visible,
+.trigger:focus-visible,
+.duration:focus-visible {
+  outline: 2px solid var(--extension-accent);
+  outline-offset: 2px;
+}
+
+.submit:disabled,
+.cancel:disabled,
+.trigger:disabled,
+.duration:disabled {
+  cursor: wait;
+  opacity: .58;
+}
+
+@media (max-width: 480px) {
+  .extension {
+    padding: 10px;
+  }
+
+  .options {
+    gap: 7px;
+  }
+
+  .duration {
+    flex: 1 1 60px;
+    min-width: 60px;
+    padding-inline: 8px;
+  }
+
+  .actions {
+    width: 100%;
+    margin: 3px 0 0;
+  }
+
+  .submit,
+  .cancel {
+    flex: 1;
+  }
+}

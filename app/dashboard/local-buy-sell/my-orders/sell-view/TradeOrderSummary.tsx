@@ -50,7 +50,7 @@ export default function TradeOrderSummary({
   feePercent = 0,
 }: Props) {
   const isBuy = kind === "buy";
-  const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount - feeAmount;
+  const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount;
   const [copiedOrderId, setCopiedOrderId] = useState(false);
 
   const copyOrderId = async () => {
@@ -117,11 +117,11 @@ export default function TradeOrderSummary({
             </div>
             <div className={styles.row}>
               <span>Fee ({formatAmount(feePercent)}%)</span>
-              <b className={styles.negative}>- {formatAmount(feeAmount)} {currency}</b>
+              <b className={styles.negative}>+ {formatAmount(feeAmount)} {currency}</b>
             </div>
             <div className={styles.row}>
               <span>Total Amount</span>
-              <b>{formatAmount(fiatAmount)} {currency}</b>
+              <b>{formatAmount(fiatAmount+feeAmount)} {currency}</b>
             </div>
             <div className={styles.row}>
               <span>Market Price (1 {asset})</span>
