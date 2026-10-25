@@ -7,6 +7,7 @@ import { getViewerOrderAmountDisplay, normalizeCryptoAsset } from "@/components/
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
 import TradeOrderSummary from "./TradeOrderSummary";
 import TradeProgressSteps from "../TradeProgressSteps";
+import proofModalStyles from "./PaymentProofModal.module.css";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -398,8 +399,18 @@ function PaymentProofModal({
             void handleSubmit();
           }}
         >
-          <div className="modal-body p-3">
-            <div className="p2pCard p-3 mb-3">
+          <div className="modal-body gap-1 p-3">
+            {orderView && (
+              <div className={proofModalStyles.payAmount}>
+                <span className={proofModalStyles.payAmountIcon} aria-hidden="true">
+                  <i className="fa-solid fa-sack-dollar" />
+                </span>
+                <span className={proofModalStyles.payAmountLabel}><b>Pay Amount</b></span>
+                <strong><b>{orderView.youPayLine}</b></strong>
+              </div>
+            )}
+
+            <div className="p2pCard px-3 mb-3">
               <div className="p2pStepTitle mb-2">Order details</div>
               {orderView && (
                 <div className="p2pOrderDetailsBody">
