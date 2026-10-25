@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "react-toastify";
 import styles from "./TradeOrderSummary.module.css";
 
 type Props = {
+  orderId: string;
   kind: "buy" | "sell";
   asset: string;
   currency: string;
@@ -29,6 +32,7 @@ const formatAmount = (amount: number, digits = 2) =>
     : (0).toFixed(digits);
 
 export default function TradeOrderSummary({
+  orderId,
   kind,
   asset,
   currency,
@@ -47,11 +51,37 @@ export default function TradeOrderSummary({
 }: Props) {
   const isBuy = kind === "buy";
   const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount - feeAmount;
+  const [copiedOrderId, setCopiedOrderId] = useState(false);
+
+  const copyOrderId = async () => {
+    try {
+      await navigator.clipboard.writeText(orderId);
+      setCopiedOrderId(true);
+      window.setTimeout(() => setCopiedOrderId(false), 1500);
+    } catch {
+      toast.error("Could not copy the order ID.");
+    }
+  };
 
   return (
     <section className={`${styles.card} ${isBuy ? styles.buy : styles.sell}`}>
       <div className={styles.summary}>
         <h4 className={styles.subtitle}>Order Summary</h4>
+        <div className={styles.row}>
+          <span>Order ID</span>
+          <span className={styles.orderIdValue}>
+            <b>{orderId}</b>
+            <button
+              type="button"
+              className={styles.copyButton}
+              onClick={copyOrderId}
+              aria-label={copiedOrderId ? "Order ID copied" : "Copy order ID"}
+              title={copiedOrderId ? "Copied" : "Copy order ID"}
+            >
+              <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
+            </button>
+          </span>
+        </div>
         <div className={styles.row}>
           <span>Currency</span>
           <b>{currency || "—"}</b>

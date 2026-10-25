@@ -437,6 +437,7 @@ export default function SellDetailsCard() {
       )}
 
       <TradeOrderSummary
+        orderId={orderId}
         kind="sell"
         asset={asset}
         currency={withFiat}

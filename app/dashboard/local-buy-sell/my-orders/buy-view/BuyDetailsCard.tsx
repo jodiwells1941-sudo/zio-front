@@ -1129,6 +1129,7 @@ export default function BuyDetailsCard({
       )}
 
       <TradeOrderSummary
+        orderId={orderId}
         kind="buy"
         asset={asset}
         currency={fiat}
