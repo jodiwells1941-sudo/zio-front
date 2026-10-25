@@ -103,6 +103,14 @@ export const updateTradeStatus = async (id: number, status: number, notes?: stri
   return response?.data;
 };
 
+export const extendTradePaymentTime = async (tradeId: number, minutes: number) => {
+  const response = await apiClient.post("/user/trade/time-update", {
+    trade_id: tradeId,
+    new_time: minutes,
+  });
+  return response?.data;
+};
+
 // ─── Trade chat (REST + Reverb) ───────────────────────────────────────────────
 
 export interface TradeMessageRow {
@@ -145,8 +153,12 @@ export const getLocalTrades = async (params?: Record<string, string | number>) =
   return response?.data;
 };
 
+export const getLocalTradeChatList = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/local-trade/chat-list', { params });
+  return response?.data;
+};
+
 export const getLocalMyTrades = async (params?: Record<string, string | number>) => {
   const response = await apiClient.get('/user/local-trade/my', { params });
   return response?.data;
 };
-

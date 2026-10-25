@@ -3,6 +3,7 @@
 import React from "react";
 import FeedbackBox from "./FeedbackBox";
 import { useAuth } from "@/hooks/useAuth";
+import { normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
 
 interface TradeData {
   id: number;
@@ -36,7 +37,7 @@ type Props = {
 
 export default function PaymentCompleted({ trade, from }: Props) {
   const withFiat     = trade.current_status?.with_fiat ?? trade.p2p_ad?.with_fiat ?? '';
-  const asset        = trade.p2p_ad?.asset ?? 'USDT';
+  const asset        = normalizeCryptoAsset(trade.p2p_ad?.asset);
   const methodName   = trade.current_status?.method
                     ?? trade.p2p_ad?.payment_method?.sell_method?.name
                     ?? 'N/A';

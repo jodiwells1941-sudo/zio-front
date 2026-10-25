@@ -1,12 +1,14 @@
 "use client";
 
 import { getBonusFeesSettings } from "@/app/api/merchant";
-import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
+import { extendTradePaymentTime, getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import OrderCompleted from "./OrderCompleted";
-import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import { getViewerOrderAmountDisplay, normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
 import TradeOrderSummary from "./TradeOrderSummary";
 import TradeProgressSteps from "../TradeProgressSteps";
+import paymentTimeStyles from "../PaymentTimeExtension.module.css";
+import proofModalStyles from "./PaymentProofModal.module.css";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -326,7 +328,7 @@ function PaymentProofModal({
     ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
     : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
   const totalAmountCurrency = trade?.type === "buy"
-    ? trade?.p2p_ad?.asset ?? "USDT"
+    ? normalizeCryptoAsset(trade?.p2p_ad?.asset)
     : trade?.p2p_ad?.with_fiat ?? orderView?.fiat ?? "BDT";
 
   const handleSubmit = async () => {
@@ -398,8 +400,18 @@ function PaymentProofModal({
             void handleSubmit();
           }}
         >
-          <div className="modal-body p-3">
-            <div className="p2pCard p-3 mb-3">
+          <div className="modal-body gap-1 p-3">
+            {orderView && (
+              <div className={proofModalStyles.payAmount}>
+                <span className={proofModalStyles.payAmountIcon} aria-hidden="true">
+                  <i className="fa-solid fa-sack-dollar" />
+                </span>
+                <span className={proofModalStyles.payAmountLabel}><b>Pay Amount</b></span>
+                <strong><b>{orderView.youPayLine}</b></strong>
+              </div>
+            )}
+
+            <div className="p2pCard px-3 mb-3">
               <div className="p2pStepTitle mb-2">Order details</div>
               {orderView && (
                 <div className="p2pOrderDetailsBody">
@@ -589,7 +601,7 @@ export function PaymentInfoCard({
     : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
 
   const totalAmountCurrency = trade.type === "buy"
-    ? trade.p2p_ad?.asset ?? "USDT"
+    ? normalizeCryptoAsset(trade.p2p_ad?.asset)
     : trade.p2p_ad?.with_fiat ?? view.fiat ?? "BDT";
 
   return (
@@ -685,6 +697,9 @@ export default function BuyDetailsCard({
   const [submitting, setSubmitting] = useState<number | null>(null);
   const [timerExpired, setTimerExpired] = useState(false);
   const [showProofModal, setShowProofModal] = useState(false);
+  const [showTimeExtension, setShowTimeExtension] = useState(false);
+  const [extensionMinutes, setExtensionMinutes] = useState(5);
+  const [extendingTime, setExtendingTime] = useState(false);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchTrade = useCallback(async () => {
@@ -913,6 +928,38 @@ export default function BuyDetailsCard({
     }
   };
 
+  const handleExtendPaymentTime = async () => {
+    if (!trade || ![5, 10, 15, 30].includes(extensionMinutes)) return;
+
+    setExtendingTime(true);
+    try {
+      await extendTradePaymentTime(trade.id, extensionMinutes);
+      setShowTimeExtension(false);
+      try {
+        const response = await getTrade(trade.id);
+        const updatedTrade: TradeData = response?.data;
+        setTrade(updatedTrade);
+        setUiStatus(resolveUIStatus(updatedTrade.status));
+        if (updatedTrade.status === 2 && updatedTrade.payment_expires_at) {
+          const expiresAtMs = parseApiDateToMs(updatedTrade.payment_expires_at);
+          const seconds = expiresAtMs
+            ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
+            : 0;
+          setSecondsLeft(seconds);
+          setTimerExpired(seconds <= 0);
+        }
+      } catch {
+        toast.error("Payment time was extended, but the order timer could not be refreshed. Reload the page to see the updated time.");
+        return;
+      }
+      toast.success(`Payment time extended by ${extensionMinutes} minutes.`);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Failed to extend payment time.");
+    } finally {
+      setExtendingTime(false);
+    }
+  };
+
   const [bonusPercent, setBonusPercent] = useState(0);
   const [sellFeePercent, setSellFeePercent] = useState(0);
 
@@ -1115,13 +1162,13 @@ export default function BuyDetailsCard({
           </div>
         )}
 
-        <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
+        {/* <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
           <div className="p2pOrderNo">
             <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>
             <CopyBtn text={orderId} id="order_id" />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {uiStatus !== "rejected" && (
@@ -1129,6 +1176,7 @@ export default function BuyDetailsCard({
       )}
 
       <TradeOrderSummary
+        orderId={orderId}
         kind="buy"
         asset={asset}
         currency={fiat}
@@ -1139,6 +1187,7 @@ export default function BuyDetailsCard({
         note={note}
         paymentMethod={methodName}
         paymentDetails={paymentDetails}
+        showPaymentDetails={!isPending}
         bonusAmount={bonusAmount}
         bonusPercent={displayedBonusPercent}
       />
@@ -1155,6 +1204,61 @@ export default function BuyDetailsCard({
 
             <div className="p2pStep2">
               <div className="p2pStep2Body">
+                {trade.status === 2 && (
+                  <div className={`${paymentTimeStyles.extension} ${paymentTimeStyles.buy}`}>
+                    {!showTimeExtension ? (
+                      <button
+                        className={paymentTimeStyles.trigger}
+                        type="button"
+                        onClick={() => setShowTimeExtension(true)}
+                        disabled={extendingTime || submitting !== null}
+                        aria-expanded="false"
+                      >
+                        <span className={paymentTimeStyles.icon} aria-hidden="true">
+                          <i className="fa-regular fa-clock" />
+                        </span>
+                        <span className={paymentTimeStyles.copy}>
+                          <span className={paymentTimeStyles.title}>Need more time to pay?</span>
+                          <span className={paymentTimeStyles.hint}>Request an extension to complete your payment.</span>
+                        </span>
+                        <i className={`fa-solid fa-chevron-down ${paymentTimeStyles.triggerChevron}`} aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <div className={paymentTimeStyles.options} role="group" aria-label="Choose additional payment time">
+                        {[5, 10, 15, 30].map(minutes => (
+                          <button
+                            key={minutes}
+                            className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`}
+                            type="button"
+                            onClick={() => setExtensionMinutes(minutes)}
+                            disabled={extendingTime}
+                            aria-pressed={extensionMinutes === minutes}
+                          >
+                            {minutes} min
+                          </button>
+                        ))}
+                        <div className={paymentTimeStyles.actions}>
+                          <button
+                            className={paymentTimeStyles.cancel}
+                            type="button"
+                            onClick={() => setShowTimeExtension(false)}
+                            disabled={extendingTime}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className={paymentTimeStyles.submit}
+                            type="button"
+                            onClick={() => void handleExtendPaymentTime()}
+                            disabled={extendingTime || submitting !== null}
+                          >
+                            {extendingTime ? "Extending…" : "Request Time"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="p2pActions">
                   {canDispatch && (
                     <button

@@ -51,6 +51,42 @@
   font-variant-numeric: tabular-nums;
 }
 
+.orderIdValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #f8fafc;
+}
+
+.orderIdValue b {
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.copyButton {
+  display: inline-grid;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .04);
+  color: var(--summary-accent);
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  border-color: var(--summary-border);
+  background: rgba(255, 255, 255, .08);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--summary-accent);
+  outline-offset: 2px;
+}
+
 .total {
   margin-top: 3px;
   padding-top: 12px;

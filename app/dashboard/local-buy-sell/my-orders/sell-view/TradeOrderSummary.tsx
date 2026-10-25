@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "react-toastify";
 import styles from "./TradeOrderSummary.module.css";
 
 type Props = {
+  orderId: string;
   kind: "buy" | "sell";
   asset: string;
   currency: string;
@@ -13,6 +16,7 @@ type Props = {
   note?: string | null;
   paymentMethod?: string;
   paymentDetails?: Array<{ label: string; value: string }>;
+  showPaymentDetails?: boolean;
   bonusAmount?: number;
   bonusPercent?: number;
   feeAmount?: number;
@@ -28,6 +32,7 @@ const formatAmount = (amount: number, digits = 2) =>
     : (0).toFixed(digits);
 
 export default function TradeOrderSummary({
+  orderId,
   kind,
   asset,
   currency,
@@ -38,18 +43,45 @@ export default function TradeOrderSummary({
   note,
   paymentMethod,
   paymentDetails = [],
+  showPaymentDetails = true,
   bonusAmount = 0,
   bonusPercent = 0,
   feeAmount = 0,
   feePercent = 0,
 }: Props) {
   const isBuy = kind === "buy";
-  const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount - feeAmount;
+  const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount;
+  const [copiedOrderId, setCopiedOrderId] = useState(false);
+
+  const copyOrderId = async () => {
+    try {
+      await navigator.clipboard.writeText(orderId);
+      setCopiedOrderId(true);
+      window.setTimeout(() => setCopiedOrderId(false), 1500);
+    } catch {
+      toast.error("Could not copy the order ID.");
+    }
+  };
 
   return (
     <section className={`${styles.card} ${isBuy ? styles.buy : styles.sell}`}>
       <div className={styles.summary}>
         <h4 className={styles.subtitle}>Order Summary</h4>
+        <div className={styles.row}>
+          <span>Order ID</span>
+          <span className={styles.orderIdValue}>
+            <b>{orderId}</b>
+            <button
+              type="button"
+              className={styles.copyButton}
+              onClick={copyOrderId}
+              aria-label={copiedOrderId ? "Order ID copied" : "Copy order ID"}
+              title={copiedOrderId ? "Copied" : "Copy order ID"}
+            >
+              <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
+            </button>
+          </span>
+        </div>
         <div className={styles.row}>
           <span>Currency</span>
           <b>{currency || "—"}</b>
@@ -85,11 +117,11 @@ export default function TradeOrderSummary({
             </div>
             <div className={styles.row}>
               <span>Fee ({formatAmount(feePercent)}%)</span>
-              <b className={styles.negative}>- {formatAmount(feeAmount)} {currency}</b>
+              <b className={styles.negative}>+ {formatAmount(feeAmount)} {currency}</b>
             </div>
             <div className={styles.row}>
               <span>Total Amount</span>
-              <b>{formatAmount(fiatAmount)} {currency}</b>
+              <b>{formatAmount(fiatAmount+feeAmount)} {currency}</b>
             </div>
             <div className={styles.row}>
               <span>Market Price (1 {asset})</span>
@@ -109,7 +141,7 @@ export default function TradeOrderSummary({
         <span>{isBuy ? "Pay Amount" : "Total Received Amount"}</span>
         <b>{formatAmount(totalReceived)} {currency}</b>
       </div>
-      {(paymentMethod || paymentDetails.length > 0) && (
+      {showPaymentDetails && (paymentMethod || paymentDetails.length > 0) && (
         <div className={styles.paymentCard}>
           <div className={styles.paymentHead}>
             <span className={styles.paymentIcon}><i className="fa-solid fa-credit-card" /></span>
