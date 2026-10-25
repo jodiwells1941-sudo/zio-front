@@ -13,6 +13,7 @@ type Props = {
   note?: string | null;
   paymentMethod?: string;
   paymentDetails?: Array<{ label: string; value: string }>;
+  showPaymentDetails?: boolean;
   bonusAmount?: number;
   bonusPercent?: number;
   feeAmount?: number;
@@ -38,6 +39,7 @@ export default function TradeOrderSummary({
   note,
   paymentMethod,
   paymentDetails = [],
+  showPaymentDetails = true,
   bonusAmount = 0,
   bonusPercent = 0,
   feeAmount = 0,
@@ -57,6 +59,14 @@ export default function TradeOrderSummary({
         {isBuy ? (
           <>
             <div className={styles.row}>
+              <span>Bonus ({formatAmount(bonusPercent)}%)</span>
+              <b className={styles.positive}>+ {formatAmount(bonusAmount)} {asset}</b>
+            </div>
+            <div className={`${styles.row} ${styles.total}`}>
+              <span>Total You Will Receive</span>
+              <b>{formatAmount(totalReceived)} {asset}</b>
+            </div>
+            <div className={styles.row}>
               <span>Amount</span>
               <b>{formatAmount(fiatAmount)} {currency}</b>
             </div>
@@ -67,14 +77,6 @@ export default function TradeOrderSummary({
             <div className={styles.row}>
               <span>{asset} Amount</span>
               <b>{formatAmount(cryptoAmount)} {asset}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Bonus ({formatAmount(bonusPercent)}%)</span>
-              <b className={styles.positive}>+ {formatAmount(bonusAmount)} {asset}</b>
-            </div>
-            <div className={`${styles.row} ${styles.total}`}>
-              <span>Total You Will Receive</span>
-              <b>{formatAmount(totalReceived)} {asset}</b>
             </div>
           </>
         ) : (
@@ -111,7 +113,7 @@ export default function TradeOrderSummary({
         {isBuy ? <b>{formatAmount(fiatAmount)} {currency}</b> : <b>{formatAmount(totalReceived)} {currency}</b>}
         
       </div>
-      {(paymentMethod || paymentDetails.length > 0) && (
+      {showPaymentDetails && (paymentMethod || paymentDetails.length > 0) && (
         <div className={styles.paymentCard}>
           <div className={styles.paymentHead}>
             <span className={styles.paymentIcon}><i className="fa-solid fa-credit-card" /></span>

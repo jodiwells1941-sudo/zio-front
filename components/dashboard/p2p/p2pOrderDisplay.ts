@@ -23,6 +23,12 @@ function fmtCrypto(n: number): string {
   return n.toFixed(2);
 }
 
+export function normalizeCryptoAsset(asset?: string | null): string {
+  const normalizedAsset = asset?.trim();
+  if (!normalizedAsset || normalizedAsset.toUpperCase() === "USD") return "USDT";
+  return normalizedAsset;
+}
+
 export type ViewerOrderAmountDisplay = {
   fiat: string;
   asset: string;
@@ -41,7 +47,7 @@ export type ViewerOrderAmountDisplay = {
 
 export function getViewerOrderAmountDisplay(trade: P2pOrderAmountsInput): ViewerOrderAmountDisplay {
   const fiat = trade.p2p_ad?.with_fiat ?? "BDT";
-  const asset = trade.p2p_ad?.asset ?? "USDT";
+  const asset = normalizeCryptoAsset(trade.p2p_ad?.asset);
   const fiatAmount = Number(trade.payable_amount);
   const cryptoAmount = Number(trade.receivable_amount);
   const fiatStr = fmtFiat(fiatAmount);

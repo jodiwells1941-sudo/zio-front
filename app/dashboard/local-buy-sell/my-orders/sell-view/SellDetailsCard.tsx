@@ -2,6 +2,7 @@
 
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, updateTradeStatus } from "@/app/api/trade";
+import { normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import TradeOrderSummary from "./TradeOrderSummary";
 import TradeProgressSteps from "../TradeProgressSteps";
 import PaymentCompleted from "./PaymentCompleted";
@@ -279,6 +280,7 @@ export default function SellDetailsCard() {
   const methodName        = trade.p2p_ad?.payment_method?.sell_method?.name
                          ?? trade.current_status?.method
                          ?? 'N/A';
+  const asset = normalizeCryptoAsset(trade.p2p_ad?.asset);
   const orderId           = trade.order_id;
   const fiatAmountStr = Number(trade.payable_amount).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -329,7 +331,7 @@ export default function SellDetailsCard() {
   const paymentModalDetails = [
     { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
     { label: "Price", value: `${withFiat || "BDT"} ${price}` },
-    { label: `You receive (${trade.p2p_ad?.asset ?? "USDT"})`, value: `${cryptoAmountStr} ${trade.p2p_ad?.asset ?? "USDT"}` },
+    { label: `You receive (${asset})`, value: `${cryptoAmountStr} ${asset}` },
   ];
 
   // ─── Render ──────────────────────────────────────────────────────────────────
@@ -418,13 +420,13 @@ export default function SellDetailsCard() {
         )}
 
         {/* Order number */}
-        <div className={`p2pSubRow ${trade.status === 1 ? "p2pPendingOrderId" : ""}`}>
+        {/* <div className={`p2pSubRow ${trade.status === 1 ? "p2pPendingOrderId" : ""}`}>
           <div className="p2pOrderNo">
             <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>
             <CopyBtn text={orderId} />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {![3, 4, 7, 8, 10].includes(trade.status) && (
@@ -436,7 +438,7 @@ export default function SellDetailsCard() {
 
       <TradeOrderSummary
         kind="sell"
-        asset={trade.p2p_ad?.asset ?? "USDT"}
+        asset={asset}
         currency={withFiat}
         fiatAmount={fiatAmount}
         price={Number(trade.user_price)}
@@ -445,6 +447,7 @@ export default function SellDetailsCard() {
         note={note}
         paymentMethod={methodName}
         paymentDetails={paymentDetails}
+        showPaymentDetails={trade.status !== 1}
         feeAmount={feeAmount}
         feePercent={displayedFeePercent}
       />
@@ -476,7 +479,7 @@ export default function SellDetailsCard() {
                   <div className="p2pStepTitle">Review trade request</div>
                   <div className="p2pMuted p2pSmall">
                     <strong>{buyerName}</strong> wants to buy{" "}
-                    {cryptoAmountStr} {trade.p2p_ad?.asset ?? "USDT"} at your price. Approve to lock your crypto and start
+                    {cryptoAmountStr} {asset} at your price. Approve to lock your crypto and start
                     the trade, or reject to decline.
                   </div>
                   <div className="p2pActions">

@@ -3,7 +3,7 @@
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import OrderCompleted from "./OrderCompleted";
-import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import { getViewerOrderAmountDisplay, normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
 import TradeOrderSummary from "./TradeOrderSummary";
 import TradeProgressSteps from "../TradeProgressSteps";
@@ -326,7 +326,7 @@ function PaymentProofModal({
     ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
     : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
   const totalAmountCurrency = trade?.type === "buy"
-    ? trade?.p2p_ad?.asset ?? "USDT"
+    ? normalizeCryptoAsset(trade?.p2p_ad?.asset)
     : trade?.p2p_ad?.with_fiat ?? orderView?.fiat ?? "BDT";
 
   const handleSubmit = async () => {
@@ -589,7 +589,7 @@ export function PaymentInfoCard({
     : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
 
   const totalAmountCurrency = trade.type === "buy"
-    ? trade.p2p_ad?.asset ?? "USDT"
+    ? normalizeCryptoAsset(trade.p2p_ad?.asset)
     : trade.p2p_ad?.with_fiat ?? view.fiat ?? "BDT";
 
   return (
@@ -1115,13 +1115,13 @@ export default function BuyDetailsCard({
           </div>
         )}
 
-        <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
+        {/* <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
           <div className="p2pOrderNo">
             <span className="p2pMuted">Order ID</span>
             <span className="p2pOrderValue">{orderId}</span>
             <CopyBtn text={orderId} id="order_id" />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {uiStatus !== "rejected" && (
@@ -1139,6 +1139,7 @@ export default function BuyDetailsCard({
         note={note}
         paymentMethod={methodName}
         paymentDetails={paymentDetails}
+        showPaymentDetails={!isPending}
         bonusAmount={bonusAmount}
         bonusPercent={displayedBonusPercent}
       />

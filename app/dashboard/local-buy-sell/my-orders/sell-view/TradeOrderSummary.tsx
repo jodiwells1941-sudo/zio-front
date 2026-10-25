@@ -13,6 +13,7 @@ type Props = {
   note?: string | null;
   paymentMethod?: string;
   paymentDetails?: Array<{ label: string; value: string }>;
+  showPaymentDetails?: boolean;
   bonusAmount?: number;
   bonusPercent?: number;
   feeAmount?: number;
@@ -38,6 +39,7 @@ export default function TradeOrderSummary({
   note,
   paymentMethod,
   paymentDetails = [],
+  showPaymentDetails = true,
   bonusAmount = 0,
   bonusPercent = 0,
   feeAmount = 0,
@@ -109,7 +111,7 @@ export default function TradeOrderSummary({
         <span>{isBuy ? "Pay Amount" : "Total Received Amount"}</span>
         <b>{formatAmount(totalReceived)} {currency}</b>
       </div>
-      {(paymentMethod || paymentDetails.length > 0) && (
+      {showPaymentDetails && (paymentMethod || paymentDetails.length > 0) && (
         <div className={styles.paymentCard}>
           <div className={styles.paymentHead}>
             <span className={styles.paymentIcon}><i className="fa-solid fa-credit-card" /></span>

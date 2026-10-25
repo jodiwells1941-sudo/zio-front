@@ -192,14 +192,14 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           </div>
 
           <div className="local-trade-payment-details">
-            <div className="local-trade-payment-head">
+            <div className="local-trade-payment-head border-0 pb-0">
               <span className="local-trade-payment-icon"><i className="fa-solid fa-credit-card" /></span>
               <span>
                 <strong>{ad.payment_method?.sell_method?.name ?? "Payment Method"}</strong>
                 <small>{ad.with_fiat} Payment Details</small>
               </span>
             </div>
-            {paymentDetails.length > 0 ? (
+            {/* {paymentDetails.length > 0 ? (
               <dl>
                 {paymentDetails.map(detail => (
                   <div className="local-trade-payment-row" key={detail.label}>
@@ -210,7 +210,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               </dl>
             ) : (
               <p className="local-trade-payment-empty">No payment details available.</p>
-            )}
+            )} */}
           </div>
 
           <div className="local-trade-info">
