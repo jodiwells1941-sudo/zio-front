@@ -89,14 +89,6 @@ export default function TradeOrderSummary({
         {isBuy ? (
           <>
             <div className={styles.row}>
-              <span>Bonus ({formatAmount(bonusPercent)}%)</span>
-              <b className={styles.positive}>+ {formatAmount(bonusAmount)} {asset}</b>
-            </div>
-            <div className={`${styles.row} ${styles.total}`}>
-              <span>Total You Will Receive</span>
-              <b>{formatAmount(totalReceived)} {asset}</b>
-            </div>
-            <div className={styles.row}>
               <span>Amount</span>
               <b>{formatAmount(fiatAmount)} {currency}</b>
             </div>
@@ -107,6 +99,14 @@ export default function TradeOrderSummary({
             <div className={styles.row}>
               <span>{asset} Amount</span>
               <b>{formatAmount(cryptoAmount)} {asset}</b>
+            </div>
+            <div className={styles.row}>
+              <span>Bonus ({formatAmount(bonusPercent)}%)</span>
+              <b className={styles.positive}>+ {formatAmount(bonusAmount)} {asset}</b>
+            </div>
+            <div className={`${styles.row} ${styles.total}`}>
+              <span>Total You Will Receive</span>
+              <b>{formatAmount(totalReceived)} {asset}</b>
             </div>
           </>
         ) : (
