@@ -270,6 +270,8 @@ export default function Page() {
   /* ── Filter state ── */
   const [country, setCountry] = useState('');
   const [filterFiat, setFilterFiat] = useState('');
+  const [currencyPromptOpen, setCurrencyPromptOpen] = useState(false);
+  const [currencyPromptSelection, setCurrencyPromptSelection] = useState('');
   const [filterMethod, setFilterMethod] = useState('');
   const [amt, setAmt] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState<OfferView>('all');
@@ -306,7 +308,7 @@ export default function Page() {
   /* ─────────────────────────────────────────────────────────────
      localStorage: hydrate on mount (once)
      ───────────────────────────────────────────────────────────── */
-  const hasHydrated = useRef(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -321,12 +323,16 @@ export default function Page() {
       // Prefer stored values; if fiat stored but no country, infer country from map
       const inferredCountry = validCountry || (validFiat && CUR_HOME[validFiat]) || '';
 
-      if (validFiat)   setFilterFiat(validFiat);
+      if (validFiat) setFilterFiat(validFiat);
+      else {
+        setCurrencyPromptOpen(true);
+      }
       if (inferredCountry) setCountry(inferredCountry);
     } catch (e) {
       console.warn('Failed to read filter from localStorage:', e);
+      setCurrencyPromptOpen(true);
     } finally {
-      hasHydrated.current = true;
+      setHasHydrated(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -335,7 +341,7 @@ export default function Page() {
      localStorage: persist on change (only after hydration)
      ───────────────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!hasHydrated.current) return;
+    if (!hasHydrated) return;
     if (typeof window === 'undefined') return;
     try {
       if (filterFiat) window.localStorage.setItem(LS_FIAT_KEY, filterFiat);
@@ -343,10 +349,10 @@ export default function Page() {
     } catch (e) {
       console.warn('Failed to persist fiat to localStorage:', e);
     }
-  }, [filterFiat]);
+  }, [filterFiat, hasHydrated]);
 
   useEffect(() => {
-    if (!hasHydrated.current) return;
+    if (!hasHydrated) return;
     if (typeof window === 'undefined') return;
     try {
       if (country) window.localStorage.setItem(LS_COUNTRY_KEY, country);
@@ -354,7 +360,7 @@ export default function Page() {
     } catch (e) {
       console.warn('Failed to persist country to localStorage:', e);
     }
-  }, [country]);
+  }, [country, hasHydrated]);
 
   /* ── Load Bonus & Fee settings once ── */
   useEffect(() => {
@@ -595,6 +601,19 @@ export default function Page() {
     setCountry(cur && cur in CUR_HOME ? CUR_HOME[cur] : '');
   };
 
+  const handleCurrencyPromptContinue = () => {
+    if (!CURRENCIES.some(currency => currency.code === currencyPromptSelection)) return;
+    try {
+      window.localStorage.setItem(LS_FIAT_KEY, currencyPromptSelection);
+    } catch (error) {
+      console.error('Failed to save selected marketplace currency:', error);
+      toast.error('Could not save your currency selection. Please try again.');
+      return;
+    }
+    handleChange(currencyPromptSelection);
+    setCurrencyPromptOpen(false);
+  };
+
   const handleSearch = () => { flushFilters(); setTick(t => t + 1); };
 
   const handleRefresh = () => {
@@ -611,6 +630,50 @@ export default function Page() {
   /* ───────────────── Render ───────────────── */
   return (
     <main className="lbs">
+      {currencyPromptOpen && (
+        <div className="lbs-currency-prompt-overlay">
+          <section
+            className="lbs-currency-prompt"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lbs-currency-prompt-title"
+            aria-describedby="lbs-currency-prompt-description"
+          >
+            <span className="lbs-currency-prompt-icon" aria-hidden="true">
+              <i className="fa-solid fa-globe" />
+            </span>
+            <h2 id="lbs-currency-prompt-title">Choose your currency</h2>
+            <p id="lbs-currency-prompt-description">
+              Select the local currency you want to use in the marketplace.
+            </p>
+            <label className="lbs-currency-prompt-label" htmlFor="lbs-first-currency">
+              Currency
+            </label>
+            <select
+              id="lbs-first-currency"
+              className="lbs-currency-prompt-select"
+              value={currencyPromptSelection}
+              onChange={event => setCurrencyPromptSelection(event.target.value)}
+              autoFocus
+            >
+              <option value="">Select currency</option>
+              {CURRENCIES.map(currency => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.code} — {currency.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="lbs-currency-prompt-continue d-flex justify-content-center text-bg-warning"
+              onClick={handleCurrencyPromptContinue}
+              disabled={!currencyPromptSelection}
+            >
+              Continue
+            </button>
+          </section>
+        </div>
+      )}
       {/* ═════════ HERO / HEADER BANNER ═════════ */}
       <section className="lbs-hero">
         <div className="lbs-hero-left">
@@ -701,7 +764,7 @@ export default function Page() {
             <span className="lbs-topbar-chev"><Chevron /></span>
           </div>
 
-          <div className="lbs-topbar-select">
+          {/* <div className="lbs-topbar-select">
             <span className="lbs-topbar-flag">
               <Flag cc={country || 'BD'} size={18} />
             </span>
@@ -716,7 +779,7 @@ export default function Page() {
               ))}
             </select>
             <span className="lbs-topbar-chev"><Chevron /></span>
-          </div>
+          </div> */}
 
           <button type="button" className="lbs-topbar-refresh" onClick={handleRefresh}>
             <RefreshIcon />
