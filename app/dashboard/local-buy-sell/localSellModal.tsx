@@ -6,7 +6,7 @@ import { P2pAdsData } from "@/app/api/p2padsapi";
 import { generateTrade } from "@/app/api/trade";
 import type { SellMethodField, UserPaymentMethod } from "@/types/P2PProfileTypes";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 
@@ -31,10 +31,13 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   const [submitting,   setSubmitting]   = useState(false);
   const [methods,        setMethods        ] = useState<UserPaymentMethod[]>([]);
   const [loadingMethods, setLoadingMethods] = useState(false);
+  const [methodsLoaded, setMethodsLoaded] = useState(false);
   const [feePercent, setFeePercent] = useState(0);
+  const autoSelectedMethodKey = useRef<string | null>(null);
 
   const loadMethods = useCallback(async () => {
     setLoadingMethods(true);
+    setMethodsLoaded(false);
     try {
       const res = await getUserPaymentMethods();
       setMethods(res?.data ?? []);
@@ -42,10 +45,45 @@ export default function LocalSellModal({ onClose, ad }: Props) {
       toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed to load payment methods.');
     } finally {
       setLoadingMethods(false);
+      setMethodsLoaded(true);
     }
   }, []);
   
   useEffect(() => { loadMethods(); }, [loadMethods]);
+
+  useEffect(() => {
+    const adMethod = ad.payment_method?.sell_method;
+    if (!methodsLoaded) return;
+
+    const selectionKey = [
+      ad.id,
+      adMethod?.id ?? "",
+      adMethod?.name.trim().toLowerCase() ?? "",
+      ad.with_fiat.trim().toUpperCase(),
+    ].join(":");
+    if (autoSelectedMethodKey.current === selectionKey) return;
+    autoSelectedMethodKey.current = selectionKey;
+
+    if (!adMethod) {
+      setPaymentMethodId(0);
+      return;
+    }
+
+    const currencyCode = ad.with_fiat.trim().toUpperCase();
+    const matchingCurrency = (method: UserPaymentMethod) =>
+      !method.currency_name || method.currency_name.trim().toUpperCase() === currencyCode;
+    const activeMethods = methods.filter(method => method.is_active);
+    const match =
+      activeMethods.find(method =>
+        method.sell_method_id === adMethod.id && matchingCurrency(method)
+      ) ??
+      activeMethods.find(method =>
+        method.method_name.trim().toLowerCase() === adMethod.name.trim().toLowerCase() &&
+        matchingCurrency(method)
+      );
+
+    setPaymentMethodId(match?.id ?? 0);
+  }, [ad.id, ad.payment_method?.sell_method, ad.with_fiat, methods, methodsLoaded]);
 
   // Close on Escape
   useEffect(() => {
@@ -305,7 +343,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             <label className="local-trade-label" htmlFor="local-sell-payment-method">Payment Method</label>
             <select
               id="local-sell-payment-method"
-              className={errors.paymentMethodId ? "is-invalid" : ""}
+              className={errors.paymentMethodId ? "is-invalid d-none" : "d-none"}
               value={paymentMethodId}
               onChange={event => {
                 setPaymentMethodId(Number(event.target.value));
