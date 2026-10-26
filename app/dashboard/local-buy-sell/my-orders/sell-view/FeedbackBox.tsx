@@ -2,8 +2,9 @@
 
 import Swal from "sweetalert2";
 import { generateTradeReview } from "@/app/api/trade";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "../FeedbackModal.module.css";
 
 interface FeedbackBoxProps {
   tradeId: number;
@@ -31,7 +32,17 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from }: Feedba
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isOpen, setIsOpen] = useState(true);
   const route = useRouter();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const handleTagClick = (tag: string) => {
     setSelectedTags((prev) =>
@@ -72,6 +83,7 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from }: Feedba
       };      
 
       const res = await generateTradeReview(payload);
+      setIsOpen(false);
 
       await Swal.fire(
         "Review Submitted!",
@@ -85,9 +97,9 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from }: Feedba
       setErrors({});
 
       if (from == 'local') {
-        route.push("/dashboard/local-buy-sell/my-orders");
+        route.replace("/dashboard/local-buy-sell/");
       } else {
-        route.push("/dashboard/orders");
+        route.replace("/dashboard/orders");
       }
 
     } catch (err: unknown) {
@@ -133,10 +145,41 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from }: Feedba
     color: "#000",
   };
 
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        className={styles.reopenButton}
+        onClick={() => setIsOpen(true)}
+      >
+        Leave feedback
+      </button>
+    );
+  }
+
   return (
-    <div className="bg-dark p-3 rounded-3 mt-3 z_index_0">
-      <h6 className="text-lg fw-6">Feedback</h6>
-      <p className="text-white-50">Review Counterparty</p>
+    <div
+      className={styles.overlay}
+      onMouseDown={event => {
+        if (event.target === event.currentTarget) setIsOpen(false);
+      }}
+    >
+      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="sell-feedback-title">
+        <header className={styles.header}>
+          <div>
+            <h2 id="sell-feedback-title">Feedback</h2>
+            <p>Review Counterparty</p>
+          </div>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={() => setIsOpen(false)}
+            aria-label="Close feedback modal"
+          >
+            <i className="fa-solid fa-xmark" />
+          </button>
+        </header>
+        <div className={styles.body}>
 
       {/* ── Positive / Negative ── */}
       <div className="pt-5 d-flex gap-3">
@@ -224,6 +267,8 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from }: Feedba
           )}
         </button>
       </div>
+        </div>
+      </section>
     </div>
   );
 }
