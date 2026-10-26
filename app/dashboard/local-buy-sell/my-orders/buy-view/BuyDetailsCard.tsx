@@ -235,7 +235,7 @@ function PaymentProofModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [note, setNote] = useState("I have paid the seller.");
+  const [note, setNote] = useState("Payment proof.");
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [uploadedProofCount, setUploadedProofCount] = useState(0);
@@ -289,7 +289,7 @@ function PaymentProofModal({
     if (!isOpen) {
       setProofFiles([]);
       setUploadedProofCount(0);
-      setNote("I have paid the seller.");
+      setNote("Payment proof.");
       setSubmitting(false);
       setProofError(false);
       return;
@@ -343,7 +343,7 @@ function PaymentProofModal({
     setSubmitting(true);
     let uploadedCount = uploadedProofCount;
     try {
-      const proofMessage = note.trim() || "I have paid the seller.";
+      const proofMessage = note.trim() || "Payment proof.";
       for (let index = uploadedCount; index < proofFiles.length; index += 1) {
         await sendTradeMessage(trade.id, {
           message: index === 0 ? proofMessage : `Additional payment proof image ${index + 1} of ${proofFiles.length}.`,
@@ -455,7 +455,7 @@ function PaymentProofModal({
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="I have paid the seller."
+                placeholder="Payment proof."
               />
             </div>
 
