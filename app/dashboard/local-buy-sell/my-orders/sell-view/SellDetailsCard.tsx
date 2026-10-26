@@ -355,12 +355,6 @@ export default function SellDetailsCard() {
       value,
     }));
 
-  const paymentModalDetails = [
-    { label: `Fiat amount (${withFiat || "BDT"})`, value: `${withFiat || "BDT"} ${fiatAmountStr}` },
-    { label: "Price", value: `${withFiat || "BDT"} ${price}` },
-    { label: `You receive (${asset})`, value: `${cryptoAmountStr} ${asset}` },
-  ];
-
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -682,7 +676,6 @@ export default function SellDetailsCard() {
           buyerName={buyerName}
           amount={trade.payable_amount}
           currency={withFiat}
-          details={paymentModalDetails}
         />
       )}
     </>
