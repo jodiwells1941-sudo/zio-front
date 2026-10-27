@@ -13,6 +13,7 @@ import PaymentModal from '@/components/dashboard/p2pProfile/Paymentmodal';
 import { CurrencyOption, ModalMode, PaymentFormData, UserPaymentMethod } from '@/types/P2PProfileTypes';
 import './QuickBuyModal.css';
 import { getDepositBonusApi, getDepositBonusTiersApi } from '@/app/api/wallet';
+import PaymentMethodIcon from '../PaymentMethodIcon';
 
 /* ───────────── Types ───────────── */
 type Option = { value: string; label: string };
@@ -59,23 +60,6 @@ const MIN_AMOUNT_USDT = 10;
 const MAX_AMOUNT_USDT = 500;
 const FALLBACK_RATE = 121.5;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
-
-const PAYMENT_ICONS: Record<string, { glyph: string; color: string }> = {
-  bkash:  { glyph: 'b', color: '#e2136e' },
-  nagad:  { glyph: 'N', color: '#f26522' },
-  rocket: { glyph: 'R', color: '#8c3494' },
-  bank:   { glyph: '⌂', color: '#1d6fe0' },
-  other:  { glyph: '…', color: '#4b5563' },
-};
-
-const iconFor = (name?: string) => {
-  const n = (name ?? '').toLowerCase();
-  if (n.includes('bkash'))  return PAYMENT_ICONS.bkash;
-  if (n.includes('nagad'))  return PAYMENT_ICONS.nagad;
-  if (n.includes('rocket')) return PAYMENT_ICONS.rocket;
-  if (n.includes('bank'))   return PAYMENT_ICONS.bank;
-  return PAYMENT_ICONS.other;
-};
 
 const money = (n: number, d = 2) =>
   Number.isFinite(n)
@@ -626,7 +610,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   )}
 
                   {currencyMethods.map(method => {
-                    const icon = iconFor(method.method_name);
                     const active = method.id === methodId;
                     return (
                       <button
@@ -635,9 +618,13 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                         className={`qsm-method ${active ? 'is-active' : ''}`}
                         onClick={() => setMethodId(method.id)}
                       >
-                        <span className="qsm-method-icon" style={{ background: icon.color }}>
-                          {icon.glyph}
-                        </span>
+                        <PaymentMethodIcon
+                          className="qsm-method-icon"
+                          methodName={method.method_name}
+                          iconImage={method.icon_image ?? method.sell_method?.icon_image}
+                          size={36}
+                          fallbackMode="brand"
+                        />
                         <span className="qsm-method-name">{method.method_name || '—'}</span>
                         {active && (
                           <span className="qsm-method-check">

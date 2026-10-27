@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import "./localTradeSummary.css";
+import PaymentMethodIcon from "./PaymentMethodIcon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -320,7 +321,13 @@ export default function LocalSellModal({ onClose, ad }: Props) {
 
           <div className="local-trade-payment-details">
             <div className="local-trade-payment-head border-0 pb-0">
-              <span className="local-trade-payment-icon"><i className="fa-solid fa-credit-card" /></span>
+              <PaymentMethodIcon
+                className="local-trade-payment-icon"
+                methodName={ad.payment_method?.sell_method?.name}
+                iconImage={ad.payment_method?.sell_method?.icon_image}
+                size={36}
+                fallbackMode="card"
+              />
               <span>
                 <strong>{ad.payment_method?.sell_method?.name ?? "Payment Method"}</strong>
                 <small>{ad.with_fiat} Payment Details</small>
@@ -364,7 +371,13 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           {selectedPaymentMethod && (
             <div className="local-trade-payment-details" aria-live="polite">
               <div className="local-trade-payment-head">
-                <span className="local-trade-payment-icon"><i className="fa-solid fa-credit-card" /></span>
+                <PaymentMethodIcon
+                  className="local-trade-payment-icon"
+                  methodName={selectedPaymentMethod.method_name}
+                  iconImage={selectedPaymentMethod.icon_image ?? selectedPaymentMethod.sell_method?.icon_image}
+                  size={36}
+                  fallbackMode="card"
+                />
                 <span>
                   <strong>{selectedPaymentMethod.method_name}</strong>
                   <small>Edit details; changes save when you accept the request.</small>

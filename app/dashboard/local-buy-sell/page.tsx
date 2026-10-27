@@ -13,6 +13,7 @@ import './localBuySell.css';
 import Link from 'next/link';
 import QuickBuyModal from './create-ad/QuickBuyModal';
 import QuickSellModal from './create-ad/QuickSellModal';
+import PaymentMethodIcon from './PaymentMethodIcon';
 
 /* ───────────────── Static data ───────────────── */
 const CURRENCIES = [
@@ -36,13 +37,6 @@ const COUNTRY_CUR: Record<string, string> = {
   ),
 };
 const CUR_HOME: Record<string, string> = { BDT: 'BD', INR: 'IN', PKR: 'PK', USD: 'US', GBP: 'GB', AUD: 'AU', CAD: 'CA', JPY: 'JP', CNY: 'CN', CHF: 'CH', EUR: '' };
-
-const METHOD_STYLE: Record<string, { color: string; glyph: string }> = {
-  bKash: { color: '#e2136e', glyph: 'b' },
-  Nagad: { color: '#f26522', glyph: 'N' },
-  Rocket: { color: '#8c3494', glyph: 'R' },
-  'Bank Transfer': { color: '#1d6fe0', glyph: '⌂' },
-};
 
 /* ── localStorage keys ── */
 const LS_FIAT_KEY    = 'lbs_filter_fiat';
@@ -119,7 +113,6 @@ function Row({
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
 }) {
   const method = ad.payment_method?.sell_method?.name ?? '—';
-  const style = METHOD_STYLE[method] ?? { color: '#3b82f6', glyph: method[0] ?? '?' };
 
   const usdtAmount = Number(ad.total_amount ?? 0);
   const isBuy = kind === 'buy';
@@ -144,7 +137,12 @@ function Row({
 
       <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit}</div>
       <div className="lbs-cell lbs-cell--methods">
-        <span className="lbs-mico" style={{ background: style.color }}>{style.glyph}</span>
+        <PaymentMethodIcon
+          methodName={method}
+          iconImage={ad.payment_method?.sell_method?.icon_image}
+          size={30}
+          className="lbs-mico"
+        />
         <span className="lbs-method-name" title={method}>{method}</span>
       </div>
       <div className="lbs-cell lbs-cell--action">

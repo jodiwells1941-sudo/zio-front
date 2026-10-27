@@ -74,6 +74,7 @@ export interface TradeData {
         name: string;
         fields: SellMethodField[];
         icon: string;
+        icon_image?: string | null;
       };
     };
   };
@@ -1182,6 +1183,7 @@ export default function BuyDetailsCard({
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
         paymentMethod={methodName}
+        paymentMethodIconImage={trade.p2p_ad?.payment_method?.sell_method?.icon_image}
         paymentDetails={paymentDetails}
         showPaymentDetails={!isPending}
         bonusAmount={bonusAmount}

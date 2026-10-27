@@ -49,7 +49,7 @@ interface TradeData {
       field_values?: Record<string, string>;
       bankName?: string;
       remarks?: string | null;
-      sell_method?: { name: string };
+      sell_method?: { name: string; icon_image?: string | null };
     };
   };
   current_status?: {
@@ -62,7 +62,7 @@ interface TradeData {
   };
   user_payment_method?: {
     field_values: { walletNumber?: string; bankName?: string };
-    sell_method?: { name: string };
+    sell_method?: { name: string; icon_image?: string | null };
   };
   trade_review?: any;
 }
@@ -468,6 +468,7 @@ export default function SellDetailsCard() {
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
         paymentMethod={methodName}
+        paymentMethodIconImage={trade.p2p_ad?.payment_method?.sell_method?.icon_image}
         paymentDetails={paymentDetails}
         showPaymentDetails={trade.status !== 1}
         feeAmount={feeAmount}

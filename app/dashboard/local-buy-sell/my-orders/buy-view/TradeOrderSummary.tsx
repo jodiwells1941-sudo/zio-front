@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import styles from "./TradeOrderSummary.module.css";
+import PaymentMethodIcon from "../../PaymentMethodIcon";
 
 type Props = {
   orderId: string;
@@ -15,6 +16,7 @@ type Props = {
   paymentTimeLimit: number;
   note?: string | null;
   paymentMethod?: string;
+  paymentMethodIconImage?: string | null;
   paymentDetails?: Array<{ label: string; value: string }>;
   showPaymentDetails?: boolean;
   bonusAmount?: number;
@@ -42,6 +44,7 @@ export default function TradeOrderSummary({
   paymentTimeLimit,
   note,
   paymentMethod,
+  paymentMethodIconImage,
   paymentDetails = [],
   showPaymentDetails = true,
   bonusAmount = 0,
@@ -146,7 +149,13 @@ export default function TradeOrderSummary({
       {showPaymentDetails && (paymentMethod || paymentDetails.length > 0) && (
         <div className={styles.paymentCard}>
           <div className={styles.paymentHead}>
-            <span className={styles.paymentIcon}><i className="fa-solid fa-credit-card" /></span>
+            <PaymentMethodIcon
+              className={styles.paymentIcon}
+              methodName={paymentMethod}
+              iconImage={paymentMethodIconImage}
+              size={36}
+              fallbackMode="card"
+            />
             <span>
               <b>{paymentMethod || "Payment Method"}</b>
               <small>{currency} Payment Details</small>
