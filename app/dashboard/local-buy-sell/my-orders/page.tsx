@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { getUserInfo } from "@/utils/auth";
 import { getTradeEcho } from "@/utils/tradeEcho";
-import styles from "./page.module.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -67,6 +66,9 @@ const getSourceAdId = (value: unknown): string | null => {
 
   return nestedData ? getSourceAdId(nestedData) : null;
 };
+
+const formatAdReference = (adId: string): string =>
+  /^\d+$/.test(adId) ? `AD-${adId.padStart(6, "0")}` : `AD-${adId}`;
 
 // ─── Status badge helper ──────────────────────────────────────────────────────
 
@@ -279,6 +281,10 @@ export default function Page() {
     },
     [],
   );
+  const getTradeAdReference = (trade: Trade) => {
+    const adId = getSourceAdId(trade) ?? resolvedAdIds[trade.id];
+    return adId ? formatAdReference(adId) : null;
+  };
 
   // ─── Action buttons per status ────────────────────────────────────────────────
 
@@ -470,6 +476,7 @@ export default function Page() {
                 <tr>
                   <th>Type / Date</th>
                   <th>Order Number</th>
+                  <th>Ad Reference</th>
                   <th>Price</th>
                   <th>Fiat / Crypto Amount</th>
                   <th>Counterparty</th>
@@ -481,13 +488,13 @@ export default function Page() {
                 {adGroups.map(group => (
                   <Fragment key={group.adId ?? `trade-${group.trades[0].id}`}>
                     {group.adId && group.trades.length > 1 && (
-                      <tr className={styles.adGroupRow}>
-                        <td colSpan={7}>
-                          <span className={styles.adGroupTitle}>
+                      <tr className="local-order-ad-group-row">
+                        <td colSpan={8}>
+                          <span className="local-order-ad-group-title">
                             <i className="fa-solid fa-layer-group" aria-hidden="true" />
-                            Same advertisement · Ad #{group.adId}
+                            Same advertisement · {formatAdReference(group.adId)}
                           </span>
-                          <span className={styles.adGroupCount}>
+                          <span className="local-order-ad-group-count">
                             {group.trades.length} orders on this page
                           </span>
                         </td>
@@ -522,6 +529,16 @@ export default function Page() {
                             <i className="fa-regular fa-copy" />
                           </button>
                         </div>
+                      </td>
+                      <td>
+                        {getTradeAdReference(trade) ? (
+                          <span className="local-order-ad-reference">
+                            <i className="fa-solid fa-link" aria-hidden="true" />
+                            {getTradeAdReference(trade)}
+                          </span>
+                        ) : (
+                          <span className="local-order-no-ad-reference">—</span>
+                        )}
                       </td>
                       
                       {/* Price */}
@@ -568,12 +585,12 @@ export default function Page() {
             {adGroups.map(group => (
               <div key={group.adId ?? `trade-${group.trades[0].id}`}>
                 {group.adId && group.trades.length > 1 && (
-                  <div className={styles.mobileAdGroupHeader}>
-                    <span className={styles.adGroupTitle}>
+                  <div className="local-order-mobile-ad-group">
+                    <span className="local-order-ad-group-title">
                       <i className="fa-solid fa-layer-group" aria-hidden="true" />
-                      Same advertisement · Ad #{group.adId}
+                      Same advertisement · {formatAdReference(group.adId)}
                     </span>
-                    <span className={styles.adGroupCount}>
+                    <span className="local-order-ad-group-count">
                       {group.trades.length} orders on this page
                     </span>
                   </div>
@@ -620,6 +637,12 @@ export default function Page() {
                         <i className="fa-regular fa-copy" />
                       </button>
                     </div>
+                  </div>
+                  <div className="d-flex justify-content-between mt-3">
+                    <span className="text-white-50">Same Ad Reference</span>
+                    <span className="local-order-ad-reference">
+                      {getTradeAdReference(trade) ?? "—"}
+                    </span>
                   </div>
                   <div className="d-flex justify-content-between mt-3">
                     <div className="trade-counterparty-cell">
