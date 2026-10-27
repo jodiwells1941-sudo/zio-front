@@ -1,6 +1,6 @@
 "use client";
 
-import { getLocalTrades, updateTradeStatus } from "@/app/api/trade";
+import { getLocalTrades, getTrade, updateTradeStatus } from "@/app/api/trade";
 import Link from "next/link";
 import { Fragment } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -19,6 +19,9 @@ interface Trade {
   ad_id?: number | string | null;
   p2p_ad_id?: number | string | null;
   user_sell_method_id?: number | string | null;
+  local_ad_id?: number | string | null;
+  user_sell_method?: { id?: number | string | null } | null;
+  local_ad?: { id?: number | string | null; ad_id?: number | string | null } | null;
   p2p_ad?: { id?: number | string | null; ad_id?: number | string | null } | null;
   /** Allowed actions for the current user (e.g. `[2, 3]` when ad owner may approve/reject). */
   status_list?: number[];
@@ -36,15 +39,33 @@ interface Trade {
 
 type ActiveTab = 'all' | 'completed' | 'cancelled' | 'buy' | 'sell';
 
-const getSourceAdId = (trade: Trade): string | null => {
-  const id =
-    trade.ad_id ??
-    trade.p2p_ad_id ??
-    trade.user_sell_method_id ??
-    trade.p2p_ad?.id ??
-    trade.p2p_ad?.ad_id;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
 
-  return id === null || id === undefined || String(id).trim() === "" ? null : String(id);
+const getSourceAdId = (value: unknown): string | null => {
+  if (!isRecord(value)) return null;
+
+  const ad = isRecord(value.p2p_ad) ? value.p2p_ad : null;
+  const localAd = isRecord(value.local_ad) ? value.local_ad : null;
+  const userSellMethod = isRecord(value.user_sell_method) ? value.user_sell_method : null;
+  const nestedData = isRecord(value.data) ? value.data : null;
+  const id =
+    value.ad_id ??
+    value.p2p_ad_id ??
+    value.user_sell_method_id ??
+    value.local_ad_id ??
+    userSellMethod?.id ??
+    localAd?.id ??
+    localAd?.ad_id ??
+    ad?.id ??
+    ad?.ad_id;
+
+  if (typeof id === "string" || typeof id === "number") {
+    const normalizedId = String(id).trim();
+    if (normalizedId) return normalizedId;
+  }
+
+  return nestedData ? getSourceAdId(nestedData) : null;
 };
 
 // ─── Status badge helper ──────────────────────────────────────────────────────
@@ -73,6 +94,7 @@ const getStatusUI = (trade: Trade): { text: string; className: string } => {
 
 export default function Page() {
   const [trades,    setTrades]    = useState<Trade[]>([]);
+  const [resolvedAdIds, setResolvedAdIds] = useState<Record<number, string>>({});
   const [loading,   setLoading]   = useState(true);
   const [syncing,   setSyncing]   = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('all');
@@ -115,6 +137,47 @@ export default function Page() {
   useEffect(() => {
     void fetchTrades();
   }, [fetchTrades]);
+
+  useEffect(() => {
+    let active = true;
+    const unresolvedTrades = trades.filter(
+      trade => !getSourceAdId(trade) && !resolvedAdIds[trade.id],
+    );
+    if (unresolvedTrades.length === 0) return;
+
+    const resolveAdIds = async () => {
+      const resolved = await Promise.all(
+        unresolvedTrades.map(async trade => {
+          try {
+            const response = await getTrade(trade.id);
+            const adId = getSourceAdId(response?.data);
+            return adId ? ([trade.id, adId] as const) : null;
+          } catch (error) {
+            console.error(`Failed to load source ad for order ${trade.orderNumber}:`, error);
+            return null;
+          }
+        }),
+      );
+
+      if (!active) return;
+      setResolvedAdIds(previous => {
+        const next = { ...previous };
+        let changed = false;
+        resolved.forEach(entry => {
+          if (entry && next[entry[0]] !== entry[1]) {
+            next[entry[0]] = entry[1];
+            changed = true;
+          }
+        });
+        return changed ? next : previous;
+      });
+    };
+
+    void resolveAdIds();
+    return () => {
+      active = false;
+    };
+  }, [trades, resolvedAdIds]);
 
   // Live refresh when a new P2P order is created (Reverb → private user.{id})
   useEffect(() => {
@@ -203,7 +266,7 @@ export default function Page() {
   });
   const adGroups = filteredTrades.reduce<Array<{ adId: string | null; trades: Trade[] }>>(
     (groups, trade) => {
-      const adId = getSourceAdId(trade);
+      const adId = getSourceAdId(trade) ?? resolvedAdIds[trade.id] ?? null;
       const existingGroup = adId ? groups.find(group => group.adId === adId) : undefined;
 
       if (existingGroup) {

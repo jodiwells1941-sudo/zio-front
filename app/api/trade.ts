@@ -25,6 +25,11 @@ export interface TradeData {
   type: 'buy' | 'sell';           // appended
   is_client_seller: boolean;      // appended
   created_at: string;
+  ad_id?: number | string | null;
+  p2p_ad_id?: number | string | null;
+  user_sell_method_id?: number | string | null;
+  local_ad_id?: number | string | null;
+  p2p_ad?: { id?: number | string | null; ad_id?: number | string | null } | null;
   client?: {
     id: number;
     name: string;
