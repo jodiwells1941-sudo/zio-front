@@ -1,0 +1,24 @@
+.adGroupBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border: 1px solid rgba(250, 204, 21, 0.38);
+  border-radius: 999px;
+  background: rgba(250, 204, 21, 0.12);
+  color: #facc15;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .adGroupBadge {
+    margin: 10px 0 0;
+    white-space: normal;
+  }
+}
