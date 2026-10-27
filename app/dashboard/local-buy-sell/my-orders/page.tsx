@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { getUserInfo } from "@/utils/auth";
 import { getTradeEcho } from "@/utils/tradeEcho";
+import styles from "./page.module.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,10 @@ interface Trade {
   type: string;
   /** `p2p_orders.side` — which flow this order is (distinct from list `type`). */
   order_side?: 'buy' | 'sell';
+  ad_id?: number | string | null;
+  p2p_ad_id?: number | string | null;
+  user_sell_method_id?: number | string | null;
+  p2p_ad?: { id?: number | string | null; ad_id?: number | string | null } | null;
   /** Allowed actions for the current user (e.g. `[2, 3]` when ad owner may approve/reject). */
   status_list?: number[];
   asset: string;
@@ -29,6 +34,17 @@ interface Trade {
 }
 
 type ActiveTab = 'all' | 'completed' | 'cancelled' | 'buy' | 'sell';
+
+const getSourceAdId = (trade: Trade): string | null => {
+  const id =
+    trade.ad_id ??
+    trade.p2p_ad_id ??
+    trade.user_sell_method_id ??
+    trade.p2p_ad?.id ??
+    trade.p2p_ad?.ad_id;
+
+  return id === null || id === undefined || String(id).trim() === "" ? null : String(id);
+};
 
 // ─── Status badge helper ──────────────────────────────────────────────────────
 
@@ -184,6 +200,24 @@ export default function Page() {
     }
     return true;
   });
+  const adOrderCounts = filteredTrades.reduce((counts, trade) => {
+    const adId = getSourceAdId(trade);
+    if (adId) counts.set(adId, (counts.get(adId) ?? 0) + 1);
+    return counts;
+  }, new Map<string, number>());
+
+  const renderAdGroupBadge = (trade: Trade) => {
+    const adId = getSourceAdId(trade);
+    const count = adId ? adOrderCounts.get(adId) ?? 0 : 0;
+    if (!adId || count < 2) return null;
+
+    return (
+      <span className={styles.adGroupBadge} title={`${count} orders came from ad #${adId}`}>
+        <i className="fa-solid fa-layer-group" aria-hidden="true" />
+        Same ad #{adId} · {count} orders
+      </span>
+    );
+  };
 
   // ─── Action buttons per status ────────────────────────────────────────────────
 
@@ -403,6 +437,7 @@ export default function Page() {
                           <Link href={getTradeDetailsPath(trade)} className="trade-link ms-2">
                             {trade.orderNumber}
                           </Link>
+                          {renderAdGroupBadge(trade)}
 
                           <button
                             className="trade-copy-icon"
@@ -497,6 +532,7 @@ export default function Page() {
                       </button>
                     </div>
                   </div>
+                  {renderAdGroupBadge(trade)}
 
                   <div className="d-flex justify-content-between mt-3">
                     <div className="trade-counterparty-cell">
