@@ -272,7 +272,7 @@ export default function RecentRequestsCard() {
                 <div style={{ textAlign: 'center' }}>
                   <Link
                     href={viewUrl}
-                    className="lbs-view-btn"
+                    className="lbs-view-btn text-dark"
                   >
                     View
                   </Link>

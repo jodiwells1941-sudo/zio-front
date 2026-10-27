@@ -189,16 +189,26 @@ export default function Page() {
 
   const renderActions = (trade: Trade) => {
     const sl = trade.status_list ?? [];
+    const viewLink = (
+      <Link
+        className="btn btn-info btn-sm"
+        href={getTradeDetailsPath(trade)}
+        aria-label={`View order ${trade.orderNumber}`}
+      >
+        View
+      </Link>
+    );
 
     // Status 1 (Pending) → Approve / Reject when backend allows this user
     if (trade.status === 1) {
       const canApr = sl.includes(2);
       const canRej = sl.includes(3);
       if (!canApr && !canRej) {
-        return <span className="text-muted text-reset">—</span>;
+        return viewLink;
       }
       return (
         <div className="d-flex gap-1 flex-wrap">
+          {viewLink}
           {canApr && (
             <button
               className="btn btn-success btn-sm"
@@ -225,20 +235,23 @@ export default function Page() {
     if (trade.status === 5) {
       const canComplete = sl.includes(6) || (sl.length === 0 && trade.isCustomer);
       if (!canComplete) {
-        return <span className="text-muted text-reset">—</span>;
+        return viewLink;
       }
       return (
-        <button
-          className="btn btn-primary btn-sm"
-          type="button"
-          onClick={() => handleStatusUpdate(trade, 6, 'Complete')}
-        >
-          Complete
-        </button>
+        <div className="d-flex gap-1 flex-wrap">
+          {viewLink}
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            onClick={() => handleStatusUpdate(trade, 6, 'Complete')}
+          >
+            Complete
+          </button>
+        </div>
       );
     }
 
-    return <span className="text-muted text-reset">—</span>;
+    return viewLink;
   };
 
   /**

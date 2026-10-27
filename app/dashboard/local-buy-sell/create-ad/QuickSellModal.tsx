@@ -12,6 +12,7 @@ import {
 import { CurrencyOption, PaymentFormData, SellMethodField, UserPaymentMethod } from '@/types/P2PProfileTypes';
 import { getWithdrawChargeApi } from '@/app/api/wallet';
 import './QuickSellModal.css';
+import PaymentMethodIcon from '../PaymentMethodIcon';
 
 /* ───────────── Types ───────────── */
 type Option = { value: string; label: string };
@@ -44,23 +45,6 @@ const MAX_AMOUNT_USDT = 500;
 const FALLBACK_RATE = 121.5;
 const DEFAULT_FEE_PCT = 3;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
-
-const PAYMENT_ICONS: Record<string, { glyph: string; color: string }> = {
-  bkash:  { glyph: 'b', color: '#e2136e' },
-  nagad:  { glyph: 'N', color: '#f26522' },
-  rocket: { glyph: 'R', color: '#8c3494' },
-  bank:   { glyph: '⌂', color: '#1d6fe0' },
-  other:  { glyph: '…', color: '#4b5563' },
-};
-
-const iconFor = (name?: string) => {
-  const n = (name ?? '').toLowerCase();
-  if (n.includes('bkash'))  return PAYMENT_ICONS.bkash;
-  if (n.includes('nagad'))  return PAYMENT_ICONS.nagad;
-  if (n.includes('rocket')) return PAYMENT_ICONS.rocket;
-  if (n.includes('bank'))   return PAYMENT_ICONS.bank;
-  return PAYMENT_ICONS.other;
-};
 
 const money = (n: number, d = 2) =>
   Number.isFinite(n)
@@ -611,7 +595,6 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   )}
 
                   {currencyMethods.map(m => {
-                    const icon = iconFor(m?.method_name);
                     const active = Number(m.id) === methodId;
                     return (
                       <button
@@ -622,9 +605,13 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                         aria-label={`Select ${m.method_name} payment method`}
                         aria-pressed={active}
                       >
-                        <span className="qsm-method-icon" style={{ background: icon.color }}>
-                          {icon.glyph}
-                        </span>
+                        <PaymentMethodIcon
+                          className="qsm-method-icon"
+                          methodName={m?.method_name}
+                          iconImage={m.icon_image ?? m.sell_method?.icon_image}
+                          size={36}
+                          fallbackMode="brand"
+                        />
                         <span className="qsm-method-name">{m?.method_name ?? '—'}</span>
                         {active && (
                           <span className="qsm-method-check">
@@ -790,9 +777,13 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               {selectedMethod && (
                 <div className="qsm-payment-details">
                   <div className="qsm-payment-details-head">
-                    <span className="qsm-payment-details-icon">
-                      <i className="fa-solid fa-credit-card" />
-                    </span>
+                    <PaymentMethodIcon
+                      className="qsm-payment-details-icon"
+                      methodName={selectedMethod.method_name}
+                      iconImage={selectedMethod.icon_image ?? selectedMethod.sell_method?.icon_image}
+                      size={36}
+                      fallbackMode="card"
+                    />
                     <span>
                       <strong>{selectedMethod.method_name}</strong>
                       <small>{selectedMethod.currency_name || fiat} payment details</small>

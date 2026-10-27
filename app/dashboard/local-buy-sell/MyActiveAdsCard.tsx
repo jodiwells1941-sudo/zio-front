@@ -146,7 +146,7 @@ export default function MyActiveAdsCard() {
                 <div style={{ textAlign: 'center' }}>
                   <Link
                     href={`/dashboard/local-buy-sell/my-ads?ad_id=${ad.id}`}
-                    className="lbs-view-btn"
+                    className="lbs-view-btn text-dark"
                   >
                     View
                   </Link>

@@ -6,18 +6,12 @@ import { getMyLocalAds, toggleAdStatus, deleteAd, P2pAdsData } from '@/app/api/p
 import './LocalMyAds.css';
 import QuickBuyModal from '../create-ad/QuickBuyModal';
 import QuickSellModal from '../create-ad/QuickSellModal';
+import PaymentMethodIcon from '../PaymentMethodIcon';
 
 type Kind = 'buy' | 'sell';
 type Bucket = { items: P2pAdsData[]; page: number; last: number; total: number; loading: boolean };
 
 const EMPTY: Bucket = { items: [], page: 1, last: 1, total: 0, loading: true };
-const METHOD_COLORS: Record<string, string> = {
-  bKash: '#e2136e',
-  Nagad: '#f26522',
-  Rocket: '#8c3494',
-  'Bank Transfer': '#1d6fe0',
-};
-
 const isLocal = (a: P2pAdsData) => !a.ad_create_type || a.ad_create_type === 'local';
 const n2 = (v: number | string, d = 2) => {
   const n = Number(v);
@@ -47,7 +41,13 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
         <small className="ma-sub">≈ {n2(ad.order_limit_min * price, 0)} – {n2(ad.order_limit_max * price, 0)} {ad.with_fiat}</small>
       </div>
       <div className="ma-method">
-        <span className="ma-mico" style={{ background: METHOD_COLORS[method] ?? '#3b82f6' }}>{method[0]}</span>{method}
+        <PaymentMethodIcon
+          methodName={method}
+          iconImage={ad.payment_method?.sell_method?.icon_image}
+          size={28}
+          className="ma-mico"
+        />
+        {method}
       </div>
       <div className="ma-status">
         <button

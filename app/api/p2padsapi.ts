@@ -64,6 +64,7 @@ export type P2pAdsData = {
     sell_method: {
       id: number;
       name: string; // e.g. "Nagad", "Bank Transfer"
+      icon_image?: string | null;
     };
   };
 };
@@ -166,4 +167,3 @@ export const getLocalCurrencyRates = async (params?: { currency_code?: string })
   const response = await apiClient.get('/user/local-currency-rate', { params });
   return response?.data;
 }
-

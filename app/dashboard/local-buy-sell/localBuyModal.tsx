@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "./localTradeSummary.css";
+import PaymentMethodIcon from "./PaymentMethodIcon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -191,7 +192,13 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           </div>
           <div className="local-trade-payment-details">
             <div className="local-trade-payment-head border-0 pb-0">
-              <span className="local-trade-payment-icon"><i className="fa-solid fa-credit-card" /></span>
+              <PaymentMethodIcon
+                className="local-trade-payment-icon"
+                methodName={methodName}
+                iconImage={ad.payment_method?.sell_method?.icon_image}
+                size={36}
+                fallbackMode="card"
+              />
               <span>
                 <strong>{methodName}</strong>
                 <small>{ad.with_fiat} Payment Details</small>

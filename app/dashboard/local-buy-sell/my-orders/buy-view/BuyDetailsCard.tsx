@@ -74,6 +74,7 @@ export interface TradeData {
         name: string;
         fields: SellMethodField[];
         icon: string;
+        icon_image?: string | null;
       };
     };
   };
@@ -235,14 +236,13 @@ function PaymentProofModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [note, setNote] = useState("I have paid the seller.");
+  const [note, setNote] = useState("Payment proof.");
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [uploadedProofCount, setUploadedProofCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [proofError, setProofError] = useState(false);
   const [bonusPercent, setBonusPercent] = useState(0);
-  const [sellFeePercent, setSellFeePercent] = useState(0);
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
 
   useEffect(() => {
@@ -255,16 +255,13 @@ function PaymentProofModal({
         const res = await getBonusFeesSettings();
         const settings = res?.data ?? {};
         const nextBonus = Number(settings?.user_buy_bonus ?? 0);
-        const nextFee = Number(settings?.user_sell_charge ?? 0);
 
         if (!mounted) return;
         setBonusPercent(trade.type === "buy" ? nextBonus : 0);
-        setSellFeePercent(trade.type === "sell" ? nextFee : 0);
       } catch (error) {
         console.error("Failed to load bonus & fees settings:", error);
         if (mounted) {
           setBonusPercent(0);
-          setSellFeePercent(0);
         }
       }
     };
@@ -289,7 +286,7 @@ function PaymentProofModal({
     if (!isOpen) {
       setProofFiles([]);
       setUploadedProofCount(0);
-      setNote("I have paid the seller.");
+      setNote("Payment proof.");
       setSubmitting(false);
       setProofError(false);
       return;
@@ -324,9 +321,16 @@ function PaymentProofModal({
     setProofFiles(current => current.filter((_, index) => index !== indexToRemove));
   };
 
-  const adjustedTotalAmount = trade?.type === "buy"
-    ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
-    : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
+  const baseCryptoAmount = Number(trade.receivable_amount || 0);
+  const bonusAmount = trade.type === "buy"
+    ? Number(trade.bonus_amount ?? baseCryptoAmount * bonusPercent / 100)
+    : 0;
+  const displayedBonusPercent = baseCryptoAmount > 0
+    ? bonusAmount / baseCryptoAmount * 100
+    : 0;
+  const adjustedTotalAmount = trade.type === "buy"
+    ? baseCryptoAmount + bonusAmount
+    : Number(trade.payable_amount || 0);
   const totalAmountCurrency = trade?.type === "buy"
     ? normalizeCryptoAsset(trade?.p2p_ad?.asset)
     : trade?.p2p_ad?.with_fiat ?? orderView?.fiat ?? "BDT";
@@ -343,7 +347,7 @@ function PaymentProofModal({
     setSubmitting(true);
     let uploadedCount = uploadedProofCount;
     try {
-      const proofMessage = note.trim() || "I have paid the seller.";
+      const proofMessage = note.trim() || "Payment proof.";
       for (let index = uploadedCount; index < proofFiles.length; index += 1) {
         await sendTradeMessage(trade.id, {
           message: index === 0 ? proofMessage : `Additional payment proof image ${index + 1} of ${proofFiles.length}.`,
@@ -424,19 +428,12 @@ function PaymentProofModal({
                     </div>
                   ))}
 
-                  {trade?.type === "buy" && bonusPercent > 0 && (
-                    <div className="p2pDetailRow">
-                      <span className="p2pMuted">Buy Bonus</span>
-                      <span className="p2pDetailVal text-warning">+{bonusPercent}%</span>
-                    </div>
-                  )}
-
-                  {trade?.type === "sell" && sellFeePercent > 0 && (
-                    <div className="p2pDetailRow">
-                      <span className="p2pMuted">Selling Fee</span>
-                      <span className="p2pDetailVal text-warning">{sellFeePercent}%</span>
-                    </div>
-                  )}
+                  <div className="p2pDetailRow">
+                    <span className="p2pMuted">Bonus ({displayedBonusPercent.toFixed(2)}%)</span>
+                    <span className="p2pDetailVal text-warning">
+                      +{bonusAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} {orderView.asset}
+                    </span>
+                  </div>
 
                   <div className="p2pDetailRow">
                     <span className="p2pMuted">Total Amount</span>
@@ -455,7 +452,7 @@ function PaymentProofModal({
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="I have paid the seller."
+                placeholder="Payment proof."
               />
             </div>
 
@@ -1186,6 +1183,7 @@ export default function BuyDetailsCard({
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
         paymentMethod={methodName}
+        paymentMethodIconImage={trade.p2p_ad?.payment_method?.sell_method?.icon_image}
         paymentDetails={paymentDetails}
         showPaymentDetails={!isPending}
         bonusAmount={bonusAmount}
@@ -1264,13 +1262,7 @@ export default function BuyDetailsCard({
                     <button
                       className="p2pPrimaryBtn"
                       type="button"
-                      onClick={() => {
-                        if (notifyTransferredLabel === "Transferred, Notify Buyer") {
-                          void handleStatusUpdate(5);
-                          return;
-                        }
-                        setShowProofModal(true);
-                      }}
+                      onClick={() => setShowProofModal(true)}
                       disabled={submitting !== null}
                     >
                       {submitting === 5 ? (
