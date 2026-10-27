@@ -2,6 +2,7 @@
 
 import { getLocalTrades, updateTradeStatus } from "@/app/api/trade";
 import Link from "next/link";
+import { Fragment } from "react";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { getUserInfo } from "@/utils/auth";
@@ -200,24 +201,21 @@ export default function Page() {
     }
     return true;
   });
-  const adOrderCounts = filteredTrades.reduce((counts, trade) => {
-    const adId = getSourceAdId(trade);
-    if (adId) counts.set(adId, (counts.get(adId) ?? 0) + 1);
-    return counts;
-  }, new Map<string, number>());
+  const adGroups = filteredTrades.reduce<Array<{ adId: string | null; trades: Trade[] }>>(
+    (groups, trade) => {
+      const adId = getSourceAdId(trade);
+      const existingGroup = adId ? groups.find(group => group.adId === adId) : undefined;
 
-  const renderAdGroupBadge = (trade: Trade) => {
-    const adId = getSourceAdId(trade);
-    const count = adId ? adOrderCounts.get(adId) ?? 0 : 0;
-    if (!adId || count < 2) return null;
+      if (existingGroup) {
+        existingGroup.trades.push(trade);
+      } else {
+        groups.push({ adId, trades: [trade] });
+      }
 
-    return (
-      <span className={styles.adGroupBadge} title={`${count} orders came from ad #${adId}`}>
-        <i className="fa-solid fa-layer-group" aria-hidden="true" />
-        Same ad #{adId} · {count} orders
-      </span>
-    );
-  };
+      return groups;
+    },
+    [],
+  );
 
   // ─── Action buttons per status ────────────────────────────────────────────────
 
@@ -417,10 +415,25 @@ export default function Page() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTrades.map(trade => {
-                  const statusUI = getStatusUI(trade);
-                  return (
-                    <tr key={trade.id}>
+                {adGroups.map(group => (
+                  <Fragment key={group.adId ?? `trade-${group.trades[0].id}`}>
+                    {group.adId && group.trades.length > 1 && (
+                      <tr className={styles.adGroupRow}>
+                        <td colSpan={7}>
+                          <span className={styles.adGroupTitle}>
+                            <i className="fa-solid fa-layer-group" aria-hidden="true" />
+                            Same advertisement · Ad #{group.adId}
+                          </span>
+                          <span className={styles.adGroupCount}>
+                            {group.trades.length} orders on this page
+                          </span>
+                        </td>
+                      </tr>
+                    )}
+                    {group.trades.map(trade => {
+                      const statusUI = getStatusUI(trade);
+                      return (
+                        <tr key={trade.id}>
 
                       {/* Type / Date */}
                       <td className="trade-type-date">
@@ -437,8 +450,6 @@ export default function Page() {
                           <Link href={getTradeDetailsPath(trade)} className="trade-link ms-2">
                             {trade.orderNumber}
                           </Link>
-                          {renderAdGroupBadge(trade)}
-
                           <button
                             className="trade-copy-icon"
                             type="button"
@@ -480,19 +491,34 @@ export default function Page() {
                       {/* Action — driven by status_list so approve/reject match detail API */}
                       <td>{renderActions(trade)}</td>
 
-                    </tr>
-                  );
-                })}
+                        </tr>
+                      );
+                    })}
+                  </Fragment>
+                ))}
               </tbody>
             </table>
           </div>
 
           {/* ── Mobile Cards ── */}
           <div className="d-md-none">
-            {filteredTrades.map(trade => {
-              const statusUI = getStatusUI(trade);
-              return (
-                <div className="card mb-4" key={trade.id}>
+            {adGroups.map(group => (
+              <div key={group.adId ?? `trade-${group.trades[0].id}`}>
+                {group.adId && group.trades.length > 1 && (
+                  <div className={styles.mobileAdGroupHeader}>
+                    <span className={styles.adGroupTitle}>
+                      <i className="fa-solid fa-layer-group" aria-hidden="true" />
+                      Same advertisement · Ad #{group.adId}
+                    </span>
+                    <span className={styles.adGroupCount}>
+                      {group.trades.length} orders on this page
+                    </span>
+                  </div>
+                )}
+                {group.trades.map(trade => {
+                  const statusUI = getStatusUI(trade);
+                  return (
+                    <div className="card mb-4" key={trade.id}>
 
                   <div className="d-flex justify-content-between align-items-center">
                     <span className={trade.type === 'Sell' ? 'trade-type-sell' : 'trade-type-buy'}>
@@ -532,8 +558,6 @@ export default function Page() {
                       </button>
                     </div>
                   </div>
-                  {renderAdGroupBadge(trade)}
-
                   <div className="d-flex justify-content-between mt-3">
                     <div className="trade-counterparty-cell">
                       <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="text-xs text-white-50">
@@ -550,9 +574,11 @@ export default function Page() {
                   {/* Mobile action buttons */}
                   <div className="mt-3">{renderActions(trade)}</div>
 
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </>
       )}

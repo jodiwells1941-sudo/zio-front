@@ -1,24 +1,38 @@
-.adGroupBadge {
+.adGroupRow td {
+  padding: 10px 15px;
+  border-bottom: 0;
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.adGroupTitle {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  width: fit-content;
-  max-width: 100%;
-  margin-left: 8px;
-  padding: 4px 8px;
-  border: 1px solid rgba(250, 204, 21, 0.38);
-  border-radius: 999px;
-  background: rgba(250, 204, 21, 0.12);
+  gap: 8px;
   color: #facc15;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.25;
-  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.adGroupCount {
+  margin-left: 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mobileAdGroupHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  border-radius: 10px;
+  background: rgba(250, 204, 21, 0.1);
 }
 
 @media (max-width: 767.98px) {
-  .adGroupBadge {
-    margin: 10px 0 0;
-    white-space: normal;
+  .adGroupCount {
+    margin-left: 0;
   }
 }

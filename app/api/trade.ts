@@ -56,6 +56,11 @@ export interface TradeListRow {
   type: string;
   /** Matches `p2p_orders.side`; use for wallet route (p2p vs sell), not `type`. */
   order_side?: 'buy' | 'sell';
+  /** Source local ad identifier used to group orders created from the same ad. */
+  ad_id?: number | string | null;
+  p2p_ad_id?: number | string | null;
+  user_sell_method_id?: number | string | null;
+  p2p_ad?: { id?: number | string | null; ad_id?: number | string | null } | null;
   /** Allowed next legacy statuses for the authenticated user (same as trade detail). */
   status_list?: number[];
   asset: string;
