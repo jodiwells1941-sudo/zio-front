@@ -12,7 +12,7 @@ import proofModalStyles from "./PaymentProofModal.module.css";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useId, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -254,6 +254,8 @@ function PaymentProofModal({
   const [submitting, setSubmitting] = useState(false);
   const [proofError, setProofError] = useState(false);
   const [bonusPercent, setBonusPercent] = useState(0);
+  const [orderDetailsExpanded, setOrderDetailsExpanded] = useState(false);
+  const orderDetailsId = useId();
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
 
   useEffect(() => {
@@ -300,6 +302,7 @@ function PaymentProofModal({
       setNote("Payment proof.");
       setSubmitting(false);
       setProofError(false);
+      setOrderDetailsExpanded(false);
       return;
     }
   }, [isOpen]);
@@ -426,10 +429,19 @@ function PaymentProofModal({
               </div>
             )}
 
-            <div className="p2pCard px-3 mb-3">
-              <div className="p2pStepTitle mb-2">Order details</div>
+            <section className={`${proofModalStyles.orderDetails} p2pCard px-3 mb-3`}>
+              <button
+                type="button"
+                className={proofModalStyles.orderDetailsToggle}
+                aria-expanded={orderDetailsExpanded}
+                aria-controls={orderDetailsId}
+                onClick={() => setOrderDetailsExpanded(expanded => !expanded)}
+              >
+                <span>Order details</span>
+                <i className={`fa-solid ${orderDetailsExpanded ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true" />
+              </button>
               {orderView && (
-                <div className="p2pOrderDetailsBody">
+                <div id={orderDetailsId} className={proofModalStyles.orderDetailsContent} hidden={!orderDetailsExpanded}>
                   {orderView.detailRows.map((row, index) => (
                     <div key={`${row.label}-${index}`} className="p2pDetailRow">
                       <span className="p2pMuted">{row.label}</span>
@@ -454,7 +466,7 @@ function PaymentProofModal({
                   </div>
                 </div>
               )}
-            </div>
+            </section>
 
             <div className="mb-3">
               <label className="form-label text-white-50 small mb-2">Message</label>
@@ -857,7 +869,7 @@ export default function BuyDetailsCard({
         icon: "question",
       },
       3: {
-        title: "Reject / Cancel Order?",
+        title: "Cancel Order?",
         html: `Are you sure you want to <strong>cancel this order</strong>?<br/>This action cannot be undone.`,
         confirmText: "Yes, Cancel!",
         icon: "warning",
@@ -1043,8 +1055,9 @@ export default function BuyDetailsCard({
   const canRelease = statusList.includes(6);
   const canDispute = statusList.includes(7);
   const canClaim = statusList.includes(10);
+  const canCancelOrder = ![3, 4, 6, 7, 8, 9].includes(trade.status);
   const isBuyFlow = trade.type === "buy";
-  const notifyTransferredLabel = isBuyFlow ? "I Have Paid" : "Transferred, Notify Buyer";
+  const notifyTransferredLabel = isBuyFlow ? "Payment Proof Submit" : "Transferred, Notify Buyer";
 
   // Pending countdown (status === 1) — derived values
   const isPending = trade.status === 1;
@@ -1208,6 +1221,29 @@ export default function BuyDetailsCard({
         bonusPercent={displayedBonusPercent}
       />
 
+      {canCancelOrder && (
+        <div className={paymentTimeStyles.cancelOrderRow}>
+          <button
+            className={paymentTimeStyles.cancelOrder}
+            type="button"
+            onClick={() => handleStatusUpdate(3)}
+            disabled={submitting !== null}
+          >
+            {submitting === 3 ? (
+              <>
+                <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+                Cancelling…
+              </>
+            ) : (
+              <>
+                <i className="fa-regular fa-circle-xmark" aria-hidden="true" />
+                Cancel Order
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* ══════════════════════════════════════════════════════════════════
           PAYMENT PHASE  (trade.status = 1 or 2)
       ══════════════════════════════════════════════════════════════════ */}
@@ -1335,16 +1371,6 @@ export default function BuyDetailsCard({
                           ) : (
                             "Approve Trade"
                           )}
-                        </button>
-                      )}
-                      {canReject && (
-                        <button
-                          className="p2pLinkBtn"
-                          type="button"
-                          onClick={() => handleStatusUpdate(3)}
-                          disabled={submitting !== null}
-                        >
-                          Reject Trade
                         </button>
                       )}
                     </div>

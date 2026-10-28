@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -262,6 +263,18 @@ export default function SellDetailsCard() {
   };
 
   const handleRejectTrade = async () => {
+    const result = await Swal.fire({
+      title: "Cancel Order?",
+      html: "Are you sure you want to <strong>cancel this order</strong>? This action cannot be undone.",
+      icon: "warning",
+      showCloseButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Cancel!",
+      cancelButtonText: "No, Go Back!",
+      confirmButtonColor: "#dc3545",
+    });
+
+    if (!result.isConfirmed) return;
     await doUpdate(3);
   };
 
@@ -329,6 +342,7 @@ export default function SellDetailsCard() {
   const canClaim = statusList.includes(10);
   const canApprove = statusList.includes(2);
   const canReject = statusList.includes(3);
+  const canCancelOrder = ![3, 4, 6, 7, 8, 9].includes(trade.status);
   const isPendingReview = trade.status === 1 && (canApprove || canReject);
   const approvalWindowExpired =
     trade.status === 1 && !!trade.pending_time_limit && pendingApprovalTimer.expired;
@@ -484,6 +498,29 @@ export default function SellDetailsCard() {
         feePercent={displayedFeePercent}
       />
 
+      {canCancelOrder && (
+        <div className={paymentTimeStyles.cancelOrderRow}>
+          <button
+            className={paymentTimeStyles.cancelOrder}
+            type="button"
+            onClick={() => void handleRejectTrade()}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+                Cancelling…
+              </>
+            ) : (
+              <>
+                <i className="fa-regular fa-circle-xmark" aria-hidden="true" />
+                Cancel Order
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* ── STEPS (shown while not yet completed; not when appealed status 10) ── */}
       {!confirmPayment && trade.status !== 10 && showExpiredPendingState ? (
         <div className="p2pStepWrap">
@@ -532,16 +569,6 @@ export default function SellDetailsCard() {
                         ) : (
                           "Approve Trade"
                         )}
-                      </button>
-                    )}
-                    {canReject && (
-                      <button
-                        className="p2pLinkBtn"
-                        type="button"
-                        onClick={() => void handleRejectTrade()}
-                        disabled={submitting}
-                      >
-                        Reject Trade
                       </button>
                     )}
                   </div>

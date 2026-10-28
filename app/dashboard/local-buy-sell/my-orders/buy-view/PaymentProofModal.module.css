@@ -36,6 +36,44 @@
   text-align: right;
 }
 
+.orderDetails {
+  overflow: hidden;
+}
+
+.orderDetailsToggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: #19d39a;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.orderDetailsToggle i {
+  font-size: 12px;
+}
+
+.orderDetailsToggle:focus-visible {
+  outline: 2px solid #19d39a;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.orderDetailsContent {
+  padding-bottom: 12px;
+}
+
+.orderDetailsContent[hidden] {
+  display: none;
+}
+
 @media (max-width: 480px) {
   .payAmount {
     min-height: 60px;
