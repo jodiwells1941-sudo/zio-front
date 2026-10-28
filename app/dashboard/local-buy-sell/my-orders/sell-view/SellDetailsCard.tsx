@@ -12,7 +12,7 @@ import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -114,6 +114,7 @@ export default function SellDetailsCard() {
   const [showTimeExtension, setShowTimeExtension] = useState(false);
   const [extensionMinutes, setExtensionMinutes] = useState(5);
   const [extendingTime, setExtendingTime] = useState(false);
+  const autoExtensionPromptedFor = useRef<string | null>(null);
 
 
   useEffect(() => {
@@ -278,12 +279,12 @@ export default function SellDetailsCard() {
     await doUpdate(3);
   };
 
-  const handleExtendPaymentTime = async () => {
-    if (!trade || ![5, 10, 15, 30].includes(extensionMinutes)) return;
+  const handleExtendPaymentTime = async (requestedMinutes = extensionMinutes) => {
+    if (!trade || ![5, 10, 15, 30].includes(requestedMinutes)) return;
 
     setExtendingTime(true);
     try {
-      await extendTradePaymentTime(trade.id, extensionMinutes);
+      await extendTradePaymentTime(trade.id, requestedMinutes);
       setShowTimeExtension(false);
       try {
         const response = await getTrade(trade.id);
@@ -293,13 +294,56 @@ export default function SellDetailsCard() {
         toast.error("Payment time was extended, but the order timer could not be refreshed. Reload the page to see the updated time.");
         return;
       }
-      toast.success(`Payment time extended by ${extensionMinutes} minutes.`);
+      toast.success(`Payment time extended by ${requestedMinutes} minutes.`);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? "Failed to extend payment time.");
     } finally {
       setExtendingTime(false);
     }
   };
+
+  useEffect(() => {
+    const expiresAt = trade?.payment_expires_at;
+    if (
+      trade?.status !== 2 ||
+      !expiresAt ||
+      paymentTimer.secondsLeft <= 0 ||
+      paymentTimer.secondsLeft > 5 * 60 ||
+      autoExtensionPromptedFor.current === expiresAt
+    ) {
+      return;
+    }
+
+    autoExtensionPromptedFor.current = expiresAt;
+    void (async () => {
+      const result = await Swal.fire({
+        title: "Need more time to pay?",
+        text: "Your payment window has 5 minutes or less remaining. You can request extra time to complete the payment.",
+        icon: "warning",
+        input: "select",
+        inputOptions: {
+          5: "5 more minutes",
+          10: "10 more minutes",
+          15: "15 more minutes",
+          30: "30 more minutes",
+        },
+        inputValue: "5",
+        inputPlaceholder: "Choose extra time",
+        showCancelButton: true,
+        confirmButtonText: "Request More Time",
+        cancelButtonText: "Continue Payment",
+        confirmButtonColor: "#19a979",
+        cancelButtonColor: "#6c757d",
+        allowOutsideClick: false,
+        inputValidator: value =>
+          [5, 10, 15, 30].includes(Number(value)) ? undefined : "Choose a valid extension time.",
+      });
+
+      if (result.isConfirmed) {
+        await handleExtendPaymentTime(Number(result.value));
+      }
+    })();
+  }, [trade?.status, trade?.payment_expires_at, paymentTimer.secondsLeft, handleExtendPaymentTime]);
 
   // ─── Guards ──────────────────────────────────────────────────────────────────
 
