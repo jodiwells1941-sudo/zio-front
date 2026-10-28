@@ -43,7 +43,10 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
       <div className="ma-method">
         <PaymentMethodIcon
           methodName={method}
-          iconImage={ad.payment_method?.sell_method?.icon_image}
+          iconImage={
+            ad.payment_method?.sell_method?.icon_url ??
+            ad.payment_method?.sell_method?.icon_image
+          }
           size={28}
           className="ma-mico"
         />

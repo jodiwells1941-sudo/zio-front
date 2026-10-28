@@ -12,7 +12,7 @@ import proofModalStyles from "./PaymentProofModal.module.css";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -75,9 +75,20 @@ export interface TradeData {
         fields: SellMethodField[];
         icon: string;
         icon_image?: string | null;
+        icon_url?: string | null;
       };
     };
   };
+  user_payment_method?: {
+    icon_image?: string | null;
+    icon_url?: string | null;
+    sell_method?: { name?: string; icon_image?: string | null; icon_url?: string | null };
+  } | null;
+  method?: {
+    icon_image?: string | null;
+    icon_url?: string | null;
+    sell_method?: { name?: string; icon_image?: string | null; icon_url?: string | null };
+  } | null;
   client: { id: number; name: string; avatar: string };
   customer: { id: number; name: string; avatar: string };
   trade_review?: any;
@@ -243,6 +254,8 @@ function PaymentProofModal({
   const [submitting, setSubmitting] = useState(false);
   const [proofError, setProofError] = useState(false);
   const [bonusPercent, setBonusPercent] = useState(0);
+  const [orderDetailsExpanded, setOrderDetailsExpanded] = useState(false);
+  const orderDetailsId = useId();
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
 
   useEffect(() => {
@@ -289,6 +302,7 @@ function PaymentProofModal({
       setNote("Payment proof.");
       setSubmitting(false);
       setProofError(false);
+      setOrderDetailsExpanded(false);
       return;
     }
   }, [isOpen]);
@@ -415,10 +429,19 @@ function PaymentProofModal({
               </div>
             )}
 
-            <div className="p2pCard px-3 mb-3">
-              <div className="p2pStepTitle mb-2">Order details</div>
+            <section className={`${proofModalStyles.orderDetails} p2pCard px-3 mb-3`}>
+              <button
+                type="button"
+                className={proofModalStyles.orderDetailsToggle}
+                aria-expanded={orderDetailsExpanded}
+                aria-controls={orderDetailsId}
+                onClick={() => setOrderDetailsExpanded(expanded => !expanded)}
+              >
+                <span>Order details</span>
+                <i className={`fa-solid ${orderDetailsExpanded ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true" />
+              </button>
               {orderView && (
-                <div className="p2pOrderDetailsBody">
+                <div id={orderDetailsId} className={proofModalStyles.orderDetailsContent} hidden={!orderDetailsExpanded}>
                   {orderView.detailRows.map((row, index) => (
                     <div key={`${row.label}-${index}`} className="p2pDetailRow">
                       <span className="p2pMuted">{row.label}</span>
@@ -443,7 +466,7 @@ function PaymentProofModal({
                   </div>
                 </div>
               )}
-            </div>
+            </section>
 
             <div className="mb-3">
               <label className="form-label text-white-50 small mb-2">Message</label>
@@ -697,6 +720,7 @@ export default function BuyDetailsCard({
   const [showTimeExtension, setShowTimeExtension] = useState(false);
   const [extensionMinutes, setExtensionMinutes] = useState(5);
   const [extendingTime, setExtendingTime] = useState(false);
+  const autoExtensionPromptedFor = useRef<string | null>(null);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchTrade = useCallback(async () => {
@@ -846,7 +870,7 @@ export default function BuyDetailsCard({
         icon: "question",
       },
       3: {
-        title: "Reject / Cancel Order?",
+        title: "Cancel Order?",
         html: `Are you sure you want to <strong>cancel this order</strong>?<br/>This action cannot be undone.`,
         confirmText: "Yes, Cancel!",
         icon: "warning",
@@ -925,12 +949,12 @@ export default function BuyDetailsCard({
     }
   };
 
-  const handleExtendPaymentTime = async () => {
-    if (!trade || ![5, 10, 15, 30].includes(extensionMinutes)) return;
+  const handleExtendPaymentTime = async (requestedMinutes = extensionMinutes) => {
+    if (!trade || ![5, 10, 15, 30].includes(requestedMinutes)) return;
 
     setExtendingTime(true);
     try {
-      await extendTradePaymentTime(trade.id, extensionMinutes);
+      await extendTradePaymentTime(trade.id, requestedMinutes);
       setShowTimeExtension(false);
       try {
         const response = await getTrade(trade.id);
@@ -949,13 +973,55 @@ export default function BuyDetailsCard({
         toast.error("Payment time was extended, but the order timer could not be refreshed. Reload the page to see the updated time.");
         return;
       }
-      toast.success(`Payment time extended by ${extensionMinutes} minutes.`);
+      toast.success(`Payment time extended by ${requestedMinutes} minutes.`);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? "Failed to extend payment time.");
     } finally {
       setExtendingTime(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      trade?.status !== 2 ||
+      !trade.payment_expires_at ||
+      secondsLeft <= 0 ||
+      secondsLeft > 5 * 60 ||
+      autoExtensionPromptedFor.current === trade.payment_expires_at
+    ) {
+      return;
+    }
+
+    autoExtensionPromptedFor.current = trade.payment_expires_at;
+    void (async () => {
+      const result = await Swal.fire({
+        title: "Need more time to pay?",
+        text: "Your payment window has 5 minutes or less remaining. You can request extra time to complete the payment.",
+        icon: "warning",
+        input: "select",
+        inputOptions: {
+          5: "5 more minutes",
+          10: "10 more minutes",
+          15: "15 more minutes",
+          30: "30 more minutes",
+        },
+        inputValue: "5",
+        inputPlaceholder: "Choose extra time",
+        showCancelButton: true,
+        confirmButtonText: "Request More Time",
+        cancelButtonText: "Continue Payment",
+        confirmButtonColor: "#19a979",
+        cancelButtonColor: "#6c757d",
+        allowOutsideClick: false,
+        inputValidator: value =>
+          [5, 10, 15, 30].includes(Number(value)) ? undefined : "Choose a valid extension time.",
+      });
+
+      if (result.isConfirmed) {
+        await handleExtendPaymentTime(Number(result.value));
+      }
+    })();
+  }, [trade?.status, trade?.payment_expires_at, secondsLeft, handleExtendPaymentTime]);
 
   const [bonusPercent, setBonusPercent] = useState(0);
   const [sellFeePercent, setSellFeePercent] = useState(0);
@@ -1032,8 +1098,9 @@ export default function BuyDetailsCard({
   const canRelease = statusList.includes(6);
   const canDispute = statusList.includes(7);
   const canClaim = statusList.includes(10);
+  const canCancelOrder = ![3, 4, 6, 7, 8, 9].includes(trade.status);
   const isBuyFlow = trade.type === "buy";
-  const notifyTransferredLabel = isBuyFlow ? "I Have Paid" : "Transferred, Notify Buyer";
+  const notifyTransferredLabel = isBuyFlow ? "Payment Proof Submit" : "Transferred, Notify Buyer";
 
   // Pending countdown (status === 1) — derived values
   const isPending = trade.status === 1;
@@ -1183,12 +1250,42 @@ export default function BuyDetailsCard({
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
         paymentMethod={methodName}
-        paymentMethodIconImage={trade.p2p_ad?.payment_method?.sell_method?.icon_image}
+        paymentMethodIconImage={
+          trade.p2p_ad?.payment_method?.sell_method?.icon_url ??
+          trade.p2p_ad?.payment_method?.sell_method?.icon_image ??
+          trade.user_payment_method?.sell_method?.icon_url ??
+          trade.user_payment_method?.sell_method?.icon_image ??
+          trade.method?.sell_method?.icon_url ??
+          trade.method?.sell_method?.icon_image
+        }
         paymentDetails={paymentDetails}
         showPaymentDetails={!isPending}
         bonusAmount={bonusAmount}
         bonusPercent={displayedBonusPercent}
       />
+
+      {canCancelOrder && (
+        <div className={paymentTimeStyles.cancelOrderRow}>
+          <button
+            className={paymentTimeStyles.cancelOrder}
+            type="button"
+            onClick={() => handleStatusUpdate(3)}
+            disabled={submitting !== null}
+          >
+            {submitting === 3 ? (
+              <>
+                <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+                Cancelling…
+              </>
+            ) : (
+              <>
+                <i className="fa-regular fa-circle-xmark" aria-hidden="true" />
+                Cancel Order
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════
           PAYMENT PHASE  (trade.status = 1 or 2)
@@ -1317,16 +1414,6 @@ export default function BuyDetailsCard({
                           ) : (
                             "Approve Trade"
                           )}
-                        </button>
-                      )}
-                      {canReject && (
-                        <button
-                          className="p2pLinkBtn"
-                          type="button"
-                          onClick={() => handleStatusUpdate(3)}
-                          disabled={submitting !== null}
-                        >
-                          Reject Trade
                         </button>
                       )}
                     </div>

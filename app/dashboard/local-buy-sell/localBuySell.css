@@ -672,9 +672,41 @@
 .lbs .lbs-pill--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); }
 .lbs .lbs-pill--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); }
 
+.lbs .lbs-currency-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: auto;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lbs-pill .lbs-currency-mark {
+  min-width: 15px;
+  font-size: 13px;
+}
+
 .lbs .lbs-bonus-pos { color: var(--lbs-green); font-weight: 600; }
 .lbs .lbs-bonus-neg { color: #f87171; font-weight: 600; }
 .lbs .lbs-bonus-pct { color: var(--lbs-muted); font-size: 10.5px; }
+.lbs .lbs-bonus-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.lbs .lbs-bonus-value .lbs-currency-mark {
+  min-width: 15px;
+  font-size: 13px;
+}
+.lbs .lbs-cell--avail .lbs-currency-mark {
+  min-width: 15px;
+  font-size: 13px;
+}
 
 .lbs .lbs-cell--methods {
   display: flex;
@@ -914,10 +946,32 @@
 
 .lbs-cell-num { font-variant-numeric: tabular-nums; text-align: center; color: #fff; }
 .lbs-cell-num--accent { color: #fbbf24; font-weight: 700; }
+.lbs-fiat-amount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.lbs-fiat-amount small {
+  color: #7b8ba3;
+  font-size: 10px;
+  font-weight: 600;
+}
 
 .lbs-cell-bonus { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .lbs-cell-bonus--pos { color: #22c55e; }
 .lbs-cell-bonus--neg { color: #f87171; }
+.lbs-recent-bonus-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.lbs-recent-bonus-value .lbs-currency-mark {
+  min-width: 15px;
+  font-size: 13px;
+}
 
 .lbs-cell-time { text-align: center; color: #7b8ba3; font-size: 11.5px; }
 

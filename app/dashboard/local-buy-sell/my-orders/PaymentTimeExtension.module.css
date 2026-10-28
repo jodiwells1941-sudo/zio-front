@@ -130,6 +130,48 @@
   color: rgba(241, 245, 249, .8);
 }
 
+.cancelOrder {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 101, 119, .48);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(220, 53, 69, .18), rgba(220, 53, 69, .08));
+  color: #ff8996;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.cancelOrderRow {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 16px;
+}
+
+.cancelOrder:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #ff6577;
+  background: linear-gradient(135deg, rgba(220, 53, 69, .32), rgba(220, 53, 69, .16));
+  color: #fff;
+  box-shadow: 0 5px 16px rgba(220, 53, 69, .16);
+}
+
+.cancelOrder:focus-visible {
+  outline: 2px solid #ff6577;
+  outline-offset: 3px;
+}
+
+.cancelOrder:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
 .submit:hover:not(:disabled) {
   filter: brightness(1.08);
 }
@@ -179,5 +221,13 @@
   .submit,
   .cancel {
     flex: 1;
+  }
+
+  .cancelOrderRow {
+    justify-content: stretch;
+  }
+
+  .cancelOrderRow .cancelOrder {
+    width: 100%;
   }
 }

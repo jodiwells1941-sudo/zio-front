@@ -14,6 +14,7 @@ import Link from 'next/link';
 import QuickBuyModal from './create-ad/QuickBuyModal';
 import QuickSellModal from './create-ad/QuickSellModal';
 import PaymentMethodIcon from './PaymentMethodIcon';
+import CurrencyMark from './CurrencyMark';
 
 /* ───────────────── Static data ───────────────── */
 const CURRENCIES = [
@@ -102,12 +103,14 @@ const RefreshIcon = () => (
 function Row({
   ad,
   kind,
+  currency,
   bonusPercent,
   feePercent,
   onTrade,
 }: {
   ad: P2pAdsData;
   kind: Kind;
+  currency: string;
   bonusPercent: number;
   feePercent: number;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
@@ -122,24 +125,39 @@ function Row({
   return (
     <div className="lbs-row">
       <div className="lbs-cell lbs-cell--amount">
-        <span className={`lbs-pill lbs-pill--${kind}`}>{n2(ad.fixed_price * ad.total_amount, 0)}</span>
+        <span className={`lbs-pill lbs-pill--${kind}`}>
+          <CurrencyMark currency={currency} />
+          {n2(ad.fixed_price * ad.total_amount, 0)}
+        </span>
       </div>
-      <div className="lbs-cell lbs-cell--price">{n2(ad.fixed_price)}</div>
-      <div className="lbs-cell lbs-cell--avail">{n2(ad.total_amount)}</div>
+      <div className="lbs-cell lbs-cell--price">
+        <CurrencyMark currency={currency} />
+        {n2(ad.fixed_price)}
+      </div>
+      <div className="lbs-cell lbs-cell--avail">
+        <CurrencyMark currency="USD" />
+        {n2(ad.total_amount)}
+      </div>
 
       <div className="lbs-cell lbs-cell--bonus">
-        <span className={isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}>
-          {isBuy ? '+' : '-'}
-          {n2(Math.abs(bonusFee), 2)}
+        <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
+          <CurrencyMark currency="USD" />
+          <span>
+            {isBuy ? '+' : '-'}
+            {n2(Math.abs(bonusFee), 2)}
+          </span>
         </span>
         <small className="lbs-bonus-pct">({n2(pct, 2)}%)</small>
       </div>
 
-      <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit}</div>
+      <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit} M</div>
       <div className="lbs-cell lbs-cell--methods">
         <PaymentMethodIcon
           methodName={method}
-          iconImage={ad.payment_method?.sell_method?.icon_image}
+          iconImage={
+            ad.payment_method?.sell_method?.icon_url ??
+            ad.payment_method?.sell_method?.icon_image
+          }
           size={30}
           className="lbs-mico"
         />
@@ -234,6 +252,7 @@ function Panel({
                 key={`${kind}-${ad.id ?? i}`}
                 ad={ad}
                 kind={kind}
+                currency={cur}
                 bonusPercent={bonusPercent}
                 feePercent={feePercent}
                 onTrade={onTrade}

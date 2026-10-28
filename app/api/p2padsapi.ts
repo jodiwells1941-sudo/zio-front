@@ -65,6 +65,7 @@ export type P2pAdsData = {
       id: number;
       name: string; // e.g. "Nagad", "Bank Transfer"
       icon_image?: string | null;
+      icon_url?: string | null;
     };
   };
 };

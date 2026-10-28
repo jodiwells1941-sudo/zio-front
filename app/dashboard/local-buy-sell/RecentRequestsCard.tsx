@@ -6,6 +6,7 @@ import { getLocalMyTrades } from '@/app/api/trade';
 import { getUserInfo } from '@/utils/auth';
 import { getTradeEcho } from '@/utils/tradeEcho';
 import Link from 'next/link';
+import CurrencyMark from './CurrencyMark';
 import './localBuySell.css';
 
 // ─────────────────────────────────────────────────────────────
@@ -21,6 +22,8 @@ interface Trade {
   date?: string;                         // '2025-09-25 10:21'
   orderNumber?: string;                  // 'OD123456'
   price?: string;                        // '120.21 BDT' (formatted)
+  with_fiat?: string;                    // 'BDT'
+  currency?: string;                     // optional backend currency alias
   cryptoAmount?: string;                 // '41.25 BDT' (formatted)
   cryptoValue?: string;                  // '8.24 USDT' (formatted)
   bonus_amount?: number | string;        // 0.41
@@ -86,6 +89,20 @@ const formatCreated = (raw?: string) => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+const renderFiatAmount = (value: string, currency?: string) => {
+  const match = value.match(/^\s*(.*?)\s*([A-Z]{3})\s*$/i);
+  const code = (match?.[2] ?? currency ?? '').trim().toUpperCase();
+  const amount = match?.[1]?.trim() ?? value;
+
+  return (
+    <span className="lbs-fiat-amount">
+      {code && <CurrencyMark currency={code} />}
+      <span>{amount}</span>
+      {/* {code && <small>{code}</small>} */}
+    </span>
+  );
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -220,6 +237,7 @@ export default function RecentRequestsCard() {
             const amountStr = String(t.cryptoAmount ?? '—');
             const priceStr  = String(t.price ?? '—');
             const usdtStr   = String(t.cryptoValue ?? '—');
+            const fiatCurrency = t.with_fiat ?? t.currency;
 
             const timeLimit = t.timeLimit ?? 15;
             const status = t.status;
@@ -238,10 +256,14 @@ export default function RecentRequestsCard() {
                 </div>
 
                 {/* Amount (BDT) — backend sends "41.25 BDT" */}
-                <div className="lbs-cell-num lbs-cell-num--accent">{amountStr}</div>
+                <div className="lbs-cell-num lbs-cell-num--accent">
+                  {renderFiatAmount(amountStr, fiatCurrency)}
+                </div>
 
                 {/* Price (BDT) — backend sends "120.21 BDT" */}
-                <div className="lbs-cell-num">{priceStr}</div>
+                <div className="lbs-cell-num">
+                  {renderFiatAmount(priceStr, fiatCurrency)}
+                </div>
 
                 {/* USDT Amount — backend sends "8.24 USDT" */}
                 <div className="lbs-cell-num">{usdtStr}</div>
@@ -252,14 +274,17 @@ export default function RecentRequestsCard() {
                     fee >= 0 ? 'lbs-cell-bonus--pos' : 'lbs-cell-bonus--neg'
                   }`}
                 >
-                  {fee >= 0 ? '+' : ''}
-                  {num(fee)}
+                  <span className="lbs-recent-bonus-value">
+                    <CurrencyMark currency="USD" />
+                    {fee >= 0 ? '+' : ''}
+                    {num(fee)}
+                  </span>
                   {feePct > 0 && (
                     <small className="lbs-bonus-pct">({feePct}%)</small>
                   )}
                 </div>
 
-                <div className="lbs-cell-time">{timeLimit}</div>
+                <div className="lbs-cell-time">{timeLimit} M</div>
 
                 <div>
                   <span className={`lbs-status ${tradeStatusClass(status, t.status_text)}`}>
