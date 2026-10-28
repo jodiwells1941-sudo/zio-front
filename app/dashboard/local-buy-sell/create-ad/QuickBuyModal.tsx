@@ -621,7 +621,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                         <PaymentMethodIcon
                           className="qsm-method-icon"
                           methodName={method.method_name}
-                          iconImage={method.icon_image ?? method.sell_method?.icon_image}
+                          iconImage={
+                            method.icon_url ??
+                            method.icon_image ??
+                            method.sell_method?.icon_url ??
+                            method.sell_method?.icon_image
+                          }
                           size={36}
                           fallbackMode="brand"
                         />

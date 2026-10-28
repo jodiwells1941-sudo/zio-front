@@ -75,9 +75,20 @@ export interface TradeData {
         fields: SellMethodField[];
         icon: string;
         icon_image?: string | null;
+        icon_url?: string | null;
       };
     };
   };
+  user_payment_method?: {
+    icon_image?: string | null;
+    icon_url?: string | null;
+    sell_method?: { name?: string; icon_image?: string | null; icon_url?: string | null };
+  } | null;
+  method?: {
+    icon_image?: string | null;
+    icon_url?: string | null;
+    sell_method?: { name?: string; icon_image?: string | null; icon_url?: string | null };
+  } | null;
   client: { id: number; name: string; avatar: string };
   customer: { id: number; name: string; avatar: string };
   trade_review?: any;
@@ -1183,7 +1194,14 @@ export default function BuyDetailsCard({
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         note={note}
         paymentMethod={methodName}
-        paymentMethodIconImage={trade.p2p_ad?.payment_method?.sell_method?.icon_image}
+        paymentMethodIconImage={
+          trade.p2p_ad?.payment_method?.sell_method?.icon_url ??
+          trade.p2p_ad?.payment_method?.sell_method?.icon_image ??
+          trade.user_payment_method?.sell_method?.icon_url ??
+          trade.user_payment_method?.sell_method?.icon_image ??
+          trade.method?.sell_method?.icon_url ??
+          trade.method?.sell_method?.icon_image
+        }
         paymentDetails={paymentDetails}
         showPaymentDetails={!isPending}
         bonusAmount={bonusAmount}

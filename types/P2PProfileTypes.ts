@@ -20,6 +20,7 @@ export type SellMethodOption = {
   currency_id: number;
   icon?: string;
   icon_image?: string | null;
+  icon_url?: string | null;
   fields: SellMethodField[];
 };
 
@@ -38,10 +39,12 @@ export type UserPaymentMethod = {
   currency_id: number;
   method_name: string;    // e.g. "Bkash"
   icon_image?: string | null;
+  icon_url?: string | null;
   sell_method?: {
     id?: number;
     name?: string;
     icon_image?: string | null;
+    icon_url?: string | null;
   };
   currency_name: string;  // e.g. "BDT"
   fields: SellMethodField[];        // field definitions (for display labels)

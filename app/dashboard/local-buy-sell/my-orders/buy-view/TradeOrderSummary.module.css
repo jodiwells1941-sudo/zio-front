@@ -23,10 +23,41 @@
 }
 
 .subtitle {
-  margin: 0 0 9px;
+  margin: 0;
   color: var(--summary-accent);
   font-size: 15px;
   font-weight: 800;
+}
+
+.summaryToggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--summary-accent);
+  text-align: left;
+  cursor: pointer;
+}
+
+.summaryToggle > i {
+  flex: 0 0 auto;
+  font-size: 13px;
+  transition: transform .18s ease;
+}
+
+.summaryToggle:focus-visible {
+  outline: 2px solid var(--summary-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.card [hidden] {
+  display: none !important;
 }
 
 .row,

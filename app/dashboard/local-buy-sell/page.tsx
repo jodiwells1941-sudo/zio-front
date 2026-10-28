@@ -154,7 +154,10 @@ function Row({
       <div className="lbs-cell lbs-cell--methods">
         <PaymentMethodIcon
           methodName={method}
-          iconImage={ad.payment_method?.sell_method?.icon_image}
+          iconImage={
+            ad.payment_method?.sell_method?.icon_url ??
+            ad.payment_method?.sell_method?.icon_image
+          }
           size={30}
           className="lbs-mico"
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "react-toastify";
 import styles from "./TradeOrderSummary.module.css";
 import PaymentMethodIcon from "../../PaymentMethodIcon";
@@ -55,6 +55,8 @@ export default function TradeOrderSummary({
   const isBuy = kind === "buy";
   const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount - feeAmount;
   const [copiedOrderId, setCopiedOrderId] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const contentId = useId();
 
   const copyOrderId = async () => {
     try {
@@ -68,8 +70,21 @@ export default function TradeOrderSummary({
 
   return (
     <section className={`${styles.card} ${isBuy ? styles.buy : styles.sell}`}>
+      <button
+        type="button"
+        className={styles.summaryToggle}
+        aria-expanded={isExpanded}
+        aria-controls={contentId}
+        onClick={() => setIsExpanded(expanded => !expanded)}
+      >
+        <span className={styles.subtitle}>Order Summary</span>
+        <i
+          className={`fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}`}
+          aria-hidden="true"
+        />
+      </button>
+      <div id={contentId} hidden={!isExpanded}>
       <div className={styles.summary}>
-        <h4 className={styles.subtitle}>Order Summary</h4>
         <div className={styles.row}>
           <span>Order ID</span>
           <span className={styles.orderIdValue}>
@@ -137,6 +152,7 @@ export default function TradeOrderSummary({
           </>
         )}
       </div>
+      </div>
       <div className={styles.receiveBanner}>
         <span className={styles.receiveIcon}>
           <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
@@ -146,7 +162,7 @@ export default function TradeOrderSummary({
         {isBuy ? <b>{formatAmount(fiatAmount)} {currency}</b> : <b>{formatAmount(totalReceived)} {currency}</b>}
         
       </div>
-      {showPaymentDetails && (paymentMethod || paymentDetails.length > 0) && (
+      {(paymentMethod || paymentDetails.length > 0) && (
         <div className={styles.paymentCard}>
           <div className={styles.paymentHead}>
             <PaymentMethodIcon
@@ -154,21 +170,21 @@ export default function TradeOrderSummary({
               methodName={paymentMethod}
               iconImage={paymentMethodIconImage}
               size={36}
-              fallbackMode="card"
+              fallbackMode="brand"
             />
             <span>
               <b>{paymentMethod || "Payment Method"}</b>
               <small>{currency} Payment Details</small>
             </span>
           </div>
-          {paymentDetails.length > 0 ? paymentDetails.map(detail => (
+          {showPaymentDetails && paymentDetails.length > 0 ? paymentDetails.map(detail => (
             <div className={styles.paymentRow} key={detail.label}>
               <span>{detail.label}</span>
               <b>{detail.value}</b>
             </div>
-          )) : (
+          )) : showPaymentDetails ? (
             <div className={styles.paymentEmpty}>No payment details available.</div>
-          )}
+          ) : null}
         </div>
       )}
       <div className={styles.detail}>

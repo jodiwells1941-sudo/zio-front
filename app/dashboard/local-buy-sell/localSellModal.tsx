@@ -324,7 +324,10 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               <PaymentMethodIcon
                 className="local-trade-payment-icon"
                 methodName={ad.payment_method?.sell_method?.name}
-                iconImage={ad.payment_method?.sell_method?.icon_image}
+                iconImage={
+                  ad.payment_method?.sell_method?.icon_url ??
+                  ad.payment_method?.sell_method?.icon_image
+                }
                 size={36}
                 fallbackMode="card"
               />
@@ -374,7 +377,12 @@ export default function LocalSellModal({ onClose, ad }: Props) {
                 <PaymentMethodIcon
                   className="local-trade-payment-icon"
                   methodName={selectedPaymentMethod.method_name}
-                  iconImage={selectedPaymentMethod.icon_image ?? selectedPaymentMethod.sell_method?.icon_image}
+                  iconImage={
+                    selectedPaymentMethod.icon_url ??
+                    selectedPaymentMethod.icon_image ??
+                    selectedPaymentMethod.sell_method?.icon_url ??
+                    selectedPaymentMethod.sell_method?.icon_image
+                  }
                   size={36}
                   fallbackMode="card"
                 />

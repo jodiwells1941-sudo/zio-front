@@ -100,7 +100,7 @@ const renderFiatAmount = (value: string, currency?: string) => {
     <span className="lbs-fiat-amount">
       {code && <CurrencyMark currency={code} />}
       <span>{amount}</span>
-      {code && <small>{code}</small>}
+      {/* {code && <small>{code}</small>} */}
     </span>
   );
 };

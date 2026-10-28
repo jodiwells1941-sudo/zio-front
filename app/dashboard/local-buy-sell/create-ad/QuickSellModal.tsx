@@ -608,7 +608,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                         <PaymentMethodIcon
                           className="qsm-method-icon"
                           methodName={m?.method_name}
-                          iconImage={m.icon_image ?? m.sell_method?.icon_image}
+                          iconImage={
+                            m.icon_url ??
+                            m.icon_image ??
+                            m.sell_method?.icon_url ??
+                            m.sell_method?.icon_image
+                          }
                           size={36}
                           fallbackMode="brand"
                         />
@@ -780,7 +785,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     <PaymentMethodIcon
                       className="qsm-payment-details-icon"
                       methodName={selectedMethod.method_name}
-                      iconImage={selectedMethod.icon_image ?? selectedMethod.sell_method?.icon_image}
+                      iconImage={
+                        selectedMethod.icon_url ??
+                        selectedMethod.icon_image ??
+                        selectedMethod.sell_method?.icon_url ??
+                        selectedMethod.sell_method?.icon_image
+                      }
                       size={36}
                       fallbackMode="card"
                     />
