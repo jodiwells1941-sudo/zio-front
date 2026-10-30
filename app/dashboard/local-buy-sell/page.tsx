@@ -125,7 +125,7 @@ function Row({
 
   return (
     <>
-      <div className="lbs-row bg-navy-blue border border-warning rounded-5 mt-1 mx-1 lbs-desktop-offer-row ">
+      <div className="lbs-row bg-navy-blue border-warning rounded-3 mx-1 lbs-desktop-offer-row buy-sell-row">
         <div className="lbs-cell lbs-cell--amount" data-label={`Amount ${currency}`}>
           <span className={`lbs-pill lbs-pill--${kind}`}>
             <CurrencyMark currency={currency} />
@@ -143,18 +143,20 @@ function Row({
         <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USD)`}>
           <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
             <CurrencyMark currency="USD" />
-            <span>{isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}</span>
+            <span className={`${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
+              {isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}
+            </span>
           </span>
-          <small className="lbs-bonus-pct">({n2(pct, 2)}%)</small>
+          <small className="lbs-bonus-pct text-reset">({n2(pct, 2)}%)</small>
         </div>
-        <div className="lbs-cell lbs-cell--time" data-label="Time (Min)">{ad.payment_time_limit} M</div>
+        <div className="lbs-cell lbs-cell--time text-danger" data-label="Time (Min)">{ad.payment_time_limit} M</div>
         <div className="lbs-cell lbs-cell--methods mx-auto" data-label="Payment Method">
           <PaymentMethodIcon methodName={method} iconImage={iconImage} size={30} className="lbs-mico" />
           {/* <span className="lbs-method-name" title={method}>{method}</span> */}
         </div>
         <div className="lbs-cell lbs-cell--action" data-label="Action">
-          <button type="button" className={`lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
-            {kind === 'buy' ? 'Buy' : 'Sell'}
+          <button type="button" className={`fs-10 lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
+            {kind === 'buy' ? 'Buy Now' : 'Sell Now'}
           </button>
         </div>
       </div>
@@ -271,12 +273,12 @@ function Panel({
             )}
             <span className="lbs-panel-benefit lbs-panel-benefit--gold"><i className="fa-solid fa-bolt" aria-hidden="true" />Instant</span>
             <span className="lbs-panel-benefit lbs-panel-benefit--blue"><i className="fa-solid fa-shield-halved" aria-hidden="true" />Verified</span>
-            <span className="lbs-panel-benefit lbs-panel-benefit--green"><i className="fa-solid fa-users" aria-hidden="true" /><b className='text-warning'>{b.total}</b> Offers</span>
+            <span className="lbs-panel-benefit lbs-panel-benefit--green fs-6 py-2"><i className="fa-solid fa-users fs-6" aria-hidden="true" /><span className='text-warning'>{b.total}</span> Offers</span>
           </div>
         </div>
         <div className="lbs-panel-art" aria-hidden="true">
-          <span className="lbs-panel-art-coin">₮</span>
-          <span className="lbs-panel-art-token">₮</span>
+          <span className="lbs-panel-art-coin">$</span>
+          <span className="lbs-panel-art-token">$</span>
           <span className="lbs-panel-art-action">
             {buy ? <CartIcon size={29} /> : <svg viewBox="0 0 32 32" width="31" height="31" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 25 14 16l6 5L28 9" /><path d="M19 9h9v9" /></svg>}
           </span>
@@ -315,7 +317,7 @@ function Panel({
           <div className="lbs-row lbs-row--head bg-dark">
             <div className="lbs-cell">Amount {cur}</div>
             <div className="lbs-cell">Price {cur}</div>
-            <div className="lbs-cell">USD Amount</div>
+            <div className="lbs-cell">USD</div>
             <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'}</div>
             <div className="lbs-cell">Time</div>
             <div className="lbs-cell">Methods</div>

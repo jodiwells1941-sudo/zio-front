@@ -541,10 +541,10 @@
 .lbs .lbs-panel {
   display: flex;
   flex-direction: column;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--lbs-panel);
-  border: 1px solid var(--lbs-line);
+  gap: 10px;
+  overflow: visible;
+  background: transparent;
+  border: 0;
   min-width: 0;
 }
 
@@ -555,7 +555,9 @@
   align-items: center;
   overflow: hidden;
   padding: 13px 14px 11px;
-  border-bottom: 1px solid var(--lbs-line);
+  border: 1px solid;
+  border-radius: 11px;
+  isolation: isolate;
 }
 .lbs .lbs-panel--buy .lbs-panel-head {
   border-color: rgba(245, 158, 11, .48);
@@ -566,8 +568,8 @@
     repeating-linear-gradient(132deg, transparent 0 24px, rgba(255, 255, 255, .012) 25px 26px, transparent 27px 48px),
     linear-gradient(108deg, #10191e 0%, #111b1f 48%, #191d1b 100%);
   box-shadow:
+    0 7px 18px rgba(0, 0, 0, .2),
     inset 0 1px rgba(255, 255, 255, .06),
-    inset 0 -1px rgba(245, 158, 11, .17),
     inset 0 0 42px rgba(245, 158, 11, .07);
 }
 .lbs .lbs-panel--sell .lbs-panel-head {
@@ -579,8 +581,8 @@
     repeating-linear-gradient(132deg, transparent 0 24px, rgba(255, 255, 255, .012) 25px 26px, transparent 27px 48px),
     linear-gradient(108deg, #19171e 0%, #1b1721 48%, #23171d 100%);
   box-shadow:
+    0 7px 18px rgba(0, 0, 0, .2),
     inset 0 1px rgba(255, 255, 255, .06),
-    inset 0 -1px rgba(239, 68, 68, .18),
     inset 0 0 42px rgba(239, 68, 68, .08);
 }
 
@@ -758,7 +760,11 @@
    ═══════════════════════════════════════════════════════════════ */
 .lbs .lbs-scroll {
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: hidden;
+  border: 1px solid var(--lbs-line);
+  border-radius: 10px;
+  background: var(--lbs-panel);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .12);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -828,14 +834,14 @@
 }
 .lbs .lbs-cell--amount { justify-content: center; }
 .lbs .lbs-cell--price  { color: #fff; font-weight: 600; }
-.lbs .lbs-cell--avail  { color: var(--lbs-muted); }
+.lbs .lbs-cell--avail  { color: #f59e0b !important; }
 .lbs .lbs-cell--bonus  { flex-direction: column; align-items: center; gap: 0; }
 .lbs .lbs-cell--time   { color: var(--lbs-muted); }
 
 .lbs .lbs-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 3px 8px;
   border-radius: 6px;
   font-weight: 700;
@@ -865,8 +871,8 @@
   font-size: 13px;
 }
 
-.lbs .lbs-bonus-pos { color: var(--lbs-green); font-weight: 600; }
-.lbs .lbs-bonus-neg { color: #f87171; font-weight: 600; }
+.lbs .lbs-bonus-pos { color: var(--lbs-green) !important; font-weight: 600; }
+.lbs .lbs-bonus-neg { color: #f87171 !important; font-weight: 600; }
 .lbs .lbs-bonus-pct { color: var(--lbs-muted); font-size: 10.5px; }
 .lbs .lbs-bonus-value {
   display: inline-flex;
@@ -915,7 +921,7 @@
   justify-content: center;
   gap: 4px;
   height: 28px;
-  padding: 0 10px;
+  padding: 0px 19px;
   border-radius: 6px;
   font-size: 11.5px;
   font-weight: 700;
@@ -923,7 +929,10 @@
   transition: filter .15s;
   max-width: 100%;
 }
-.lbs .lbs-trade-btn--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); }
+/* .lbs .lbs-trade-btn--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); }
+.lbs .lbs-trade-btn--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); } */
+
+.lbs .lbs-trade-btn--buy  { background: linear-gradient(180deg, #f3a933, #f7a117); }
 .lbs .lbs-trade-btn--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); }
 .lbs .lbs-trade-btn:hover { filter: brightness(1.12); }
 
@@ -1132,6 +1141,11 @@
   color: #7b8ba3;
   font-size: 10px;
   font-weight: 600;
+}
+
+.buy-sell-row {
+  margin-top: 8px;
+  border: 0.5px solid #f7a820d4 !important;
 }
 
 .lbs-cell-bonus { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1817,12 +1831,12 @@
   .lbs .lbs-mobile-amount--sell {
     background: linear-gradient(180deg, #ef4444, #b91c1c);
   }
-  .lbs .lbs-mobile-stat .lbs-bonus-pos {
+  /* .lbs .lbs-mobile-stat .lbs-bonus-pos {
     color: #fbbf24;
   }
   .lbs .lbs-mobile-stat .lbs-bonus-neg {
     color: #fb7185;
-  }
+  } */
   .lbs .lbs-mobile-offer-footer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
@@ -1943,7 +1957,7 @@
   }
   .lbs .lbs-cell--action .lbs-trade-btn {
     width: auto;
-    min-width: 54px;
+    min-width: 58px;
     min-height: 25px;
     padding: 0 8px;
     align-self: center;
