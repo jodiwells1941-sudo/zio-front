@@ -469,17 +469,6 @@ function PaymentProofModal({
             </section>
 
             <div className="mb-3">
-              <label className="form-label text-white-50 small mb-2">Message</label>
-              <textarea
-                className="form-control bg-dark text-light border-dark"
-                rows={2}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Payment proof."
-              />
-            </div>
-
-            <div className="mb-3">
               <label className="form-label text-white-50 small">Proof image</label>
               <input
                 type="file"
@@ -535,6 +524,19 @@ function PaymentProofModal({
                 </div>
               </div>
             )}
+
+            <div className="mb-3">
+              <label className="form-label text-white-50 small mb-2">Message</label>
+              <textarea
+                className="form-control bg-dark text-light border-dark"
+                rows={2}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Payment proof."
+              />
+            </div>
+
+            
           </div>
 
           <div className="modal-footer mx-auto mb-4">
@@ -1098,7 +1100,7 @@ export default function BuyDetailsCard({
   const canRelease = statusList.includes(6);
   const canDispute = statusList.includes(7);
   const canClaim = statusList.includes(10);
-  const canCancelOrder = ![3, 4, 6, 7, 8, 9].includes(trade.status);
+  const canCancelOrder = trade.status === 1 || trade.status === 2;
   const isBuyFlow = trade.type === "buy";
   const notifyTransferredLabel = isBuyFlow ? "Payment Proof Submit" : "Transferred, Notify Buyer";
 
@@ -1106,7 +1108,7 @@ export default function BuyDetailsCard({
   const isPending = trade.status === 1;
   const pendingMm = Math.floor(pendingTimeLeft / 60);
   const pendingSs = pendingTimeLeft % 60;
-  const backToP2PHref = "/dashboard/local-buy-sell/my-orders";
+  const backToP2PHref = "/dashboard/local-buy-sell";
 
   const fiatAmount = Number(trade.payable_amount);
   const cryptoAmount = Number(trade.receivable_amount);
@@ -1176,7 +1178,7 @@ export default function BuyDetailsCard({
               </span>
             </span>
             {trade.status != 1 && (
-              <Link href="/dashboard/local-buy-sell/chat-list/" className="chat-notification d-md-none">
+              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
                 <i className="fa-solid fa-message" />
                 <span className="chat-badge">0</span>
               </Link>
@@ -1218,7 +1220,7 @@ export default function BuyDetailsCard({
               )}
             </h2>
             {trade.status != 1 && (
-              <Link href="/dashboard/local-buy-sell/chat-list/" className="chat-notification d-md-none">
+              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
                 <i className="fa-solid fa-message" />
                 <span className="chat-badge">0</span>
               </Link>
@@ -1459,7 +1461,7 @@ export default function BuyDetailsCard({
               href={backToP2PHref}
               className="p2pPrimaryBtn d-inline-block mt-3"
             >
-              Back to P2P Market
+              Back To Marketplace
             </Link>
           </div>
         </div>

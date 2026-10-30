@@ -56,10 +56,10 @@ export function PaymentReceivedModel({
               </span>
               <span className={styles.label}>Total Received Amount</span>
               <strong className={styles.value}>{formattedAmount} {currency}</strong>
-              </div>
+            </div>
 
             {/* Steps — shown before checkbox is checked */}
-            {!isVerified && (
+            {/* {!isVerified && (
               <>
                 <div className="verification-step">
                   <div className="step-indicator">
@@ -89,10 +89,10 @@ export function PaymentReceivedModel({
                   </div>
                 </div>
               </>
-            )}
+            )} */}
 
             {/* Warning — shown after checkbox is checked */}
-            {isVerified && (
+            {/* {isVerified && (
               <div className="verification-step">
                 <div className="step-indicator">
                   <div className="step-number">
@@ -107,7 +107,7 @@ export function PaymentReceivedModel({
                   </p>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Verification checkbox */}
             <div className="verification-checkbox-wrapper">
