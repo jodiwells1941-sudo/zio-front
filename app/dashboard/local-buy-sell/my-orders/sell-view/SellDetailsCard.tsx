@@ -386,12 +386,12 @@ export default function SellDetailsCard() {
   const canClaim = statusList.includes(10);
   const canApprove = statusList.includes(2);
   const canReject = statusList.includes(3);
-  const canCancelOrder = ![3, 4, 6, 7, 8, 9].includes(trade.status);
+  const canCancelOrder = trade.is_client && (trade.status === 1);
   const isPendingReview = trade.status === 1 && (canApprove || canReject);
   const approvalWindowExpired =
     trade.status === 1 && !!trade.pending_time_limit && pendingApprovalTimer.expired;
   const showExpiredPendingState = approvalWindowExpired || trade.status === 3 || trade.status === 4 || trade.status === 8;
-  const backToP2PHref = "/dashboard/local-buy-sell/my-orders";
+  const backToP2PHref = "/dashboard/local-buy-sell";
 
   // "From" is always the seller side, "To" is always the buyer side.
   const fiatAmount = Number(trade.payable_amount);
@@ -578,7 +578,7 @@ export default function SellDetailsCard() {
               href={backToP2PHref}
               className="p2pPrimaryBtn d-inline-block mt-3"
             >
-              Back to P2P Market
+              Back To Marketplace
             </Link>
           </div>
         </div>
@@ -739,7 +739,7 @@ export default function SellDetailsCard() {
               <p className="p2pMuted p2pSmall mt-2 mb-0">{trade.current_status?.note ?? trade.notes}</p>
             )}
             <Link href={backToP2PHref} className="p2pPrimaryBtn d-inline-block mt-3">
-              Back to P2P
+              Back to Marketplace
             </Link>
           </div>
         </div>

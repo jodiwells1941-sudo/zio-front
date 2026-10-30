@@ -123,7 +123,7 @@ function Row({
   const bonusFee = (usdtAmount * pct) / 100;
 
   return (
-    <div className="lbs-row">
+    <div className="lbs-row bg-dark">
       <div className="lbs-cell lbs-cell--amount">
         <span className={`lbs-pill lbs-pill--${kind}`}>
           <CurrencyMark currency={currency} />
@@ -646,7 +646,7 @@ export default function Page() {
 
   /* ───────────────── Render ───────────────── */
   return (
-    <main className="lbs">
+    <main className="lbs bg-navy-blue rounded">
       {currencyPromptOpen && (
         <div className="lbs-currency-prompt-overlay">
           <section
@@ -692,7 +692,7 @@ export default function Page() {
         </div>
       )}
       {/* ═════════ HERO / HEADER BANNER ═════════ */}
-      <section className="lbs-hero">
+      <section className="lbs-hero bg-dark d-none d-md-flex">
         <div className="lbs-hero-left">
           <span className="lbs-hero-icon"><CartIcon size={26} /></span>
           <div>
@@ -742,7 +742,7 @@ export default function Page() {
 
       {/* ═════════ TOP BAR ═════════ */}
       <section className="lbs-topbar">
-        <div className="lbs-topbar-tabs">
+        <div className="lbs-topbar-tabs bg-dark">
           <button
             type="button"
             onClick={() => setQuickBuyOpen(true)}
@@ -762,7 +762,7 @@ export default function Page() {
         </div>
 
         <div className="lbs-topbar-right">
-          <div className="lbs-topbar-select">
+          <div className="lbs-topbar-select bg-dark">
             <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff">
                 <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3v-1.5h7.5v1.5h-3v6.5h-1.5V8.5z" />
@@ -798,7 +798,7 @@ export default function Page() {
             <span className="lbs-topbar-chev"><Chevron /></span>
           </div> */}
 
-          <button type="button" className="lbs-topbar-refresh" onClick={handleRefresh}>
+          <button type="button" className="lbs-topbar-refresh bg-dark" onClick={handleRefresh}>
             <RefreshIcon />
             <span>Refresh</span>
           </button>
@@ -806,25 +806,25 @@ export default function Page() {
       </section>
 
       {/* ═════════ FILTER ROW ═════════ */}
-      <section className="lbs-filters">
+      <section className="lbs-filters bg-dark">
         <div className="lbs-field">
-          <label className="lbs-label">Deposit Amount ({filterFiat || 'BDT'})</label>
+          <label className="lbs-label">Search Amount ({filterFiat || 'BDT'})</label>
           <div className="lbs-range">
             <input
               className="lbs-input"
               inputMode="decimal"
-              placeholder="Min"
+              placeholder="0.00"
               value={amt.min}
               onChange={e => setAmt({ ...amt, min: num(e.target.value) })}
             />
-            <span className="lbs-range-sep">–</span>
+            {/* <span className="lbs-range-sep">–</span>
             <input
               className="lbs-input"
               inputMode="decimal"
               placeholder="Max"
               value={amt.max}
               onChange={e => setAmt({ ...amt, max: num(e.target.value) })}
-            />
+            /> */}
           </div>
         </div>
 

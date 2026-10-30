@@ -55,7 +55,7 @@ export default function TradeOrderSummary({
   const isBuy = kind === "buy";
   const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount;
   const [copiedOrderId, setCopiedOrderId] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();
 
   const copyOrderId = async () => {
@@ -161,7 +161,7 @@ export default function TradeOrderSummary({
         <b>{formatAmount(totalReceived)} {currency}</b>
       </div>
       {(paymentMethod || paymentDetails.length > 0) && (
-        <div className={styles.paymentCard}>
+        <div className={`${styles.paymentCard} ${'bg-navy-blue'}`}>
           <div className={styles.paymentHead}>
             <PaymentMethodIcon
               className={styles.paymentIcon}

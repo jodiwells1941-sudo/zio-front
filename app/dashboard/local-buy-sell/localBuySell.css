@@ -76,7 +76,7 @@
   justify-content: space-between;
   gap: 24px;
   padding: 18px 22px;
-  background: linear-gradient(90deg, #0d1320 0%, #131c2c 100%);
+  /* background: linear-gradient(90deg, #0d1320 0%, #131c2c 100%); */
   border: 1px solid #1f2a3d;
   border-radius: 10px;
   margin: 0 0 12px 0;
@@ -389,7 +389,8 @@
   width: 100%;
   height: 42px;
   padding: 0 14px;
-  background: var(--lbs-field);
+  /* background: var(--lbs-field); */
+  background: #1D1E24;
   border: 1px solid var(--lbs-line);
   border-radius: 8px;
   color: var(--lbs-text);
@@ -876,8 +877,8 @@
 .lbs-card-tabs {
   display: inline-flex;
   gap: 3px;
-  padding: 3px;
-  background: #0a0e1a;
+  padding: 8px;
+  /* background: #0a0e1a; */
   border: 1px solid #1f2a3d;
   border-radius: 7px;
   margin-left: auto;

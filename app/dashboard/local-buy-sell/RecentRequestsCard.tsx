@@ -161,8 +161,8 @@ export default function RecentRequestsCard() {
   });
 
   return (
-    <section className="lbs-card">
-      <header className="lbs-card-head">
+    <section className="lbs-card bg-dark">
+      <header className="lbs-card-head bg-light-white border-0 rounded-0">
         <span className="lbs-card-icon lbs-card-icon--amber">
           <i className="fa-solid fa-clock-rotate-left" />
         </span>
@@ -175,7 +175,7 @@ export default function RecentRequestsCard() {
               type="button"
               role="tab"
               aria-selected={tab === k}
-              className={`lbs-card-tab ${tab === k ? 'is-active' : ''}`}
+              className={`lbs-card-tab px-3 py-1 ${tab === k ? 'is-active' : ''}`}
               onClick={() => setTab(k)}
             >
               {k.charAt(0).toUpperCase() + k.slice(1)}
