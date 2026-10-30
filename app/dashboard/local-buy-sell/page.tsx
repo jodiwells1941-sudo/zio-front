@@ -125,7 +125,7 @@ function Row({
 
   return (
     <>
-      <div className="lbs-row bg-dark lbs-desktop-offer-row">
+      <div className="lbs-row bg-navy-blue border border-warning rounded-5 mt-1 mx-1 lbs-desktop-offer-row ">
         <div className="lbs-cell lbs-cell--amount" data-label={`Amount ${currency}`}>
           <span className={`lbs-pill lbs-pill--${kind}`}>
             <CurrencyMark currency={currency} />
@@ -136,11 +136,11 @@ function Row({
           <CurrencyMark currency={currency} />
           {n2(ad.fixed_price)}
         </div>
-        <div className="lbs-cell lbs-cell--avail" data-label="USDT Amount">
+        <div className="lbs-cell lbs-cell--avail" data-label="USD Amount">
           <CurrencyMark currency="USD" />
           {n2(ad.total_amount)}
         </div>
-        <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USDT)`}>
+        <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USD)`}>
           <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
             <CurrencyMark currency="USD" />
             <span>{isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}</span>
@@ -148,9 +148,9 @@ function Row({
           <small className="lbs-bonus-pct">({n2(pct, 2)}%)</small>
         </div>
         <div className="lbs-cell lbs-cell--time" data-label="Time (Min)">{ad.payment_time_limit} M</div>
-        <div className="lbs-cell lbs-cell--methods" data-label="Payment Method">
+        <div className="lbs-cell lbs-cell--methods mx-auto" data-label="Payment Method">
           <PaymentMethodIcon methodName={method} iconImage={iconImage} size={30} className="lbs-mico" />
-          <span className="lbs-method-name" title={method}>{method}</span>
+          {/* <span className="lbs-method-name" title={method}>{method}</span> */}
         </div>
         <div className="lbs-cell lbs-cell--action" data-label="Action">
           <button type="button" className={`lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
@@ -196,7 +196,7 @@ function Row({
             <strong><CurrencyMark currency={currency} />{n2(ad.fixed_price)}</strong>
           </div>
           <div className="lbs-mobile-stat">
-            <span>{isBuy ? 'You Get (USDT)' : 'USDT Amount'}</span>
+            <span>{isBuy ? 'You Get (USD)' : 'USD Amount'}</span>
             <strong><CurrencyMark currency="USD" />{n2(usdtAmount)}</strong>
           </div>
           <div className="lbs-mobile-stat">
@@ -258,26 +258,43 @@ function Panel({
   return (
     <section id={`lbs-panel-${kind}`} className={`lbs-panel lbs-panel--${kind}${mobileActive ? ' is-mobile-active' : ''}`}>
       <header className="lbs-panel-head">
-        <span className="lbs-panel-icon">
-          {buy ? <CartIcon size={20} /> : <DownloadIcon size={20} />}
-        </span>
-        <div className="lbs-panel-title">
-          <h3>{buy ? 'BUY' : 'SELL'}</h3>
-          <p>USDT {buy ? 'from Trusted Sellers' : 'to Trusted Buyers'}</p>
+        <div className="lbs-panel-copy">
+          <div className="lbs-panel-title">
+            <h3>{buy ? 'Buy' : 'Sell'} <span>USD</span></h3>
+            <p>{buy ? 'Safe · Fast · Trusted Sellers' : 'Fast · Secure · Best Buyers'}</p>
+          </div>
+          <div className="lbs-panel-benefits" aria-label={buy ? 'Buy offer benefits' : 'Sell offer benefits'}>
+            {buy ? (
+              <span className="lbs-panel-benefit lbs-panel-benefit--gold"><i className="fa-solid fa-crown" aria-hidden="true" />Best Rate</span>
+            ) : (
+              <span className="lbs-panel-benefit lbs-panel-benefit--red"><i className="fa-solid fa-fire" aria-hidden="true" />High Demand</span>
+            )}
+            <span className="lbs-panel-benefit lbs-panel-benefit--gold"><i className="fa-solid fa-bolt" aria-hidden="true" />Instant</span>
+            <span className="lbs-panel-benefit lbs-panel-benefit--blue"><i className="fa-solid fa-shield-halved" aria-hidden="true" />Verified</span>
+            <span className="lbs-panel-benefit lbs-panel-benefit--green"><i className="fa-solid fa-users" aria-hidden="true" /><b className='text-warning'>{b.total}</b> Offers</span>
+          </div>
+        </div>
+        <div className="lbs-panel-art" aria-hidden="true">
+          <span className="lbs-panel-art-coin">₮</span>
+          <span className="lbs-panel-art-token">₮</span>
+          <span className="lbs-panel-art-action">
+            {buy ? <CartIcon size={29} /> : <svg viewBox="0 0 32 32" width="31" height="31" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 25 14 16l6 5L28 9" /><path d="M19 9h9v9" /></svg>}
+          </span>
+          <span className="lbs-panel-art-spark">✦</span>
         </div>
         <div className="lbs-panel-meta">
-          <span>Total Offers: <b>{b.total}</b></span>
-          <Link href="/dashboard/local-buy-sell/my-orders" className="lbs-view-all">View All →</Link>
+          {/* <Link href="/dashboard/local-buy-sell/my-orders" className="lbs-view-all">View All <span aria-hidden="true">→</span></Link> */}
+          <b>Refresh</b>
+          <button
+            type="button"
+            className={`lbs-refresh ${b.loading ? 'is-spinning' : ''}`}
+            onClick={onRefresh}
+            disabled={b.loading}
+            aria-label={`Refresh ${buy ? 'buy' : 'sell'} offers`}
+          >
+            <RefreshIcon />
+          </button>
         </div>
-        <button
-          type="button"
-          className={`lbs-refresh ${b.loading ? 'is-spinning' : ''}`}
-          onClick={onRefresh}
-          disabled={b.loading}
-          aria-label="Refresh"
-        >
-          <RefreshIcon />
-        </button>
       </header>
 
       <button
@@ -294,14 +311,14 @@ function Panel({
       </button>
 
       <div className="lbs-scroll">
-        <div className="lbs-table">
-          <div className="lbs-row lbs-row--head">
+        <div className="lbs-table bg-dark">
+          <div className="lbs-row lbs-row--head bg-dark">
             <div className="lbs-cell">Amount {cur}</div>
             <div className="lbs-cell">Price {cur}</div>
-            <div className="lbs-cell">USDT Amount</div>
-            <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'} (USDT)</div>
-            <div className="lbs-cell">Time (Min)</div>
-            <div className="lbs-cell">Payment Methods</div>
+            <div className="lbs-cell">USD Amount</div>
+            <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'}</div>
+            <div className="lbs-cell">Time</div>
+            <div className="lbs-cell">Methods</div>
             <div className="lbs-cell">Action</div>
           </div>
 
@@ -335,13 +352,13 @@ function Panel({
       {/* Infinite scroll sentinel + status */}
       <div ref={sentinelRef} className="lbs-sentinel" aria-hidden="true">
         {b.loading && b.items.length > 0 && (
-          <div className="lbs-loadmore">
+          <div className="lbs-loadmore bg-dark">
             <span className="lbs-loadmore-spinner" />
             Loading more…
           </div>
         )}
         {!b.loading && b.items.length > 0 && b.page >= b.last && (
-          <div className="lbs-loadmore lbs-loadmore--end">
+          <div className="lbs-loadmore lbs-loadmore--end bg-dark">
             You’ve reached the end — {b.total} offer{b.total === 1 ? '' : 's'} total
           </div>
         )}
@@ -787,7 +804,7 @@ export default function Page() {
           <div>
             <h1 className="lbs-hero-title">Local Buy &amp; Sell Marketplace</h1>
             <p className="lbs-hero-sub">
-              Buy and sell USDT locally with verified users. Fast, secure and hassle-free transactions.
+              Buy and sell USD locally with verified users. Fast, secure and hassle-free transactions.
             </p>
           </div>
         </div>
@@ -822,7 +839,7 @@ export default function Page() {
               </svg>
             </span>
             <div>
-              <b>325,420 USDT</b>
+              <b>325,420 USD</b>
               <small>24h Volume</small>
             </div>
           </div>
@@ -838,7 +855,7 @@ export default function Page() {
             className="lbs-topbar-tab lbs-topbar-tab--buy is-active"
           >
             <CartIcon size={18} />
-            <span>Buy USDT</span>
+            <span>Buy USD</span>
           </button>
           <button
             type="button"
@@ -846,7 +863,7 @@ export default function Page() {
             onClick={() => setQuickSellOpen(true)}
           >
             <DownloadIcon size={18} />
-            <span>Sell USDT</span>
+            <span>Sell USD</span>
           </button>
         </div>
 
