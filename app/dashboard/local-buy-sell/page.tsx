@@ -121,58 +121,107 @@ function Row({
   const isBuy = kind === 'buy';
   const pct = isBuy ? bonusPercent : feePercent;
   const bonusFee = (usdtAmount * pct) / 100;
+  const iconImage = ad.payment_method?.sell_method?.icon_url ?? ad.payment_method?.sell_method?.icon_image;
 
   return (
-    <div className="lbs-row bg-dark">
-      <div className="lbs-cell lbs-cell--amount" data-label={`Amount ${currency}`}>
-        <span className={`lbs-pill lbs-pill--${kind}`}>
-          <CurrencyMark currency={currency} />
-          {n2(ad.fixed_price * ad.total_amount, 0)}
-        </span>
-      </div>
-      <div className="lbs-cell lbs-cell--price" data-label={`Price ${currency}`}>
-        <CurrencyMark currency={currency} />
-        {n2(ad.fixed_price)}
-      </div>
-      <div className="lbs-cell lbs-cell--avail" data-label="USDT Amount">
-        <CurrencyMark currency="USD" />
-        {n2(ad.total_amount)}
-      </div>
-
-      <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USDT)`}>
-        <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
-          <CurrencyMark currency="USD" />
-          <span>
-            {isBuy ? '+' : '-'}
-            {n2(Math.abs(bonusFee), 2)}
+    <>
+      <div className="lbs-row bg-dark lbs-desktop-offer-row">
+        <div className="lbs-cell lbs-cell--amount" data-label={`Amount ${currency}`}>
+          <span className={`lbs-pill lbs-pill--${kind}`}>
+            <CurrencyMark currency={currency} />
+            {n2(ad.fixed_price * ad.total_amount, 0)}
           </span>
-        </span>
-        <small className="lbs-bonus-pct">({n2(pct, 2)}%)</small>
+        </div>
+        <div className="lbs-cell lbs-cell--price" data-label={`Price ${currency}`}>
+          <CurrencyMark currency={currency} />
+          {n2(ad.fixed_price)}
+        </div>
+        <div className="lbs-cell lbs-cell--avail" data-label="USDT Amount">
+          <CurrencyMark currency="USD" />
+          {n2(ad.total_amount)}
+        </div>
+        <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USDT)`}>
+          <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
+            <CurrencyMark currency="USD" />
+            <span>{isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}</span>
+          </span>
+          <small className="lbs-bonus-pct">({n2(pct, 2)}%)</small>
+        </div>
+        <div className="lbs-cell lbs-cell--time" data-label="Time (Min)">{ad.payment_time_limit} M</div>
+        <div className="lbs-cell lbs-cell--methods" data-label="Payment Method">
+          <PaymentMethodIcon methodName={method} iconImage={iconImage} size={30} className="lbs-mico" />
+          <span className="lbs-method-name" title={method}>{method}</span>
+        </div>
+        <div className="lbs-cell lbs-cell--action" data-label="Action">
+          <button type="button" className={`lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
+            {kind === 'buy' ? 'Buy' : 'Sell'}
+          </button>
+        </div>
       </div>
+      <article className={`lbs-mobile-offer lbs-mobile-offer--${kind}`}>
+        <header className="lbs-mobile-offer-head">
+          <span className="lbs-mobile-avatar" aria-hidden="true">
+            <i className={`fa-solid ${isBuy ? 'fa-user' : 'fa-user-tag'}`} />
+          </span>
+          <div className="lbs-mobile-creator" aria-label="Demo profile details">
+            <div className="">
+              <h2>
+                <strong>
+                  <CurrencyMark currency={currency} />
+                  {n2(ad.fixed_price * ad.total_amount, 0)}
+                </strong>
+              </h2>
+              <span className="lbs-mobile-rating">
+                <i className="fa-solid fa-star" aria-hidden="true" />
+                4.9 <small>(320)</small>
+              </span>
+            </div>
 
-      <div className="lbs-cell lbs-cell--time" data-label="Time (Min)">{ad.payment_time_limit} M</div>
-      <div className="lbs-cell lbs-cell--methods" data-label="Payment Method">
-        <PaymentMethodIcon
-          methodName={method}
-          iconImage={
-            ad.payment_method?.sell_method?.icon_url ??
-            ad.payment_method?.sell_method?.icon_image
-          }
-          size={30}
-          className="lbs-mico"
-        />
-        <span className="lbs-method-name" title={method}>{method}</span>
-      </div>
-      <div className="lbs-cell lbs-cell--action" data-label="Action">
-        <button
-          type="button"
-          className={`lbs-trade-btn lbs-trade-btn--${kind}`}
-          onClick={() => onTrade(ad, kind)}
-        >
-          {kind === 'buy' ? 'Buy' : 'Sell'}
-        </button>
-      </div>
-    </div>
+            <span className="lbs-mobile-online">
+              <i aria-hidden="true" />
+              Online
+            </span>
+          </div>
+        </header>
+        <div className="lbs-mobile-offer-stats">
+          <div className="lbs-mobile-stat">
+            <span>Amount ({currency})</span>
+            <strong className={`lbs-mobile-amount lbs-mobile-amount--${kind}`}>
+              <CurrencyMark currency={currency} />
+              {n2(ad.fixed_price * ad.total_amount, 0)}
+            </strong>
+          </div>
+          <div className="lbs-mobile-stat">
+            <span>Price ({currency})</span>
+            <strong><CurrencyMark currency={currency} />{n2(ad.fixed_price)}</strong>
+          </div>
+          <div className="lbs-mobile-stat">
+            <span>{isBuy ? 'You Get (USDT)' : 'USDT Amount'}</span>
+            <strong><CurrencyMark currency="USD" />{n2(usdtAmount)}</strong>
+          </div>
+          <div className="lbs-mobile-stat">
+            <span>{isBuy ? 'Bonus' : 'Fee'}</span>
+            <strong className={isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}>
+              <CurrencyMark currency="USD" />{isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}
+            </strong>
+          </div>
+        </div>
+        <footer className="lbs-mobile-offer-footer">
+          <div className="lbs-mobile-method" aria-label={`Payment method: ${method}`}>
+            <PaymentMethodIcon methodName={method} iconImage={iconImage} size={28} className="lbs-mico" />
+            <span>{method}</span>
+          </div>
+          <span className={`lbs-mobile-time lbs-mobile-time--${kind}`}>
+            <i className="fa-regular fa-clock" aria-hidden="true" />
+            {ad.payment_time_limit} min
+          </span>
+          <button type="button" className={`lbs-mobile-trade lbs-mobile-trade--${kind}`} onClick={() => onTrade(ad, kind)}>
+            {kind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
+            {kind === 'buy' ? 'Buy Now' : 'Sell Now'}
+          </button>
+        </footer>
+      </article>
+    </>
   );
 }
 
@@ -185,6 +234,9 @@ function Panel({
   feePercent,
   onRefresh,
   onTrade,
+  onOpenFilters,
+  filtersOpen,
+  hasActiveFilters,
   sentinelRef,
   mobileActive,
 }: {
@@ -195,6 +247,9 @@ function Panel({
   feePercent: number;
   onRefresh: () => void;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
+  onOpenFilters: () => void;
+  filtersOpen: boolean;
+  hasActiveFilters: boolean;
   sentinelRef?: (el: HTMLDivElement | null) => void;
   mobileActive: boolean;
 }) {
@@ -224,6 +279,19 @@ function Panel({
           <RefreshIcon />
         </button>
       </header>
+
+      <button
+        type="button"
+        className="lbs-mobile-filter-trigger"
+        aria-haspopup="dialog"
+        aria-expanded={filtersOpen}
+        aria-controls="lbs-filter-controls"
+        onClick={onOpenFilters}
+      >
+        <i className="fa-solid fa-sliders" aria-hidden="true" />
+        Filters
+        {hasActiveFilters && <span className="lbs-filter-active-dot" aria-label="Filters active" />}
+      </button>
 
       <div className="lbs-scroll">
         <div className="lbs-table">
@@ -325,6 +393,15 @@ export default function Page() {
   useEffect(() => {
     if (sortBy !== 'all') setMobileActiveKind(sortBy);
   }, [sortBy]);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileFiltersOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [mobileFiltersOpen]);
 
   /* ── Infinite scroll refs ── */
   const sentinelRef = useRef<Record<Kind, HTMLDivElement | null>>({ buy: null, sell: null });
@@ -817,21 +894,70 @@ export default function Page() {
         </div>
       </section>
 
+      <div className="lbs-mobile-market-controls">
+        <div className="lbs-topbar-select lbs-mobile-currency-select">
+          <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
+              <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
+            </svg>
+          </span>
+          <select
+            className="lbs-topbar-select-input"
+            value={filterFiat}
+            onChange={event => handleChange(event.target.value)}
+            aria-label="Select currency"
+          >
+            <option value="">Currency</option>
+            {CURRENCIES.map(currency => (
+              <option key={currency.code} value={currency.code}>{currency.code}</option>
+            ))}
+          </select>
+          <span className="lbs-topbar-chev"><Chevron /></span>
+        </div>
+        <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
+          {(['buy', 'sell'] as const).map(kind => (
+            <button
+              key={kind}
+              type="button"
+              role="tab"
+              id={`lbs-mobile-tab-${kind}`}
+              aria-selected={mobileActiveKind === kind}
+              aria-controls={filterFiat ? `lbs-panel-${kind}` : undefined}
+              className={`lbs-mobile-list-tab lbs-mobile-list-tab--${kind}${mobileActiveKind === kind ? ' is-active' : ''}`}
+              onClick={() => {
+                setSortBy('all');
+                setMobileActiveKind(kind);
+              }}
+            >
+              {kind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
+              <span className="lbs-mobile-tab-label">{kind === 'buy' ? 'Buy List' : 'Sell List'}</span>
+              <span className="lbs-mobile-tab-count">{data[kind].total}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ═════════ FILTER ROW ═════════ */}
-      <section className={`lbs-filters bg-dark${mobileFiltersOpen ? ' is-mobile-open' : ''}`}>
+      {mobileFiltersOpen && (
         <button
           type="button"
-          className="lbs-filter-toggle"
-          aria-expanded={mobileFiltersOpen}
-          aria-controls="lbs-filter-controls"
-          onClick={() => setMobileFiltersOpen(open => !open)}
-        >
-          <span>
-            <i className="fa-solid fa-sliders" aria-hidden="true" />
-            Filters
-          </span>
-          <i className={`fa-solid ${mobileFiltersOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true" />
-        </button>
+          className="lbs-filter-backdrop"
+          onClick={() => setMobileFiltersOpen(false)}
+          aria-label="Close filters"
+        />
+      )}
+      <section
+        className={`lbs-filters bg-dark${mobileFiltersOpen ? ' is-mobile-open' : ''}`}
+        role={mobileFiltersOpen ? 'dialog' : undefined}
+        aria-modal={mobileFiltersOpen || undefined}
+        aria-labelledby="lbs-filter-sheet-title"
+      >
+        <div className="lbs-filter-sheet-head">
+          <strong id="lbs-filter-sheet-title"><i className="fa-solid fa-sliders" aria-hidden="true" /> Filters</strong>
+          <button type="button" onClick={() => setMobileFiltersOpen(false)} aria-label="Close filters">
+            <i className="fa-solid fa-xmark" aria-hidden="true" />
+          </button>
+        </div>
         <div id="lbs-filter-controls" className="lbs-filter-controls">
         <div className="lbs-field">
           <label className="lbs-label">Search Amount ({filterFiat || 'BDT'})</label>
@@ -882,7 +1008,7 @@ export default function Page() {
           )}
         </div>
 
-        <div className="lbs-field">
+        <div className="lbs-field lbs-field--sort">
           <label className="lbs-label">Sort By</label>
           <div className="lbs-selwrap">
             <select
@@ -911,25 +1037,6 @@ export default function Page() {
         <div className="lbs-empty lbs-currency-required">Select a currency to view offers.</div>
       ) : (
         <>
-          <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
-            {(['buy', 'sell'] as const).map(kind => (
-              <button
-                key={kind}
-                type="button"
-                role="tab"
-                id={`lbs-mobile-tab-${kind}`}
-                aria-selected={mobileActiveKind === kind}
-                aria-controls={`lbs-panel-${kind}`}
-                className={`lbs-mobile-list-tab lbs-mobile-list-tab--${kind}${mobileActiveKind === kind ? ' is-active' : ''}`}
-                disabled={sortBy !== 'all' && sortBy !== kind}
-                onClick={() => setMobileActiveKind(kind)}
-              >
-                {kind === 'buy' ? <CartIcon size={17} /> : <DownloadIcon size={17} />}
-                {kind === 'buy' ? 'Buy List' : 'Sell List'}
-                <span>{data[kind].total}</span>
-              </button>
-            ))}
-          </div>
           <div className="lbs-panels">
             {(['buy', 'sell'] as const)
               .filter(kind => sortBy === 'all' || sortBy === kind)
@@ -943,6 +1050,9 @@ export default function Page() {
                   feePercent={feePercent}
                   onRefresh={() => fetchBucket(kind, 1)}
                   onTrade={handleTrade}
+                  onOpenFilters={() => setMobileFiltersOpen(true)}
+                  filtersOpen={mobileFiltersOpen}
+                  hasActiveFilters={Boolean(filterMethod || amt.min)}
                   sentinelRef={el => { sentinelRef.current[kind] = el; }}
                   mobileActive={mobileActiveKind === kind}
                 />

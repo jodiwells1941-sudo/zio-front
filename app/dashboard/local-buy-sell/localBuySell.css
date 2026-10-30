@@ -351,6 +351,19 @@
   display: none;
 }
 
+.lbs .lbs-mobile-filter-trigger,
+.lbs .lbs-filter-backdrop {
+  display: none;
+}
+
+.lbs .lbs-mobile-market-controls {
+  display: none;
+}
+
+.lbs .lbs-filter-sheet-head {
+  display: none;
+}
+
 .lbs .lbs-filter-controls {
   display: contents;
 }
@@ -617,6 +630,10 @@
 
 .lbs .lbs-offer-cards {
   display: contents;
+}
+
+.lbs .lbs-mobile-offer {
+  display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1194,37 +1211,199 @@
 }
 @media (max-width: 640px) {
   .lbs .lbs-filters   { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
-  .lbs .lbs-filter-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-height: 40px;
-    padding: 0 2px;
-    color: var(--lbs-text);
-    font-weight: 700;
-    text-align: left;
+  .lbs .lbs-topbar-tabs,
+  .lbs .lbs-topbar-right .lbs-topbar-select,
+  .lbs .lbs-topbar-refresh {
+    display: none;
   }
-  .lbs .lbs-filter-toggle > span {
+  .lbs .lbs-topbar {
+    display: none;
+  }
+  .lbs .lbs-mobile-market-controls {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 2fr);
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+  .lbs .lbs-mobile-currency-select {
     display: inline-flex;
-    align-items: center;
-    gap: 9px;
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 25px 0 34px;
+    border-radius: 9px;
   }
-  .lbs .lbs-filter-toggle > span > i {
-    color: var(--lbs-cyan);
+  .lbs .lbs-mobile-currency-select .lbs-topbar-icon {
+    left: 8px;
+    width: 18px;
+    height: 18px;
   }
-  .lbs .lbs-filter-toggle:focus-visible {
-    outline: 2px solid var(--lbs-cyan);
-    outline-offset: 3px;
-    border-radius: 6px;
+  .lbs .lbs-mobile-currency-select .lbs-topbar-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+  .lbs .lbs-mobile-currency-select .lbs-topbar-chev {
+    right: 7px;
+  }
+  .lbs .lbs-mobile-currency-select .lbs-topbar-select-input {
+    min-width: 0;
+    font-size: 11px;
+  }
+  .lbs .lbs-mobile-list-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin: 0;
+  }
+  .lbs .lbs-mobile-list-tab {
+    min-height: 40px;
+    gap: 4px;
+    padding: 6px 5px;
+    font-size: 10px;
+  }
+  .lbs .lbs-mobile-list-tab > .lbs-mobile-tab-label {
+    display: inline;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 0;
+    background: transparent;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-list-tab > .lbs-mobile-tab-count {
+    display: inline-grid;
+    flex: 0 0 auto;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    font-size: 9px;
+  }
+  .lbs .lbs-mobile-filter-trigger {
+    margin-top: 0;
+  }
+  .lbs .lbs-filters:not(.is-mobile-open) { display: none; }
+  .lbs .lbs-filters.is-mobile-open {
+    position: fixed;
+    z-index: 1101;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    max-height: min(82vh, 620px);
+    overflow-y: auto;
+    margin: 0;
+    padding: 18px 16px max(18px, env(safe-area-inset-bottom));
+    border: 1px solid var(--lbs-line-2);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    background: #111827;
+    box-shadow: 0 -18px 50px rgba(0, 0, 0, .48);
+  }
+  .lbs .lbs-filter-sheet-head { display: none; }
+  .lbs .lbs-filter-backdrop {
+    position: fixed;
+    z-index: 1100;
+    display: block;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(3, 7, 14, .72);
+    backdrop-filter: blur(3px);
   }
   .lbs .lbs-filter-controls {
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  .lbs .lbs-filters:not(.is-mobile-open) .lbs-filter-controls {
+  .lbs .lbs-filter-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -2px 0 16px;
+    color: #f8fafc;
+    font-size: 15px;
+  }
+  .lbs .lbs-filter-sheet-head strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .lbs .lbs-filter-sheet-head strong i {
+    color: var(--lbs-cyan);
+  }
+  .lbs .lbs-filter-sheet-head button {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--lbs-line-2);
+    border-radius: 50%;
+    background: rgba(255,255,255,.05);
+    color: #cbd5e1;
+  }
+  .lbs .lbs-filter-sheet-head button:focus-visible {
+    outline: 2px solid var(--lbs-cyan);
+    outline-offset: 2px;
+  }
+  .lbs .lbs-field--sort {
     display: none;
+  }
+  .lbs .lbs-filter-controls .lbs-field--btn,
+  .lbs .lbs-filter-controls .lbs-field--btn .lbs-search-btn {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  .lbs .lbs-filter-controls .lbs-search-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    border-radius: 9px;
+  }
+  .lbs .lbs-mobile-filter-trigger {
+    display: flex;
+    width: 100%;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 0 14px;
+    border: 1px solid var(--lbs-line-2);
+    border-radius: 8px;
+    background: var(--lbs-panel);
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .lbs .lbs-panel .lbs-mobile-filter-trigger {
+    display: flex;
+    width: calc(100% - 14px);
+    min-height: 34px;
+    justify-content: flex-start;
+    margin: 7px 7px 0;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 11px;
+  }
+  .lbs .lbs-mobile-filter-trigger > i {
+    color: var(--lbs-cyan);
+  }
+  .lbs .lbs-filter-active-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--lbs-cyan);
+    box-shadow: 0 0 8px rgba(34, 211, 238, .6);
+  }
+  .lbs .lbs-mobile-filter-trigger:focus-visible {
+    outline: 2px solid var(--lbs-cyan);
+    outline-offset: 2px;
   }
   .lbs .lbs-hero-title { font-size: 18px; white-space: normal; }
   .lbs .lbs-hero-sub   { font-size: 12px; white-space: normal; }
@@ -1317,52 +1496,228 @@
   .lbs .lbs-row--head {
     display: none;
   }
-  .lbs .lbs-row:not(.lbs-row--head):not(.lbs-row--skel) {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    margin: 0;
-    padding: 5px 7px;
-    border: 1px solid var(--lbs-line);
-    border-radius: 9px;
-    background: #171f2d !important;
+  .lbs .lbs-desktop-offer-row {
+    display: none !important;
   }
   .lbs .lbs-offer-cards {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-    padding: 6px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 7px;
   }
-  .lbs .lbs-cell {
+  .lbs .lbs-mobile-offer {
+    display: block;
     min-width: 0;
-    min-height: 27px;
-    flex-direction: row;
-    justify-content: center;
+    padding: 10px;
+    border: 1px solid rgba(148, 163, 184, .17);
+    border-radius: 12px;
+    background: linear-gradient(145deg, #151d2a, #101722);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, .16);
+  }
+  .lbs .lbs-mobile-offer--buy {
+    border-color: rgba(251, 191, 36, .44);
+  }
+  .lbs .lbs-mobile-offer--sell {
+    border-color: rgba(248, 113, 113, .4);
+  }
+  .lbs .lbs-mobile-offer-head {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 10px;
+  }
+  .lbs .lbs-mobile-avatar {
+    display: grid;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 750;
+  }
+  .lbs .lbs-mobile-offer--sell .lbs-mobile-avatar {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+  }
+  .lbs .lbs-mobile-creator {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+  }
+  .lbs .lbs-mobile-rating,
+  .lbs .lbs-mobile-online {
+    display: inline-flex;
+    min-width: 0;
     align-items: center;
     gap: 4px;
-    padding: 4px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, .045);
-    overflow: visible;
-    white-space: normal;
-    text-align: right;
+    color: #dbe5f1;
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-rating > i {
+    color: #fbbf24;
+  }
+  .lbs .lbs-mobile-rating small {
+    color: #94a3b8;
+    font-size: 9px;
+  }
+  .lbs .lbs-mobile-rating em,
+  .lbs .lbs-mobile-online em {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: rgba(148, 163, 184, .12);
+    color: #94a3b8;
+    font-size: 7px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .lbs .lbs-mobile-online {
+    padding: 4px 6px;
+    border: 1px solid rgba(52, 211, 153, .2);
+    border-radius: 999px;
+    background: rgba(16, 185, 129, .08);
+    color: #6ee7b7;
+  }
+  .lbs .lbs-mobile-online > i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+  }
+  .lbs .lbs-mobile-offer-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid rgba(148, 163, 184, .1);
+    border-bottom: 1px solid rgba(148, 163, 184, .1);
+  }
+  .lbs .lbs-mobile-stat {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-right: 1px solid rgba(148, 163, 184, .1);
+  }
+  .lbs .lbs-mobile-stat:last-child {
+    border-right: 0;
+  }
+  .lbs .lbs-mobile-stat > span {
+    overflow-wrap: anywhere;
+    color: #8292aa;
+    font-size: 8px;
+    line-height: 1.2;
+  }
+  .lbs .lbs-mobile-stat strong {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 3px;
+    color: #f1f5f9;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-stat .lbs-currency-mark {
+    min-width: 11px;
+    font-size: 12px;
+  }
+  .lbs .lbs-mobile-stat .lbs-mobile-amount {
+    width: fit-content;
+    max-width: 100%;
+    padding: 3px 5px;
+    border-radius: 5px;
+    color: #fff;
     font-size: 10px;
   }
-  .lbs .lbs-cell::before {
-    content: attr(data-label);
-    color: var(--lbs-muted);
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 8px;
-    font-weight: 600;
-    line-height: 1.15;
-    text-align: left;
+  .lbs .lbs-mobile-amount--buy {
+    background: linear-gradient(180deg, #22c55e, #16a34a);
   }
-  .lbs .lbs-cell--amount,
-  .lbs .lbs-cell--price,
-  .lbs .lbs-cell--avail,
-  .lbs .lbs-cell--bonus,
-  .lbs .lbs-cell--time {
-    flex-direction: row;
-    justify-content: space-between;
+  .lbs .lbs-mobile-amount--sell {
+    background: linear-gradient(180deg, #ef4444, #b91c1c);
+  }
+  .lbs .lbs-mobile-stat .lbs-bonus-pos {
+    color: #fbbf24;
+  }
+  .lbs .lbs-mobile-stat .lbs-bonus-neg {
+    color: #fb7185;
+  }
+  .lbs .lbs-mobile-offer-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
+    align-items: center;
+    gap: 7px;
+    padding-top: 9px;
+  }
+  .lbs .lbs-mobile-method {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    color: #e2e8f0;
+    font-size: 10px;
+  }
+  .lbs .lbs-mobile-method .lbs-mico {
+    width: 25px;
+    height: 25px;
+    border-radius: 6px;
+  }
+  .lbs .lbs-mobile-method > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-time {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 7px;
+    border: 1px solid rgba(148, 163, 184, .18);
+    border-radius: 7px;
+    color: #cbd5e1;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-time--sell {
+    border-color: rgba(248, 113, 113, .24);
+    color: #fb7185;
+  }
+  .lbs .lbs-mobile-trade {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+    border-radius: 8px;
+    color: #111827;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-trade--buy {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  }
+  .lbs .lbs-mobile-trade--sell {
+    background: linear-gradient(135deg, #fb4b55, #dc2626);
+    color: #fff;
+  }
+  .lbs .lbs-mobile-trade:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
     align-items: center;
   }
   .lbs .lbs-cell--amount .lbs-pill {
