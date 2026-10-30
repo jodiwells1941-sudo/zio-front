@@ -124,22 +124,22 @@ function Row({
 
   return (
     <div className="lbs-row bg-dark">
-      <div className="lbs-cell lbs-cell--amount">
+      <div className="lbs-cell lbs-cell--amount" data-label={`Amount ${currency}`}>
         <span className={`lbs-pill lbs-pill--${kind}`}>
           <CurrencyMark currency={currency} />
           {n2(ad.fixed_price * ad.total_amount, 0)}
         </span>
       </div>
-      <div className="lbs-cell lbs-cell--price">
+      <div className="lbs-cell lbs-cell--price" data-label={`Price ${currency}`}>
         <CurrencyMark currency={currency} />
         {n2(ad.fixed_price)}
       </div>
-      <div className="lbs-cell lbs-cell--avail">
+      <div className="lbs-cell lbs-cell--avail" data-label="USDT Amount">
         <CurrencyMark currency="USD" />
         {n2(ad.total_amount)}
       </div>
 
-      <div className="lbs-cell lbs-cell--bonus">
+      <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USDT)`}>
         <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
           <CurrencyMark currency="USD" />
           <span>
@@ -150,8 +150,8 @@ function Row({
         <small className="lbs-bonus-pct">({n2(pct, 2)}%)</small>
       </div>
 
-      <div className="lbs-cell lbs-cell--time">{ad.payment_time_limit} M</div>
-      <div className="lbs-cell lbs-cell--methods">
+      <div className="lbs-cell lbs-cell--time" data-label="Time (Min)">{ad.payment_time_limit} M</div>
+      <div className="lbs-cell lbs-cell--methods" data-label="Payment Method">
         <PaymentMethodIcon
           methodName={method}
           iconImage={
@@ -163,7 +163,7 @@ function Row({
         />
         <span className="lbs-method-name" title={method}>{method}</span>
       </div>
-      <div className="lbs-cell lbs-cell--action">
+      <div className="lbs-cell lbs-cell--action" data-label="Action">
         <button
           type="button"
           className={`lbs-trade-btn lbs-trade-btn--${kind}`}
@@ -186,6 +186,7 @@ function Panel({
   onRefresh,
   onTrade,
   sentinelRef,
+  mobileActive,
 }: {
   kind: Kind;
   b: Bucket;
@@ -195,11 +196,12 @@ function Panel({
   onRefresh: () => void;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
   sentinelRef?: (el: HTMLDivElement | null) => void;
+  mobileActive: boolean;
 }) {
   const buy = kind === 'buy';
 
   return (
-    <section id={`lbs-panel-${kind}`} className={`lbs-panel lbs-panel--${kind}`}>
+    <section id={`lbs-panel-${kind}`} className={`lbs-panel lbs-panel--${kind}${mobileActive ? ' is-mobile-active' : ''}`}>
       <header className="lbs-panel-head">
         <span className="lbs-panel-icon">
           {buy ? <CartIcon size={20} /> : <DownloadIcon size={20} />}
@@ -246,7 +248,7 @@ function Panel({
             <div className="lbs-empty">No offers match these filters.</div>
           )}
 
-          <div className={b.loading && b.items.length > 0 ? 'lbs-fading' : undefined}>
+          <div className={`lbs-offer-cards${b.loading && b.items.length > 0 ? ' lbs-fading' : ''}`}>
             {b.items.map((ad, i) => (
               <Row
                 key={`${kind}-${ad.id ?? i}`}
@@ -292,6 +294,8 @@ export default function Page() {
   const [filterMethod, setFilterMethod] = useState('');
   const [amt, setAmt] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState<OfferView>('all');
+  const [mobileActiveKind, setMobileActiveKind] = useState<Kind>('buy');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [tradeModal, setTradeModal] = useState<{ ad: P2pAdsData; kind: Kind } | null>(null);
 
   /* ── Bonus / Fee settings ── */
@@ -317,6 +321,10 @@ export default function Page() {
     { fiat: filterFiat, method: filterMethod, amtMin: amt.min, amtMax: amt.max },
     400
   );
+
+  useEffect(() => {
+    if (sortBy !== 'all') setMobileActiveKind(sortBy);
+  }, [sortBy]);
 
   /* ── Infinite scroll refs ── */
   const sentinelRef = useRef<Record<Kind, HTMLDivElement | null>>({ buy: null, sell: null });
@@ -631,7 +639,11 @@ export default function Page() {
     setCurrencyPromptOpen(false);
   };
 
-  const handleSearch = () => { flushFilters(); setTick(t => t + 1); };
+  const handleSearch = () => {
+    flushFilters();
+    setTick(t => t + 1);
+    setMobileFiltersOpen(false);
+  };
 
   const handleRefresh = () => {
     if (!filterFiat) return;
@@ -806,7 +818,21 @@ export default function Page() {
       </section>
 
       {/* ═════════ FILTER ROW ═════════ */}
-      <section className="lbs-filters bg-dark">
+      <section className={`lbs-filters bg-dark${mobileFiltersOpen ? ' is-mobile-open' : ''}`}>
+        <button
+          type="button"
+          className="lbs-filter-toggle"
+          aria-expanded={mobileFiltersOpen}
+          aria-controls="lbs-filter-controls"
+          onClick={() => setMobileFiltersOpen(open => !open)}
+        >
+          <span>
+            <i className="fa-solid fa-sliders" aria-hidden="true" />
+            Filters
+          </span>
+          <i className={`fa-solid ${mobileFiltersOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true" />
+        </button>
+        <div id="lbs-filter-controls" className="lbs-filter-controls">
         <div className="lbs-field">
           <label className="lbs-label">Search Amount ({filterFiat || 'BDT'})</label>
           <div className="lbs-range">
@@ -877,29 +903,52 @@ export default function Page() {
             <SearchIcon /> Search Offers
           </button>
         </div>
+        </div>
       </section>
 
       {/* ═════════ TWO PANELS ═════════ */}
       {!filterFiat ? (
         <div className="lbs-empty lbs-currency-required">Select a currency to view offers.</div>
       ) : (
-        <div className="lbs-panels">
-          {(['buy', 'sell'] as const)
-            .filter(kind => sortBy === 'all' || sortBy === kind)
-            .map(kind => (
-              <Panel
+        <>
+          <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
+            {(['buy', 'sell'] as const).map(kind => (
+              <button
                 key={kind}
-                kind={kind}
-                b={data[kind]}
-                cur={filterFiat}
-                bonusPercent={bonusPercent}
-                feePercent={feePercent}
-                onRefresh={() => fetchBucket(kind, 1)}
-                onTrade={handleTrade}
-                sentinelRef={el => { sentinelRef.current[kind] = el; }}
-              />
+                type="button"
+                role="tab"
+                id={`lbs-mobile-tab-${kind}`}
+                aria-selected={mobileActiveKind === kind}
+                aria-controls={`lbs-panel-${kind}`}
+                className={`lbs-mobile-list-tab lbs-mobile-list-tab--${kind}${mobileActiveKind === kind ? ' is-active' : ''}`}
+                disabled={sortBy !== 'all' && sortBy !== kind}
+                onClick={() => setMobileActiveKind(kind)}
+              >
+                {kind === 'buy' ? <CartIcon size={17} /> : <DownloadIcon size={17} />}
+                {kind === 'buy' ? 'Buy List' : 'Sell List'}
+                <span>{data[kind].total}</span>
+              </button>
             ))}
-        </div>
+          </div>
+          <div className="lbs-panels">
+            {(['buy', 'sell'] as const)
+              .filter(kind => sortBy === 'all' || sortBy === kind)
+              .map(kind => (
+                <Panel
+                  key={kind}
+                  kind={kind}
+                  b={data[kind]}
+                  cur={filterFiat}
+                  bonusPercent={bonusPercent}
+                  feePercent={feePercent}
+                  onRefresh={() => fetchBucket(kind, 1)}
+                  onTrade={handleTrade}
+                  sentinelRef={el => { sentinelRef.current[kind] = el; }}
+                  mobileActive={mobileActiveKind === kind}
+                />
+              ))}
+          </div>
+        </>
       )}
 
       {/* ═════════ QUICK MODALS ═════════ */}

@@ -347,6 +347,14 @@
   width: 100%;
 }
 
+.lbs .lbs-filter-toggle {
+  display: none;
+}
+
+.lbs .lbs-filter-controls {
+  display: contents;
+}
+
 .lbs .lbs-field {
   display: flex;
   flex-direction: column;
@@ -513,6 +521,10 @@
   margin-bottom: 14px;
 }
 
+.lbs .lbs-mobile-list-tabs {
+  display: none;
+}
+
 .lbs .lbs-panel {
   display: flex;
   flex-direction: column;
@@ -601,6 +613,10 @@
 .lbs .lbs-table {
   min-width: 0;
   width: 100%;
+}
+
+.lbs .lbs-offer-cards {
+  display: contents;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1178,11 +1194,240 @@
 }
 @media (max-width: 640px) {
   .lbs .lbs-filters   { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+  .lbs .lbs-filter-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 2px;
+    color: var(--lbs-text);
+    font-weight: 700;
+    text-align: left;
+  }
+  .lbs .lbs-filter-toggle > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .lbs .lbs-filter-toggle > span > i {
+    color: var(--lbs-cyan);
+  }
+  .lbs .lbs-filter-toggle:focus-visible {
+    outline: 2px solid var(--lbs-cyan);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .lbs .lbs-filter-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .lbs .lbs-filters:not(.is-mobile-open) .lbs-filter-controls {
+    display: none;
+  }
   .lbs .lbs-hero-title { font-size: 18px; white-space: normal; }
   .lbs .lbs-hero-sub   { font-size: 12px; white-space: normal; }
   .lbs .lbs-hero-icon  { width: 52px; height: 52px; min-width: 52px; }
   .lbs .lbs-stat b     { font-size: 14px; }
   .lbs .lbs-stat-icon  { width: 34px; height: 34px; min-width: 34px; }
+  .lbs .lbs-mobile-list-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+  .lbs .lbs-mobile-list-tab {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    border: 1px solid var(--lbs-line-2);
+    border-radius: 9px;
+    background: var(--lbs-panel);
+    color: #aab6c8;
+    font-weight: 700;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .lbs .lbs-mobile-list-tab > span {
+    display: inline-grid;
+    min-width: 22px;
+    height: 22px;
+    place-items: center;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    font-size: 11px;
+  }
+  .lbs .lbs-mobile-list-tab--buy.is-active {
+    border-color: rgba(34, 197, 94, .55);
+    background: linear-gradient(135deg, rgba(22, 163, 74, .22), rgba(15, 22, 35, .9));
+    color: #4ade80;
+  }
+  .lbs .lbs-mobile-list-tab--sell.is-active {
+    border-color: rgba(239, 68, 68, .55);
+    background: linear-gradient(135deg, rgba(185, 28, 28, .24), rgba(26, 10, 30, .9));
+    color: #f87171;
+  }
+  .lbs .lbs-mobile-list-tab:disabled {
+    cursor: not-allowed;
+    opacity: .42;
+  }
+  .lbs .lbs-mobile-list-tab:focus-visible {
+    outline: 2px solid var(--lbs-cyan);
+    outline-offset: 2px;
+  }
+  .lbs .lbs-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lbs .lbs-panel:not(.is-mobile-active) {
+    display: none;
+  }
+  .lbs .lbs-panel {
+    border-radius: 9px;
+  }
+  .lbs .lbs-panel-head {
+    gap: 8px;
+    padding: 9px 10px;
+  }
+  .lbs .lbs-panel-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+  }
+  .lbs .lbs-panel-title h3 {
+    font-size: 17px;
+  }
+  .lbs .lbs-panel-title p {
+    font-size: 10px;
+  }
+  .lbs .lbs-panel-meta {
+    font-size: 10px;
+  }
+  .lbs .lbs-view-all {
+    font-size: 10px;
+  }
+  .lbs .lbs-refresh {
+    width: 28px;
+    height: 28px;
+  }
+  .lbs .lbs-row--head {
+    display: none;
+  }
+  .lbs .lbs-row:not(.lbs-row--head):not(.lbs-row--skel) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin: 0;
+    padding: 5px 7px;
+    border: 1px solid var(--lbs-line);
+    border-radius: 9px;
+    background: #171f2d !important;
+  }
+  .lbs .lbs-offer-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 6px;
+  }
+  .lbs .lbs-cell {
+    min-width: 0;
+    min-height: 27px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .045);
+    overflow: visible;
+    white-space: normal;
+    text-align: right;
+    font-size: 10px;
+  }
+  .lbs .lbs-cell::before {
+    content: attr(data-label);
+    color: var(--lbs-muted);
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 8px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: left;
+  }
+  .lbs .lbs-cell--amount,
+  .lbs .lbs-cell--price,
+  .lbs .lbs-cell--avail,
+  .lbs .lbs-cell--bonus,
+  .lbs .lbs-cell--time {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .lbs .lbs-cell--amount .lbs-pill {
+    flex: 0 0 auto;
+    gap: 3px;
+    padding: 3px 5px;
+    font-size: 9px;
+  }
+  .lbs .lbs-cell--amount .lbs-currency-mark {
+    min-width: 11px;
+    font-size: 11px;
+  }
+  .lbs .lbs-cell--bonus {
+    gap: 3px;
+  }
+  .lbs .lbs-bonus-value {
+    gap: 2px;
+    font-size: 9px;
+  }
+  .lbs .lbs-bonus-pct {
+    display: none;
+  }
+  .lbs .lbs-cell--methods {
+    align-items: center;
+    justify-content: space-between;
+    gap: 3px;
+  }
+  .lbs .lbs-mico {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+  .lbs .lbs-method-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    font-size: 8px;
+  }
+  .lbs .lbs-cell--action {
+    grid-column: 1 / -1;
+    min-height: 30px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 4px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, .06);
+    border-bottom: 0;
+  }
+  .lbs .lbs-cell--action::before {
+    text-align: left;
+  }
+  .lbs .lbs-cell--action .lbs-trade-btn {
+    width: auto;
+    min-width: 54px;
+    min-height: 25px;
+    padding: 0 8px;
+    align-self: center;
+    font-size: 11px;
+  }
+  .lbs .lbs-row--skel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 6px;
+    padding: 10px;
+  }
 }
 @media (max-width: 560px) {
   .lbs-card-row  { padding: 8px 10px; column-gap: 6px; }
