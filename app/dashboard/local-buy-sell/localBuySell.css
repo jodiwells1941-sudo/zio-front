@@ -231,14 +231,46 @@
   transition: background .15s, color .15s;
 }
 
-.lbs .lbs-topbar-tab--buy.is-active {
-  background: var(--lbs-yellow);
-  color: #0a0e1a;
-  box-shadow: 0 4px 14px rgba(251, 191, 36, .3);
+.lbs .lbs-topbar-tab--buy {
+  border: 1px solid rgba(251, 191, 36, .24);
+  background: linear-gradient(135deg, rgba(251, 191, 36, .12), rgba(120, 53, 15, .12));
+  color: #fbbf24;
 }
 
-.lbs .lbs-topbar-tab--sell { color: #cbd5e1; }
-.lbs .lbs-topbar-tab--sell:hover { color: #fff; background: rgba(255, 255, 255, .04); }
+.lbs .lbs-topbar-tab--sell {
+  border: 1px solid rgba(248, 113, 113, .24);
+  background: linear-gradient(135deg, rgba(239, 68, 68, .12), rgba(127, 29, 29, .16));
+  color: #f87171;
+}
+
+.lbs .lbs-topbar-tab--buy:hover {
+  border-color: rgba(251, 191, 36, .7);
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #211500;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, .26);
+}
+
+.lbs .lbs-topbar-tab--sell:hover {
+  border-color: rgba(248, 113, 113, .7);
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, .26);
+}
+
+.lbs .lbs-topbar-tab--buy:active {
+  background: linear-gradient(135deg, #d97706, #92400e);
+  color: #fff7db;
+}
+
+.lbs .lbs-topbar-tab--sell:active {
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  color: #fff;
+}
+
+.lbs .lbs-topbar-tab:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
 
 .lbs .lbs-topbar-right {
   display: flex;
@@ -357,6 +389,10 @@
 }
 
 .lbs .lbs-mobile-market-controls {
+  display: none;
+}
+
+.lbs .lbs-mobile-filter-bar {
   display: none;
 }
 
@@ -541,72 +577,232 @@
 .lbs .lbs-panel {
   display: flex;
   flex-direction: column;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--lbs-panel);
-  border: 1px solid var(--lbs-line);
+  gap: 10px;
+  overflow: visible;
+  background: transparent;
+  border: 0;
   min-width: 0;
 }
 
 .lbs .lbs-panel-head {
+  position: relative;
   display: flex;
+  min-height: 112px;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--lbs-line);
+  overflow: hidden;
+  padding: 13px 14px 11px;
+  border: 1px solid;
+  border-radius: 11px;
+  isolation: isolate;
 }
-.lbs .lbs-panel--buy  .lbs-panel-head { background: linear-gradient(90deg, #052e1a 0%, #0a1a2e 100%); }
-.lbs .lbs-panel--sell .lbs-panel-head { background: linear-gradient(90deg, #3a0d0d 0%, #1a0a1e 100%); }
-
-.lbs .lbs-panel-icon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  color: #fff;
+.lbs .lbs-panel--buy .lbs-panel-head {
+  border-color: rgba(245, 158, 11, .48);
+  background:
+    radial-gradient(ellipse at 82% 24%, rgba(245, 158, 11, .28), transparent 31%),
+    radial-gradient(ellipse at 94% 100%, rgba(217, 119, 6, .16), transparent 38%),
+    radial-gradient(ellipse at 50% 120%, rgba(16, 185, 129, .11), transparent 55%),
+    repeating-linear-gradient(132deg, transparent 0 24px, rgba(255, 255, 255, .012) 25px 26px, transparent 27px 48px),
+    linear-gradient(108deg, #10191e 0%, #111b1f 48%, #191d1b 100%);
+  box-shadow:
+    0 7px 18px rgba(0, 0, 0, .2),
+    inset 0 1px rgba(255, 255, 255, .06),
+    inset 0 0 42px rgba(245, 158, 11, .07);
 }
-.lbs .lbs-panel--buy  .lbs-panel-icon { background: var(--lbs-green); }
-.lbs .lbs-panel--sell .lbs-panel-icon { background: var(--lbs-red); }
+.lbs .lbs-panel--sell .lbs-panel-head {
+  border-color: rgba(239, 68, 68, .48);
+  background:
+    radial-gradient(ellipse at 83% 24%, rgba(239, 68, 68, .3), transparent 32%),
+    radial-gradient(ellipse at 96% 100%, rgba(190, 24, 93, .17), transparent 40%),
+    radial-gradient(ellipse at 50% 120%, rgba(124, 58, 237, .09), transparent 55%),
+    repeating-linear-gradient(132deg, transparent 0 24px, rgba(255, 255, 255, .012) 25px 26px, transparent 27px 48px),
+    linear-gradient(108deg, #19171e 0%, #1b1721 48%, #23171d 100%);
+  box-shadow:
+    0 7px 18px rgba(0, 0, 0, .2),
+    inset 0 1px rgba(255, 255, 255, .06),
+    inset 0 0 42px rgba(239, 68, 68, .08);
+}
 
-.lbs .lbs-panel-title { flex: 1; min-width: 0; }
+.lbs .lbs-panel-copy {
+  position: relative;
+  z-index: 1;
+  width: 64%;
+  min-width: 0;
+  padding-top: 11px;
+}
+.lbs .lbs-panel-title { min-width: 0; }
 .lbs .lbs-panel-title h3 {
-  font-size: 20px;
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: clamp(18px, 2vw, 27px);
   font-weight: 800;
-  letter-spacing: .5px;
+  letter-spacing: -.5px;
   line-height: 1;
   margin: 0;
-  color: #fff;
-}
-.lbs .lbs-panel--buy  .lbs-panel-title h3 { color: var(--lbs-green); }
-.lbs .lbs-panel--sell .lbs-panel-title h3 { color: #f87171; }
-.lbs .lbs-panel-title p { font-size: 11.5px; color: var(--lbs-muted); margin-top: 3px; }
-
-.lbs .lbs-panel-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  font-size: 11px;
-  color: var(--lbs-muted);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
-.lbs .lbs-panel-meta b { color: #fff; font-weight: 700; }
-.lbs .lbs-view-all { color: #60a5fa; font-weight: 600; font-size: 11px; }
+.lbs .lbs-panel--buy .lbs-panel-title h3 span { color: #fbbf24; }
+.lbs .lbs-panel--sell .lbs-panel-title h3 span { color: #fb4b5c; }
+.lbs .lbs-panel-title p {
+  overflow: hidden;
+  margin-top: 5px;
+  color: #cbd5e1;
+  font-size: clamp(9px, 1vw, 12px);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lbs .lbs-panel-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+}
+.lbs .lbs-panel-benefit {
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border: 1px solid rgba(148, 163, 184, .2);
+  border-radius: 6px;
+  background: rgba(2, 6, 12, .48);
+  color: #dbe5f1;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+.lbs .lbs-panel-benefit i { font-size: 9px; }
+.lbs .lbs-panel-benefit--gold i { color: #fbbf24; }
+.lbs .lbs-panel-benefit--red i { color: #fb4b5c; }
+.lbs .lbs-panel-benefit--blue i { color: #38bdf8; }
+
+.lbs .lbs-panel-art {
+  position: absolute;
+  z-index: 0;
+  right: 12px;
+  bottom: 4px;
+  width: 34%;
+  height: 83px;
+  pointer-events: none;
+}
+.lbs .lbs-panel-art-coin {
+  position: absolute;
+  right: 34%;
+  bottom: 8px;
+  display: grid;
+  width: clamp(42px, 5vw, 66px);
+  aspect-ratio: 1;
+  place-items: center;
+  /* border: 3px solid rgba(238, 192, 54, 0.8); */
+  border-radius: 50%;
+  /* background: radial-gradient(circle at 30% 25%, #f3a933, #f59e0b 58%, #f7a117); */
+  box-shadow: 0 0 0 4px rgba(185, 157, 16, 0.13), 0 8px 18px rgba(0, 0, 0, .4);
+  color: #eafff5;
+  font-size: clamp(24px, 3vw, 37px);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .45);
+}
+.lbs .lbs-panel-art-coin--buy {
+  border-color: rgba(251, 191, 36, 0.8);
+  background: radial-gradient(circle at 30% 25%, #fbbf24, #f59e0b 58%, #fbbf24);
+}
+.lbs .lbs-panel-art-coin--sell {
+  border-color: rgba(239, 68, 68, 0.8);
+  background: radial-gradient(circle at 30% 25%, #f87171, #ef4444 58%, #f87171);
+}
+.lbs .lbs-panel-art-token {
+  position: absolute;
+  right: 23%;
+  bottom: 1px;
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
+  font-size: 15px;
+  font-weight: 800;
+}
+.lbs-panel-art-token--buy {
+  border: 2px solid #fbbf24;
+  background: linear-gradient(145deg, #ffe58a, #d88708);
+  color: #fff8dc;
+}
+
+.lbs-panel-art-token--sell {
+  border-color: #fb7185;
+  background: linear-gradient(145deg, #fca5a5, #b91c1c);
+  color: #fff8dc;
+}
+
+.lbs .lbs-panel-art-action {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  display: grid;
+  width: 51px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(251, 191, 36, .55);
+  border-radius: 9px;
+  background: linear-gradient(145deg, rgba(251, 191, 36, .3), rgba(120, 53, 15, .55));
+  color: #fbbf24;
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, .38));
+  transform: rotate(-7deg);
+}
+.lbs .lbs-panel--sell .lbs-panel-art-action {
+  border-color: rgba(248, 113, 113, .58);
+  background: linear-gradient(145deg, rgba(239, 68, 68, .35), rgba(127, 29, 29, .58));
+  color: #fb7185;
+  transform: rotate(7deg);
+}
+.lbs .lbs-panel-art-spark {
+  position: absolute;
+  top: 10px;
+  right: 7px;
+  color: #fbbf24;
+  font-size: 19px;
+}
+.lbs .lbs-panel--sell .lbs-panel-art-spark { color: #fb7185; }
+
+.lbs .lbs-panel-meta {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #cbd5e1;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.lbs .lbs-panel-meta > span {
+  padding: 3px 6px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 999px;
+  background: rgba(2, 6, 12, .35);
+}
+.lbs .lbs-view-all { color: #93c5fd; font-weight: 650; font-size: 9px; }
 .lbs .lbs-view-all:hover { color: #93c5fd; }
 
 .lbs .lbs-refresh {
   flex: none;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
+  width: 21px;
+  height: 21px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 50%;
   background: rgba(255, 255, 255, .06);
   color: var(--lbs-text);
   transition: background .15s;
 }
+.lbs .lbs-refresh svg { width: 12px; height: 12px; }
 .lbs .lbs-refresh:hover { background: rgba(255, 255, 255, .12); }
 .lbs .lbs-refresh:disabled { opacity: .5; cursor: wait; }
 .lbs .lbs-refresh.is-spinning svg { animation: lbs-spin .8s linear infinite; }
@@ -617,7 +813,11 @@
    ═══════════════════════════════════════════════════════════════ */
 .lbs .lbs-scroll {
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: hidden;
+  border: 1px solid var(--lbs-line);
+  border-radius: 10px;
+  background: var(--lbs-panel);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .12);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -645,10 +845,10 @@
     minmax(0, 1.1fr)
     minmax(0, 0.9fr)
     minmax(0, 0.9fr)
-    minmax(0, 0.9fr)
-    minmax(0, 0.6fr)
     minmax(0, 1.2fr)
-    minmax(0, 0.7fr);
+    minmax(0, 0.6fr)
+    minmax(0, 0.7fr)
+    minmax(0, 0.9fr);
   align-items: center;
   column-gap: 6px;
   padding: 8px 12px;
@@ -679,7 +879,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  /* gap: 1px; */
+  font-size: 13px !important;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -687,24 +888,27 @@
 }
 .lbs .lbs-cell--amount { justify-content: center; }
 .lbs .lbs-cell--price  { color: #fff; font-weight: 600; }
-.lbs .lbs-cell--avail  { color: var(--lbs-muted); }
+.lbs .lbs-cell--avail  { color: #fff !important; font-size: 13px;}
 .lbs .lbs-cell--bonus  { flex-direction: column; align-items: center; gap: 0; }
 .lbs .lbs-cell--time   { color: var(--lbs-muted); }
 
 .lbs .lbs-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 8px;
+  /* gap: 1px; */
+  padding: 6px 6px;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 11.5px;
+  font-size: 16px;
   color: #fff;
   max-width: 100%;
   white-space: nowrap;
 }
-.lbs .lbs-pill--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); }
-.lbs .lbs-pill--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+/* .lbs .lbs-pill--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); } */ 
+/* .lbs .lbs-pill--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); } */
+.lbs .lbs-pill--buy  { background: var(--lbs-cyan); color: var(--lbs-panel); } 
+.lbs .lbs-pill--sell { background: var(--lbs-cyan); color: var(--lbs-panel); } 
+.text-dark-icon-color .lbs-currency-mark { color: #0a0e1a !important; }
 
 .lbs .lbs-currency-mark {
   display: inline-flex;
@@ -721,25 +925,29 @@
 
 .lbs-pill .lbs-currency-mark {
   min-width: 15px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
-.lbs .lbs-bonus-pos { color: var(--lbs-green); font-weight: 600; }
-.lbs .lbs-bonus-neg { color: #f87171; font-weight: 600; }
-.lbs .lbs-bonus-pct { color: var(--lbs-muted); font-size: 10.5px; }
+.lbs .lbs-bonus-pos { color: var(--lbs-yellow) !important; font-weight: 600; font-size: 13px;}
+.lbs .lbs-bonus-neg { color: #dc2626 !important; font-weight: 600; font-size: 13px;}
+.lbs .lbs-bonus-pct { color: var(--lbs-muted); font-size: 9px; }
 .lbs .lbs-bonus-value {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 1px;
 }
 .lbs .lbs-bonus-value .lbs-currency-mark {
   min-width: 15px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .lbs .lbs-cell--avail .lbs-currency-mark {
   min-width: 15px;
-  font-size: 13px;
+  font-size: 15px;
+}
+
+.fs-12 {
+  font-size: 12px !important;
 }
 
 .lbs .lbs-cell--methods {
@@ -774,7 +982,7 @@
   justify-content: center;
   gap: 4px;
   height: 28px;
-  padding: 0 10px;
+  padding: 0px 19px;
   border-radius: 6px;
   font-size: 11.5px;
   font-weight: 700;
@@ -782,7 +990,56 @@
   transition: filter .15s;
   max-width: 100%;
 }
-.lbs .lbs-trade-btn--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); }
+
+.animate-ping-button {
+    position: relative;
+    overflow: visible;
+}
+
+.ping-indicator {
+    position: absolute;
+    top: 8px;
+    left: 7px;
+    width: 12px;
+    height: 12px;
+}
+
+.ping-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px solid #029a53;
+    border-radius: 50%;
+    animation: ping-four-side 2s ease-out infinite;
+    z-index: 5;
+}
+
+.ping-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: 2px;
+    left: 2px;
+    background: #13b368;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+@keyframes ping-four-side {
+    0% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* .lbs .lbs-trade-btn--buy  { background: linear-gradient(180deg, #22c55e, #16a34a); }
+.lbs .lbs-trade-btn--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); } */
+
+.lbs .lbs-trade-btn--buy  { background: linear-gradient(180deg, #f3a933, #f7a117); color: #0a0e1a;}
 .lbs .lbs-trade-btn--sell { background: linear-gradient(180deg, #ef4444, #b91c1c); }
 .lbs .lbs-trade-btn:hover { filter: brightness(1.12); }
 
@@ -945,7 +1202,7 @@
   border-top: 0;
   padding-top: 10px;
   padding-bottom: 10px;
-  background: #0f1623;
+  background: #252c39;
   color: #7b8ba3;
   font-size: 11px;
   font-weight: 600;
@@ -991,6 +1248,11 @@
   color: #7b8ba3;
   font-size: 10px;
   font-weight: 600;
+}
+
+.buy-sell-row {
+  margin-top: 8px;
+  border: 0.5px solid #f7a820d4 !important;
 }
 
 .lbs-cell-bonus { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1214,17 +1476,14 @@
   .lbs .lbs-topbar-tabs,
   .lbs .lbs-topbar-right .lbs-topbar-select,
   .lbs .lbs-topbar-refresh {
-    display: none;
+    /* display: none; */
   }
-  .lbs .lbs-topbar {
+  .lbs .lbs-topbar-hide-mobile {
     display: none;
   }
   .lbs .lbs-mobile-market-controls {
-    display: grid;
-    grid-template-columns: minmax(0, .9fr) minmax(0, 2fr);
-    align-items: center;
-    gap: 7px;
-    margin-bottom: 8px;
+    display: block;
+    margin: 0 7px 6px;
   }
   .lbs .lbs-mobile-currency-select {
     display: inline-flex;
@@ -1255,6 +1514,88 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 5px;
     margin: 0;
+  }
+  .lbs .lbs-mobile-filter-bar {
+    display: grid;
+    grid-template-columns: minmax(62px, .8fr) minmax(76px, 1fr) minmax(88px, 1.2fr) 36px;
+    align-items: center;
+    gap: 5px;
+    margin: 0 7px 8px;
+  }
+  .lbs .lbs-mobile-filter-bar .lbs-mobile-currency-select {
+    height: 38px;
+    padding-right: 21px;
+    padding-left: 29px;
+    border-radius: 7px;
+  }
+  .lbs .lbs-mobile-filter-bar .lbs-mobile-currency-select .lbs-topbar-icon {
+    left: 6px;
+    width: 16px;
+    height: 16px;
+  }
+  .lbs .lbs-mobile-filter-bar .lbs-mobile-currency-select .lbs-topbar-icon svg {
+    width: 11px;
+    height: 11px;
+  }
+  .lbs .lbs-mobile-filter-bar .lbs-mobile-currency-select .lbs-topbar-chev {
+    right: 4px;
+  }
+  .lbs .lbs-mobile-filter-bar .lbs-mobile-currency-select .lbs-topbar-select-input {
+    font-size: 10px;
+  }
+  .lbs .lbs-mobile-filter-value {
+    display: flex;
+    min-width: 0;
+    height: 38px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 0 7px;
+    border: 1px solid rgba(148, 163, 184, .17);
+    border-radius: 7px;
+    background: #101722;
+    color: #aab6c8;
+    font-size: 10px;
+    text-align: left;
+  }
+  .lbs .lbs-mobile-filter-value > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lbs .lbs-mobile-filter-value > svg {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    color: #8292aa;
+  }
+  .lbs .lbs-mobile-filter-value.has-value {
+    border-color: rgba(251, 191, 36, .3);
+    color: #fbbf24;
+  }
+  .lbs .lbs-mobile-filter-icon {
+    position: relative;
+    display: grid;
+    width: 36px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid rgba(148, 163, 184, .17);
+    border-radius: 7px;
+    background: #101722;
+    color: #d3dae6;
+    font-size: 13px;
+  }
+  .lbs .lbs-mobile-filter-icon:focus-visible,
+  .lbs .lbs-mobile-filter-value:focus-visible {
+    outline: 2px solid var(--lbs-cyan);
+    outline-offset: 2px;
+  }
+  .lbs .lbs-mobile-filter-icon .lbs-filter-active-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
   }
   .lbs .lbs-mobile-list-tab {
     min-height: 40px;
@@ -1386,7 +1727,7 @@
     width: calc(100% - 14px);
     min-height: 34px;
     justify-content: flex-start;
-    margin: 7px 7px 0;
+    margin: 0 7px;
     padding: 0 10px;
     border-radius: 7px;
     font-size: 11px;
@@ -1426,7 +1767,7 @@
     padding: 7px 8px;
     border: 1px solid var(--lbs-line-2);
     border-radius: 9px;
-    background: var(--lbs-panel);
+    /* background: var(--lbs-panel); */
     color: #aab6c8;
     font-weight: 700;
     transition: background .15s, border-color .15s, color .15s;
@@ -1439,12 +1780,12 @@
     padding: 0 5px;
     border-radius: 999px;
     background: rgba(255, 255, 255, .08);
-    font-size: 11px;
+    font-size: 14px;
   }
   .lbs .lbs-mobile-list-tab--buy.is-active {
-    border-color: rgba(34, 197, 94, .55);
-    background: linear-gradient(135deg, rgba(22, 163, 74, .22), rgba(15, 22, 35, .9));
-    color: #4ade80;
+    border-color: rgba(197, 156, 34, 0.711);
+    background: linear-gradient(135deg, rgba(221, 165, 10, 0.22), rgba(35, 32, 15, 0.9));
+    color: #deb24a;
   }
   .lbs .lbs-mobile-list-tab--sell.is-active {
     border-color: rgba(239, 68, 68, .55);
@@ -1467,31 +1808,63 @@
   }
   .lbs .lbs-panel {
     border-radius: 9px;
+    gap: 7px;
   }
   .lbs .lbs-panel-head {
-    gap: 8px;
-    padding: 9px 10px;
+    min-height: 108px;
+    padding: 12px 10px 10px;
   }
-  .lbs .lbs-panel-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 7px;
+  .lbs .lbs-panel-copy {
+    width: 68%;
+    padding-top: 12px;
   }
   .lbs .lbs-panel-title h3 {
-    font-size: 17px;
+    font-size: 18px;
   }
   .lbs .lbs-panel-title p {
     font-size: 10px;
   }
-  .lbs .lbs-panel-meta {
-    font-size: 10px;
+  .lbs .lbs-panel-benefits {
+    gap: 4px;
+    margin-top: 8px;
   }
+  .lbs .lbs-panel-benefit {
+    min-height: 19px;
+    gap: 4px;
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+  .lbs .lbs-panel-art {
+    right: 8px;
+    width: 28%;
+    height: 76px;
+  }
+  .lbs .lbs-panel-art-action {
+    width: 39px;
+    height: 34px;
+  }
+  .lbs .lbs-panel-art-action svg {
+    width: 24px;
+    height: 24px;
+  }
+  .lbs .lbs-panel-art-token {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+  .lbs .lbs-panel-meta {
+    top: 6px;
+    right: 6px;
+    gap: 5px;
+    font-size: 8px;
+  }
+  .lbs .lbs-panel-meta > span { padding: 3px 5px; }
   .lbs .lbs-view-all {
-    font-size: 10px;
+    font-size: 8px;
   }
   .lbs .lbs-refresh {
-    width: 28px;
-    height: 28px;
+    width: 19px;
+    height: 19px;
   }
   .lbs .lbs-row--head {
     display: none;
@@ -1511,7 +1884,7 @@
     padding: 10px;
     border: 1px solid rgba(148, 163, 184, .17);
     border-radius: 12px;
-    background: linear-gradient(145deg, #151d2a, #101722);
+    /* background: linear-gradient(145deg, #151d2a, #101722); */
     box-shadow: 0 5px 14px rgba(0, 0, 0, .16);
   }
   .lbs .lbs-mobile-offer--buy {
@@ -1582,11 +1955,12 @@
     text-transform: uppercase;
   }
   .lbs .lbs-mobile-online {
-    padding: 4px 6px;
+    padding: 2px 6px;
     border: 1px solid rgba(52, 211, 153, .2);
     border-radius: 999px;
     background: rgba(16, 185, 129, .08);
     color: #6ee7b7;
+    padding-bottom: 0px;
   }
   .lbs .lbs-mobile-online > i {
     width: 6px;
@@ -1645,12 +2019,12 @@
   .lbs .lbs-mobile-amount--sell {
     background: linear-gradient(180deg, #ef4444, #b91c1c);
   }
-  .lbs .lbs-mobile-stat .lbs-bonus-pos {
+  /* .lbs .lbs-mobile-stat .lbs-bonus-pos {
     color: #fbbf24;
   }
   .lbs .lbs-mobile-stat .lbs-bonus-neg {
     color: #fb7185;
-  }
+  } */
   .lbs .lbs-mobile-offer-footer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
@@ -1771,7 +2145,7 @@
   }
   .lbs .lbs-cell--action .lbs-trade-btn {
     width: auto;
-    min-width: 54px;
+    min-width: 58px;
     min-height: 25px;
     padding: 0 8px;
     align-self: center;

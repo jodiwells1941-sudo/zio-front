@@ -231,8 +231,8 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             </div>
           </div>
           <div className="local-trade-actions">
-            <button type="button" onClick={onClose} className="btn--secondary d-flex justify-content-center">Cancel</button>
-            <button type="button" className="btn--primary d-flex justify-content-center" onClick={handleBuy} disabled={submitting}>
+            <button type="button" onClick={onClose} className="btn--secondary fs-6 d-flex justify-content-center">Cancel</button>
+            <button type="button" className="bg-warning w-100 fs-6 text-dark d-flex justify-content-center" onClick={handleBuy} disabled={submitting}>
               {submitting ? 'Processing...' : 'Accept request'}
             </button>
           </div>
