@@ -577,7 +577,6 @@
   border: 1px solid rgba(52, 211, 153, .3);
   color: var(--qbm-green-l);
   font-size: 12px;
-  padding-right: 12px !important;
 }
 .qbm-bd-label {
   font-size: 12.5px;

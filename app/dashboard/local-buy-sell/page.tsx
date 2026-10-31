@@ -173,7 +173,7 @@ function Row({
           </button>
       </div>
       </div>
-      <article className={`lbs-mobile-offer lbs-mobile-offer--${kind}`}>
+      <article className={`bg-navy-blue lbs-mobile-offer lbs-mobile-offer--${kind}`}>
         <header className="lbs-mobile-offer-head">
           <span className="lbs-mobile-avatar" aria-hidden="true">
             <i className={`fa-solid ${isBuy ? 'fa-user' : 'fa-user-tag'}`} />
@@ -260,6 +260,8 @@ function Panel({
   offerTotals,
   onCurrencyChange,
   onSelectKind,
+  amountFilterValue,
+  paymentFilterValue,
 }: {
   kind: Kind;
   b: Bucket;
@@ -276,6 +278,8 @@ function Panel({
   offerTotals: Record<Kind, number>;
   onCurrencyChange: (currency: string) => void;
   onSelectKind: (kind: Kind) => void;
+  amountFilterValue: string;
+  paymentFilterValue: string;
 }) {
   const buy = kind === 'buy';
 
@@ -323,25 +327,6 @@ function Panel({
       </header>
 
       <div className="lbs-mobile-market-controls">
-        <div className="lbs-topbar-select lbs-mobile-currency-select">
-          <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
-              <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
-            </svg>
-          </span>
-          <select
-            className="lbs-topbar-select-input"
-            value={cur}
-            onChange={event => onCurrencyChange(event.target.value)}
-            aria-label="Select currency"
-          >
-            <option value="">Currency</option>
-            {CURRENCIES.map(currency => (
-              <option key={currency.code} value={currency.code}>{currency.code}</option>
-            ))}
-          </select>
-          <span className="lbs-topbar-chev"><Chevron /></span>
-        </div>
         <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
           {(['buy', 'sell'] as const).map(listKind => {
             const isSelected = mobileActive === (kind === listKind);
@@ -353,7 +338,7 @@ function Panel({
                 id={`lbs-mobile-tab-${listKind}`}
                 aria-selected={isSelected}
                 aria-controls={`lbs-panel-${listKind}`}
-                className={`lbs-mobile-list-tab lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
+                className={`lbs-mobile-list-tab bg-dark lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
                 onClick={() => onSelectKind(listKind)}
               >
                 {listKind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
@@ -365,18 +350,61 @@ function Panel({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="lbs-mobile-filter-trigger"
-        aria-haspopup="dialog"
-        aria-expanded={filtersOpen}
-        aria-controls="lbs-filter-controls"
-        onClick={onOpenFilters}
-      >
-        <i className="fa-solid fa-sliders" aria-hidden="true" />
-        Filters
-        {hasActiveFilters && <span className="lbs-filter-active-dot" aria-label="Filters active" />}
-      </button>
+      <div className="lbs-mobile-filter-bar" aria-label="Offer filters">
+        <div className="lbs-topbar-select lbs-mobile-currency-select bg-dark">
+          <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
+              <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
+            </svg>
+          </span>
+          <select
+            className="lbs-topbar-select-input bg-dark"
+            value={cur}
+            onChange={event => onCurrencyChange(event.target.value)}
+            aria-label="Select currency"
+          >
+            <option value="">Currency</option>
+            {CURRENCIES.map(currency => (
+              <option key={currency.code} value={currency.code}>{currency.code}</option>
+            ))}
+          </select>
+          <span className="lbs-topbar-chev"><Chevron /></span>
+        </div>
+        <button
+          type="button"
+          className={`bg-dark lbs-mobile-filter-value${amountFilterValue ? ' has-value' : ''}`}
+          aria-haspopup="dialog"
+          aria-expanded={filtersOpen}
+          aria-controls="lbs-filter-controls"
+          onClick={onOpenFilters}
+        >
+          <span>{amountFilterValue || 'Amount'}</span>
+          <Chevron />
+        </button>
+        <button
+          type="button"
+          className={`bg-dark lbs-mobile-filter-value${paymentFilterValue ? ' has-value' : ''}`}
+          aria-haspopup="dialog"
+          aria-expanded={filtersOpen}
+          aria-controls="lbs-filter-controls"
+          onClick={onOpenFilters}
+        >
+          <span>{paymentFilterValue || 'Payment'}</span>
+          <Chevron />
+        </button>
+        <button
+          type="button"
+          className="bg-dark lbs-mobile-filter-icon"
+          aria-label="Open filters"
+          aria-haspopup="dialog"
+          aria-expanded={filtersOpen}
+          aria-controls="lbs-filter-controls"
+          onClick={onOpenFilters}
+        >
+          <i className="fa-solid fa-filter" aria-hidden="true" />
+          {hasActiveFilters && <span className="lbs-filter-active-dot" aria-label="Filters active" />}
+        </button>
+      </div>
 
       <div className="lbs-scroll">
         <div className="lbs-table bg-dark">
@@ -916,14 +944,14 @@ export default function Page() {
 
       {/* ═════════ TOP BAR ═════════ */}
       <section className="lbs-topbar">
-        <div className="lbs-topbar-tabs bg-dark">
+        <div className="lbs-topbar-tabs bg-dark gap-2">
           <button
             type="button"
             onClick={() => setQuickBuyOpen(true)}
-            className="lbs-topbar-tab lbs-topbar-tab--buy is-active"
+            className="lbs-topbar-tab lbs-topbar-tab--buy"
           >
             <CartIcon size={18} />
-            <span>Buy USD</span>
+            <span>Buy Request</span>
           </button>
           <button
             type="button"
@@ -931,7 +959,7 @@ export default function Page() {
             onClick={() => setQuickSellOpen(true)}
           >
             <DownloadIcon size={18} />
-            <span>Sell USD</span>
+            <span>Sell Request</span>
           </button>
         </div>
 
@@ -1103,6 +1131,10 @@ export default function Page() {
                     setSortBy('all');
                     setMobileActiveKind(selectedKind);
                   }}
+                  amountFilterValue={amt.min
+                    ? `${Number(amt.min).toLocaleString('en-US', { maximumFractionDigits: 2 })} ${filterFiat}`
+                    : ''}
+                  paymentFilterValue={filterMethod}
                 />
               ))}
           </div>
