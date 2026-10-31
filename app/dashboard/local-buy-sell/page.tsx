@@ -10,7 +10,7 @@ import LocalBuyModal from './localBuyModal';
 import LocalSellModal from './localSellModal';
 import RecentRequestsCard from './RecentRequestsCard';
 import './localBuySell.css';
-import Link from 'next/link';
+// import Link from 'next/link';
 import QuickBuyModal from './create-ad/QuickBuyModal';
 import QuickSellModal from './create-ad/QuickSellModal';
 import PaymentMethodIcon from './PaymentMethodIcon';
@@ -128,7 +128,9 @@ function Row({
       <div className="lbs-row bg-navy-blue border-warning rounded-3 mx-1 lbs-desktop-offer-row buy-sell-row">
         <div className="lbs-cell lbs-cell--amount" data-label={`Amount ${currency}`}>
           <span className={`lbs-pill lbs-pill--${kind}`}>
-            <CurrencyMark currency={currency} />
+            <div className="text-dark-icon-color">
+              <CurrencyMark currency={currency} />
+            </div>
             {n2(ad.fixed_price * ad.total_amount, 0)}
           </span>
         </div>
@@ -138,27 +140,38 @@ function Row({
         </div>
         <div className="lbs-cell lbs-cell--avail" data-label="USD Amount">
           <CurrencyMark currency="USD" />
-          {n2(ad.total_amount)}
+          <b>{n2(ad.total_amount)}</b>
         </div>
         <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USD)`}>
           <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
-            <CurrencyMark currency="USD" />
             <span className={`${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
-              {isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}
+              {isBuy ? '+' : '-'} <span className={`' fs-12 fw-bold' ${isBuy ? 'text-warning' : 'lbs-bonus-neg'}`}>$</span>{n2(Math.abs(bonusFee), 2)} <small className="lbs-bonus-pct text-reset">({n2(pct, 0)}%)</small>
             </span>
           </span>
-          <small className="lbs-bonus-pct text-reset">({n2(pct, 2)}%)</small>
         </div>
-        <div className="lbs-cell lbs-cell--time text-danger" data-label="Time (Min)">{ad.payment_time_limit} M</div>
+        <div className="lbs-cell lbs-cell--time text-white fw-bold text-lowercase" data-label="Tibe185dme (Min)">{ad.payment_time_limit}{'m'}</div>
         <div className="lbs-cell lbs-cell--methods mx-auto" data-label="Payment Method">
           <PaymentMethodIcon methodName={method} iconImage={iconImage} size={30} className="lbs-mico" />
           {/* <span className="lbs-method-name" title={method}>{method}</span> */}
         </div>
-        <div className="lbs-cell lbs-cell--action" data-label="Action">
-          <button type="button" className={`fs-10 lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
+        {/* <div className="lbs-cell lbs-cell--action" data-label="Action">
+          <button type="button" className={`lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
             {kind === 'buy' ? 'Buy Now' : 'Sell Now'}
           </button>
-        </div>
+        </div> */}
+        <div className="lbs-cell lbs-cell--action w-100" data-label="Action">
+          <button
+              type="button"
+              className={`lbs-trade-btn animate-ping-button w-100 lbs-trade-btn--${kind}`}
+              onClick={() => onTrade(ad, kind)}
+          >
+              {kind === 'buy' ? 'Buy' : 'Sell'}
+              <span className="ping-indicator">
+                <span className="ping-ring"></span>
+                <span className="ping-dot"></span>
+              </span>
+          </button>
+      </div>
       </div>
       <article className={`lbs-mobile-offer lbs-mobile-offer--${kind}`}>
         <header className="lbs-mobile-offer-head">
@@ -277,8 +290,8 @@ function Panel({
           </div>
         </div>
         <div className="lbs-panel-art" aria-hidden="true">
-          <span className="lbs-panel-art-coin">$</span>
-          <span className="lbs-panel-art-token">$</span>
+          <span className={`lbs-panel-art-coin lbs-panel-art-coin--${buy ? 'buy' : 'sell'}`}>$</span>
+          <span className={`lbs-panel-art-token lbs-panel-art-token--${buy ? 'buy' : 'sell'}`}>$</span>
           <span className="lbs-panel-art-action">
             {buy ? <CartIcon size={29} /> : <svg viewBox="0 0 32 32" width="31" height="31" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 25 14 16l6 5L28 9" /><path d="M19 9h9v9" /></svg>}
           </span>
