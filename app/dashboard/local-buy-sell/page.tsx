@@ -179,8 +179,8 @@ function Row({
             <i className={`fa-solid ${isBuy ? 'fa-user' : 'fa-user-tag'}`} />
           </span>
           <div className="lbs-mobile-creator" aria-label="Demo profile details">
-            <div className="">
-              <h2>
+            <div>
+              <h2 className='fs-4'>
                 <strong>
                   <CurrencyMark currency={currency} />
                   {n2(ad.fixed_price * ad.total_amount, 0)}
@@ -192,10 +192,13 @@ function Row({
               </span>
             </div>
 
-            <span className="lbs-mobile-online">
-              <i aria-hidden="true" />
-              Online
-            </span>
+            <div>
+              <span className="lbs-mobile-online me-1">
+                <i aria-hidden="true" />
+                Online
+              </span>
+              <span className="lbs-panel-benefit lbs-panel-benefit--blue rounded-5 py-1"><i className="fa-solid fa-shield-halved" aria-hidden="true" />Verified</span>
+            </div>
           </div>
         </header>
         <div className="lbs-mobile-offer-stats">
@@ -254,6 +257,9 @@ function Panel({
   hasActiveFilters,
   sentinelRef,
   mobileActive,
+  offerTotals,
+  onCurrencyChange,
+  onSelectKind,
 }: {
   kind: Kind;
   b: Bucket;
@@ -267,6 +273,9 @@ function Panel({
   hasActiveFilters: boolean;
   sentinelRef?: (el: HTMLDivElement | null) => void;
   mobileActive: boolean;
+  offerTotals: Record<Kind, number>;
+  onCurrencyChange: (currency: string) => void;
+  onSelectKind: (kind: Kind) => void;
 }) {
   const buy = kind === 'buy';
 
@@ -286,7 +295,7 @@ function Panel({
             )}
             <span className="lbs-panel-benefit lbs-panel-benefit--gold"><i className="fa-solid fa-bolt" aria-hidden="true" />Instant</span>
             <span className="lbs-panel-benefit lbs-panel-benefit--blue"><i className="fa-solid fa-shield-halved" aria-hidden="true" />Verified</span>
-            <span className="lbs-panel-benefit lbs-panel-benefit--green fs-6 py-2"><i className="fa-solid fa-users fs-6" aria-hidden="true" /><span className='text-warning'>{b.total}</span> Offers</span>
+            <span className="lbs-panel-benefit lbs-panel-benefit--green fs-6 py-2 d-none d-md-block"><i className="fa-solid fa-users fs-6" aria-hidden="true" /><span className='text-warning'>{b.total}</span> Offers</span>
           </div>
         </div>
         <div className="lbs-panel-art" aria-hidden="true">
@@ -298,7 +307,8 @@ function Panel({
           <span className="lbs-panel-art-spark">✦</span>
         </div>
         <div className="lbs-panel-meta">
-          {/* <Link href="/dashboard/local-buy-sell/my-orders" className="lbs-view-all">View All <span aria-hidden="true">→</span></Link> */}
+          <span className="lbs-panel-benefit lbs-panel-benefit--green d-md-none"><i className="fa-solid fa-users" aria-hidden="true" /><span className='text-warning'>{b.total}</span> Offers</span>
+
           <b>Refresh</b>
           <button
             type="button"
@@ -311,6 +321,49 @@ function Panel({
           </button>
         </div>
       </header>
+
+      <div className="lbs-mobile-market-controls">
+        <div className="lbs-topbar-select lbs-mobile-currency-select">
+          <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
+              <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
+            </svg>
+          </span>
+          <select
+            className="lbs-topbar-select-input"
+            value={cur}
+            onChange={event => onCurrencyChange(event.target.value)}
+            aria-label="Select currency"
+          >
+            <option value="">Currency</option>
+            {CURRENCIES.map(currency => (
+              <option key={currency.code} value={currency.code}>{currency.code}</option>
+            ))}
+          </select>
+          <span className="lbs-topbar-chev"><Chevron /></span>
+        </div>
+        <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
+          {(['buy', 'sell'] as const).map(listKind => {
+            const isSelected = mobileActive === (kind === listKind);
+            return (
+              <button
+                key={listKind}
+                type="button"
+                role="tab"
+                id={`lbs-mobile-tab-${listKind}`}
+                aria-selected={isSelected}
+                aria-controls={`lbs-panel-${listKind}`}
+                className={`lbs-mobile-list-tab lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
+                onClick={() => onSelectKind(listKind)}
+              >
+                {listKind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
+                <span className="lbs-mobile-tab-label">{listKind === 'buy' ? 'Buy List' : 'Sell List'}</span>
+                <span className="lbs-mobile-tab-count">{offerTotals[listKind]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <button
         type="button"
@@ -882,7 +935,7 @@ export default function Page() {
           </button>
         </div>
 
-        <div className="lbs-topbar-right">
+        <div className="lbs-topbar-right lbs-topbar-hide-mobile">
           <div className="lbs-topbar-select bg-dark">
             <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff">
@@ -925,49 +978,6 @@ export default function Page() {
           </button>
         </div>
       </section>
-
-      <div className="lbs-mobile-market-controls">
-        <div className="lbs-topbar-select lbs-mobile-currency-select">
-          <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
-              <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
-            </svg>
-          </span>
-          <select
-            className="lbs-topbar-select-input"
-            value={filterFiat}
-            onChange={event => handleChange(event.target.value)}
-            aria-label="Select currency"
-          >
-            <option value="">Currency</option>
-            {CURRENCIES.map(currency => (
-              <option key={currency.code} value={currency.code}>{currency.code}</option>
-            ))}
-          </select>
-          <span className="lbs-topbar-chev"><Chevron /></span>
-        </div>
-        <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
-          {(['buy', 'sell'] as const).map(kind => (
-            <button
-              key={kind}
-              type="button"
-              role="tab"
-              id={`lbs-mobile-tab-${kind}`}
-              aria-selected={mobileActiveKind === kind}
-              aria-controls={filterFiat ? `lbs-panel-${kind}` : undefined}
-              className={`lbs-mobile-list-tab lbs-mobile-list-tab--${kind}${mobileActiveKind === kind ? ' is-active' : ''}`}
-              onClick={() => {
-                setSortBy('all');
-                setMobileActiveKind(kind);
-              }}
-            >
-              {kind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
-              <span className="lbs-mobile-tab-label">{kind === 'buy' ? 'Buy List' : 'Sell List'}</span>
-              <span className="lbs-mobile-tab-count">{data[kind].total}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* ═════════ FILTER ROW ═════════ */}
       {mobileFiltersOpen && (
@@ -1087,6 +1097,12 @@ export default function Page() {
                   hasActiveFilters={Boolean(filterMethod || amt.min)}
                   sentinelRef={el => { sentinelRef.current[kind] = el; }}
                   mobileActive={mobileActiveKind === kind}
+                  offerTotals={{ buy: data.buy.total, sell: data.sell.total }}
+                  onCurrencyChange={handleChange}
+                  onSelectKind={selectedKind => {
+                    setSortBy('all');
+                    setMobileActiveKind(selectedKind);
+                  }}
                 />
               ))}
           </div>

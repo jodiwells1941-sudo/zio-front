@@ -5,20 +5,20 @@
 
 /* ── Palette ─────────────────────────────────────────────────── */
 .qbm-overlay {
-  --qbm-bg:          #0a1512;
-  --qbm-bg-2:        #0f1f1a;
-  --qbm-surface:     #12261e;
-  --qbm-surface-2:   #0d1c17;
-  --qbm-line:        rgba(52, 211, 153, .18);
-  --qbm-line-2:      rgba(52, 211, 153, .35);
-  --qbm-green:       #10b981;
-  --qbm-green-2:     #059669;
-  --qbm-green-l:     #34d399;
-  --qbm-mint:        #6ee7b7;
-  --qbm-cyan:        #22d3ee;
-  --qbm-text:        #ecfdf5;
-  --qbm-muted:       #7ea99a;
-  --qbm-muted-2:     #587a6d;
+  --qbm-bg:          #15120a;
+  --qbm-bg-2:        #211a0d;
+  --qbm-surface:     #2a2110;
+  --qbm-surface-2:   #20190b;
+  --qbm-line:        rgba(251, 191, 36, .18);
+  --qbm-line-2:      rgba(251, 191, 36, .35);
+  --qbm-green:       #f59e0b;
+  --qbm-green-2:     #d97706;
+  --qbm-green-l:     #fbbf24;
+  --qbm-mint:        #fde68a;
+  --qbm-cyan:        #fbbf24;
+  --qbm-text:        #fffbeb;
+  --qbm-muted:       #b7a16e;
+  --qbm-muted-2:     #827044;
 
   position: fixed;
   inset: 0;
@@ -1298,4 +1298,179 @@
     min-height: 30px;
     padding: 6px 0;
   }
+}
+
+/* Keep the buy-request modal accents consistently yellow. */
+.qbm-overlay .qbm-modal {
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(251, 191, 36, .09), transparent 60%),
+    linear-gradient(180deg, #1c180e 0%, #0c0a06 100%);
+  border-color: rgba(251, 191, 36, .35);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, .75),
+    0 0 0 1px rgba(251, 191, 36, .06) inset,
+    0 1px 0 rgba(255, 255, 255, .04) inset;
+}
+
+.qbm-overlay .qbm-head {
+  background: linear-gradient(180deg, rgba(251, 191, 36, .07), transparent);
+}
+
+.qbm-overlay .qbm-head-icon,
+.qbm-overlay .qbm-amount-icon {
+  border-color: rgba(251, 191, 36, .45);
+  background: linear-gradient(135deg, #382a0d, #21190a);
+  color: #fbbf24;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, .2), 0 0 0 1px rgba(251, 191, 36, .12) inset;
+}
+
+.qbm-overlay .qbm-head-plus {
+  background: linear-gradient(135deg, #fcd34d, #f59e0b);
+  color: #211500;
+  box-shadow: 0 0 0 3px #1c180e, 0 4px 10px rgba(251, 191, 36, .42);
+}
+
+.qbm-overlay .qbm-step.is-active,
+.qbm-overlay .qbm-step.is-done,
+.qbm-overlay .qbm-summary-title,
+.qbm-overlay .qbm-summary-row--total b,
+.qbm-overlay .qbm-label i,
+.qbm-overlay .qbm-bd-value--green,
+.qbm-overlay .qbm-bd-value--price {
+  color: #fbbf24 !important;
+}
+
+.qbm-overlay .qbm-step.is-active span,
+.qbm-overlay .qbm-step.is-done span {
+  border-color: #fbbf24;
+  background: linear-gradient(180deg, #fcd34d, #f59e0b);
+  color: #211500;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, .16);
+}
+
+.qbm-overlay .qbm-step-line {
+  background: linear-gradient(90deg, rgba(251, 191, 36, .45), rgba(251, 191, 36, .08));
+}
+
+.qbm-overlay .qbm-sel__control--is-focused {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, .18) !important;
+}
+
+.qbm-overlay .qbm-sel__option--is-focused {
+  background: rgba(251, 191, 36, .16) !important;
+}
+
+.qbm-overlay .qbm-sel__option--is-selected {
+  background: rgba(251, 191, 36, .3) !important;
+  color: #fde68a !important;
+}
+
+.qbm-overlay .qbm-amount:focus-within,
+.qbm-overlay .qbm-textarea:focus,
+.qbm-overlay .qbm-select:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, .18);
+}
+
+.qbm-overlay .qbm-chip.is-active,
+.qbm-overlay .qbm-method.is-active {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, .14);
+  color: #fde68a;
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, .3) inset, 0 4px 12px rgba(245, 158, 11, .12);
+}
+
+.qbm-overlay .qbm-method-check {
+  color: #fbbf24;
+  background: #1c180e;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, .5));
+}
+
+.qbm-overlay .qbm-deposit-bonus {
+  border-color: rgba(251, 191, 36, .24);
+  background: rgba(251, 191, 36, .07);
+}
+
+.qbm-overlay .qbm-deposit-bonus-icon {
+  background: rgba(251, 191, 36, .12);
+  color: #fbbf24;
+}
+
+.qbm-overlay .qbm-deposit-bonus-amount {
+  color: #fbbf24;
+}
+
+.qbm-overlay .qbm-bd-ico {
+  border-color: rgba(251, 191, 36, .3);
+  background: rgba(251, 191, 36, .1);
+  color: #fbbf24;
+}
+
+.qbm-overlay .qbm-bd-label,
+.qbm-overlay .qbm-summary-row {
+  color: #d6c9a8;
+}
+
+.qbm-overlay .qbm-bd-value--price {
+  text-shadow: 0 0 16px rgba(251, 191, 36, .3);
+}
+
+.qbm-overlay .qbm-total,
+.qbm-overlay .qbm-total--hero {
+  border-color: rgba(251, 191, 36, .58);
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(251, 191, 36, .24), transparent 64%),
+    linear-gradient(100deg, #4a350b 0%, #322408 100%);
+  box-shadow: 0 10px 28px rgba(245, 158, 11, .18), 0 1px 0 rgba(255, 255, 255, .08) inset;
+}
+
+.qbm-overlay .qbm-total-left {
+  color: #fff3cc;
+}
+
+.qbm-overlay .qbm-total-icon {
+  background: linear-gradient(135deg, #fcd34d, #d97706);
+  color: #211500;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, .35);
+}
+
+.qbm-overlay .qbm-total-value {
+  text-shadow: 0 0 24px rgba(251, 191, 36, .4);
+}
+
+.qbm-overlay .qbm-next,
+.qbm-modal .qbm-next {
+  border-color: rgba(251, 191, 36, .6) !important;
+  background: linear-gradient(180deg, #fcd34d 0%, #f59e0b 100%) !important;
+  color: #211500 !important;
+  box-shadow: 0 10px 26px rgba(245, 158, 11, .32), 0 1px 0 rgba(255, 255, 255, .25) inset !important;
+}
+
+.qbm-overlay .qbm-next:hover,
+.qbm-modal .qbm-next:hover {
+  box-shadow: 0 14px 32px rgba(245, 158, 11, .4), 0 1px 0 rgba(255, 255, 255, .25) inset !important;
+}
+
+.qbm-overlay .qbm-back {
+  border-color: rgba(251, 191, 36, .35) !important;
+  color: #e7d6a8 !important;
+}
+
+.qbm-overlay .qbm-back:hover {
+  border-color: #fbbf24 !important;
+  background: rgba(251, 191, 36, .1) !important;
+  color: #fbbf24 !important;
+}
+
+.qbm-overlay .qbm-body {
+  scrollbar-color: rgba(251, 191, 36, .35) transparent;
+}
+
+.qbm-overlay .qbm-body::-webkit-scrollbar-thumb {
+  background: rgba(251, 191, 36, .3);
+}
+
+.qbm-overlay .qbm-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 191, 36, .5);
 }

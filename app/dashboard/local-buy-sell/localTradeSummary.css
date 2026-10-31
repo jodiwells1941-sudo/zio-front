@@ -16,9 +16,9 @@
 }
 
 .local-trade-overlay--green {
-  --trade-accent: #34d399;
-  --trade-accent-border: rgba(52, 211, 153, .38);
-  --trade-muted: #a8c9bb;
+  --trade-accent: #fbbf24;
+  --trade-accent-border: rgba(251, 191, 36, .38);
+  --trade-muted: #d6c9a8;
 }
 
 .local-trade-modal {
@@ -197,10 +197,10 @@
 
 .local-trade-overlay--green .local-trade-actions .btn--primary,
 .local-trade-overlay--green .local-trade-sell-button {
-  border-color: rgba(52, 211, 153, .5);
-  background: linear-gradient(135deg, #34d399, #10b981);
-  color: #06251b;
-  box-shadow: 0 5px 14px rgba(16, 185, 129, .2);
+  border-color: rgba(251, 191, 36, .6);
+  background: linear-gradient(135deg, #fcd34d, #fbbf24);
+  color: #211500;
+  box-shadow: 0 5px 14px rgba(245, 158, 11, .22);
 }
 
 .local-trade-actions .btn--primary:hover:not(:disabled),
@@ -211,7 +211,7 @@
 }
 
 .local-trade-overlay--green .local-trade-actions .btn--primary:hover:not(:disabled) {
-  box-shadow: 0 7px 18px rgba(16, 185, 129, .32);
+  box-shadow: 0 7px 18px rgba(245, 158, 11, .34);
 }
 
 .local-trade-actions button:focus-visible {
@@ -257,12 +257,16 @@
 }
 
 .local-trade-overlay--green {
-  --trade-accent: #19d39a;
-  --trade-accent-bright: #25e1a6;
-  --trade-border: rgba(25, 211, 154, .28);
-  --trade-surface: #0d201a;
-  --trade-surface-soft: #102820;
-  --trade-glow: rgba(25, 211, 154, .2);
+  --trade-accent: #fbbf24;
+  --trade-accent-bright: #fcd34d;
+  --trade-border: rgba(251, 191, 36, .3);
+  --trade-surface: #211a0d;
+  --trade-surface-soft: #2a2110;
+  --trade-glow: rgba(251, 191, 36, .2);
+}
+
+.local-trade-overlay--green .local-trade-head-copy p {
+  color: rgba(245, 230, 190, .64);
 }
 
 .local-trade-overlay--red {
@@ -819,6 +823,17 @@
   background: linear-gradient(105deg, #ff8490, #eb5363);
   color: #31080d;
   box-shadow: 0 7px 18px rgba(239, 68, 68, .2);
+}
+
+.local-trade-overlay--green .local-trade-actions .btn--primary {
+  border-color: rgba(251, 191, 36, .6);
+  background: linear-gradient(105deg, #fcd34d, #fbbf24);
+  color: #211500;
+  box-shadow: 0 7px 18px rgba(245, 158, 11, .22);
+}
+
+.local-trade-overlay--green .local-trade-actions .btn--primary:hover:not(:disabled) {
+  box-shadow: 0 9px 22px rgba(245, 158, 11, .34);
 }
 
 .local-trade-actions button:hover:not(:disabled) {
