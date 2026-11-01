@@ -84,7 +84,9 @@ const Flag = ({ cc, size = 20 }: { cc: string; size?: number }) => (
   <img className="lbs-flag" src={`https://flagcdn.com/w40/${cc.toLowerCase()}.png`} srcSet={`https://flagcdn.com/w80/${cc.toLowerCase()}.png 2x`} width={size} height={size} alt="" loading="lazy" />
 );
 const Chevron = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 9h12l-6 7z" />
+</svg>
 );
 const CartIcon = ({ size = 22 }: { size?: number }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H6" /></svg>
@@ -326,7 +328,7 @@ function Panel({
         </div>
       </header>
 
-      <div className="lbs-mobile-market-controls">
+      <div className="lbs-mobile-market-controls mb-0">
         <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
           {(['buy', 'sell'] as const).map(listKind => {
             const isSelected = mobileActive === (kind === listKind);
@@ -351,14 +353,14 @@ function Panel({
       </div>
 
       <div className="lbs-mobile-filter-bar" aria-label="Offer filters">
-        <div className="lbs-topbar-select lbs-mobile-currency-select bg-dark">
+        <div className="lbs-topbar-select lbs-mobile-currency-select bg-transparent border-0">
           <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
               <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
             </svg>
           </span>
           <select
-            className="lbs-topbar-select-input bg-dark"
+            className="lbs-topbar-select-input bg-transparent w-0"
             value={cur}
             onChange={event => onCurrencyChange(event.target.value)}
             aria-label="Select currency"
@@ -372,37 +374,25 @@ function Panel({
         </div>
         <button
           type="button"
-          className={`bg-dark lbs-mobile-filter-value${amountFilterValue ? ' has-value' : ''}`}
+          className={`bg-transparent border-0 fw-bold lbs-mobile-filter-value${amountFilterValue ? ' has-value' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={filtersOpen}
           aria-controls="lbs-filter-controls"
           onClick={onOpenFilters}
         >
           <span>{amountFilterValue || 'Amount'}</span>
-          <Chevron />
+          <span className='fs-6'><Chevron /></span>
         </button>
         <button
           type="button"
-          className={`bg-dark lbs-mobile-filter-value${paymentFilterValue ? ' has-value' : ''}`}
+          className={`bg-transparent border-0 fw-bold lbs-mobile-filter-value${paymentFilterValue ? ' has-value' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={filtersOpen}
           aria-controls="lbs-filter-controls"
           onClick={onOpenFilters}
         >
           <span>{paymentFilterValue || 'Payment'}</span>
-          <Chevron />
-        </button>
-        <button
-          type="button"
-          className="bg-dark lbs-mobile-filter-icon"
-          aria-label="Open filters"
-          aria-haspopup="dialog"
-          aria-expanded={filtersOpen}
-          aria-controls="lbs-filter-controls"
-          onClick={onOpenFilters}
-        >
-          <i className="fa-solid fa-filter" aria-hidden="true" />
-          {hasActiveFilters && <span className="lbs-filter-active-dot" aria-label="Filters active" />}
+          <span className='fs-6'><Chevron /></span>
         </button>
       </div>
 
@@ -1054,7 +1044,7 @@ export default function Page() {
           <label className="lbs-label">Payment Method</label>
           <div className="lbs-selwrap">
             <span className="lbs-sel-icon lbs-sel-icon--bank">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="#000">
                 <path d="M12 2 2 8v2h20V8L12 2zM4 12v6h3v-6H4zm6 0v6h4v-6h-4zm7 0v6h3v-6h-3zM2 20h20v2H2v-2z" />
               </svg>
             </span>
