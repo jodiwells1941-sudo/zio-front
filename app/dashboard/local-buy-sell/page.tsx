@@ -328,8 +328,12 @@ function Panel({
         </div>
       </header>
 
-      <div className="lbs-mobile-market-controls mb-0">
-        <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
+      <div className="lbs-mobile-market-controls mb-0 mt-2">
+        <div
+          className={`lbs-mobile-list-tabs${mobileActive ? ' is-buy-active' : ' is-sell-active'}`}
+          role="tablist"
+          aria-label="Buy and sell offers"
+        >
           {(['buy', 'sell'] as const).map(listKind => {
             const isSelected = mobileActive === (kind === listKind);
             return (
@@ -340,7 +344,7 @@ function Panel({
                 id={`lbs-mobile-tab-${listKind}`}
                 aria-selected={isSelected}
                 aria-controls={`lbs-panel-${listKind}`}
-                className={`lbs-mobile-list-tab bg-dark lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
+                className={`lbs-mobile-list-tab lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
                 onClick={() => onSelectKind(listKind)}
               >
                 {listKind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
@@ -395,6 +399,7 @@ function Panel({
           <span className='fs-6'><Chevron /></span>
         </button>
       </div>
+      <span className='border-span'></span>
 
       <div className="lbs-scroll">
         <div className="lbs-table bg-dark">
@@ -485,6 +490,7 @@ export default function Page() {
   /* ── Modals ── */
   const [quickBuyOpen, setQuickBuyOpen] = useState(false);
   const [quickSellOpen, setQuickSellOpen] = useState(false);
+  const [activeRequestKind, setActiveRequestKind] = useState<Kind>('buy');
 
   const countryOptions = useMemo(() => countryList().getData() as Option[], []);
 
@@ -934,19 +940,25 @@ export default function Page() {
 
       {/* ═════════ TOP BAR ═════════ */}
       <section className="lbs-topbar">
-        <div className="lbs-topbar-tabs bg-dark gap-2">
+        <div className={`lbs-topbar-tabs${activeRequestKind === 'buy' ? ' is-buy-request-active' : ' is-sell-request-active'}`}>
           <button
             type="button"
-            onClick={() => setQuickBuyOpen(true)}
-            className="lbs-topbar-tab lbs-topbar-tab--buy"
+            onClick={() => {
+              setActiveRequestKind('buy');
+              setQuickBuyOpen(true);
+            }}
+            className={`lbs-topbar-tab lbs-topbar-tab--buy${activeRequestKind === 'buy' ? ' is-active' : ''}`}
           >
             <CartIcon size={18} />
             <span>Buy Request</span>
           </button>
           <button
             type="button"
-            className="lbs-topbar-tab lbs-topbar-tab--sell"
-            onClick={() => setQuickSellOpen(true)}
+            className={`lbs-topbar-tab lbs-topbar-tab--sell${activeRequestKind === 'sell' ? ' is-active' : ''}`}
+            onClick={() => {
+              setActiveRequestKind('sell');
+              setQuickSellOpen(true);
+            }}
           >
             <DownloadIcon size={18} />
             <span>Sell Request</span>
