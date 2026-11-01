@@ -602,11 +602,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <label className="qsm-label">
                   <i className="fa-solid fa-credit-card" /> Payment Method
                 </label>
-                <div className="qsm-methods">
-                  {loadingMethods && <div className="qsm-muted">Loading payment methods…</div>}
+                <p className="qbm-payment-hint">Choose how you would like to pay.</p>
+                <div className="qbm-payment-methods">
+                  {loadingMethods && <div className="qbm-payment-message">Loading payment methods…</div>}
 
                   {!loadingMethods && selectedPaymentCurrency && currencyMethods.length === 0 && (
-                    <div className="qsm-muted">No saved payment methods for {fiat}. Add one to continue.</div>
+                    <div className="qbm-payment-message">No saved payment methods for {fiat}. Add one to continue.</div>
                   )}
 
                   {currencyMethods.map(method => {
@@ -615,11 +616,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                       <button
                         key={method.id}
                         type="button"
-                        className={`qsm-method ${active ? 'is-active' : ''}`}
+                        className={`qbm-payment-method ${active ? 'is-active' : ''}`}
+                        aria-pressed={active}
                         onClick={() => setMethodId(method.id)}
                       >
                         <PaymentMethodIcon
-                          className="qsm-method-icon"
+                          className="qbm-payment-method-icon"
                           methodName={method.method_name}
                           iconImage={
                             method.icon_url ??
@@ -630,9 +632,9 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                           size={36}
                           fallbackMode="brand"
                         />
-                        <span className="qsm-method-name">{method.method_name || '—'}</span>
+                        <span className="qbm-payment-method-name">{method.method_name || '—'}</span>
                         {active && (
-                          <span className="qsm-method-check">
+                          <span className="qbm-payment-method-check" aria-label="Selected">
                             <i className="fa-solid fa-circle-check" />
                           </span>
                         )}

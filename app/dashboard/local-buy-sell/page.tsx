@@ -46,6 +46,7 @@ const LS_COUNTRY_KEY = 'lbs_filter_country';
 type Option = { label: string; value: string };
 type Kind = 'buy' | 'sell';
 type OfferView = Kind | 'all';
+type MobileFilterSection = 'amount' | 'payment';
 const API_TYPE: Record<Kind, 'buy' | 'sell'> = { buy: 'sell', sell: 'buy' };
 
 type Bucket = {
@@ -84,7 +85,9 @@ const Flag = ({ cc, size = 20 }: { cc: string; size?: number }) => (
   <img className="lbs-flag" src={`https://flagcdn.com/w40/${cc.toLowerCase()}.png`} srcSet={`https://flagcdn.com/w80/${cc.toLowerCase()}.png 2x`} width={size} height={size} alt="" loading="lazy" />
 );
 const Chevron = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 9h12l-6 7z" />
+</svg>
 );
 const CartIcon = ({ size = 22 }: { size?: number }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H6" /></svg>
@@ -270,7 +273,7 @@ function Panel({
   feePercent: number;
   onRefresh: () => void;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
-  onOpenFilters: () => void;
+  onOpenFilters: (section: MobileFilterSection) => void;
   filtersOpen: boolean;
   hasActiveFilters: boolean;
   sentinelRef?: (el: HTMLDivElement | null) => void;
@@ -326,8 +329,12 @@ function Panel({
         </div>
       </header>
 
-      <div className="lbs-mobile-market-controls">
-        <div className="lbs-mobile-list-tabs" role="tablist" aria-label="Buy and sell offers">
+      <div className="lbs-mobile-market-controls mb-0 mt-2">
+        <div
+          className={`lbs-mobile-list-tabs${mobileActive ? ' is-buy-active' : ' is-sell-active'}`}
+          role="tablist"
+          aria-label="Buy and sell offers"
+        >
           {(['buy', 'sell'] as const).map(listKind => {
             const isSelected = mobileActive === (kind === listKind);
             return (
@@ -338,7 +345,7 @@ function Panel({
                 id={`lbs-mobile-tab-${listKind}`}
                 aria-selected={isSelected}
                 aria-controls={`lbs-panel-${listKind}`}
-                className={`lbs-mobile-list-tab bg-dark lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
+                className={`lbs-mobile-list-tab lbs-mobile-list-tab--${listKind}${isSelected ? ' is-active' : ''}`}
                 onClick={() => onSelectKind(listKind)}
               >
                 {listKind === 'buy' ? <CartIcon size={16} /> : <DownloadIcon size={16} />}
@@ -351,14 +358,14 @@ function Panel({
       </div>
 
       <div className="lbs-mobile-filter-bar" aria-label="Offer filters">
-        <div className="lbs-topbar-select lbs-mobile-currency-select bg-dark">
+        <div className="lbs-topbar-select lbs-mobile-currency-select bg-transparent border-0">
           <span className="lbs-topbar-icon lbs-topbar-icon--usdt">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" aria-hidden="true">
               <path d="M12 2 2 12l10 10 10-10L12 2zm-1.5 6.5h-3V7h7.5v1.5h-3V15h-1.5V8.5z" />
             </svg>
           </span>
           <select
-            className="lbs-topbar-select-input bg-dark"
+            className="lbs-topbar-select-input bg-transparent w-0"
             value={cur}
             onChange={event => onCurrencyChange(event.target.value)}
             aria-label="Select currency"
@@ -372,39 +379,28 @@ function Panel({
         </div>
         <button
           type="button"
-          className={`bg-dark lbs-mobile-filter-value${amountFilterValue ? ' has-value' : ''}`}
+          className={`bg-transparent border-0 fw-bold lbs-mobile-filter-value${amountFilterValue ? ' has-value' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={filtersOpen}
           aria-controls="lbs-filter-controls"
-          onClick={onOpenFilters}
+          onClick={() => onOpenFilters('amount')}
         >
           <span>{amountFilterValue || 'Amount'}</span>
-          <Chevron />
+          <span className='fs-6'><Chevron /></span>
         </button>
         <button
           type="button"
-          className={`bg-dark lbs-mobile-filter-value${paymentFilterValue ? ' has-value' : ''}`}
+          className={`bg-transparent border-0 fw-bold lbs-mobile-filter-value${paymentFilterValue ? ' has-value' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={filtersOpen}
           aria-controls="lbs-filter-controls"
-          onClick={onOpenFilters}
+          onClick={() => onOpenFilters('payment')}
         >
           <span>{paymentFilterValue || 'Payment'}</span>
-          <Chevron />
-        </button>
-        <button
-          type="button"
-          className="bg-dark lbs-mobile-filter-icon"
-          aria-label="Open filters"
-          aria-haspopup="dialog"
-          aria-expanded={filtersOpen}
-          aria-controls="lbs-filter-controls"
-          onClick={onOpenFilters}
-        >
-          <i className="fa-solid fa-filter" aria-hidden="true" />
-          {hasActiveFilters && <span className="lbs-filter-active-dot" aria-label="Filters active" />}
+          <span className='fs-6'><Chevron /></span>
         </button>
       </div>
+      <span className='border-span'></span>
 
       <div className="lbs-scroll">
         <div className="lbs-table bg-dark">
@@ -472,11 +468,13 @@ export default function Page() {
   const [filterFiat, setFilterFiat] = useState('');
   const [currencyPromptOpen, setCurrencyPromptOpen] = useState(false);
   const [currencyPromptSelection, setCurrencyPromptSelection] = useState('');
-  const [filterMethod, setFilterMethod] = useState('');
+  const [filterMethods, setFilterMethods] = useState<string[]>([]);
   const [amt, setAmt] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState<OfferView>('all');
   const [mobileActiveKind, setMobileActiveKind] = useState<Kind>('buy');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileFilterSection, setMobileFilterSection] = useState<MobileFilterSection>('amount');
+  const [paymentMethodSearch, setPaymentMethodSearch] = useState('');
   const [tradeModal, setTradeModal] = useState<{ ad: P2pAdsData; kind: Kind } | null>(null);
 
   /* ── Bonus / Fee settings ── */
@@ -495,11 +493,12 @@ export default function Page() {
   /* ── Modals ── */
   const [quickBuyOpen, setQuickBuyOpen] = useState(false);
   const [quickSellOpen, setQuickSellOpen] = useState(false);
+  const [activeRequestKind, setActiveRequestKind] = useState<Kind>('buy');
 
   const countryOptions = useMemo(() => countryList().getData() as Option[], []);
 
   const [filters, flushFilters] = useDebounced(
-    { fiat: filterFiat, method: filterMethod, amtMin: amt.min, amtMax: amt.max },
+    { fiat: filterFiat, method: filterMethods.join(','), amtMin: amt.min, amtMax: amt.max },
     400
   );
 
@@ -796,7 +795,7 @@ export default function Page() {
     if (cc) {
       const cur = COUNTRY_CUR[cc] ?? '';
       if (cur !== filterFiat) {
-        setFilterMethod('');
+        setFilterMethods([]);
         reqId.current.buy += 1;
         reqId.current.sell += 1;
         setData({ buy: { ...EMPTY }, sell: { ...EMPTY } });
@@ -812,7 +811,7 @@ export default function Page() {
       setData({ buy: { ...EMPTY }, sell: { ...EMPTY } });
     }
     setFilterFiat(cur);
-    setFilterMethod('');
+    setFilterMethods([]);
     setCountry(cur && cur in CUR_HOME ? CUR_HOME[cur] : '');
   };
 
@@ -833,6 +832,30 @@ export default function Page() {
     flushFilters();
     setTick(t => t + 1);
     setMobileFiltersOpen(false);
+  };
+
+  const openMobileFilter = (section: MobileFilterSection) => {
+    setMobileFilterSection(section);
+    setPaymentMethodSearch('');
+    setMobileFiltersOpen(true);
+  };
+
+  const resetMobileFilter = () => {
+    if (mobileFilterSection === 'amount') {
+      setAmt({ min: '', max: '' });
+    } else {
+      setFilterMethods([]);
+    }
+  };
+
+  const togglePaymentMethod = (method: string) => {
+    setFilterMethods(current =>
+      method === ''
+        ? []
+        : current.includes(method)
+          ? current.filter(selected => selected !== method)
+          : [...current, method]
+    );
   };
 
   const handleRefresh = () => {
@@ -944,19 +967,25 @@ export default function Page() {
 
       {/* ═════════ TOP BAR ═════════ */}
       <section className="lbs-topbar">
-        <div className="lbs-topbar-tabs bg-dark gap-2">
+        <div className={`lbs-topbar-tabs${activeRequestKind === 'buy' ? ' is-buy-request-active' : ' is-sell-request-active'}`}>
           <button
             type="button"
-            onClick={() => setQuickBuyOpen(true)}
-            className="lbs-topbar-tab lbs-topbar-tab--buy"
+            onClick={() => {
+              setActiveRequestKind('buy');
+              setQuickBuyOpen(true);
+            }}
+            className={`lbs-topbar-tab lbs-topbar-tab--buy${activeRequestKind === 'buy' ? ' is-active' : ''}`}
           >
             <CartIcon size={18} />
             <span>Buy Request</span>
           </button>
           <button
             type="button"
-            className="lbs-topbar-tab lbs-topbar-tab--sell"
-            onClick={() => setQuickSellOpen(true)}
+            className={`lbs-topbar-tab lbs-topbar-tab--sell${activeRequestKind === 'sell' ? ' is-active' : ''}`}
+            onClick={() => {
+              setActiveRequestKind('sell');
+              setQuickSellOpen(true);
+            }}
           >
             <DownloadIcon size={18} />
             <span>Sell Request</span>
@@ -1017,19 +1046,119 @@ export default function Page() {
         />
       )}
       <section
-        className={`lbs-filters bg-dark${mobileFiltersOpen ? ' is-mobile-open' : ''}`}
+        className={`lbs-filters bg-dark lbs-mobile-filter-sheet--${mobileFilterSection}${mobileFiltersOpen ? ' is-mobile-open' : ''}`}
         role={mobileFiltersOpen ? 'dialog' : undefined}
         aria-modal={mobileFiltersOpen || undefined}
         aria-labelledby="lbs-filter-sheet-title"
       >
         <div className="lbs-filter-sheet-head">
-          <strong id="lbs-filter-sheet-title"><i className="fa-solid fa-sliders" aria-hidden="true" /> Filters</strong>
+          <span className="lbs-filter-sheet-grip" aria-hidden="true" />
+          <strong id="lbs-filter-sheet-title">
+            {mobileFilterSection === 'amount'
+              ? `I Want to ${mobileActiveKind === 'buy' ? 'Buy' : 'Sell'}`
+              : 'Pay With'}
+          </strong>
           <button type="button" onClick={() => setMobileFiltersOpen(false)} aria-label="Close filters">
             <i className="fa-solid fa-xmark" aria-hidden="true" />
           </button>
         </div>
         <div id="lbs-filter-controls" className="lbs-filter-controls">
-        <div className="lbs-field">
+        <div className="lbs-mobile-filter-content">
+          {mobileFilterSection === 'amount' ? (
+            <>
+              <label className="lbs-mobile-amount-entry">
+                <span className="visually-hidden">Enter total amount</span>
+                <input
+                  inputMode="decimal"
+                  placeholder="Enter total amount"
+                  value={amt.min}
+                  onChange={event => setAmt({ ...amt, min: num(event.target.value) })}
+                />
+                <span>{filterFiat || 'BDT'}</span>
+              </label>
+              <span className="lbs-mobile-suggestions-label">Suggested amounts</span>
+              <div className="lbs-mobile-amount-presets" aria-label="Suggested amounts">
+                {[2000, 4000, 5000, 30000].map(amount => {
+                  const label = amount.toLocaleString('en-US');
+                  return (
+                    <button
+                      key={amount}
+                      type="button"
+                      className={amt.min === String(amount) ? 'is-selected' : ''}
+                      aria-pressed={amt.min === String(amount)}
+                      onClick={() => setAmt({ ...amt, min: String(amount) })}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <label className="lbs-mobile-payment-search">
+                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+                <span className="visually-hidden">Search payment methods</span>
+                <input
+                  type="search"
+                  placeholder="Search"
+                  value={paymentMethodSearch}
+                  onChange={event => setPaymentMethodSearch(event.target.value)}
+                />
+              </label>
+              <small className="lbs-mobile-payment-hint">Select one or more methods</small>
+              {paymentMethodsLoading && (
+                <small className="lbs-filter-message">Loading methods for {filterFiat || 'selected currency'}…</small>
+              )}
+              {paymentMethodsError && (
+                <small className="lbs-filter-message lbs-filter-message--error">Could not load payment methods for {filterFiat}.</small>
+              )}
+              {!paymentMethodsLoading && !paymentMethodsError && !filterFiat && (
+                <small className="lbs-filter-message">Select a currency to view payment methods.</small>
+              )}
+              {!paymentMethodsLoading && !paymentMethodsError && filterFiat && (
+                <div className="lbs-mobile-payment-options" role="group" aria-label="Payment methods">
+                  {[
+                    { value: '', label: 'All', iconImage: null },
+                    ...currencyMethods.map(method => ({
+                      value: method.label,
+                      label: method.label,
+                      iconImage: method.icon_url ?? method.icon_image ?? method.icon ?? null,
+                    })),
+                  ]
+                    .filter(method => method.label.toLowerCase().includes(paymentMethodSearch.trim().toLowerCase()))
+                    .map(method => (
+                      <button
+                        key={method.value || 'all'}
+                        type="button"
+                        className={(method.value ? filterMethods.includes(method.value) : filterMethods.length === 0) ? 'is-selected' : ''}
+                        aria-pressed={method.value ? filterMethods.includes(method.value) : filterMethods.length === 0}
+                        onClick={() => togglePaymentMethod(method.value)}
+                      >
+                        {method.value && (
+                          <PaymentMethodIcon
+                            methodName={method.label}
+                            iconImage={method.iconImage}
+                            size={22}
+                            className="lbs-mobile-payment-option-icon"
+                          />
+                        )}
+                        <span>{method.label}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+              {!paymentMethodsLoading && !paymentMethodsError && filterFiat && currencyMethods.length === 0 && (
+                <small className="lbs-filter-message">No payment methods available for {filterFiat}.</small>
+              )}
+            </>
+          )}
+          <div className="lbs-mobile-filter-actions">
+            <button type="button" className="lbs-mobile-filter-reset d-flex justify-content-center" onClick={resetMobileFilter}>Reset</button>
+            <button type="button" className="lbs-mobile-filter-confirm d-flex justify-content-center" onClick={handleSearch}>Confirm</button>
+          </div>
+        </div>
+        <div className="lbs-field lbs-field--desktop">
           <label className="lbs-label">Search Amount ({filterFiat || 'BDT'})</label>
           <div className="lbs-range">
             <input
@@ -1050,19 +1179,19 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="lbs-field">
+        <div className="lbs-field lbs-field--desktop">
           <label className="lbs-label">Payment Method</label>
           <div className="lbs-selwrap">
             <span className="lbs-sel-icon lbs-sel-icon--bank">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="#000">
                 <path d="M12 2 2 8v2h20V8L12 2zM4 12v6h3v-6H4zm6 0v6h4v-6h-4zm7 0v6h3v-6h-3zM2 20h20v2H2v-2z" />
               </svg>
             </span>
             <select
               className="lbs-input lbs-select"
-              value={filterMethod}
+              value={filterMethods.length === 1 ? filterMethods[0] : ''}
               disabled={!filterFiat || paymentMethodsLoading || paymentMethodsError}
-              onChange={e => setFilterMethod(e.target.value)}
+              onChange={e => setFilterMethods(e.target.value ? [e.target.value] : [])}
             >
               <option value="">All Payment Methods</option>
               {currencyMethods.map(method => (
@@ -1078,7 +1207,7 @@ export default function Page() {
           )}
         </div>
 
-        <div className="lbs-field lbs-field--sort">
+        <div className="lbs-field lbs-field--sort lbs-field--desktop">
           <label className="lbs-label">Sort By</label>
           <div className="lbs-selwrap">
             <select
@@ -1094,7 +1223,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="lbs-field lbs-field--btn mt-4 pt-2">
+        <div className="lbs-field lbs-field--btn lbs-field--desktop mt-4 pt-2">
           <button type="button" className="lbs-search-btn mt-4" onClick={handleSearch}>
             <SearchIcon /> Search Offers
           </button>
@@ -1120,9 +1249,9 @@ export default function Page() {
                   feePercent={feePercent}
                   onRefresh={() => fetchBucket(kind, 1)}
                   onTrade={handleTrade}
-                  onOpenFilters={() => setMobileFiltersOpen(true)}
+                  onOpenFilters={openMobileFilter}
                   filtersOpen={mobileFiltersOpen}
-                  hasActiveFilters={Boolean(filterMethod || amt.min)}
+                  hasActiveFilters={Boolean(filterMethods.length || amt.min)}
                   sentinelRef={el => { sentinelRef.current[kind] = el; }}
                   mobileActive={mobileActiveKind === kind}
                   offerTotals={{ buy: data.buy.total, sell: data.sell.total }}
@@ -1134,7 +1263,7 @@ export default function Page() {
                   amountFilterValue={amt.min
                     ? `${Number(amt.min).toLocaleString('en-US', { maximumFractionDigits: 2 })} ${filterFiat}`
                     : ''}
-                  paymentFilterValue={filterMethod}
+                  paymentFilterValue={filterMethods.join(', ')}
                 />
               ))}
           </div>
