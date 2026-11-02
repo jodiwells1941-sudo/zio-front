@@ -208,7 +208,7 @@ function Row({
           <div className="lbs-mobile-stat">
             <span>Amount ({currency})</span>
             <strong className={`lbs-mobile-amount lbs-mobile-amount--${kind}`}>
-              <CurrencyMark currency={currency} />
+              <span className='text-dark-icon-color'><CurrencyMark currency={currency} /></span>
               {n2(ad.fixed_price * ad.total_amount, 0)}
             </strong>
           </div>
