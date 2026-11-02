@@ -12,6 +12,7 @@ import { getTradeEcho } from "@/utils/tradeEcho";
 
 interface Trade {
   id: number;
+  record_kind?: 'order' | 'ad';
   type: string;
   /** `p2p_orders.side` — which flow this order is (distinct from list `type`). */
   order_side?: 'buy' | 'sell';
@@ -33,6 +34,7 @@ interface Trade {
   counterparty: string;
   status: number;
   status_text: string;
+  ad_status?: boolean;
   isCustomer: boolean;
 }
 
@@ -73,6 +75,13 @@ const formatAdReference = (adId: string): string =>
 // ─── Status badge helper ──────────────────────────────────────────────────────
 
 const getStatusUI = (trade: Trade): { text: string; className: string } => {
+  if (trade.record_kind === 'ad') {
+    return {
+      text: trade.status_text,
+      className: trade.ad_status ? 'trade-status-approved' : 'trade-status-cancelled',
+    };
+  }
+
   const { status, type } = trade;
   switch (status) {
     case 1:  return {
@@ -289,6 +298,10 @@ export default function Page() {
   // ─── Action buttons per status ────────────────────────────────────────────────
 
   const renderActions = (trade: Trade) => {
+    if (trade.record_kind === 'ad') {
+      return <span className="text-muted">No order yet</span>;
+    }
+
     const sl = trade.status_list ?? [];
     const viewLink = (
       <Link
@@ -383,7 +396,7 @@ export default function Page() {
   // ─── Render ───────────────────────────────────────────────────────────────────  
 
   return (
-    <div className="h-screen">
+    <div className="">
       <h5 className="my-3 py-3 ">My Order List</h5>
 
       {/* ── Toolbar ── */}
@@ -503,7 +516,7 @@ export default function Page() {
                     {group.trades.map(trade => {
                       const statusUI = getStatusUI(trade);
                       return (
-                        <tr key={trade.id}>
+                        <tr key={`${trade.record_kind ?? 'order'}-${trade.id}`}>
 
                       {/* Type / Date */}
                       <td className="trade-type-date">
@@ -516,18 +529,23 @@ export default function Page() {
                       {/* Order Number */}
                       <td>
                         <div className="trade-order-cell">
-
-                          <Link href={getTradeDetailsPath(trade)} className="trade-link ms-2">
-                            {trade.orderNumber}
-                          </Link>
-                          <button
-                            className="trade-copy-icon"
-                            type="button"
-                            onClick={() => copyText(trade.orderNumber)}
-                            title="Copy order number"
-                          >
-                            <i className="fa-regular fa-copy" />
-                          </button>
+                          {trade.record_kind === 'ad' ? (
+                            <span className="local-order-no-ad-reference">No order yet</span>
+                          ) : (
+                            <>
+                              <Link href={getTradeDetailsPath(trade)} className="trade-link ms-2">
+                                {trade.orderNumber}
+                              </Link>
+                              <button
+                                className="trade-copy-icon"
+                                type="button"
+                                onClick={() => copyText(trade.orderNumber)}
+                                title="Copy order number"
+                              >
+                                <i className="fa-regular fa-copy" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -553,19 +571,23 @@ export default function Page() {
                       {/* Counterparty */}
                       <td>
                         <div className="trade-counterparty-cell">
-                          <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="trade-link">
-                            {trade.counterparty}
-                            <span className="trade-chat-icon">
-                              <i className="fa-regular fa-comment" />
-                            </span>
-                          </Link>
+                          {trade.record_kind === 'ad' ? (
+                            <span className="text-muted">{trade.counterparty}</span>
+                          ) : (
+                            <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="trade-link">
+                              {trade.counterparty}
+                              <span className="trade-chat-icon">
+                                <i className="fa-regular fa-comment" />
+                              </span>
+                            </Link>
+                          )}
                         </div>
                       </td>
 
                       {/* Status */}
                       <td className="trade-status-cell">
                         <span className={statusUI.className}>{statusUI.text}</span>
-                        <div className="trade-receipt">Receipt</div>
+                        {trade.record_kind !== 'ad' && <div className="trade-receipt">Receipt</div>}
                       </td>
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
@@ -598,7 +620,7 @@ export default function Page() {
                 {group.trades.map(trade => {
                   const statusUI = getStatusUI(trade);
                   return (
-                    <div className="card mb-4" key={trade.id}>
+                    <div className="card mb-4" key={`${trade.record_kind ?? 'order'}-${trade.id}`}>
 
                   <div className="d-flex justify-content-between align-items-center">
                     <span className={trade.type === 'Sell' ? 'trade-type-sell' : 'trade-type-buy'}>
@@ -626,16 +648,22 @@ export default function Page() {
                   <div className="d-flex justify-content-between mt-3">
                     <span className="text-white-50">Order</span>
                     <div className="trade-order-cell">
-                      <Link href={getTradeDetailsPath(trade)} className="text-xs">
-                        {trade.orderNumber}
-                      </Link>
-                      <button
-                        className="trade-copy-icon"
-                        type="button"
-                        onClick={() => copyText(trade.orderNumber)}
-                      >
-                        <i className="fa-regular fa-copy" />
-                      </button>
+                      {trade.record_kind === 'ad' ? (
+                        <span className="text-white-50">No order yet</span>
+                      ) : (
+                        <>
+                          <Link href={getTradeDetailsPath(trade)} className="text-xs">
+                            {trade.orderNumber}
+                          </Link>
+                          <button
+                            className="trade-copy-icon"
+                            type="button"
+                            onClick={() => copyText(trade.orderNumber)}
+                          >
+                            <i className="fa-regular fa-copy" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="d-flex justify-content-between mt-3">
@@ -646,13 +674,19 @@ export default function Page() {
                   </div>
                   <div className="d-flex justify-content-between mt-3">
                     <div className="trade-counterparty-cell">
-                      <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="text-xs text-white-50">
-                        {trade.counterparty}
-                      </Link>
-                      <span className="trade-chat-icon">
-                        <i className="fa-solid fa-message text-white" />
-                        <small className="text-black bg-warning px-1 rounded-pill top-0">2</small>
-                      </span>
+                      {trade.record_kind === 'ad' ? (
+                        <span className="text-white-50">{trade.counterparty}</span>
+                      ) : (
+                        <>
+                          <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="text-xs text-white-50">
+                            {trade.counterparty}
+                          </Link>
+                          <span className="trade-chat-icon">
+                            <i className="fa-solid fa-message text-white" />
+                            <small className="text-black bg-warning px-1 rounded-pill top-0">2</small>
+                          </span>
+                        </>
+                      )}
                     </div>
                     <div className="trade-date">{trade.date}</div>
                   </div>
