@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { fetchUserInfoAPI } from '../api/auth'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LocalMarketplacePresenceProvider } from '@/components/dashboard/LocalMarketplacePresence'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [rightOpen, setRightOpen] = useState(false)
@@ -68,8 +69,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthProvider>
+      <LocalMarketplacePresenceProvider>
       <div className="page-wrapper a-cursor">
-
         <button
           type="button"
           className={`right-sidebar-btn ${rightOpen ? 'active' : ''}`}
@@ -124,6 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <ClientWrapper /> 
       </div>
+      </LocalMarketplacePresenceProvider>
     </AuthProvider>
   )
 }

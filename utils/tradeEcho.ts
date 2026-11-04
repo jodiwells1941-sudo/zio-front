@@ -38,13 +38,15 @@ export function getTradeEcho(): TradeEcho | null {
   if (!echoInstance) {
     window.Pusher = Pusher;
     const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME || "http";
-    const port = Number(process.env.NEXT_PUBLIC_REVERB_PORT || 8080);
+    const port = Number(process.env.NEXT_PUBLIC_REVERB_PORT || (scheme === "https" ? 443 : 8080));
+    const path = process.env.NEXT_PUBLIC_REVERB_PATH?.replace(/\/+$/, "") || "";
     echoInstance = new Echo({
       broadcaster: "reverb",
       key,
       wsHost: reverbHost(),
-      // wsPort: port,
-      // wssPort: port,
+      wsPort: port,
+      wssPort: port,
+      wsPath: path,
       forceTLS: scheme === "https",
       enabledTransports: ["ws", "wss"],
       disableStats: true,

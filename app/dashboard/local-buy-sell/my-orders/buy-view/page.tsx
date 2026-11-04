@@ -3,14 +3,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { getTrade } from "@/app/api/trade";
-import P2PTransferCard, {
-  PaymentStatus,
-  type TradeData,
-  resolveUIStatus,
-} from "@/components/dashboard/p2p/P2PTransferCard";
+import { PaymentStatus, resolveUIStatus } from "@/components/dashboard/p2p/P2PTransferCard";
 import P2PChatPanel from "@/components/dashboard/p2p/P2PChatPanel";
 import { useSearchParams } from "next/navigation";
-import BuyDetailsCard from "./BuyDetailsCard";
+import BuyDetailsCard, { type TradeData as BuyTradeData } from "./BuyDetailsCard";
 
 const PENDING_STATUS = 1;
 
@@ -69,6 +65,21 @@ export default function P2POrderPage() {
     setPendingTimeLeft(0);
   }, [tradeId]);
 
+  const handleCardStatusChange = useCallback((nextTrade: BuyTradeData) => {
+    setTradeStatus(nextTrade.status);
+    setUiStatus(resolveUIStatus(nextTrade.status));
+    setPendingExpire({
+      status: nextTrade.status,
+      expireTime: nextTrade.pending_time_limit ?? null,
+    });
+    if (nextTrade.status !== PENDING_STATUS) {
+      expireCalledRef.current = true;
+      setPendingTimeLeft(0);
+    } else {
+      expireCalledRef.current = false;
+    }
+  }, []);
+
   // fetchTrade ONLY fetches and sets state. It does NOT decide whether to
   // expire — that decision lives in exactly one place: the countdown effect
   // below. Having two decision points was the source of the premature
@@ -87,7 +98,7 @@ export default function P2POrderPage() {
         }
       }
 
-      const t: TradeData = res?.data;
+      const t: BuyTradeData = res?.data;
       const nextStatus = t?.status ?? 0;
 
       setTradeStatus(nextStatus);
@@ -193,6 +204,7 @@ export default function P2POrderPage() {
               pendingTimeLeft={pendingTimeLeft}
               pendingExpireTime={pendingExpire.expireTime}
               onTradeExpired={handleAutoExpire}
+              onStatusChange={handleCardStatusChange}
             />
           </div>
 

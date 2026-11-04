@@ -19,6 +19,11 @@ export default function SellPage() {
 
   const showChatPanel = tradeStatus !== 1 && tradeStatus !== 8 && tradeStatus !== 3;
 
+  const handleCardStatusChange = useCallback((nextTrade: { status: number }) => {
+    setTradeStatus(nextTrade.status);
+    setUiStatus(resolveUIStatus(nextTrade.status));
+  }, []);
+
   const fetchTrade = useCallback(async () => {
     if (!tradeId) return;
 
@@ -43,7 +48,7 @@ export default function SellPage() {
       <div className="px-4 p2pContainer">
         <div className="row g-4">
           <div className={showChatPanel ? "col-lg-7 col-12" : "col-12 w-100"}>
-            <SellDetailsCard />
+            <SellDetailsCard onStatusChange={handleCardStatusChange} />
           </div>
           {showChatPanel && (
             <div className="col-lg-5 col-12">

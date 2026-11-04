@@ -15,6 +15,8 @@ import QuickBuyModal from './create-ad/QuickBuyModal';
 import QuickSellModal from './create-ad/QuickSellModal';
 import PaymentMethodIcon from './PaymentMethodIcon';
 import CurrencyMark from './CurrencyMark';
+import { getTradeEcho } from '@/utils/tradeEcho';
+import { useLocalMarketplacePresence } from '@/components/dashboard/LocalMarketplacePresence';
 
 /* ───────────────── Static data ───────────────── */
 const CURRENCIES = [
@@ -110,6 +112,7 @@ function Row({
   bonusPercent,
   feePercent,
   onTrade,
+  onlineUserIds,
 }: {
   ad: P2pAdsData;
   kind: Kind;
@@ -117,6 +120,7 @@ function Row({
   bonusPercent: number;
   feePercent: number;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
+  onlineUserIds: ReadonlySet<number>;
 }) {
   const method = ad.payment_method?.sell_method?.name ?? '—';
 
@@ -125,6 +129,7 @@ function Row({
   const pct = isBuy ? bonusPercent : feePercent;
   const bonusFee = (usdtAmount * pct) / 100;
   const iconImage = ad.payment_method?.sell_method?.icon_url ?? ad.payment_method?.sell_method?.icon_image;
+  const isOnline = ad.is_online === true || onlineUserIds.has(Number(ad.user_id));
 
   return (
     <>
@@ -168,9 +173,13 @@ function Row({
               className={`lbs-trade-btn animate-ping-button w-100 lbs-trade-btn--${kind}`}
               onClick={() => onTrade(ad, kind)}
           >
-              {kind === 'buy' ? 'Buy' : 'Sell'}
-              <span className="ping-indicator">
-                <span className="ping-ring"></span>
+              <span className='ps-1 fw-bold'>{kind === 'buy' ? 'Buy' : 'Sell'}</span>
+              <span
+                className={`ping-indicator ${isOnline ? 'is-online' : 'is-offline'}`}
+                title={isOnline ? 'Advertiser is online' : 'Advertiser is offline'}
+                aria-label={isOnline ? 'Advertiser is online' : 'Advertiser is offline'}
+              >
+                {isOnline && <span className="ping-ring"></span>}
                 <span className="ping-dot"></span>
               </span>
           </button>
@@ -196,9 +205,9 @@ function Row({
             </div>
 
             <div>
-              <span className="lbs-mobile-online me-1">
+              <span className={`lbs-mobile-online me-1 ${isOnline ? 'is-online' : 'is-offline'}`}>
                 <i aria-hidden="true" />
-                Online
+                {isOnline ? 'Online' : 'Offline'}
               </span>
               <span className="lbs-panel-benefit lbs-panel-benefit--blue rounded-5 py-1"><i className="fa-solid fa-shield-halved" aria-hidden="true" />Verified</span>
             </div>
@@ -255,6 +264,7 @@ function Panel({
   feePercent,
   onRefresh,
   onTrade,
+  onlineUserIds,
   onOpenFilters,
   filtersOpen,
   hasActiveFilters,
@@ -273,6 +283,7 @@ function Panel({
   feePercent: number;
   onRefresh: () => void;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
+  onlineUserIds: ReadonlySet<number>;
   onOpenFilters: (section: MobileFilterSection) => void;
   filtersOpen: boolean;
   hasActiveFilters: boolean;
@@ -435,6 +446,7 @@ function Panel({
                 bonusPercent={bonusPercent}
                 feePercent={feePercent}
                 onTrade={onTrade}
+                onlineUserIds={onlineUserIds}
               />
             ))}
           </div>
@@ -483,6 +495,7 @@ export default function Page() {
 
   /* ── Data ── */
   const [data, setData] = useState<Record<Kind, Bucket>>({ buy: EMPTY, sell: EMPTY });
+  const onlineUserIds = useLocalMarketplacePresence();
   const [paymentCurrencies, setPaymentCurrencies] = useState<CurrencyOption[]>([]);
   const [currencyMethods, setCurrencyMethods] = useState<SellMethodOption[]>([]);
   const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(false);
@@ -752,6 +765,24 @@ export default function Page() {
     fetchBucket('sell', 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchBucket, filters.fiat, tick]);
+
+  // Any local ad/order mutation invalidates the marketplace snapshot. The
+  // event intentionally triggers the existing filtered REST query so every
+  // client sees the correct pagination and availability rules.
+  useEffect(() => {
+    const echo = getTradeEcho();
+    if (!echo) return;
+
+    const channelName = 'local-marketplace';
+    const channel = echo.private(channelName);
+    const onMarketplaceUpdate = () => setTick(current => current + 1);
+    channel.listen('.p2p-local-marketplace.updated', onMarketplaceUpdate);
+
+    return () => {
+      channel.stopListening('.p2p-local-marketplace.updated', onMarketplaceUpdate);
+      echo.leave(channelName);
+    };
+  }, []);
 
   /* ── Infinite scroll observers ── */
   useEffect(() => {
@@ -1249,6 +1280,7 @@ export default function Page() {
                   feePercent={feePercent}
                   onRefresh={() => fetchBucket(kind, 1)}
                   onTrade={handleTrade}
+                  onlineUserIds={onlineUserIds}
                   onOpenFilters={openMobileFilter}
                   filtersOpen={mobileFiltersOpen}
                   hasActiveFilters={Boolean(filterMethods.length || amt.min)}

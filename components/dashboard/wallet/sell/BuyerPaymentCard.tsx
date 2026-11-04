@@ -181,7 +181,7 @@ export default function BuyerPaymentCard() {
     const echo = getTradeEcho();
     if (!echo) return;
 
-    const channelName = `trade.${tradeIdNum}`;
+    const channelName = `p2p-order.${tradeIdNum}`;
     const channel = echo.private(channelName);
     const onStatusUpdate = (payload: { data?: { refresh?: boolean } }) => {
       if (payload?.data?.refresh) {

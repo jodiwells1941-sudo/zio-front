@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { fetchUserInfoAPI } from "@/app/api/auth";
+import { getTradeEcho } from "@/utils/tradeEcho";
 import { logout } from "@/utils/auth";
 import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
@@ -20,9 +22,11 @@ type Props = {
 };
 
 type User = {
+  id?: number | string;
   name?: string;
   wallet?: {
-    amount?: number;
+    id?: number | string;
+    amount?: number | string;
   };
 };
 
@@ -59,7 +63,66 @@ export default function Header({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const { isLoggedIn, user } = useAuth() as { isLoggedIn: boolean; user: User | null };  
+  const { isLoggedIn, user } = useAuth() as { isLoggedIn: boolean; user: User | null };
+  const walletId = user?.wallet?.id;
+  const [walletAmount, setWalletAmount] = useState(() => Number(user?.wallet?.amount ?? 0));
+
+  // Keep the local display in sync when auth data is refreshed or changed in
+  // another part of the app.
+  useEffect(() => {
+    const nextAmount = Number(user?.wallet?.amount ?? 0);
+    if (Number.isFinite(nextAmount)) setWalletAmount(nextAmount);
+  }, [user?.wallet?.amount]);
+
+  useEffect(() => {
+    if (!isLoggedIn || walletId === undefined || walletId === null) return;
+
+    const channelName = `wallet-balance.${walletId}`;
+    const echo = getTradeEcho();
+
+    const applyAmount = (value: unknown) => {
+      const nextAmount = Number(value);
+      if (Number.isFinite(nextAmount)) setWalletAmount(nextAmount);
+    };
+
+    const refreshBalance = async () => {
+      try {
+        const response = await fetchUserInfoAPI();
+        applyAmount(response?.data?.wallet?.amount);
+      } catch {
+        // Realtime is best-effort; keep the last known amount on transient
+        // auth/network failures and let the next refresh try again.
+      }
+    };
+
+    let channel: ReturnType<NonNullable<typeof echo>["channel"]> | null = null;
+    if (echo) {
+      channel = echo.channel(channelName);
+      channel.listen(".wallet-balance.update", (payload: { data?: { amount?: number | string } }) => {
+        applyAmount(payload?.data?.amount);
+      });
+    }
+
+    // Reconcile once immediately in case the cached auth object is stale.
+    void refreshBalance();
+
+    // Wallet model events are the fast path. This fallback covers a dropped
+    // websocket, a reconnect, or a balance changed before the channel joined.
+    const poll = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") void refreshBalance();
+    }, 15000);
+    const onFocus = () => void refreshBalance();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", onFocus);
+      if (channel && echo) {
+        channel.stopListening(".wallet-balance.update");
+        echo.leave(channelName);
+      }
+    };
+  }, [isLoggedIn, walletId]);
 
     // const deleteCookie = (name: string) => {
     //   // Try multiple approaches to ensure cookie deletion
@@ -134,7 +197,7 @@ export default function Header({
                   <span className="d-none d-md-block">
                     <img src="/images/coin.png" alt="Coin" />
                   </span>
-                  <span className="text-white fw-bold text-xl">${user?.wallet?.amount?.toFixed(2) || 0}</span>
+                  <span className="text-white fw-bold text-xl">${walletAmount.toFixed(2)}</span>
                 </div>
 
                 <div className="navbar__options">
@@ -187,7 +250,7 @@ export default function Header({
                       </span>
 
                       <span className="text-white">
-                        {user?.wallet?.amount?.toFixed(2) || 0}
+                        {walletAmount.toFixed(2)}
                       </span>
 
                       <ul className="wallet-submenu">

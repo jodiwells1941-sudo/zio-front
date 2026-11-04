@@ -1033,6 +1033,27 @@
     height: 12px;
 }
 
+.ping-indicator.is-offline .ping-dot {
+    background: #94a3b8;
+    box-shadow: none;
+}
+
+.ping-indicator.is-online .ping-dot {
+    background: #13b368;
+}
+
+.lbs-online-label {
+    margin-left: 13px;
+    color: rgba(255,255,255,.82);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.ping-indicator.is-offline + .lbs-online-label {
+    color: #94a3b8;
+}
+
 .ping-ring {
     position: absolute;
     inset: 0;
@@ -2225,6 +2246,14 @@
     background: rgba(16, 185, 129, .08);
     color: #6ee7b7;
     padding-bottom: 0px;
+  }
+  .lbs .lbs-mobile-online.is-offline {
+    border-color: rgba(148, 163, 184, .2);
+    background: rgba(148, 163, 184, .08);
+    color: #94a3b8;
+  }
+  .lbs .lbs-mobile-online.is-offline > i {
+    background: #94a3b8;
   }
   .lbs .lbs-mobile-online > i {
     width: 6px;

@@ -105,6 +105,8 @@ interface P2PTransferCardProps {
   pendingExpireTime?: string | null;
   /** Optional callback fired when the countdown hits zero. */
   onTradeExpired?: () => void;
+  /** Keep page-level layout (for example the chat column) in sync with the card. */
+  onStatusChange?: (trade: TradeData) => void;
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -707,6 +709,7 @@ export default function BuyDetailsCard({
   pendingTimeLeft = 0,
   pendingExpireTime = null,
   onTradeExpired,
+  onStatusChange,
 }: P2PTransferCardProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -723,16 +726,36 @@ export default function BuyDetailsCard({
   const [extensionMinutes, setExtensionMinutes] = useState(5);
   const [extendingTime, setExtendingTime] = useState(false);
   const autoExtensionPromptedFor = useRef<string | null>(null);
+  const fetchSequence = useRef(0);
+
+  const applyTrade = useCallback((nextTrade: TradeData) => {
+    setTrade(nextTrade);
+    setUiStatus(resolveUIStatus(nextTrade.status));
+    onStatusChange?.(nextTrade);
+
+    if (nextTrade.status === 2 && nextTrade.payment_expires_at) {
+      const expiresAtMs = parseApiDateToMs(nextTrade.payment_expires_at);
+      const nextSeconds = expiresAtMs
+        ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
+        : 0;
+      setSecondsLeft(nextSeconds);
+      setTimerExpired(nextSeconds <= 0);
+    } else {
+      setSecondsLeft(0);
+      setTimerExpired(false);
+    }
+  }, [onStatusChange]);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
-  const fetchTrade = useCallback(async () => {
+  const fetchTrade = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!tradeId) return;
+    const requestSequence = ++fetchSequence.current;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await getTrade(Number(tradeId));
       const t: TradeData = res?.data;
-      setTrade(t);
-      setUiStatus(resolveUIStatus(t.status));
+      if (requestSequence !== fetchSequence.current) return;
+      applyTrade(t);
       if (t.status === 2 && t.payment_expires_at) {
         const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
         const sec = expiresAtMs
@@ -742,11 +765,11 @@ export default function BuyDetailsCard({
         setTimerExpired(sec <= 0);
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? "Failed to load trade.");
+      if (!silent) toast.error(e?.response?.data?.message ?? "Failed to load trade.");
     } finally {
-      setLoading(false);
+      if (!silent && requestSequence === fetchSequence.current) setLoading(false);
     }
-  }, [tradeId]);
+  }, [tradeId, applyTrade]);
 
   useEffect(() => {
     fetchTrade();
@@ -761,10 +784,13 @@ export default function BuyDetailsCard({
     const echo = getTradeEcho();
     if (!echo) return;
 
-    const channelName = `trade.${tradeIdNum}`;
+    const channelName = `p2p-order.${tradeIdNum}`;
     const channel = echo.private(channelName);
-    const onOrderUpdate = (payload: { data?: { refresh?: boolean } }) => {
-      if (payload?.data?.refresh) void fetchTrade();
+    const onOrderUpdate = () => {
+      // The event is only emitted on this order's private channel. Refresh for
+      // every event (including future payload shapes), not only when a
+      // particular `refresh` flag happens to be present.
+      void fetchTrade({ silent: true });
     };
 
     channel.listen(".p2p-order-details.update", onOrderUpdate);
@@ -775,44 +801,22 @@ export default function BuyDetailsCard({
     };
   }, [tradeId, fetchTrade]);
 
-  // ── Poll while pending (status=1) ─────────────────────────────────────────
+  // ── Reconnect/fallback refresh ────────────────────────────────────────────
   useEffect(() => {
-    if (!tradeId || !trade || trade.status !== 1) return;
+    const currentStatus = trade?.status;
+    if (!tradeId || currentStatus === undefined || [6, 9].includes(currentStatus)) return;
 
-    const poll = setInterval(async () => {
-      try {
-        const res = await getTrade(Number(tradeId));
-        const t: TradeData = res?.data;
+    const refresh = () => void fetchTrade({ silent: true });
+    const poll = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
 
-        if (t.status === 2) {
-          setTrade(t);
-          setUiStatus(resolveUIStatus(t.status));
-          if (t.payment_expires_at) {
-            const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
-            const sec = expiresAtMs
-              ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
-              : 0;
-            setSecondsLeft(sec);
-            setTimerExpired(sec <= 0);
-          }
-          toast.success(
-            "Your request has been approved! Please complete the payment."
-          );
-          clearInterval(poll);
-        }
-
-        if ([3, 4, 5, 6, 7, 8, 9].includes(t.status)) {
-          setTrade(t);
-          setUiStatus(resolveUIStatus(t.status));
-          clearInterval(poll);
-        }
-      } catch {
-        // silent
-      }
-    }, 2000);
-
-    return () => clearInterval(poll);
-  }, [trade?.status, tradeId]);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [trade?.status, tradeId, fetchTrade]);
 
   // ── Countdown for status=2 payment window ─────────────────────────────────
   useEffect(() => {
@@ -924,10 +928,9 @@ export default function BuyDetailsCard({
 
     setSubmitting(newStatus);
     try {
-      await updateTradeStatus(trade.id, newStatus, notes);
-      const updated = { ...trade, status: newStatus };
-      setTrade(updated as TradeData);
-      setUiStatus(resolveUIStatus(newStatus));
+      const response = await updateTradeStatus(trade.id, newStatus, notes);
+      const updated = (response?.data ?? { ...trade, status: newStatus }) as TradeData;
+      applyTrade(updated);
 
       const msgs: Record<number, string> = {
         2: "Trade approved! Buyer can now send payment.",
@@ -961,8 +964,7 @@ export default function BuyDetailsCard({
       try {
         const response = await getTrade(trade.id);
         const updatedTrade: TradeData = response?.data;
-        setTrade(updatedTrade);
-        setUiStatus(resolveUIStatus(updatedTrade.status));
+        applyTrade(updatedTrade);
         if (updatedTrade.status === 2 && updatedTrade.payment_expires_at) {
           const expiresAtMs = parseApiDateToMs(updatedTrade.payment_expires_at);
           const seconds = expiresAtMs
