@@ -129,7 +129,12 @@ function Row({
   const pct = isBuy ? bonusPercent : feePercent;
   const bonusFee = (usdtAmount * pct) / 100;
   const iconImage = ad.payment_method?.sell_method?.icon_url ?? ad.payment_method?.sell_method?.icon_image;
-  const isOnline = ad.is_online === true || onlineUserIds.has(Number(ad.user_id));
+  // When the presence channel is ready, its membership is authoritative and
+  // lets an advertiser disappear immediately on a `leaving` event. If the
+  // websocket is unavailable, fall back to the REST snapshot from allAds.
+  const isOnline = onlineUserIds.size > 0
+    ? onlineUserIds.has(Number(ad.user_id))
+    : ad.is_online === true;
 
   return (
     <>
@@ -784,6 +789,14 @@ export default function Page() {
     };
   }, []);
 
+  // Presence heartbeats expire quickly. Re-fetch the filtered marketplace so
+  // an advertiser's ads disappear shortly after they go offline, even if no
+  // ad/order mutation event was emitted.
+  useEffect(() => {
+    const timer = window.setInterval(() => setTick(current => current + 1), 15000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   /* ── Infinite scroll observers ── */
   useEffect(() => {
     if (!filterFiat) return;
@@ -818,7 +831,18 @@ export default function Page() {
   }, [filterFiat, data.buy.page, data.sell.page, data.buy.last, data.sell.last]);
 
   /* ── Handlers ── */
-  const handleTrade = (ad: P2pAdsData, kind: Kind) => setTradeModal({ ad, kind });
+  const handleTrade = (ad: P2pAdsData, kind: Kind) => {
+    const isOnline = onlineUserIds.size > 0
+      ? onlineUserIds.has(Number(ad.user_id))
+      : ad.is_online === true;
+    if (!isOnline) {
+      toast.error('This advertiser is currently offline. Please choose another ad.');
+      setTick(current => current + 1);
+      return;
+    }
+
+    setTradeModal({ ad, kind });
+  };
 
   const handleCountry = (opt: Option | null) => {
     const cc = opt?.value ?? '';

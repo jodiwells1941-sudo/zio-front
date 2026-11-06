@@ -51,13 +51,18 @@ export function LocalMarketplacePresenceProvider({ children }: { children: React
     }
 
     const echo = getTradeEcho();
-    if (!echo) return;
-
     const heartbeat = () => {
       void touchLocalMarketplacePresence().catch(() => undefined);
     };
     heartbeat();
     const heartbeatTimer = window.setInterval(heartbeat, 10000);
+
+    // Presence heartbeats must continue even when the websocket transport is
+    // unavailable; the REST marketplace endpoint uses this cache to decide
+    // which advertisers are active.
+    if (!echo) {
+      return () => window.clearInterval(heartbeatTimer);
+    }
 
     const channelName = "local-marketplace.presence";
     const channel = echo.join(channelName);
