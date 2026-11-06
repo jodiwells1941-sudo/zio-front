@@ -396,6 +396,38 @@
   margin-top: 14px;
   flex-wrap: wrap;
 }
+.p2pDetailActionPage .p2pStepWrap .p2pActions,
+.p2pDetailActionPage .p2pBottomCancel{
+  display:none !important;
+}
+.p2pTopActions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:10px 0 16px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(18,24,36,.82);
+  position:sticky;
+  top:12px;
+  z-index:20;
+  backdrop-filter:blur(8px);
+}
+.p2pTopActions .p2pActions{
+  flex:1;
+  margin:0;
+}
+.p2pTopActions .p2pPrimaryBtn,
+.p2pTopActions .p2pGhostBtn{
+  min-height:38px;
+  padding:8px 12px;
+}
+.p2pTopActions .p2pActionCancel{
+  border-color:rgba(248,113,113,.32);
+  color:#fca5a5;
+}
 .p2pPrimaryBtn{
   border: 1px solid rgba(240,195,60,.35);
   background: var(--btn);
@@ -421,6 +453,20 @@
   font-weight: 800;
   font-size: 13px;
   padding: 10px 0;
+}
+
+@media (max-width: 576px) {
+  .p2pTopActions{
+    align-items:stretch;
+    gap:8px;
+  }
+  .p2pTopActions .p2pActions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .p2pTopActions .p2pActions button{
+    width:100%;
+  }
 }
 
 /* Right Chat */
@@ -706,6 +752,65 @@
   color: #f3f4f6;
 }
 
+/* Payment proof modal */
+.p2pProofModalOverlay{
+  background:rgba(3,7,14,.78);
+  backdrop-filter:blur(8px);
+}
+.p2pProofModal{
+  width:min(90vw,560px)!important;
+  max-width:560px!important;
+  max-height:min(86vh,700px);
+  border:1px solid rgba(242,201,76,.22);
+  border-radius:18px;
+  background:radial-gradient(650px 250px at 0% 0%,rgba(242,201,76,.09),transparent 65%),linear-gradient(145deg,#171e2a 0%,#10151e 100%);
+  box-shadow:0 24px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03);
+}
+.p2pProofModalHeader{
+  align-items:flex-start;
+  gap:12px;
+  padding:16px 20px 14px;
+  background:rgba(255,255,255,.018);
+}
+.p2pProofEyebrow{
+  display:block;
+  margin-bottom:5px;
+  color:var(--yellow);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.p2pProofSubtitle{ margin:3px 0 0; color:rgba(255,255,255,.58); font-size:11px; }
+.p2pProofClose{
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  background:rgba(255,255,255,.04);
+}
+.p2pProofClose:hover{ border-color:rgba(242,201,76,.5); background:rgba(242,201,76,.1); color:var(--yellow); }
+.p2pProofModalBody{ min-height:0; overflow-y:auto; gap:10px; padding:14px 20px 8px; }
+.p2pProofForm{ display:flex; min-height:0; flex:1; flex-direction:column; }
+.p2pProofModalBody{ flex:1; }
+.p2pProofOrderCard{ margin:0!important; padding:14px!important; border:1px solid rgba(255,255,255,.09)!important; background:rgba(255,255,255,.025)!important; }
+.p2pProofField{ display:flex; flex-direction:column; gap:6px; }
+.p2pProofFieldLabel{ color:rgba(255,255,255,.82); font-size:12px; font-weight:800; }
+.p2pProofTextarea,
+.p2pProofFileInput{ border:1px solid rgba(255,255,255,.1)!important; background:rgba(0,0,0,.16)!important; color:rgba(255,255,255,.9)!important; font-size:12px; }
+.p2pProofTextarea{ min-height:56px; resize:vertical; }
+.p2pProofTextarea:focus,
+.p2pProofFileInput:focus{ border-color:rgba(242,201,76,.6)!important; box-shadow:0 0 0 3px rgba(242,201,76,.09)!important; }
+.p2pProofPreview{ padding:8px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(0,0,0,.13); }
+.p2pProofPreview img{ display:block; width:100%; max-height:100px!important; object-fit:contain; border-color:rgba(242,201,76,.25)!important; }
+.p2pProofFooter{ justify-content:flex-end; gap:8px; padding:10px 20px 14px; border-top:1px solid rgba(255,255,255,.08); }
+.p2pProofFooter .p2pLinkBtn{ margin:0!important; min-height:34px; padding:7px 13px; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:rgba(255,255,255,.04); color:rgba(255,255,255,.68); }
+.p2pProofSubmit{ min-height:34px; padding:7px 13px; border-radius:10px; box-shadow:0 7px 18px rgba(242,201,76,.14); }
+@media (max-width:480px){
+  .p2pProofModalHeader,.p2pProofModalBody,.p2pProofFooter{ padding-left:16px; padding-right:16px; }
+}
+
 /* Modal Body */
 .modal-body {
   padding: 20px;
@@ -909,4 +1014,83 @@
 .toast-bg-success{
   background-color: #00de8d57;
   font-size: 16px;
+}
+
+/* Completion celebration shown before the feedback dialog */
+.completionCelebration{
+  position:fixed;
+  inset:0;
+  z-index:13000;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  padding:20px;
+  background:rgba(4,7,12,.82);
+  backdrop-filter:blur(7px);
+  animation:completionFadeIn .25s ease-out;
+}
+.completionCard{
+  position:relative;
+  z-index:2;
+  width:min(92vw,390px);
+  padding:30px 28px 26px;
+  border:1px solid rgba(242,201,76,.3);
+  border-radius:20px;
+  background:radial-gradient(260px 130px at 50% 0%,rgba(242,201,76,.13),transparent 75%),linear-gradient(145deg,#1c2430,#10151e);
+  box-shadow:0 22px 70px rgba(0,0,0,.5),0 0 42px rgba(242,201,76,.08);
+  text-align:center;
+  animation:completionCardIn .35s cubic-bezier(.2,.8,.2,1);
+}
+.completionBadge{
+  display:grid;
+  width:64px;
+  height:64px;
+  margin:0 auto 14px;
+  place-items:center;
+  border:1px solid rgba(242,201,76,.55);
+  border-radius:50%;
+  background:rgba(242,201,76,.15);
+  color:var(--yellow);
+  font-size:27px;
+  box-shadow:0 0 0 8px rgba(242,201,76,.06),0 0 30px rgba(242,201,76,.18);
+  animation:completionPulse 1.8s ease-in-out infinite;
+}
+.completionEyebrow{
+  color:var(--yellow);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.completionCard h2{
+  margin:7px 0 5px;
+  color:#fff;
+  font-size:25px;
+  font-weight:850;
+}
+.completionCard p{
+  margin:0 0 21px;
+  color:rgba(255,255,255,.6);
+  font-size:13px;
+}
+.completionButton{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  min-height:40px;
+  padding:9px 16px;
+  border:1px solid rgba(242,201,76,.55);
+  border-radius:10px;
+  background:linear-gradient(135deg,#f6d35f,#eab936);
+  color:#17130a;
+  font-size:12px;
+  font-weight:850;
+  box-shadow:0 8px 20px rgba(242,201,76,.14);
+}
+.completionButton:hover{ filter:brightness(1.07); transform:translateY(-1px); }
+@keyframes completionFadeIn{ from{opacity:0} to{opacity:1} }
+@keyframes completionCardIn{ from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes completionPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+@media (prefers-reduced-motion:reduce){
+  .completionCelebration,.completionCard,.completionBadge{ animation:none; }
 }

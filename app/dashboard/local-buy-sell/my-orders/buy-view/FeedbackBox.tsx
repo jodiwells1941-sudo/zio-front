@@ -11,6 +11,7 @@ interface FeedbackBoxProps {
   buyerId: number;
   clientId: number;
   from?: string;
+  initialOpen?: boolean;
 }
 
 interface FormErrors {
@@ -26,14 +27,18 @@ const TAGS = [
   "Safe and trustworthy",
 ];
 
-export default function FeedbackBox({ tradeId, buyerId, clientId, from }: FeedbackBoxProps) {
+export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialOpen = true }: FeedbackBoxProps) {
   const [type, setType] = useState<"positive" | "negative" | "">("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(initialOpen);
   const route = useRouter();
+
+  useEffect(() => {
+    if (initialOpen) setIsOpen(true);
+  }, [initialOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

@@ -479,7 +479,7 @@ export default function BuyerPaymentCard() {
                         ) : approvalWindowExpired ? (
                           "Time Expired"
                         ) : (
-                          "Approve Trade"
+                          "Approve Order"
                         )}
                       </button>
                     )}

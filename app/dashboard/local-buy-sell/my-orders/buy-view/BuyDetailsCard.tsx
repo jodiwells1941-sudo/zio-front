@@ -258,6 +258,7 @@ function PaymentProofModal({
   const [bonusPercent, setBonusPercent] = useState(0);
   const [orderDetailsExpanded, setOrderDetailsExpanded] = useState(false);
   const orderDetailsId = useId();
+  const uploadInputId = useId();
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
 
   useEffect(() => {
@@ -393,13 +394,17 @@ function PaymentProofModal({
   };
 
   return (
-    <div className="modal-overlay" style={{ display: "flex" }}>
-      <div className="modal-content" style={{ maxWidth: 620, width: "min(92vw, 620px)" }}>
-        <div className="modal-header">
-          <h6 className="modal-title">Submit payment proof</h6>
+    <div className={`modal-overlay ${proofModalStyles.overlay}`} style={{ display: "flex" }} role="dialog" aria-modal="true" aria-labelledby="payment-proof-title">
+      <div className={`modal-content ${proofModalStyles.modal}`}>
+        <div className={`modal-header ${proofModalStyles.header}`}>
+          <div>
+            <span className={proofModalStyles.eyebrow}>Payment confirmation</span>
+            <h6 id="payment-proof-title" className="modal-title">Submit payment proof</h6>
+            <p className={proofModalStyles.subtitle}>Upload a clear receipt so the seller can verify your payment.</p>
+          </div>
           <button
             type="button"
-            className="modal-close-btn"
+            className={`modal-close-btn ${proofModalStyles.closeButton}`}
             aria-label="Close modal"
             onClick={onClose}
           >
@@ -408,7 +413,7 @@ function PaymentProofModal({
         </div>
 
         <form
-          className="w-100"
+          className={`w-100 ${proofModalStyles.form}`}
           onSubmit={(event) => {
             event.preventDefault();
             if (proofFiles.length === 0) {
@@ -420,7 +425,7 @@ function PaymentProofModal({
             void handleSubmit();
           }}
         >
-          <div className="modal-body gap-1 p-3">
+          <div className={`modal-body ${proofModalStyles.body}`}>
             {orderView && (
               <div className={proofModalStyles.payAmount}>
                 <span className={proofModalStyles.payAmountIcon} aria-hidden="true">
@@ -470,47 +475,63 @@ function PaymentProofModal({
               )}
             </section>
 
-            <div className="mb-3">
-              <label className="form-label text-white-50 small">Proof image</label>
+            <section className={proofModalStyles.uploadSection}>
+              <div className={proofModalStyles.sectionHeading}>
+                <div>
+                  <span className={proofModalStyles.sectionTitle}>Payment receipt</span>
+                  <span className={proofModalStyles.sectionHint}>JPEG, PNG, GIF or WebP · multiple images allowed</span>
+                </div>
+                <i className="fa-regular fa-image" aria-hidden="true" />
+              </div>
+              <label htmlFor={uploadInputId} className={`${proofModalStyles.uploadDropzone} ${proofError ? proofModalStyles.uploadError : ""}`}>
+                <span className={proofModalStyles.uploadIcon} aria-hidden="true">
+                  <i className="fa-solid fa-cloud-arrow-up" />
+                </span>
+                <span className={proofModalStyles.uploadCopy}>
+                  <strong>{proofFiles.length > 0 ? "Add another receipt" : "Choose receipt images"}</strong>
+                  <span>Tap to browse from your device</span>
+                </span>
+                <span className={proofModalStyles.browseButton}>Browse</span>
+              </label>
               <input
+                id={uploadInputId}
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
                 multiple
-                className={`form-control bg-dark text-light ${proofError ? "border-danger is-invalid" : "border-dark"}`}
+                className={proofModalStyles.fileInput}
                 onChange={handleFileChange}
                 disabled={submitting || uploadedProofCount > 0}
                 aria-required="true"
                 aria-invalid={proofError}
               />
-              <div className="form-text text-white-50">
+              <div className={proofModalStyles.uploadHelp}>
                 {uploadedProofCount > 0
                   ? `${uploadedProofCount} of ${proofFiles.length} images uploaded.`
-                  : "Select one or more images. You can add more images in multiple selections."}
+                  : "Use a receipt showing the amount, recipient and transaction time."}
               </div>
               {proofError && (
-                <div className="text-danger small mt-2">Please upload at least one payment proof image.</div>
+                <div className={proofModalStyles.errorMessage}>Please upload at least one payment proof image.</div>
               )}
-            </div>
+            </section>
 
             {proofFiles.length > 0 && (
-              <div className="mb-3">
-                <div className="text-white-50 small mb-2">Selected proof images ({proofFiles.length})</div>
-                <div className="d-flex flex-wrap gap-2">
+              <div className={proofModalStyles.previewSection}>
+                <div className={proofModalStyles.previewHeading}>Selected receipts <span>{proofFiles.length}</span></div>
+                <div className={proofModalStyles.previewGrid}>
                   {proofFiles.map((file, index) => (
                     <div
                       key={`${file.name}-${file.lastModified}-${index}`}
-                      className="position-relative rounded border border-secondary p-1"
+                      className={proofModalStyles.previewCard}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={previewUrls[index]}
                         alt={`Payment proof ${index + 1}`}
-                        className="rounded"
-                        style={{ width: 88, height: 72, objectFit: "cover" }}
+                        className={proofModalStyles.previewImage}
                       />
                       <button
                         type="button"
-                        className="btn btn-sm btn-danger position-absolute top-0 end-0 translate-middle"
+                        className={proofModalStyles.removeButton}
                         aria-label={`Remove ${file.name}`}
                         title={`Remove ${file.name}`}
                         onClick={() => removeProof(index)}
@@ -518,7 +539,7 @@ function PaymentProofModal({
                       >
                         <i className="fa-solid fa-xmark" />
                       </button>
-                      <span className="d-block text-white-50 small text-truncate" style={{ maxWidth: 88 }}>
+                      <span className={proofModalStyles.fileName}>
                         {file.name}
                       </span>
                     </div>
@@ -527,10 +548,11 @@ function PaymentProofModal({
               </div>
             )}
 
-            <div className="mb-3">
-              <label className="form-label text-white-50 small mb-2">Message</label>
+            <div className={proofModalStyles.messageSection}>
+              <label className={proofModalStyles.sectionTitle} htmlFor={`${uploadInputId}-message`}>Message <span>(optional)</span></label>
               <textarea
-                className="form-control bg-dark text-light border-dark"
+                id={`${uploadInputId}-message`}
+                className={proofModalStyles.messageInput}
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -541,13 +563,13 @@ function PaymentProofModal({
             
           </div>
 
-          <div className="modal-footer mx-auto mb-4">
-            <button type="button" className="p2pLinkBtn me-3" onClick={onClose} disabled={submitting}>
+          <div className={proofModalStyles.footer}>
+            <button type="button" className={proofModalStyles.cancelButton} onClick={onClose} disabled={submitting}>
               Cancel
             </button>
             <button
               type="submit"
-              className="p2pPrimaryBtn me-3"
+              className={proofModalStyles.submitButton}
               disabled={submitting}
             >
               {submitting
@@ -870,7 +892,7 @@ export default function BuyDetailsCard({
       }
     > = {
       2: {
-        title: "Approve Trade?",
+        title: "Approve Order?",
         html: `Approving will deduct <strong>${v.asset} ${v.cryptoStr}</strong> from your wallet.<br/>Are you sure you want to approve this trade?`,
         confirmText: "Yes, Approve!",
         icon: "question",
@@ -1134,7 +1156,7 @@ export default function BuyDetailsCard({
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <>
+    <div className="p2pDetailActionPage">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="p2pOrderHeader">
         {isPending ? (
@@ -1239,6 +1261,58 @@ export default function BuyDetailsCard({
         </div> */}
       </div>
 
+      {(canCancelOrder || canReject || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired))) && (
+        <div className="p2pTopActions" role="group" aria-label="Order actions">
+          <div className="p2pActions">
+            {canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleStatusUpdate(3)}
+                disabled={submitting !== null}
+              >
+                {submitting === 3 ? "Cancelling…" : "Cancel Order"}
+              </button>
+            )}
+            {canReject && !canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleStatusUpdate(3)}
+                disabled={submitting !== null}
+              >
+                {submitting === 3 ? "Rejecting…" : "Reject Order"}
+              </button>
+            )}
+            {canApprove && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(2)} disabled={submitting !== null}>
+                {submitting === 2 ? "Approving…" : "Approve Order"}
+              </button>
+            )}
+            {canDispatch && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => setShowProofModal(true)} disabled={submitting !== null}>
+                {submitting === 5 ? "Notifying…" : notifyTransferredLabel}
+              </button>
+            )}
+            {canRelease && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
+                {submitting === 6 ? "Processing…" : "Payment Received"}
+              </button>
+            )}
+            {canDispute && (
+              <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(7)} disabled={submitting !== null}>
+                {submitting === 7 ? "Submitting…" : "Appeal"}
+              </button>
+            )}
+            {canClaim && (uiStatus === "pending" || timerExpired) && (
+              <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(10)} disabled={submitting !== null}>
+                {submitting === 10 ? "Submitting…" : "Claim to Admin"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {uiStatus !== "rejected" && (
         <TradeProgressSteps tone="buy" currentStep={uiStatus === "completed" ? 3 : 2} />
       )}
@@ -1269,7 +1343,7 @@ export default function BuyDetailsCard({
       />
 
       {canCancelOrder && (
-        <div className={paymentTimeStyles.cancelOrderRow}>
+        <div className={`${paymentTimeStyles.cancelOrderRow} p2pBottomCancel`}>
           <button
             className={paymentTimeStyles.cancelOrder}
             type="button"
@@ -1416,7 +1490,7 @@ export default function BuyDetailsCard({
                               Approving…
                             </>
                           ) : (
-                            "Approve Trade"
+                            "Approve Order"
                           )}
                         </button>
                       )}
@@ -1478,6 +1552,6 @@ export default function BuyDetailsCard({
           void fetchTrade();
         }}
       />
-    </>
+    </div>
   );
 }

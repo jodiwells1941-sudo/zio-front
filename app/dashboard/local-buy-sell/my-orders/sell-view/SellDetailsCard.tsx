@@ -447,7 +447,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-     <>
+    <div className="p2pDetailActionPage">
       <div className="p2pOrderHeader">
 
         {trade.status === 1 ? (
@@ -539,6 +539,63 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         </div> */}
       </div>
 
+      {(canCancelOrder || canReject || canApprove || canRelease || canDispute || canClaim || trade.status === 2) && (
+        <div className="p2pTopActions" role="group" aria-label="Order actions">
+          <div className="p2pActions">
+            {canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleRejectTrade()}
+                disabled={submitting}
+              >
+                {submitting ? "Cancelling…" : "Cancel Order"}
+              </button>
+            )}
+            {canReject && !canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleRejectTrade()}
+                disabled={submitting}
+              >
+                {submitting ? "Rejecting…" : "Reject Trade"}
+              </button>
+            )}
+            {canApprove && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleApproveTrade()} disabled={submitting || approvalWindowExpired}>
+                {submitting ? "Approving…" : approvalWindowExpired ? "Time Expired" : "Approve Order"}
+              </button>
+            )}
+            {trade.status === 2 && (
+              <button
+                className="p2pGhostBtn"
+                type="button"
+                onClick={() => setShowTimeExtension(true)}
+                disabled={extendingTime || submitting}
+              >
+                Need more time
+              </button>
+            )}
+            {isBuyerDispatched && canRelease && (
+              <button className="p2pPrimaryBtn" type="button" onClick={handlePaymentReceived} disabled={submitting}>
+                Payment Received
+              </button>
+            )}
+            {canDispute && (
+              <button className="p2pGhostBtn" type="button" onClick={handleAppeal} disabled={submitting || appealCountdownBlocking}>
+                {appealCountdownBlocking ? `Appeal after ${pad(mm)}:${pad(ss)}` : "Appeal"}
+              </button>
+            )}
+            {canClaim && (
+              <button className="p2pGhostBtn" type="button" onClick={handleClaimToAdmin} disabled={submitting}>
+                Time Expired, Claim to Admin
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {![3, 4, 7, 8, 10].includes(trade.status) && (
         <TradeProgressSteps
           tone="sell"
@@ -572,7 +629,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
       />
 
       {canCancelOrder && (
-        <div className={paymentTimeStyles.cancelOrderRow}>
+        <div className={`${paymentTimeStyles.cancelOrderRow} p2pBottomCancel`}>
           <button
             className={paymentTimeStyles.cancelOrder}
             type="button"
@@ -640,7 +697,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
                         ) : approvalWindowExpired ? (
                           "Time Expired"
                         ) : (
-                          "Approve Trade"
+                          "Approve Order"
                         )}
                       </button>
                     )}
@@ -788,6 +845,6 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
           currency={withFiat}
         />
       )}
-    </>
+    </div>
   );
 }

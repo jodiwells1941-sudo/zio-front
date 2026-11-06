@@ -29,6 +29,7 @@ interface IncomingLocalOrder {
   p2p_ad?: {
     asset?: string;
     with_fiat?: string;
+    payment_time_limit?: number;
     payment_method?: {
       sell_method?: { name?: string } | null;
     } | null;
@@ -105,6 +106,7 @@ export default function IncomingLocalOrderPrompt() {
   const router = useRouter();
   const [orders, setOrders] = useState<IncomingLocalOrder[]>([]);
   const [busy, setBusy] = useState(false);
+  const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
   const activeUserId = useRef<number | null>(null);
   const dismissedOrderIds = useRef<Set<number>>(new Set());
@@ -272,9 +274,24 @@ export default function IncomingLocalOrderPrompt() {
     };
   }, [userId]);
 
-  const closeCurrent = () => {
-    setOrders(current => current.slice(1));
+  const openOrderDetails = (order: IncomingLocalOrder) => {
+    // Do not reveal another queued prompt while the details page is loading.
+    dismissedOrderIds.current.add(order.id);
+    setOrders([]);
     setBusy(false);
+
+    const view = order.type === "buy" ? "sell-view" : "buy-view";
+    router.push(`/dashboard/local-buy-sell/my-orders/${view}?trade_id=${order.id}`);
+  };
+
+  const copyOrderId = async (orderId: string) => {
+    try {
+      await navigator.clipboard.writeText(orderId);
+      setCopiedOrderId(true);
+      window.setTimeout(() => setCopiedOrderId(false), 1200);
+    } catch {
+      // Clipboard access is optional; the order ID remains visible to copy manually.
+    }
   };
 
   const handleStatus = async (status: 2 | 3) => {
@@ -285,7 +302,7 @@ export default function IncomingLocalOrderPrompt() {
     try {
       await updateTradeStatus(currentOrder.id, status);
       toast.success(status === 2 ? "Order accepted." : "Order cancelled.");
-      closeCurrent();
+      openOrderDetails(currentOrder);
     } catch (error) {
       console.error(`Failed to ${status === 2 ? "accept" : "cancel"} incoming order ${currentOrder.id}:`, error);
       toast.error(
@@ -298,19 +315,6 @@ export default function IncomingLocalOrderPrompt() {
       );
       setBusy(false);
     }
-  };
-
-  const handleView = () => {
-    const order = orders[0];
-    if (!order || busy) return;
-
-    const view = order.type === "buy" ? "sell-view" : "buy-view";
-    // Viewing the order should dismiss the global overlay completely. Do not
-    // reveal the next queued request while navigation is in progress.
-    dismissedOrderIds.current.add(order.id);
-    setOrders([]);
-    setBusy(false);
-    router.push(`/dashboard/local-buy-sell/my-orders/${view}?trade_id=${order.id}`);
   };
 
   const handleDismiss = () => {
@@ -327,15 +331,21 @@ export default function IncomingLocalOrderPrompt() {
 
   const fiat = order.p2p_ad?.with_fiat ?? "";
   const asset = order.p2p_ad?.asset ?? "USDT";
+  const orderNumber = order.order_id || `#${order.id}`;
+  const paymentMethod = order.p2p_ad?.payment_method?.sell_method?.name || "Payment method";
+  const totalReceived = order.type === "buy"
+    ? formatAmount(order.payable_amount, fiat)
+    : formatAmount(order.receivable_amount, asset);
+  const summaryAmountLabel = order.type === "buy" ? "Sell Amount" : "Buy Amount";
   const creator = [order.client, order.customer].find(
     party => Number(party?.id) === Number(order.created_by)
   );
-  const action = order.type === "buy" ? "Buy" : "Sell";
+  const action = order.type === "buy" ? "Withdraw" : "Deposit";
 
   return (
     <div className={styles.overlay}>
       <section
-        className={styles.modal}
+        className={`${styles.modal} ${order.type === "sell" ? styles.sellOrder : styles.buyOrder}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="incoming-local-order-title"
@@ -356,32 +366,70 @@ export default function IncomingLocalOrderPrompt() {
             <span className={styles.iconPulse} />
           </div>
           <div className={styles.headerCopy}>
-            <div className={styles.eyebrowRow}>
-              <p className={styles.eyebrow}>New request</p>
-              <span className={styles.liveBadge}><span /> Live</span>
-            </div>
-            <h2 id="incoming-local-order-title">Incoming {action} Order</h2>
+            <h2 id="incoming-local-order-title">Your {action} Request </h2>
             <p className={styles.subtitle}>
               {creator?.name || "A user"} placed an order on your local ad.
             </p>
           </div>
         </header>
 
-        <div className={styles.orderRibbon}>
-          <span><i className="fa-solid fa-receipt" /> {order.order_id || `#${order.id}`}</span>
-          <b>{action} {asset}</b>
+        <section className={styles.orderSummary} aria-label="Order summary">
+          <div className={styles.summaryHeading}>
+            <strong>Order Summary</strong>
+            <i className="fa-solid fa-chevron-up" aria-hidden="true" />
+          </div>
+          <div className={styles.summaryRows}>
+            <div className={styles.summaryRow}>
+              <span>Order ID</span>
+              <strong className={styles.orderIdValue}>
+                {orderNumber}
+                <button
+                  type="button"
+                  className={styles.copyButton}
+                  onClick={() => void copyOrderId(orderNumber)}
+                  aria-label="Copy order ID"
+                  title="Copy order ID"
+                >
+                  <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
+                </button>
+              </strong>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Currency</span>
+              <strong>{fiat || "—"}</strong>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>{summaryAmountLabel}</span>
+              <strong>{formatAmount(order.receivable_amount, asset)}</strong>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Market Price</span>
+              <strong>{formatAmount(order.user_price, fiat)}</strong>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Payable Amount</span>
+              <strong>{formatAmount(order.payable_amount, fiat)}</strong>
+            </div>
+          </div>
+        </section>
+
+        <div className={styles.totalBanner}>
+          <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
+          <span>Total Received Amount</span>
+          <strong>{totalReceived}</strong>
         </div>
 
-        <div className={styles.amountHighlight}>
-          <span>{asset} amount</span>
-          <strong>{formatAmount(order.receivable_amount, asset)}</strong>
-          <small>{formatAmount(order.payable_amount, fiat)} payable</small>
+        <div className={styles.paymentCard}>
+          <span className={styles.paymentIcon}><i className="fa-solid fa-building-columns" aria-hidden="true" /></span>
+          <div>
+            <strong>{paymentMethod}</strong>
+            <small>{fiat || "Local currency"} payment details</small>
+          </div>
         </div>
 
-        <div className={styles.details}>
-          <div><span>Price</span><strong>{formatAmount(order.user_price, fiat)}</strong></div>
-          <div><span>Payment method</span><strong>{order.p2p_ad?.payment_method?.sell_method?.name || "—"}</strong></div>
-          <div><span>Currency</span><strong>{fiat || "—"}</strong></div>
+        <div className={styles.timeLimit}>
+          <span>Order Time Limit</span>
+          <strong>{order.p2p_ad?.payment_time_limit ?? "—"}{order.p2p_ad?.payment_time_limit ? " Min" : ""}</strong>
         </div>
 
         {orders.length > 1 && (
@@ -398,10 +446,6 @@ export default function IncomingLocalOrderPrompt() {
           <button type="button" className={`${styles.button} ${styles.accept}`} disabled={busy} onClick={() => void handleStatus(2)}>
             <i className={busy ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"} />
             {busy ? "Processing…" : "Accept order"}
-          </button>
-          <button type="button" className={`${styles.button} ${styles.view}`} disabled={busy} onClick={handleView}>
-            <i className="fa-solid fa-arrow-up-right-from-square" />
-            View
           </button>
         </div>
       </section>
