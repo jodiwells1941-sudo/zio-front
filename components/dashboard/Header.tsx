@@ -2,13 +2,20 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { fetchUserInfoAPI } from "@/app/api/auth";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  type UserNotification,
+} from "@/app/api/notifications";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import { logout } from "@/utils/auth";
 import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 
 type NotificationItem = {
-  name: string;
+  name?: string;
+  title?: string;
   message: string;
   time: string;
   isActiveBg?: boolean;
@@ -32,18 +39,9 @@ type User = {
 
 export default function Header({
   
-  notificationsCount = "05",
-  notifications = [
-    { name: "Kathryn Murphy", message: "hey! there i'm...", time: "12:30 PM" },
-    { name: "John Doe", message: "hey! there i'm...", time: "12:30 PM", isActiveBg: true },
-    { name: "John Abraham", message: "hey! there i'm...", time: "12:30 PM" },
-    { name: "Kathryn Murphy", message: "hey! there i'm...", time: "12:30 PM", isActiveBg: true },
-  ],
+  notificationsCount = "0",
+  notifications = [],
 }: Props) {
-  const stop = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-  }, []);
-
   const toggleLeftSidebar = useCallback(() => {
     document.querySelector(".left-sidebar-area")?.classList.toggle("active");
   }, []);
@@ -65,7 +63,110 @@ export default function Header({
 
   const { isLoggedIn, user } = useAuth() as { isLoggedIn: boolean; user: User | null };
   const walletId = user?.wallet?.id;
+  const userId = user?.id;
   const [walletAmount, setWalletAmount] = useState(() => Number(user?.wallet?.amount ?? 0));
+  const [notificationItems, setNotificationItems] = useState<UserNotification[]>(() => notifications.map((item, index) => ({
+    id: -(index + 1),
+    type: "legacy",
+    title: item.title ?? item.name ?? "Notification",
+    message: item.message,
+    read_at: item.isActiveBg ? null : new Date().toISOString(),
+    created_at: undefined,
+  })));
+  const [unreadNotifications, setUnreadNotifications] = useState(() => Number(notificationsCount) || 0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  const formatNotificationTime = useCallback((value?: string | null) => {
+    if (!value) return "Just now";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Just now";
+    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+    if (seconds < 60) return "Just now";
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn || userId === undefined || userId === null) {
+      setNotificationItems([]);
+      setUnreadNotifications(0);
+      return;
+    }
+
+    let active = true;
+    const loadNotifications = async () => {
+      setNotificationsLoading(true);
+      try {
+        const result = await getNotifications();
+        if (!active) return;
+        setNotificationItems(result.items ?? []);
+        setUnreadNotifications(Number(result.unread_count ?? 0));
+      } catch {
+        // Keep the existing list during temporary API failures; realtime can still recover it.
+      } finally {
+        if (active) setNotificationsLoading(false);
+      }
+    };
+
+    void loadNotifications();
+
+    const echo = getTradeEcho();
+    const channelName = `user.${userId}`;
+    const channel = echo?.private(channelName);
+    const handleNotification = (payload: { notification?: UserNotification }) => {
+      const incoming = payload?.notification;
+      if (!incoming?.id) return;
+      setNotificationItems(current => [incoming, ...current.filter(item => item.id !== incoming.id)].slice(0, 30));
+      setUnreadNotifications(count => count + (incoming.read_at ? 0 : 1));
+
+      if (typeof window !== "undefined" && document.visibilityState === "hidden" && "Notification" in window && Notification.permission === "granted") {
+        new Notification(incoming.title, { body: incoming.message });
+      }
+    };
+
+    channel?.listen(".notification.created", handleNotification);
+
+    const poll = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") void loadNotifications();
+    }, 30000);
+
+    return () => {
+      active = false;
+      window.clearInterval(poll);
+      channel?.stopListening(".notification.created", handleNotification);
+      if (echo) echo.leave(channelName);
+    };
+  }, [formatNotificationTime, isLoggedIn, userId]);
+
+  const handleNotificationClick = useCallback(async (notification: UserNotification) => {
+    if (!notification.read_at) {
+      setNotificationItems(current => current.map(item => item.id === notification.id ? { ...item, read_at: new Date().toISOString() } : item));
+      setUnreadNotifications(count => Math.max(0, count - 1));
+      try {
+        await markNotificationRead(notification.id);
+      } catch {
+        // The optimistic state is preferable to blocking navigation on a transient failure.
+      }
+    }
+  }, []);
+
+  const handleMarkAllRead = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setNotificationItems(current => current.map(item => ({ ...item, read_at: item.read_at ?? new Date().toISOString() })));
+    setUnreadNotifications(0);
+    try {
+      await markAllNotificationsRead();
+    } catch {
+      // Reconcile on the next notification refresh if the request fails.
+    }
+  }, []);
+
+  const handleNotificationBellClick = useCallback(() => {
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      void Notification.requestPermission();
+    }
+  }, []);
 
   // Keep the local display in sync when auth data is refreshed or changed in
   // another part of the app.
@@ -288,6 +389,7 @@ export default function Header({
                         aria-label="search products"
                         title="Notification Dropdown"
                         type="button"
+                        onClick={handleNotificationBellClick}
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
                         data-bs-auto-close="outside"
@@ -301,6 +403,7 @@ export default function Header({
                         aria-label="search products"
                         title="Notification Dropdown"
                         type="button"
+                        onClick={handleNotificationBellClick}
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
                         data-bs-auto-close="outside"
@@ -308,57 +411,55 @@ export default function Header({
                         <i className="fa-regular fa-bell"></i>
                       </button>
 
-                      <div className="dropdown-menu end-0 left-auto notification-dropdown rounded-4">
-                        <div className="py-2 px-3 rounded-3 bg-neutral-100 m-3 d-flex align-items-center justify-content-between gap-2">
+                      <div className="dropdown-menu end-0 left-auto notification-dropdown rounded-4 header-notification-menu">
+                        <div className="py-2 px-3 m-3 d-flex align-items-center justify-content-between gap-2 header-notification-heading">
                           <div>
+                            <span className="header-notification-eyebrow">Activity center</span>
                             <h6 className="text-lg text-primary-light fw-semibold mb-0">
                               Notifications
                             </h6>
                           </div>
 
-                          <span className="rounded-text rounded-circle d-flex justify-content-center align-items-center">
-                            {notificationsCount}
-                          </span>
+                          <div className="d-flex align-items-center gap-2">
+                            <span className="header-notification-count">{unreadNotifications}</span>
+                            <button type="button" className="header-notification-clear" onClick={handleMarkAllRead} disabled={unreadNotifications === 0}>
+                              Mark all read
+                            </button>
+                          </div>
                         </div>
 
                         <div className="max-h-400-px overflow-y-auto scroll-sm d-flex flex-column">
-                          {notifications.map((n, idx) => (
+                          {notificationsLoading && notificationItems.length === 0 ? (
+                            <div className="header-notification-empty"><i className="fa-solid fa-spinner fa-spin" /> Loading notifications…</div>
+                          ) : notificationItems.length > 0 ? notificationItems.map(notification => (
                             <a
-                              key={idx}
-                              href="#"
-                              onClick={stop}
-                              className={[
-                                "px-3 py-2 d-flex align-items-start gap-3 justify-content-between notification-item",
-                                n.isActiveBg ? "bg-neutral-100" : "",
-                              ].join(" ")}
+                              key={notification.id}
+                              href={notification.data?.url ?? "/dashboard/local-buy-sell/my-orders"}
+                              onClick={() => void handleNotificationClick(notification)}
+                              className={`px-3 py-2 d-flex align-items-start gap-3 justify-content-between notification-item header-notification-item ${notification.read_at ? "is-read" : "is-unread"}`}
                             >
-                              <div className="text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3">
-                                <span className="rounded-text rounded-circle d-flex justify-content-center align-items-center bg-neutral-100 rounded-circle flex-shrink-0 position-relative text-black">
-                                  <i className="fa-regular fa-circle-check"></i>
-                                  <span className="w-8-px h-8-px bg-success-main rounded-circle position-absolute end-0 bottom-0"></span>
+                              <div className="d-flex align-items-start gap-3">
+                                <span className="header-notification-icon">
+                                  <i className={notification.type.includes("completed") ? "fa-solid fa-check" : notification.type.includes("appeal") ? "fa-solid fa-scale-balanced" : "fa-solid fa-arrow-right-arrow-left"} />
                                 </span>
-
-                                <div>
-                                  <h6 className="text-md fw-semibold mb-0">{n.name}</h6>
-                                  <p className="mb-0 text-sm text-secondary-light text-w-100-px">
-                                    {n.message}
-                                  </p>
+                                <div className="header-notification-copy">
+                                  <h6>{notification.title}</h6>
+                                  <p>{notification.message}</p>
+                                  <small>{notification.data?.scope ?? "P2P"}</small>
                                 </div>
                               </div>
-
-                              <div className="d-flex flex-column align-items-end">
-                                <span className="text-sm text-secondary-light flex-shrink-0">
-                                  {n.time}
-                                </span>
-                              </div>
+                              <span className="header-notification-time">{formatNotificationTime(notification.created_at)}</span>
                             </a>
-                          ))}
+                          )) : (
+                            <div className="header-notification-empty">
+                              <i className="fa-regular fa-bell-slash" />
+                              No notifications yet
+                            </div>
+                          )}
                         </div>
 
                         <div className="text-center py-3">
-                          <a href="#" className="text-primary" onClick={stop}>
-                            See All Notification
-                          </a>
+                          <Link href="/dashboard/local-buy-sell/my-orders" className="header-notification-footer-link">View order activity</Link>
                         </div>
                       </div>
                     </div>

@@ -90,22 +90,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* show profile verification force link */}
               {user?.verify_status != 1 && (
                 <div className="alert alert-warning alert-dismissible py-1 bg-warning text-success-emphasis border-dark-light text-warning fade show z-index-1000" role="alert">
-                  {
-                    user?.verify_status == 3 && (
-                      <><strong>Profile Verification Required!</strong> Please verify your profile to access all features.</>
-                    )
-                  }
-
-                  {
-                    user?.verify_status == 2 && (
-                      <><strong>Profile Under Review!</strong> Your profile verification is under review. Please wait for approval.</>
-                    )
-                  }
-                  {
-                    user?.verify_status == 3 && (
+                  {user?.verify_status == 2 ? (
+                    <><strong>Profile Under Review!</strong> Your profile verification is under review. Other account work will be available after approval.</>
+                  ) : (
+                    <>
+                      <strong>Profile Verification Required!</strong> Verify your profile before starting other work.
                       <Link href="/dashboard/verify-profile" className="text-success ms-3"><u>Verify Now</u></Link>
-                    )
-                  }
+                    </>
+                  )}
                 </div>
               )}
 
