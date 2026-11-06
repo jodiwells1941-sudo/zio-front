@@ -2,7 +2,9 @@
 
 import React from "react";
 import FeedbackBox from "./FeedbackBox";
+import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 import { normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
 
 interface TradeData {
@@ -36,6 +38,8 @@ type Props = {
 };
 
 export default function PaymentCompleted({ trade, from }: Props) {
+  const [showCelebration, setShowCelebration] = useState(true);
+  const [openFeedback, setOpenFeedback] = useState(false);
   const withFiat     = trade.current_status?.with_fiat ?? trade.p2p_ad?.with_fiat ?? '';
   const asset        = normalizeCryptoAsset(trade.p2p_ad?.asset);
   const methodName   = trade.current_status?.method
@@ -51,6 +55,13 @@ export default function PaymentCompleted({ trade, from }: Props) {
     
   return (
     <>
+      <CompletionCelebration
+        isOpen={showCelebration}
+        onClose={() => {
+          setShowCelebration(false);
+          setOpenFeedback(true);
+        }}
+      />
       {/* <div className="p2pStepWrap">
         <div className="p2pStepRow">
           <div className="p2pStepContent">
@@ -214,6 +225,7 @@ export default function PaymentCompleted({ trade, from }: Props) {
                 buyerId={trade.customer_id}
                 clientId={trade.client_id}
                 from={from}
+                initialOpen={openFeedback}
               />
             ) : (
               <div className="bg-dark p-3 rounded-3 text-center">

@@ -10,6 +10,7 @@ import Script from "next/script";
 import 'sweetalert2/src/sweetalert2.scss'
 import 'react-toastify/dist/ReactToastify.css';
 import ToastProvider from "@/components/containers/ToastProvider";
+import IncomingLocalOrderPrompt from "@/components/dashboard/IncomingLocalOrderPrompt";
 
 const chakraPetch = Chakra_Petch({
 	variable: "--chakra",
@@ -77,10 +78,10 @@ export default function RootLayout({
 				<link rel="stylesheet" href="/css/p2p-profile.css" />
 			</head>
 			<body className={`${chakraPetch.variable}`}>
-				
-				{/* {children} */}
-				{children}
 
+				<IncomingLocalOrderPrompt />
+				
+				{children}
 				<ToastProvider />
 				
 				<Script src="/js/jquery-3.7.1.min.js" strategy="afterInteractive" />

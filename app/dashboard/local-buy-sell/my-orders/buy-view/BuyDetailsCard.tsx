@@ -105,6 +105,8 @@ interface P2PTransferCardProps {
   pendingExpireTime?: string | null;
   /** Optional callback fired when the countdown hits zero. */
   onTradeExpired?: () => void;
+  /** Keep page-level layout (for example the chat column) in sync with the card. */
+  onStatusChange?: (trade: TradeData) => void;
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -256,6 +258,7 @@ function PaymentProofModal({
   const [bonusPercent, setBonusPercent] = useState(0);
   const [orderDetailsExpanded, setOrderDetailsExpanded] = useState(false);
   const orderDetailsId = useId();
+  const uploadInputId = useId();
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
 
   useEffect(() => {
@@ -391,13 +394,17 @@ function PaymentProofModal({
   };
 
   return (
-    <div className="modal-overlay" style={{ display: "flex" }}>
-      <div className="modal-content" style={{ maxWidth: 620, width: "min(92vw, 620px)" }}>
-        <div className="modal-header">
-          <h6 className="modal-title">Submit payment proof</h6>
+    <div className={`modal-overlay ${proofModalStyles.overlay}`} style={{ display: "flex" }} role="dialog" aria-modal="true" aria-labelledby="payment-proof-title">
+      <div className={`modal-content ${proofModalStyles.modal}`}>
+        <div className={`modal-header ${proofModalStyles.header}`}>
+          <div>
+            <span className={proofModalStyles.eyebrow}>Payment confirmation</span>
+            <h6 id="payment-proof-title" className="modal-title">Submit payment proof</h6>
+            <p className={proofModalStyles.subtitle}>Upload a clear receipt so the seller can verify your payment.</p>
+          </div>
           <button
             type="button"
-            className="modal-close-btn"
+            className={`modal-close-btn ${proofModalStyles.closeButton}`}
             aria-label="Close modal"
             onClick={onClose}
           >
@@ -406,7 +413,7 @@ function PaymentProofModal({
         </div>
 
         <form
-          className="w-100"
+          className={`w-100 ${proofModalStyles.form}`}
           onSubmit={(event) => {
             event.preventDefault();
             if (proofFiles.length === 0) {
@@ -418,7 +425,7 @@ function PaymentProofModal({
             void handleSubmit();
           }}
         >
-          <div className="modal-body gap-1 p-3">
+          <div className={`modal-body ${proofModalStyles.body}`}>
             {orderView && (
               <div className={proofModalStyles.payAmount}>
                 <span className={proofModalStyles.payAmountIcon} aria-hidden="true">
@@ -468,47 +475,63 @@ function PaymentProofModal({
               )}
             </section>
 
-            <div className="mb-3">
-              <label className="form-label text-white-50 small">Proof image</label>
+            <section className={proofModalStyles.uploadSection}>
+              <div className={proofModalStyles.sectionHeading}>
+                <div>
+                  <span className={proofModalStyles.sectionTitle}>Payment receipt</span>
+                  <span className={proofModalStyles.sectionHint}>JPEG, PNG, GIF or WebP · multiple images allowed</span>
+                </div>
+                <i className="fa-regular fa-image" aria-hidden="true" />
+              </div>
+              <label htmlFor={uploadInputId} className={`${proofModalStyles.uploadDropzone} ${proofError ? proofModalStyles.uploadError : ""}`}>
+                <span className={proofModalStyles.uploadIcon} aria-hidden="true">
+                  <i className="fa-solid fa-cloud-arrow-up" />
+                </span>
+                <span className={proofModalStyles.uploadCopy}>
+                  <strong>{proofFiles.length > 0 ? "Add another receipt" : "Choose receipt images"}</strong>
+                  <span>Tap to browse from your device</span>
+                </span>
+                <span className={proofModalStyles.browseButton}>Browse</span>
+              </label>
               <input
+                id={uploadInputId}
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
                 multiple
-                className={`form-control bg-dark text-light ${proofError ? "border-danger is-invalid" : "border-dark"}`}
+                className={proofModalStyles.fileInput}
                 onChange={handleFileChange}
                 disabled={submitting || uploadedProofCount > 0}
                 aria-required="true"
                 aria-invalid={proofError}
               />
-              <div className="form-text text-white-50">
+              <div className={proofModalStyles.uploadHelp}>
                 {uploadedProofCount > 0
                   ? `${uploadedProofCount} of ${proofFiles.length} images uploaded.`
-                  : "Select one or more images. You can add more images in multiple selections."}
+                  : "Use a receipt showing the amount, recipient and transaction time."}
               </div>
               {proofError && (
-                <div className="text-danger small mt-2">Please upload at least one payment proof image.</div>
+                <div className={proofModalStyles.errorMessage}>Please upload at least one payment proof image.</div>
               )}
-            </div>
+            </section>
 
             {proofFiles.length > 0 && (
-              <div className="mb-3">
-                <div className="text-white-50 small mb-2">Selected proof images ({proofFiles.length})</div>
-                <div className="d-flex flex-wrap gap-2">
+              <div className={proofModalStyles.previewSection}>
+                <div className={proofModalStyles.previewHeading}>Selected receipts <span>{proofFiles.length}</span></div>
+                <div className={proofModalStyles.previewGrid}>
                   {proofFiles.map((file, index) => (
                     <div
                       key={`${file.name}-${file.lastModified}-${index}`}
-                      className="position-relative rounded border border-secondary p-1"
+                      className={proofModalStyles.previewCard}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={previewUrls[index]}
                         alt={`Payment proof ${index + 1}`}
-                        className="rounded"
-                        style={{ width: 88, height: 72, objectFit: "cover" }}
+                        className={proofModalStyles.previewImage}
                       />
                       <button
                         type="button"
-                        className="btn btn-sm btn-danger position-absolute top-0 end-0 translate-middle"
+                        className={proofModalStyles.removeButton}
                         aria-label={`Remove ${file.name}`}
                         title={`Remove ${file.name}`}
                         onClick={() => removeProof(index)}
@@ -516,7 +539,7 @@ function PaymentProofModal({
                       >
                         <i className="fa-solid fa-xmark" />
                       </button>
-                      <span className="d-block text-white-50 small text-truncate" style={{ maxWidth: 88 }}>
+                      <span className={proofModalStyles.fileName}>
                         {file.name}
                       </span>
                     </div>
@@ -525,10 +548,11 @@ function PaymentProofModal({
               </div>
             )}
 
-            <div className="mb-3">
-              <label className="form-label text-white-50 small mb-2">Message</label>
+            <div className={proofModalStyles.messageSection}>
+              <label className={proofModalStyles.sectionTitle} htmlFor={`${uploadInputId}-message`}>Message <span>(optional)</span></label>
               <textarea
-                className="form-control bg-dark text-light border-dark"
+                id={`${uploadInputId}-message`}
+                className={proofModalStyles.messageInput}
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -539,13 +563,13 @@ function PaymentProofModal({
             
           </div>
 
-          <div className="modal-footer mx-auto mb-4">
-            <button type="button" className="p2pLinkBtn me-3" onClick={onClose} disabled={submitting}>
+          <div className={proofModalStyles.footer}>
+            <button type="button" className={proofModalStyles.cancelButton} onClick={onClose} disabled={submitting}>
               Cancel
             </button>
             <button
               type="submit"
-              className="p2pPrimaryBtn me-3"
+              className={proofModalStyles.submitButton}
               disabled={submitting}
             >
               {submitting
@@ -707,6 +731,7 @@ export default function BuyDetailsCard({
   pendingTimeLeft = 0,
   pendingExpireTime = null,
   onTradeExpired,
+  onStatusChange,
 }: P2PTransferCardProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -723,16 +748,36 @@ export default function BuyDetailsCard({
   const [extensionMinutes, setExtensionMinutes] = useState(5);
   const [extendingTime, setExtendingTime] = useState(false);
   const autoExtensionPromptedFor = useRef<string | null>(null);
+  const fetchSequence = useRef(0);
+
+  const applyTrade = useCallback((nextTrade: TradeData) => {
+    setTrade(nextTrade);
+    setUiStatus(resolveUIStatus(nextTrade.status));
+    onStatusChange?.(nextTrade);
+
+    if (nextTrade.status === 2 && nextTrade.payment_expires_at) {
+      const expiresAtMs = parseApiDateToMs(nextTrade.payment_expires_at);
+      const nextSeconds = expiresAtMs
+        ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
+        : 0;
+      setSecondsLeft(nextSeconds);
+      setTimerExpired(nextSeconds <= 0);
+    } else {
+      setSecondsLeft(0);
+      setTimerExpired(false);
+    }
+  }, [onStatusChange]);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
-  const fetchTrade = useCallback(async () => {
+  const fetchTrade = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!tradeId) return;
+    const requestSequence = ++fetchSequence.current;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await getTrade(Number(tradeId));
       const t: TradeData = res?.data;
-      setTrade(t);
-      setUiStatus(resolveUIStatus(t.status));
+      if (requestSequence !== fetchSequence.current) return;
+      applyTrade(t);
       if (t.status === 2 && t.payment_expires_at) {
         const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
         const sec = expiresAtMs
@@ -742,11 +787,11 @@ export default function BuyDetailsCard({
         setTimerExpired(sec <= 0);
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? "Failed to load trade.");
+      if (!silent) toast.error(e?.response?.data?.message ?? "Failed to load trade.");
     } finally {
-      setLoading(false);
+      if (!silent && requestSequence === fetchSequence.current) setLoading(false);
     }
-  }, [tradeId]);
+  }, [tradeId, applyTrade]);
 
   useEffect(() => {
     fetchTrade();
@@ -761,10 +806,13 @@ export default function BuyDetailsCard({
     const echo = getTradeEcho();
     if (!echo) return;
 
-    const channelName = `trade.${tradeIdNum}`;
+    const channelName = `p2p-order.${tradeIdNum}`;
     const channel = echo.private(channelName);
-    const onOrderUpdate = (payload: { data?: { refresh?: boolean } }) => {
-      if (payload?.data?.refresh) void fetchTrade();
+    const onOrderUpdate = () => {
+      // The event is only emitted on this order's private channel. Refresh for
+      // every event (including future payload shapes), not only when a
+      // particular `refresh` flag happens to be present.
+      void fetchTrade({ silent: true });
     };
 
     channel.listen(".p2p-order-details.update", onOrderUpdate);
@@ -775,44 +823,22 @@ export default function BuyDetailsCard({
     };
   }, [tradeId, fetchTrade]);
 
-  // ── Poll while pending (status=1) ─────────────────────────────────────────
+  // ── Reconnect/fallback refresh ────────────────────────────────────────────
   useEffect(() => {
-    if (!tradeId || !trade || trade.status !== 1) return;
+    const currentStatus = trade?.status;
+    if (!tradeId || currentStatus === undefined || [6, 9].includes(currentStatus)) return;
 
-    const poll = setInterval(async () => {
-      try {
-        const res = await getTrade(Number(tradeId));
-        const t: TradeData = res?.data;
+    const refresh = () => void fetchTrade({ silent: true });
+    const poll = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
 
-        if (t.status === 2) {
-          setTrade(t);
-          setUiStatus(resolveUIStatus(t.status));
-          if (t.payment_expires_at) {
-            const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
-            const sec = expiresAtMs
-              ? Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000))
-              : 0;
-            setSecondsLeft(sec);
-            setTimerExpired(sec <= 0);
-          }
-          toast.success(
-            "Your request has been approved! Please complete the payment."
-          );
-          clearInterval(poll);
-        }
-
-        if ([3, 4, 5, 6, 7, 8, 9].includes(t.status)) {
-          setTrade(t);
-          setUiStatus(resolveUIStatus(t.status));
-          clearInterval(poll);
-        }
-      } catch {
-        // silent
-      }
-    }, 2000);
-
-    return () => clearInterval(poll);
-  }, [trade?.status, tradeId]);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [trade?.status, tradeId, fetchTrade]);
 
   // ── Countdown for status=2 payment window ─────────────────────────────────
   useEffect(() => {
@@ -866,7 +892,7 @@ export default function BuyDetailsCard({
       }
     > = {
       2: {
-        title: "Approve Trade?",
+        title: "Approve Order?",
         html: `Approving will deduct <strong>${v.asset} ${v.cryptoStr}</strong> from your wallet.<br/>Are you sure you want to approve this trade?`,
         confirmText: "Yes, Approve!",
         icon: "question",
@@ -924,10 +950,9 @@ export default function BuyDetailsCard({
 
     setSubmitting(newStatus);
     try {
-      await updateTradeStatus(trade.id, newStatus, notes);
-      const updated = { ...trade, status: newStatus };
-      setTrade(updated as TradeData);
-      setUiStatus(resolveUIStatus(newStatus));
+      const response = await updateTradeStatus(trade.id, newStatus, notes);
+      const updated = (response?.data ?? { ...trade, status: newStatus }) as TradeData;
+      applyTrade(updated);
 
       const msgs: Record<number, string> = {
         2: "Trade approved! Buyer can now send payment.",
@@ -961,8 +986,7 @@ export default function BuyDetailsCard({
       try {
         const response = await getTrade(trade.id);
         const updatedTrade: TradeData = response?.data;
-        setTrade(updatedTrade);
-        setUiStatus(resolveUIStatus(updatedTrade.status));
+        applyTrade(updatedTrade);
         if (updatedTrade.status === 2 && updatedTrade.payment_expires_at) {
           const expiresAtMs = parseApiDateToMs(updatedTrade.payment_expires_at);
           const seconds = expiresAtMs
@@ -1132,7 +1156,7 @@ export default function BuyDetailsCard({
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <>
+    <div className="p2pDetailActionPage">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="p2pOrderHeader">
         {isPending ? (
@@ -1237,6 +1261,58 @@ export default function BuyDetailsCard({
         </div> */}
       </div>
 
+      {(canCancelOrder || canReject || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired))) && (
+        <div className="p2pTopActions" role="group" aria-label="Order actions">
+          <div className="p2pActions">
+            {canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleStatusUpdate(3)}
+                disabled={submitting !== null}
+              >
+                {submitting === 3 ? "Cancelling…" : "Cancel Order"}
+              </button>
+            )}
+            {canReject && !canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleStatusUpdate(3)}
+                disabled={submitting !== null}
+              >
+                {submitting === 3 ? "Rejecting…" : "Reject Order"}
+              </button>
+            )}
+            {canApprove && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(2)} disabled={submitting !== null}>
+                {submitting === 2 ? "Approving…" : "Approve Order"}
+              </button>
+            )}
+            {canDispatch && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => setShowProofModal(true)} disabled={submitting !== null}>
+                {submitting === 5 ? "Notifying…" : notifyTransferredLabel}
+              </button>
+            )}
+            {canRelease && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
+                {submitting === 6 ? "Processing…" : "Payment Received"}
+              </button>
+            )}
+            {canDispute && (
+              <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(7)} disabled={submitting !== null}>
+                {submitting === 7 ? "Submitting…" : "Appeal"}
+              </button>
+            )}
+            {canClaim && (uiStatus === "pending" || timerExpired) && (
+              <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(10)} disabled={submitting !== null}>
+                {submitting === 10 ? "Submitting…" : "Claim to Admin"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {uiStatus !== "rejected" && (
         <TradeProgressSteps tone="buy" currentStep={uiStatus === "completed" ? 3 : 2} />
       )}
@@ -1267,7 +1343,7 @@ export default function BuyDetailsCard({
       />
 
       {canCancelOrder && (
-        <div className={paymentTimeStyles.cancelOrderRow}>
+        <div className={`${paymentTimeStyles.cancelOrderRow} p2pBottomCancel`}>
           <button
             className={paymentTimeStyles.cancelOrder}
             type="button"
@@ -1414,7 +1490,7 @@ export default function BuyDetailsCard({
                               Approving…
                             </>
                           ) : (
-                            "Approve Trade"
+                            "Approve Order"
                           )}
                         </button>
                       )}
@@ -1476,6 +1552,6 @@ export default function BuyDetailsCard({
           void fetchTrade();
         }}
       />
-    </>
+    </div>
   );
 }

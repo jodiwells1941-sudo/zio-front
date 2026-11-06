@@ -28,6 +28,7 @@ export type P2pAdsData = {
 
   display_region: string;
   status: boolean;
+  is_online?: boolean;
 
   created_at: string;
   updated_at: string;
@@ -160,6 +161,11 @@ export const getMyLocalAds = async (params?: { type?: 'buy' | 'sell'; status?: b
 
 export const getLocalAds = async (params?: LocalAdsParams) => {
   const response = await apiClient.get('/user/p2p/local/ads', { params });
+  return response?.data;
+};
+
+export const touchLocalMarketplacePresence = async () => {
+  const response = await apiClient.post('/user/p2p/local/presence');
   return response?.data;
 };
 

@@ -447,7 +447,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--lbs-muted);
   font-weight: 500;
   line-height: 1;
@@ -1031,6 +1031,27 @@
     left: 7px;
     width: 12px;
     height: 12px;
+}
+
+.ping-indicator.is-offline .ping-dot {
+    background: #94a3b8;
+    box-shadow: none;
+}
+
+.ping-indicator.is-online .ping-dot {
+    background: #13b368;
+}
+
+.lbs-online-label {
+    margin-left: 13px;
+    color: rgba(255,255,255,.82);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.ping-indicator.is-offline + .lbs-online-label {
+    color: #94a3b8;
 }
 
 .ping-ring {
@@ -1654,7 +1675,7 @@
     display: inline-grid;
     flex: 0 0 auto;
     min-width: 18px;
-    height: 18px;
+    height: 16px;
     padding: 0 4px;
     border-radius: 999px;
     background: #ffffff2b;
@@ -2004,13 +2025,14 @@
   .lbs .lbs-mobile-list-tab {
     display: inline-flex;
     min-width: 0;
-    min-height: 36px;
+    min-height: 34px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 6px 8px;
+    gap: 5px;
+    padding: 3px 7px;
     border: 1px solid transparent;
     border-radius: 999px;
+    font-size: 12px;
     font-weight: 700;
     transition: background .15s, border-color .15s, color .15s;
   }
@@ -2029,13 +2051,13 @@
   }
   .lbs .lbs-mobile-list-tab > span {
     display: inline-grid;
-    min-width: 22px;
-    height: 22px;
+    min-width: 18px;
+    height: 18px;
     place-items: center;
-    padding: 0 5px;
+    padding: 0 4px;
     border-radius: 999px;
     background: rgba(0, 0, 0, .18);
-    font-size: 14px;
+    font-size: 11px;
   }
   .lbs .lbs-mobile-list-tab--buy.is-active {
     border-color: rgba(251, 191, 36, .85);
@@ -2138,15 +2160,15 @@
   .lbs .lbs-offer-cards {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-    padding: 7px;
+    gap: 4px;
+    padding: 4px;
   }
   .lbs .lbs-mobile-offer {
     display: block;
     min-width: 0;
-    padding: 10px;
+    padding: 5px;
     border: 1px solid rgba(148, 163, 184, .17);
-    border-radius: 12px;
+    border-radius: 9px;
     /* background: linear-gradient(145deg, #151d2a, #101722); */
     box-shadow: 0 5px 14px rgba(0, 0, 0, .16);
   }
@@ -2160,24 +2182,24 @@
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 9px;
-    margin-bottom: 10px;
+    gap: 5px;
+    margin-bottom: 4px;
   }
   .lbs .lbs-mobile-avatar {
     display: grid;
-    flex: 0 0 34px;
-    width: 34px;
-    height: 34px;
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
     place-items: center;
     border: 1px solid rgba(255,255,255,.16);
     border-radius: 50%;
-    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    background: linear-gradient(135deg, #22d3ee, #22d3ee);
     color: #fff;
     font-size: 15px;
     font-weight: 750;
   }
   .lbs .lbs-mobile-offer--sell .lbs-mobile-avatar {
-    background: linear-gradient(135deg, #ec4899, #be185d);
+    background: linear-gradient(135deg, #22d3ee, #22d3ee);
   }
   .lbs .lbs-mobile-creator {
     display: flex;
@@ -2225,6 +2247,14 @@
     color: #6ee7b7;
     padding-bottom: 0px;
   }
+  .lbs .lbs-mobile-online.is-offline {
+    border-color: rgba(148, 163, 184, .2);
+    background: rgba(148, 163, 184, .08);
+    color: #94a3b8;
+  }
+  .lbs .lbs-mobile-online.is-offline > i {
+    background: #94a3b8;
+  }
   .lbs .lbs-mobile-online > i {
     width: 6px;
     height: 6px;
@@ -2241,8 +2271,8 @@
     display: grid;
     min-width: 0;
     align-content: center;
-    gap: 4px;
-    padding: 8px 4px;
+    gap: 2px;
+    padding: 3px 2px;
     border-right: 1px solid rgba(148, 163, 184, .1);
   }
   .lbs .lbs-mobile-stat:last-child {
@@ -2277,10 +2307,11 @@
     font-size: 10px;
   }
   .lbs .lbs-mobile-amount--buy {
-    background: linear-gradient(180deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #0b1220 !important;
   }
   .lbs .lbs-mobile-amount--sell {
-    background: linear-gradient(180deg, #ef4444, #b91c1c);
+    background: linear-gradient(135deg, #fb4b55, #dc2626);
   }
   /* .lbs .lbs-mobile-stat .lbs-bonus-pos {
     color: #fbbf24;
@@ -2292,8 +2323,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
     align-items: center;
-    gap: 7px;
-    padding-top: 9px;
+    gap: 4px;
+    padding-top: 3px;
   }
   .lbs .lbs-mobile-method {
     display: inline-flex;
@@ -2305,8 +2336,8 @@
     font-size: 10px;
   }
   .lbs .lbs-mobile-method .lbs-mico {
-    width: 25px;
-    height: 25px;
+    width: 19px;
+    height: 19px;
     border-radius: 6px;
   }
   .lbs .lbs-mobile-method > span:last-child {
@@ -2316,11 +2347,11 @@
   }
   .lbs .lbs-mobile-time {
     display: inline-flex;
-    min-height: 28px;
+    min-height: 21px;
     align-items: center;
     justify-content: center;
     gap: 5px;
-    padding: 0 7px;
+    padding: 0 5px;
     border: 1px solid rgba(148, 163, 184, .18);
     border-radius: 7px;
     color: #cbd5e1;
@@ -2334,11 +2365,11 @@
   .lbs .lbs-mobile-trade {
     display: inline-flex;
     min-width: 0;
-    min-height: 34px;
+    min-height: 24px;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 0 8px;
+    gap: 5px;
+    padding: 0 6px;
     border-radius: 8px;
     color: #111827;
     font-size: 10px;

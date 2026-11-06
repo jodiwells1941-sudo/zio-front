@@ -98,7 +98,8 @@ export function useTradeChat(tradeId: number | null) {
     const echo = getTradeEcho();
     if (!echo) return;
 
-    const channel = echo.private(`trade.${tradeId}`);
+    const channelName = `p2p-order.${tradeId}`;
+    const channel = echo.private(channelName);
     const handler = (payload: { data: TradeMessageRow }) => {
       const row = payload?.data;
       if (!row?.id) return;
@@ -109,12 +110,23 @@ export function useTradeChat(tradeId: number | null) {
     };
 
     channel.listen(".p2p-order-message.update", handler);
+    channel.listen(".p2p-order-details.update", () => {
+      void loadThread();
+    });
+
+    // Reverb is the primary transport, but a short fallback keeps the chat
+    // correct after a reconnect or a mobile network handoff.
+    const fallback = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") void loadThread();
+    }, 15000);
 
     return () => {
       channel.stopListening(".p2p-order-message.update");
-      echo.leave(`trade.${tradeId}`);
+      channel.stopListening(".p2p-order-details.update");
+      window.clearInterval(fallback);
+      echo.leave(channelName);
     };
-  }, [tradeId, meId]);
+  }, [tradeId, meId, loadThread]);
 
   const send = async () => {
     if (tradeId == null || tradeId < 1) {

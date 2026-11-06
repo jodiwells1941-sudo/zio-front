@@ -99,7 +99,11 @@ function CopyBtn({ text }: { text: string }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function SellDetailsCard() {
+interface SellDetailsCardProps {
+  onStatusChange?: (trade: TradeData) => void;
+}
+
+export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tradeId      = searchParams.get("trade_id");
@@ -115,6 +119,12 @@ export default function SellDetailsCard() {
   const [extensionMinutes, setExtensionMinutes] = useState(5);
   const [extendingTime, setExtendingTime] = useState(false);
   const autoExtensionPromptedFor = useRef<string | null>(null);
+  const fetchSequence = useRef(0);
+
+  const applyTrade = useCallback((nextTrade: TradeData) => {
+    setTrade(nextTrade);
+    onStatusChange?.(nextTrade);
+  }, [onStatusChange]);
 
 
   useEffect(() => {
@@ -145,20 +155,22 @@ export default function SellDetailsCard() {
 
   // ─── Fetch trade ────────────────────────────────────────────────────────────
 
-  const fetchTrade = useCallback(async () => {
+  const fetchTrade = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!Number.isFinite(tradeIdNum) || tradeIdNum < 1) return;
+    const requestSequence = ++fetchSequence.current;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await getTrade(tradeIdNum);
 
       const t: TradeData = res?.data;
-      setTrade(t);
+      if (requestSequence !== fetchSequence.current) return;
+      applyTrade(t);
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? "Failed to load trade.");
+      if (!silent) toast.error(e?.response?.data?.message ?? "Failed to load trade.");
     } finally {
-      setLoading(false);
+      if (!silent && requestSequence === fetchSequence.current) setLoading(false);
     }
-  }, [tradeIdNum]);
+  }, [tradeIdNum, applyTrade]);
 
   useEffect(() => {
     if (!Number.isFinite(tradeIdNum) || tradeIdNum < 1) return;
@@ -166,8 +178,7 @@ export default function SellDetailsCard() {
     setConfirmPayment(false);
     setPaymentReceived(false);
     setLoading(true);
-    const timer = window.setTimeout(() => { void fetchTrade(); }, 2000);
-    return () => window.clearTimeout(timer);
+    void fetchTrade();
   }, [tradeIdNum, fetchTrade]);
 
   useEffect(() => {
@@ -176,12 +187,12 @@ export default function SellDetailsCard() {
     const echo = getTradeEcho();
     if (!echo) return;
 
-    const channelName = `trade.${tradeIdNum}`;
+    const channelName = `p2p-order.${tradeIdNum}`;
     const channel = echo.private(channelName);
-    const onStatusUpdate = (payload: { data?: { refresh?: boolean } }) => {
-      if (payload?.data?.refresh) {
-        void fetchTrade();
-      }
+    const onStatusUpdate = () => {
+      // This private channel belongs to one order, so every event represents
+      // a possible status/timer/feedback change for the open detail page.
+      void fetchTrade({ silent: true });
     };
 
     channel.listen(".p2p-order-details.update", onStatusUpdate);
@@ -191,6 +202,24 @@ export default function SellDetailsCard() {
       echo.leave(channelName);
     };
   }, [tradeIdNum, fetchTrade]);
+
+  // Websocket events are the fast path; keep a low-frequency fallback for a
+  // dropped connection and refresh immediately when the tab becomes active.
+  useEffect(() => {
+    const currentStatus = trade?.status;
+    if (!Number.isFinite(tradeIdNum) || tradeIdNum < 1 || currentStatus === undefined || [6, 9].includes(currentStatus)) return;
+
+    const refresh = () => void fetchTrade({ silent: true });
+    const poll = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [trade?.status, tradeIdNum, fetchTrade]);
 
   // 6 = payment received (release path); 9 = completed. 10 = appealed/claimed — not "Payment Completed".
   useEffect(() => {
@@ -232,7 +261,7 @@ export default function SellDetailsCard() {
       const res = await updateTradeStatus(trade.id, newStatus, notes);
       // Use fresh trade from response so payment_expires_at is up to date
       const updated: TradeData = res?.data ?? { ...trade, status: newStatus };
-      setTrade(updated);
+      applyTrade(updated);
       toast.success("Status updated.");
       return true;
     } catch (e: any) {
@@ -289,7 +318,7 @@ export default function SellDetailsCard() {
       try {
         const response = await getTrade(trade.id);
         const updatedTrade: TradeData = response?.data;
-        setTrade(updatedTrade);
+        applyTrade(updatedTrade);
       } catch {
         toast.error("Payment time was extended, but the order timer could not be refreshed. Reload the page to see the updated time.");
         return;
@@ -418,7 +447,7 @@ export default function SellDetailsCard() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-     <>
+    <div className="p2pDetailActionPage">
       <div className="p2pOrderHeader">
 
         {trade.status === 1 ? (
@@ -510,6 +539,63 @@ export default function SellDetailsCard() {
         </div> */}
       </div>
 
+      {(canCancelOrder || canReject || canApprove || canRelease || canDispute || canClaim || trade.status === 2) && (
+        <div className="p2pTopActions" role="group" aria-label="Order actions">
+          <div className="p2pActions">
+            {canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleRejectTrade()}
+                disabled={submitting}
+              >
+                {submitting ? "Cancelling…" : "Cancel Order"}
+              </button>
+            )}
+            {canReject && !canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleRejectTrade()}
+                disabled={submitting}
+              >
+                {submitting ? "Rejecting…" : "Reject Trade"}
+              </button>
+            )}
+            {canApprove && (
+              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleApproveTrade()} disabled={submitting || approvalWindowExpired}>
+                {submitting ? "Approving…" : approvalWindowExpired ? "Time Expired" : "Approve Order"}
+              </button>
+            )}
+            {trade.status === 2 && (
+              <button
+                className="p2pGhostBtn"
+                type="button"
+                onClick={() => setShowTimeExtension(true)}
+                disabled={extendingTime || submitting}
+              >
+                Need more time
+              </button>
+            )}
+            {isBuyerDispatched && canRelease && (
+              <button className="p2pPrimaryBtn" type="button" onClick={handlePaymentReceived} disabled={submitting}>
+                Payment Received
+              </button>
+            )}
+            {canDispute && (
+              <button className="p2pGhostBtn" type="button" onClick={handleAppeal} disabled={submitting || appealCountdownBlocking}>
+                {appealCountdownBlocking ? `Appeal after ${pad(mm)}:${pad(ss)}` : "Appeal"}
+              </button>
+            )}
+            {canClaim && (
+              <button className="p2pGhostBtn" type="button" onClick={handleClaimToAdmin} disabled={submitting}>
+                Time Expired, Claim to Admin
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {![3, 4, 7, 8, 10].includes(trade.status) && (
         <TradeProgressSteps
           tone="sell"
@@ -543,7 +629,7 @@ export default function SellDetailsCard() {
       />
 
       {canCancelOrder && (
-        <div className={paymentTimeStyles.cancelOrderRow}>
+        <div className={`${paymentTimeStyles.cancelOrderRow} p2pBottomCancel`}>
           <button
             className={paymentTimeStyles.cancelOrder}
             type="button"
@@ -611,7 +697,7 @@ export default function SellDetailsCard() {
                         ) : approvalWindowExpired ? (
                           "Time Expired"
                         ) : (
-                          "Approve Trade"
+                          "Approve Order"
                         )}
                       </button>
                     )}
@@ -759,6 +845,6 @@ export default function SellDetailsCard() {
           currency={withFiat}
         />
       )}
-    </>
+    </div>
   );
 }

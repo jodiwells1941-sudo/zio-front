@@ -341,13 +341,17 @@ function PaymentProofModal({
   };
 
   return (
-    <div className="modal-overlay" style={{ display: "flex" }}>
-      <div className="modal-content" style={{ maxWidth: 620, width: "min(92vw, 620px)" }}>
-        <div className="modal-header">
-          <h6 className="modal-title">Submit payment proof</h6>
+    <div className="modal-overlay p2pProofModalOverlay" style={{ display: "flex" }} role="dialog" aria-modal="true" aria-labelledby="p2p-proof-title">
+      <div className="modal-content p2pProofModal">
+        <div className="modal-header p2pProofModalHeader">
+          <div>
+            <span className="p2pProofEyebrow">Payment confirmation</span>
+            <h6 id="p2p-proof-title" className="modal-title">Submit payment proof</h6>
+            <p className="p2pProofSubtitle">Upload a clear receipt so the seller can verify your payment.</p>
+          </div>
           <button
             type="button"
-            className="modal-close-btn"
+            className="modal-close-btn p2pProofClose"
             aria-label="Close modal"
             onClick={onClose}
           >
@@ -356,7 +360,7 @@ function PaymentProofModal({
         </div>
 
         <form
-          className="w-100"
+          className="w-100 p2pProofForm"
           onSubmit={(event) => {
             event.preventDefault();
             if (!proofFile) {
@@ -368,8 +372,8 @@ function PaymentProofModal({
             void handleSubmit();
           }}
         >
-          <div className="modal-body p-3">
-            <div className="p2pCard p-3 mb-3">
+          <div className="modal-body p2pProofModalBody">
+            <div className="p2pCard p2pProofOrderCard">
               <div className="p2pStepTitle mb-2">Order details</div>
               {orderView && (
                 <div className="p2pOrderDetailsBody">
@@ -406,10 +410,10 @@ function PaymentProofModal({
               )}
             </div>
 
-            <div className="mb-3">
-              <label className="form-label text-white-50 small mb-2">Message</label>
+            <div className="p2pProofField">
+              <label className="p2pProofFieldLabel mb-2">Message</label>
               <textarea
-                className="form-control bg-dark text-light border-dark"
+                className="form-control p2pProofTextarea"
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -417,12 +421,12 @@ function PaymentProofModal({
               />
             </div>
 
-            <div className="mb-3">
-              <label className="form-label text-white-50 small">Proof image</label>
+            <div className="p2pProofField">
+              <label className="p2pProofFieldLabel">Payment receipt</label>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
-                className={`form-control bg-dark text-light ${proofError ? "border-danger is-invalid" : "border-dark"}`}
+                className={`form-control p2pProofFileInput ${proofError ? "is-invalid" : ""}`}
                 onChange={handleFileChange}
                 required
                 aria-required="true"
@@ -434,7 +438,7 @@ function PaymentProofModal({
             </div>
 
             {previewUrl && (
-              <div className="mb-3 ">
+              <div className="p2pProofPreview">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewUrl}
@@ -446,13 +450,13 @@ function PaymentProofModal({
             )}
           </div>
 
-          <div className="modal-footer mx-auto mb-4">
-            <button type="button" className="p2pLinkBtn me-3" onClick={onClose} disabled={submitting}>
+          <div className="modal-footer p2pProofFooter">
+            <button type="button" className="p2pLinkBtn" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
             <button
               type="submit"
-              className="p2pPrimaryBtn me-3"
+              className="p2pPrimaryBtn p2pProofSubmit"
               disabled={submitting}
             >
               {submitting ? "Submitting…" : "Submit Proof"}
@@ -672,7 +676,7 @@ export default function P2PTransferCard({
     const echo = getTradeEcho();
     if (!echo) return;
 
-    const channelName = `trade.${tradeIdNum}`;
+    const channelName = `p2p-order.${tradeIdNum}`;
     const channel = echo.private(channelName);
     const onOrderUpdate = (payload: { data?: { refresh?: boolean } }) => {
       if (payload?.data?.refresh) void fetchTrade();
@@ -777,7 +781,7 @@ export default function P2PTransferCard({
       }
     > = {
       2: {
-        title: "Approve Trade?",
+        title: "Approve Order?",
         html: `Approving will deduct <strong>${v.asset} ${v.cryptoStr}</strong> from your wallet.<br/>Are you sure you want to approve this trade?`,
         confirmText: "Yes, Approve!",
         icon: "question",
@@ -1153,7 +1157,7 @@ export default function P2PTransferCard({
                               Approving…
                             </>
                           ) : (
-                            "Approve Trade"
+                            "Approve Order"
                           )}
                         </button>
                       )}

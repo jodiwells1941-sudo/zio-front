@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import FeedbackBox from "./FeedbackBox";
+import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
 import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
 
@@ -24,6 +25,8 @@ function CopyBtn({ text, id }: { text: string; id: string }) {
 }
 
 export default function OrderCompleted({ trade, from }: { trade?: any; from?: string }) {
+  const [showCelebration, setShowCelebration] = useState(true);
+  const [openFeedback, setOpenFeedback] = useState(false);
   const [feedback,   setFeedback]   = useState<"positive" | "negative" | null>(null);
   const [tags,       setTags]       = useState<string[]>([]);
   const [comment,    setComment]    = useState("");
@@ -69,6 +72,13 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
 
   return (
     <>
+      <CompletionCelebration
+        isOpen={showCelebration}
+        onClose={() => {
+          setShowCelebration(false);
+          setOpenFeedback(true);
+        }}
+      />
       {/* <div className="p2pStepWrap">
         <div className="p2pStepRow">
           <div className="p2pStepContent">
@@ -223,6 +233,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
                       buyerId={trade.customer_id}
                       clientId={trade.client_id}
                       from={from}
+                      initialOpen={openFeedback}
                     />
                   ) : (
                     <div className="bg-dark p-3 rounded-3 text-center">
