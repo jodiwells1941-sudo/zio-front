@@ -10,6 +10,7 @@ const apiClient = axios.create({
     // use environment variable for base URL
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api',
     headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
     },
 });

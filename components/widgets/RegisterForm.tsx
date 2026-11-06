@@ -152,7 +152,7 @@ const RegisterForm = () => {
           body: JSON.stringify({ token: responseData.access_token }),
         });
 
-        login(responseData.access_token, responseData.user);
+        await login(responseData.access_token, responseData.user);
         toast.success("Registration successful!");
         window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
 
@@ -171,7 +171,13 @@ const RegisterForm = () => {
         });
         setErrors(mapped);
       } else {
-        toast.error(axiosErr?.response?.data?.message ?? "Registration failed. Please try again.");
+        const status = axiosErr?.response?.status;
+        const message = !axiosErr?.response
+          ? "Could not connect to the registration server. Check your connection and try again."
+          : status >= 500
+            ? "Registration is temporarily unavailable. Please try again shortly."
+            : axiosErr.response.data?.message || "Registration failed. Please try again.";
+        toast.error(message);
       }
     } finally {
       setIsLoading(false);
