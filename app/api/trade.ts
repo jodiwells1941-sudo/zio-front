@@ -157,7 +157,7 @@ export const sendTradeMessage = async (
   return response?.data;
 };
 
-export const generateTradeReview = async (data: any) => {
+export const generateTradeReview = async (data: unknown) => {
   const response = await apiClient.post('/user/trade/review', data);
   return response?.data;
 };
@@ -176,4 +176,14 @@ export const getLocalTradeChatList = async (params?: Record<string, string | num
 export const getLocalMyTrades = async (params?: Record<string, string | number>) => {
   const response = await apiClient.get('/user/local-trade/my', { params });
   return response?.data;
+};
+
+export const getLocalOrderHistory = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/local-trade/history/orders', { params });
+  return response.data;
+};
+
+export const getLocalPaymentHistory = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/local-trade/history/payments', { params });
+  return response.data;
 };
