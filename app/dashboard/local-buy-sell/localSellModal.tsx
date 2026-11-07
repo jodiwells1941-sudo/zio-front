@@ -315,7 +315,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           </div>
           <div className="local-trade-total-banner">
             <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-            <span className="local-trade-total-label">Total Amount</span>
+            <span className="local-trade-total-label">Received Amount</span>
             <strong className="d-flex gap-1"><span className="fw-bold">{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
           </div>
 

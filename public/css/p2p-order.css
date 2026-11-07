@@ -1173,6 +1173,12 @@
   color:rgba(255,255,255,.52);
   font-size:12px;
 }
+.completionEquivalent span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+.completionEquivalent span i{ color:#fb7185; }
 .completionEquivalent strong{
   color:#e4e9f0;
   font-size:13px;

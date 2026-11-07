@@ -93,3 +93,22 @@ export function getViewerOrderAmountDisplay(trade: P2pOrderAmountsInput): Viewer
     ],
   };
 }
+
+/** Amounts actually exchanged when an order completes, including its saved bonus or fee. */
+export function getCompletedOrderAmounts(
+  trade: P2pOrderAmountsInput & {
+    bonus_amount?: string | number | null;
+    charge_amount?: string | number | null;
+  },
+): { receivedAmount: string; paidAmount: string } {
+  const display = getViewerOrderAmountDisplay(trade);
+  const bonus = trade.type.toLowerCase() === "buy" ? Number(trade.bonus_amount ?? 0) : 0;
+  const fee = trade.type.toLowerCase() === "sell" ? Number(trade.charge_amount ?? 0) : 0;
+  const formatAsset = (amount: number) =>
+    `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${display.asset}`;
+  const fiat = `${display.fiat} ${display.fiatStr}`;
+
+  return trade.is_client
+    ? { receivedAmount: fiat, paidAmount: formatAsset(display.cryptoAmount + fee) }
+    : { receivedAmount: formatAsset(display.cryptoAmount + bonus), paidAmount: fiat };
+}

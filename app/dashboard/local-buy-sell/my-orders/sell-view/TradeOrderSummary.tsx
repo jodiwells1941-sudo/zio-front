@@ -70,7 +70,7 @@ export default function TradeOrderSummary({
   };
 
   return (
-    <section className={`${styles.card} ${isBuy ? styles.buy : styles.sell}`}>
+    <section className={`${styles.card} bg-dark ${isBuy ? styles.buy : styles.sell}`}>
       <button
         type="button"
         className={styles.summaryToggle}
@@ -85,7 +85,7 @@ export default function TradeOrderSummary({
         />
       </button>
       <div id={contentId} hidden={!isExpanded}>
-      <div className={styles.summary}>
+      <div className={`${styles.summary}`}>
         <div className={styles.row}>
           <span>Order ID</span>
           <span className={styles.orderIdValue}>

@@ -4,14 +4,14 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   receivedAmount?: string;
-  equivalentAmount?: string;
+  paidAmount?: string;
 };
 
 export default function CompletionCelebration({
   isOpen,
   onClose,
   receivedAmount,
-  equivalentAmount,
+  paidAmount,
 }: Props) {
   if (!isOpen) return null;
 
@@ -21,13 +21,13 @@ export default function CompletionCelebration({
         <div className="completionBadge" aria-hidden="true">
           <i className="fa-solid fa-check" />
         </div>
-        <span className="completionEyebrow">Trade successfully settled</span>
+        <span className="completionEyebrow">Order successfully Completed</span>
         <h2 id="completion-celebration-title">
           {receivedAmount ? "You Received" : "Order Completed"}
         </h2>
         {receivedAmount ? (
           <>
-            <div className="completionAmounts" aria-label="Received amount">
+            <div className="completionAmounts" aria-label="Completed trade amounts">
               <div className="completionReceivedBlock">
                 <span className="completionAmountLabel">
                   <i className="fa-solid fa-arrow-down" aria-hidden="true" />
@@ -35,14 +35,14 @@ export default function CompletionCelebration({
                 </span>
                 <p className="completionReceivedAmount">{receivedAmount}</p>
               </div>
-              {equivalentAmount && (
+              {paidAmount && (
                 <div className="completionEquivalent">
-                  <span>Approximate value</span>
-                  <strong>{equivalentAmount}</strong>
+                  <span><i className="fa-solid fa-arrow-up" aria-hidden="true" /> Paid</span>
+                  <strong>{paidAmount}</strong>
                 </div>
               )}
             </div>
-            <p className="completionMessage">Your funds have been released successfully.</p>
+            <p className="completionMessage">Your trade has been completed successfully.</p>
           </>
         ) : (
           <p className="completionMessage">Your order has been completed successfully.</p>
