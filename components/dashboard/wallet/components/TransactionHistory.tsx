@@ -3,10 +3,11 @@ import { TransactionCard } from './TransactionCard';
 import PaginationControls from '../../PaginationControls';
 import { GetTransferListApi } from '@/app/api/p2p';
 
-const statusMap: Record<number, string> = {
-  1: 'approved',
-  2: 'rejected',
-  3: 'pending',
+type TransactionRow = {
+  id: number; amount?: string; amount_raw?: number; amount_color?: string;
+  date_time?: string; date?: string; type?: string; case_type?: string; trx_type?: string;
+  description?: string; payment_method?: string; payment_method_icon?: string;
+  status: number | string; trx_id?: string; uu_id?: string; type_icon?: string; view_url?: string;
 };
 
 const typeLabelMap: Record<string, string> = {
@@ -37,6 +38,12 @@ const typeLabelMap: Record<string, string> = {
   admin_wallet_add: 'Admin Wallet Add',
   security_deposit_add: 'Security Deposit Add',
   p2p_sell_ad: 'P2P Sell Ad',
+  local_buy: 'Local Buy',
+  local_buy_bonus: 'Local Buy Bonus',
+  local_sell_fee: 'Local Sell Fee',
+  local_sell_ad: 'Local Sell Ad Lock',
+  local_sell_lock: 'Local Sell Order Lock',
+  local_sell_refund: 'Local Sell Order Refund',
   binance_deposit: 'Binance Deposit',
   binance_withdraw: 'Binance Withdraw',
   binance_wallet_bonus: 'Binance Wallet Bonus',
@@ -44,7 +51,8 @@ const typeLabelMap: Record<string, string> = {
 };
 
 export default function TransactionHistory() {
-  const [transferList, setTransferList]   = useState<any[]>([]);
+  const [transactionFilter, setTransactionFilter] = useState<'all' | 'local'>('all');
+  const [transferList, setTransferList]   = useState<TransactionRow[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isFetching, setIsFetching]       = useState(false);
   const [pagination, setPagination]       = useState({
@@ -56,17 +64,13 @@ export default function TransactionHistory() {
     per_page:      20,
   });
 
-  // console.log('transferList ==', transferList);
-  
-
   // ── Fetch ──────────────────────────────────────────────────────
   const fetchTransferList = useCallback(async (page: number) => {
-    page === 1 ? setIsDataLoading(true) : setIsFetching(true);
+    if (page === 1) setIsDataLoading(true);
+    else setIsFetching(true);
 
     try {
-      const res = await GetTransferListApi({ params: { page } });      
-      console.log('transferList == ==', res);
-
+      const res = await GetTransferListApi({ params: { page, ...(transactionFilter === 'local' ? { type: 'local' } : {}) } });
       setTransferList(res?.data?.data || []);
       setPagination({
         current_page:  res?.data?.current_page  ?? 1,
@@ -83,7 +87,7 @@ export default function TransactionHistory() {
       setIsDataLoading(false);
       setIsFetching(false);
     }
-  }, []);
+  }, [transactionFilter]);
 
   // ── Page change ────────────────────────────────────────────────
   const handlePageChange = (newPage: number) => {
@@ -101,7 +105,7 @@ export default function TransactionHistory() {
   // ── Sl # offset across pages ───────────────────────────────────
   const slOffset = (pagination.current_page - 1) * pagination.per_page;  
 
-  const formatAmount = (r: any) => {
+  const formatAmount = (r: TransactionRow) => {
     const amountValue = typeof r.amount === 'string' && r.amount.trim() !== '' ? r.amount : (() => {
       const raw = Number(r.amount_raw ?? r.amount ?? 0);
       const positive = raw >= 0;
@@ -125,10 +129,10 @@ export default function TransactionHistory() {
     return typeLabelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
   };
 
-  const [selectedTx, setSelectedTx] = useState<any | null>(null);
+  const [selectedTx, setSelectedTx] = useState<TransactionRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModal = (tx: any) => {
+  const openModal = (tx: TransactionRow) => {
     setSelectedTx(tx);
     setIsModalOpen(true);
   };
@@ -144,7 +148,13 @@ export default function TransactionHistory() {
 
   return (
     <div className="transaction-details">
-      <h3 className="pb-2">Transaction Details</h3>
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-2">
+        <h3 className="m-0">Transaction Details</h3>
+        <select className="form-select bg-dark text-white border-secondary w-auto" aria-label="Filter transactions" value={transactionFilter} onChange={event => setTransactionFilter(event.target.value as 'all' | 'local')}>
+          <option value="all">All transactions</option>
+          <option value="local">Local Buy &amp; Sell</option>
+        </select>
+      </div>
 
       {/* ── Desktop Table ── */}
       <div className="table-responsive d-none d-md-block">
@@ -168,7 +178,7 @@ export default function TransactionHistory() {
                 <td colSpan={9} className="text-center py-4">Loading...</td>
               </tr>
             ) : transferList.length > 0 ? (
-              transferList.map((r: any, index: number) => (
+              transferList.map((r: TransactionRow, index: number) => (
                 <tr key={r.id ?? `${index}`}>
                   <td>{slOffset + index + 1}</td>
                   <td>{r.date_time ?? r.date}</td>
@@ -224,20 +234,20 @@ export default function TransactionHistory() {
         {isDataLoading && transferList.length === 0 ? (
           <div className="col-12 text-center py-4">Loading...</div>
         ) : transferList.length > 0 ? (
-          transferList.map((r: any, index: number) => (
+          transferList.map((r: TransactionRow, index: number) => (
             <div
               className="col-12 col-sm-6 col-lg-4 col-xl-3 p-0"
               key={r.id ?? `${index}`}>
               <TransactionCard
                 data={{
                   sl:       slOffset + index + 1,
-                  userId:   r.id,
-                  userName: r.payment_method || r.trx_id || r.uu_id,
+                  userId:   String(r.id),
+                  userName: r.payment_method || r.trx_id || r.uu_id || '-',
                   type:     getTypeLabel(r.case_type || r.type || 'Transfer'),
                   type_icon: r.type_icon,
                   amount:   r.amount ?? (r.amount_raw ? `${Number(r.amount_raw) >= 0 ? '+' : '-'}$${Math.abs(Number(r.amount_raw)).toFixed(2)}` : '-'),
-                  amount_color: Number(r.amount_raw ?? r.amount ?? 0) >= 0 ? 'green' : 'red',
-                  time:     r.date_time ?? r.date,
+                  amount_color: r.amount_color || (Number(r.amount_raw ?? r.amount ?? 0) >= 0 ? 'green' : 'red'),
+                  time:     r.date_time ?? r.date ?? '-',
                   status:   ([1,2,3].includes(Number(r.status)) ? (Number(r.status) as 1 | 2 | 3) : 3),
                   payment_method: r.payment_method,
                   payment_method_icon: r.payment_method_icon,

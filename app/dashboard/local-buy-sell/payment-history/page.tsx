@@ -1,3 +1,3 @@
-import LocalHistory from "../LocalHistory";
+import LocalPaymentHistory from "../LocalPaymentHistory";
 
-export default function Page() { return <LocalHistory kind="payments" />; }
+export default function Page() { return <LocalPaymentHistory />; }
