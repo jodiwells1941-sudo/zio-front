@@ -20,7 +20,6 @@ interface AppealTypeOption {
   label: string;
   description: string;
   icon: string;
-  iconBg: string;
 }
 
 const APPEAL_TYPES: AppealTypeOption[] = [
@@ -29,49 +28,42 @@ const APPEAL_TYPES: AppealTypeOption[] = [
     label: "Wrong Payment",
     description: "I have paid but sent wrong amount or extra amount.",
     icon: "fa-solid fa-credit-card",
-    iconBg: "#ef4444",
   },
   {
     key: "payment_not_received",
     label: "Payment Not Received",
     description: "I have paid but payment not received by the merchant.",
     icon: "fa-regular fa-clock",
-    iconBg: "#f59e0b",
   },
   {
     key: "usdt_not_released",
     label: "USDT Not Released",
     description: "Merchant not released USDT after payment.",
     icon: "fa-solid fa-t",
-    iconBg: "#22c55e",
   },
   {
     key: "expired_order",
     label: "Expired Order",
     description: "Order was expired but I have already made the payment.",
     icon: "fa-regular fa-calendar-xmark",
-    iconBg: "#ef4444",
   },
   {
     key: "account_issue",
     label: "Account / User Issue",
     description: "Facing issue with merchant account or user behavior.",
     icon: "fa-solid fa-user",
-    iconBg: "#3b82f6",
   },
   {
     key: "fraud_scam",
     label: "Fraud / Scam",
     description: "I suspect fraud or scam activity in this order.",
     icon: "fa-solid fa-triangle-exclamation",
-    iconBg: "#f59e0b",
   },
   {
     key: "other",
     label: "Other Issue",
     description: "Other issues not listed above.",
     icon: "fa-regular fa-comments",
-    iconBg: "#a855f7",
   },
 ];
 
@@ -96,6 +88,11 @@ export default function CreateAppealPage() {
 
   const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    if (file && (file.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"].includes(file.type))) {
+      toast.error("Choose a JPG, PNG, GIF, WebP or PDF file up to 5 MB.");
+      e.target.value = "";
+      return;
+    }
     setProofFile(file);
     setProofPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
@@ -129,7 +126,7 @@ export default function CreateAppealPage() {
         const nextOrder = res?.data ?? null;
         setOrder(nextOrder);
         if (nextOrder && !nextOrder.appealable) {
-          toast.error("This order is already completed and can no longer be appealed.");
+          toast.error(nextOrder.appeal_block_reason || "This order cannot be appealed.");
         }
       } catch (e: any) {
         toast.error(e?.response?.data?.message ?? e?.message ?? "Unable to load the selected order.");
@@ -141,6 +138,7 @@ export default function CreateAppealPage() {
   }, [searchParams]);
 
   const handleSearch = async () => {
+    setOrder(null);
     if (!orderQuery.trim()) {
       toast.error("Enter an order ID to search.");
       return;
@@ -151,7 +149,7 @@ export default function CreateAppealPage() {
       const found = res?.data ?? null;
       setOrder(found);
       if (found && !found.appealable) {
-        toast.error("This order is already completed and can no longer be appealed.");
+        toast.error(found.appeal_block_reason || "This order cannot be appealed.");
       }
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? e?.message ?? "Order not found.");
@@ -167,6 +165,7 @@ export default function CreateAppealPage() {
     !!appealType &&
     subject.trim().length > 0 &&
     description.trim().length > 0 &&
+    (!amountSent || (Number(amountSent) > 0 && Number.isFinite(Number(amountSent)))) &&
     !submitting;
 
   const handleSubmit = async () => {
@@ -182,7 +181,7 @@ export default function CreateAppealPage() {
         payment_datetime: paymentDateTime || undefined,
         proof: proofFile,
       });
-      toast.success("Appeal submitted. Our team will review it within 24 hours.");
+      toast.success("Appeal submitted successfully. You can track its status here.");
       router.push("/dashboard/local-buy-sell/appeal-center");
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? "Failed to submit appeal.");
@@ -192,7 +191,7 @@ export default function CreateAppealPage() {
   };
 
   return (
-    <div className="appeal-page">
+    <div className="appeal-page appeal-create-page bg-light-dark">
       <div className="container-fluid appeal-container">
         <div className="appeal-section">
 
@@ -202,15 +201,15 @@ export default function CreateAppealPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
               <div
+                className="bg-navy-blue"
                 style={{
                   width: 44,
                   height: 44,
                   borderRadius: 12,
-                  background: "linear-gradient(135deg,#7c3aed,#a855f7)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#fff",
+                  color: "#fbbf24",
                   fontSize: 18,
                   flexShrink: 0,
                 }}
@@ -227,6 +226,7 @@ export default function CreateAppealPage() {
 
             <button
               type="button"
+              className="bg-navy-blue"
               onClick={() => router.push("/dashboard/local-buy-sell/appeal-center")}
               style={{
                 display: "flex",
@@ -234,7 +234,6 @@ export default function CreateAppealPage() {
                 gap: 8,
                 padding: "10px 16px",
                 borderRadius: 10,
-                background: "#171a24",
                 border: "1px solid rgba(255,255,255,0.08)",
                 color: "rgba(255,255,255,0.8)",
                 fontSize: 13,
@@ -251,10 +250,10 @@ export default function CreateAppealPage() {
           <div style={{ display: "flex", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
 
             {/* ── Left column: form ── */}
-            <div style={{ flex: "1 1 560px", minWidth: 320, display: "flex", flexDirection: "column", gap: 18 }}>
+            <div style={{ flex: "1 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
 
               {/* Step 1: Select Order */}
-              <section className="appeal-content-card p-3">
+              <section className="appeal-content-card bg-navy-blue p-3">
                 <h4 className="appeal-content-title" style={{ marginBottom: 2 }}>1. Select Order</h4>
                 <p className="appeal-content-subtitle">Choose the order related to your issue.</p>
 
@@ -262,21 +261,24 @@ export default function CreateAppealPage() {
                   Order ID / Order Number
                 </label>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <div style={{ position: "relative", flex: 1 }}>
+                  <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
                     <i
                       className="fa-solid fa-magnifying-glass"
                       style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.35)" }}
                     />
                     <input
+                      className="bg-dark"
                       value={orderQuery}
-                      onChange={(e) => setOrderQuery(e.target.value)}
+                      onChange={(e) => {
+                        setOrderQuery(e.target.value);
+                        setOrder(null);
+                      }}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                       placeholder="Search by Order ID"
                       style={{
                         width: "100%",
                         padding: "10px 12px 10px 38px",
                         borderRadius: 10,
-                        background: "#0e1017",
                         border: "1px solid rgba(255,255,255,0.08)",
                         color: "#fff",
                         fontSize: 13,
@@ -285,26 +287,27 @@ export default function CreateAppealPage() {
                   </div>
                   <button
                     type="button"
+                    className="bg-navy-blue"
                     onClick={handleSearch}
                     disabled={searching}
+                    aria-label="Search order"
                     style={{
                       padding: "0 16px",
                       borderRadius: 10,
-                      background: "#171a24",
                       border: "1px solid rgba(255,255,255,0.08)",
                       color: "#fff",
                       fontSize: 13,
                     }}
                   >
-                    {searching ? "…" : <i className="fa-solid fa-angle-down" />}
+                    {searching ? "…" : <i className="fa-solid fa-magnifying-glass" />}
                   </button>
                 </div>
 
                 {order && (
                   <div
+                    className="bg-dark"
                     style={{
                       marginTop: 14,
-                      background: "#0e1017",
                       border: "1px solid rgba(255,255,255,0.08)",
                       borderRadius: 12,
                       padding: 14,
@@ -315,24 +318,24 @@ export default function CreateAppealPage() {
                     </div>
                     <div style={{ display: "flex", gap: 8, margin: "8px 0 12px" }}>
                       <span
+                        className="bg-dark"
                         style={{
                           fontSize: 11,
                           fontWeight: 600,
                           padding: "3px 10px",
                           borderRadius: 999,
-                          background: order.side === "Buy" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
-                          color: order.side === "Buy" ? "#22c55e" : "#ef4444",
+                          color: order.side === "Buy" ? "#fbbf24" : "#ef4444",
                         }}
                       >
                         {order.side}
                       </span>
                       <span
+                        className="bg-dark"
                         style={{
                           fontSize: 11,
                           fontWeight: 600,
                           padding: "3px 10px",
                           borderRadius: 999,
-                          background: "rgba(59,130,246,0.15)",
                           color: "#3b82f6",
                         }}
                       >
@@ -353,11 +356,11 @@ export default function CreateAppealPage() {
                         <span style={{ color: "rgba(255,255,255,0.5)" }}>Merchant</span>
                         <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#fff" }}>
                           <span
+                            className="bg-navy-blue"
                             style={{
                               width: 20,
                               height: 20,
                               borderRadius: 999,
-                              background: "#333",
                               display: "inline-block",
                               overflow: "hidden",
                               position: "relative",
@@ -377,12 +380,12 @@ export default function CreateAppealPage() {
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span style={{ color: "rgba(255,255,255,0.5)" }}>Status</span>
                         <span
+                          className="bg-dark"
                           style={{
                             fontSize: 11,
                             fontWeight: 600,
                             padding: "3px 10px",
                             borderRadius: 999,
-                            background: "rgba(59,130,246,0.15)",
                             color: "#3b82f6",
                           }}
                         >
@@ -393,11 +396,11 @@ export default function CreateAppealPage() {
 
                     {!order.appealable && (
                       <div
+                        className="bg-dark"
                         style={{
                           marginTop: 12,
                           padding: "8px 10px",
                           borderRadius: 8,
-                          background: "rgba(239,68,68,0.1)",
                           border: "1px solid rgba(239,68,68,0.25)",
                           color: "#f87171",
                           fontSize: 12,
@@ -407,14 +410,14 @@ export default function CreateAppealPage() {
                         }}
                       >
                         <i className="fa-solid fa-triangle-exclamation" />
-                        This order is already completed and can no longer be appealed.
+                        {order.appeal_block_reason || "This order cannot be appealed."}
                       </div>
                     )}
 
                     <button
                       type="button"
-                      onClick={() => router.push(`/dashboard/ads/p2p/?trade_id=${order.id}`)}
-                      style={{ background: "transparent", border: "none", color: "#a855f7", fontSize: 12.5, marginTop: 12, padding: 0 }}
+                      onClick={() => router.push(`/dashboard/local-buy-sell/my-orders/${order.viewer_side === "seller" ? "sell-view" : "buy-view"}?trade_id=${order.id}`)}
+                      style={{ background: "transparent", border: "none", color: "#fbbf24", fontSize: 12.5, marginTop: 12, padding: 0 }}
                     >
                       View Order Details <i className="fa-solid fa-arrow-right ms-1" />
                     </button>
@@ -423,7 +426,7 @@ export default function CreateAppealPage() {
               </section>
 
               {/* Step 2: Select Appeal Type */}
-              <section className="appeal-content-card p-3">
+              <section className="appeal-content-card bg-navy-blue p-3">
                 <h4 className="appeal-content-title" style={{ marginBottom: 2 }}>2. Select Appeal Type</h4>
                 <p className="appeal-content-subtitle">Choose the issue you are facing.</p>
 
@@ -441,13 +444,13 @@ export default function CreateAppealPage() {
                       <button
                         key={opt.key}
                         type="button"
+                        className="bg-dark"
                         onClick={() => setAppealType(opt.key)}
                         style={{
                           textAlign: "left",
                           borderRadius: 12,
                           padding: 14,
-                          border: selected ? "1.5px solid #a855f7" : "1px solid rgba(255,255,255,0.08)",
-                          background: selected ? "rgba(168,85,247,0.08)" : "#0e1017",
+                          border: selected ? "1.5px solid #fbbf24" : "1px solid rgba(255,255,255,0.08)",
                           cursor: "pointer",
                           display: "flex",
                           flexDirection: "column",
@@ -456,15 +459,15 @@ export default function CreateAppealPage() {
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                           <span
+                            className="bg-navy-blue"
                             style={{
                               width: 32,
                               height: 32,
                               borderRadius: 9,
-                              background: opt.iconBg,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              color: "#fff",
+                              color: "#fbbf24",
                               fontSize: 14,
                             }}
                           >
@@ -475,7 +478,7 @@ export default function CreateAppealPage() {
                               width: 16,
                               height: 16,
                               borderRadius: 999,
-                              border: selected ? "5px solid #a855f7" : "1.5px solid rgba(255,255,255,0.25)",
+                              border: selected ? "5px solid #fbbf24" : "1.5px solid rgba(255,255,255,0.25)",
                               background: "transparent",
                               flexShrink: 0,
                             }}
@@ -492,7 +495,7 @@ export default function CreateAppealPage() {
               </section>
 
               {/* Step 3: Describe Your Issue */}
-              <section className="appeal-content-card p-3">
+              <section className="appeal-content-card bg-navy-blue p-3">
                 <h4 className="appeal-content-title" style={{ marginBottom: 2 }}>3. Describe Your Issue</h4>
                 <p className="appeal-content-subtitle">Provide detailed information about your problem.</p>
 
@@ -510,6 +513,7 @@ export default function CreateAppealPage() {
                       Amount You Sent <span style={{ color: "rgba(255,255,255,0.3)" }}>(optional)</span>
                     </label>
                     <input
+                      className="bg-dark"
                       value={amountSent}
                       onChange={(e) => setAmountSent(e.target.value)}
                       inputMode="decimal"
@@ -518,7 +522,6 @@ export default function CreateAppealPage() {
                         width: "100%",
                         padding: "10px 12px",
                         borderRadius: 10,
-                        background: "#0e1017",
                         border: "1px solid rgba(255,255,255,0.08)",
                         color: "#fff",
                         fontSize: 13,
@@ -531,6 +534,7 @@ export default function CreateAppealPage() {
                       Date &amp; Time of Payment <span style={{ color: "rgba(255,255,255,0.3)" }}>(optional)</span>
                     </label>
                     <input
+                      className="bg-dark"
                       type="datetime-local"
                       value={paymentDateTime}
                       onChange={(e) => setPaymentDateTime(e.target.value)}
@@ -538,7 +542,6 @@ export default function CreateAppealPage() {
                         width: "100%",
                         padding: "10px 12px",
                         borderRadius: 10,
-                        background: "#0e1017",
                         border: "1px solid rgba(255,255,255,0.08)",
                         color: "#fff",
                         fontSize: 13,
@@ -553,6 +556,7 @@ export default function CreateAppealPage() {
                     Upload Payment Proof <span style={{ color: "rgba(255,255,255,0.3)" }}>(optional)</span>
                   </label>
                   <input
+                    className="bg-dark"
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
                     onChange={handleProofChange}
@@ -560,7 +564,6 @@ export default function CreateAppealPage() {
                       width: "100%",
                       padding: "9px 12px",
                       borderRadius: 10,
-                      background: "#0e1017",
                       border: "1px solid rgba(255,255,255,0.08)",
                       color: "rgba(255,255,255,0.75)",
                       fontSize: 12.5,
@@ -606,6 +609,7 @@ export default function CreateAppealPage() {
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{subject.length}/{SUBJECT_MAX}</span>
                   </div>
                   <input
+                    className="bg-dark"
                     value={subject}
                     maxLength={SUBJECT_MAX}
                     onChange={(e) => setSubject(e.target.value)}
@@ -615,7 +619,6 @@ export default function CreateAppealPage() {
                       marginTop: 6,
                       padding: "10px 12px",
                       borderRadius: 10,
-                      background: "#0e1017",
                       border: "1px solid rgba(255,255,255,0.08)",
                       color: "#fff",
                       fontSize: 13,
@@ -629,6 +632,7 @@ export default function CreateAppealPage() {
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{description.length}/{DESC_MAX}</span>
                   </div>
                   <textarea
+                    className="bg-dark"
                     value={description}
                     maxLength={DESC_MAX}
                     onChange={(e) => setDescription(e.target.value)}
@@ -639,7 +643,6 @@ export default function CreateAppealPage() {
                       marginTop: 6,
                       padding: "10px 12px",
                       borderRadius: 10,
-                      background: "#0e1017",
                       border: "1px solid rgba(255,255,255,0.08)",
                       color: "#fff",
                       fontSize: 13,
@@ -653,11 +656,11 @@ export default function CreateAppealPage() {
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
                 <button
                   type="button"
+                  className="bg-navy-blue"
                   onClick={() => router.back()}
                   style={{
                     padding: "10px 20px",
                     borderRadius: 10,
-                    background: "#171a24",
                     border: "1px solid rgba(255,255,255,0.08)",
                     color: "rgba(255,255,255,0.8)",
                     fontSize: 13,
@@ -667,47 +670,47 @@ export default function CreateAppealPage() {
                 </button>
                 <button
                   type="button"
+                  className="bg-navy-blue"
                   onClick={handleSubmit}
                   disabled={!canSubmit}
                   style={{
                     padding: "10px 20px",
                     borderRadius: 10,
-                    background: canSubmit ? "linear-gradient(135deg,#7c3aed,#a855f7)" : "rgba(168,85,247,0.3)",
-                    border: "none",
-                    color: "#fff",
+                    border: canSubmit ? "1px solid #fbbf24" : "1px solid rgba(255,255,255,0.1)",
+                    color: canSubmit ? "#fbbf24" : "rgba(255,255,255,0.65)",
                     fontSize: 13,
                     fontWeight: 600,
                     cursor: canSubmit ? "pointer" : "not-allowed",
                   }}
                 >
-                  {submitting ? "Submitting…" : "Review & Submit Appeal"} <i className="fa-solid fa-arrow-right ms-1" />
+                  {submitting ? "Submitting…" : "Submit Appeal"} <i className="fa-solid fa-arrow-right ms-1" />
                 </button>
               </div>
             </div>
 
             {/* ── Right column: guidelines + tips (kept — image 2 only) ── */}
             <div style={{ flex: "0 1 260px", minWidth: 240, display: "flex", flexDirection: "column", gap: 16 }}>
-              <div className="appeal-content-card p-3">
+              <div className="appeal-content-card bg-navy-blue p-3">
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <i className="fa-solid fa-shield-halved" style={{ color: "#a855f7" }} />
+                  <i className="fa-solid fa-shield-halved" style={{ color: "#fbbf24" }} />
                   <h5 style={{ margin: 0, fontSize: 14, color: "#fff" }}>Appeal Guidelines</h5>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
                     "Submit only valid appeals with correct information.",
                     "Provide accurate details and payment proof.",
-                    "Our team will review your appeal within 24 hours.",
+                    "You can track the appeal status from the Appeal Center.",
                     "You will be notified about the decision.",
                   ].map((tip, i) => (
                     <li key={i} style={{ display: "flex", gap: 8, fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
-                      <i className="fa-solid fa-check" style={{ color: "#a855f7", marginTop: 3, fontSize: 11 }} />
+                      <i className="fa-solid fa-check" style={{ color: "#fbbf24", marginTop: 3, fontSize: 11 }} />
                       {tip}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="appeal-content-card p-3" style={{ textAlign: "center" }}>
+              <div className="appeal-content-card bg-navy-blue p-3" style={{ textAlign: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, justifyContent: "center" }}>
                   <i className="fa-solid fa-lightbulb" style={{ color: "#f59e0b" }} />
                   <h5 style={{ margin: 0, fontSize: 14, color: "#fff" }}>Tips</h5>

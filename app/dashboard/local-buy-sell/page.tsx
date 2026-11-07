@@ -1032,7 +1032,7 @@ export default function Page() {
             className={`lbs-topbar-tab lbs-topbar-tab--buy${activeRequestKind === 'buy' ? ' is-active' : ''}`}
           >
             <CartIcon size={18} />
-            <span>Buy Request</span>
+            <span>Create Buy Request</span>
           </button>
           <button
             type="button"
@@ -1043,7 +1043,7 @@ export default function Page() {
             }}
           >
             <DownloadIcon size={18} />
-            <span>Sell Request</span>
+            <span>Create Sell Request</span>
           </button>
         </div>
 

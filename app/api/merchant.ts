@@ -87,6 +87,7 @@ export interface AppealRow {
   id: number | string;
   order_id: string;
   p2p_order_id: string | number;
+  viewer_side?: 'buyer' | 'seller';
   type: string;
   side: string;
   amount: string;
@@ -110,7 +111,7 @@ export interface PaginatedAppeals {
   total: number;
 }
 
-export const getMerchantAppeals = async (params: { page?: number; per_page?: number } = {}): Promise<PaginatedAppeals> => {
+export const getMerchantAppeals = async (params: { page?: number; per_page?: number } = {}): Promise<{ total_appeal_count: number; data: PaginatedAppeals }> => {
   const response = await apiClient.get('/user/merchant/appeal-list', { params });
   return response?.data;
 };
@@ -163,6 +164,7 @@ export interface AppealOrderLookup {
   order_id: string;
   id: number | string;
   side: 'Buy' | 'Sell';
+  viewer_side: 'buyer' | 'seller';
   asset: string;
   amount: string;
   price: string;
@@ -174,6 +176,7 @@ export interface AppealOrderLookup {
   status_text: string;
   /** false when the order is already completed and can no longer be appealed. */
   appealable: boolean;
+  appeal_block_reason?: string | null;
 }
 
 export const lookupMerchantOrderForAppeal = async (

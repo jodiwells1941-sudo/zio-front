@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { getUserInfo } from "@/utils/auth";
 import { getTradeEcho } from "@/utils/tradeEcho";
+import './myOrders.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,9 +93,9 @@ const getStatusUI = (trade: Trade): { text: string; className: string } => {
     case 3:  return { text: "Cancelled",          className: "trade-status-cancelled" };
     case 4:  return { text: "Rej. Balance",       className: "trade-status-cancelled" };
     case 5:  return { text: "Paid",               className: "trade-status-progress"  };
-    case 6:  return { text: "Dispatch Approved",  className: "trade-status-progress"  };
-    case 7:  return { text: "Dispatch Rejected",  className: "trade-status-cancelled" };
-    case 8:  return { text: "Dispatch Timeout",   className: "trade-status-cancelled" };
+    case 6:  return { text: "Approved",  className: "trade-status-progress"  };
+    case 7:  return { text: "Rejected",  className: "trade-status-cancelled" };
+    case 8:  return { text: "Timeout",   className: "trade-status-cancelled" };
     case 9:  return { text: "Completed",          className: "trade-status-completed" };
     case 10: return { text: "Claimed",            className: "trade-status-claimed" };
     default: return { text: "Unknown",            className: ""                       };
@@ -123,7 +124,8 @@ export default function Page() {
 
   const fetchTrades = useCallback(async (silent = false) => {
     try {
-      silent ? setSyncing(true) : setLoading(true);
+      if (silent) setSyncing(true);
+      else setLoading(true);
 
       const params = {
         page,
@@ -134,9 +136,11 @@ export default function Page() {
 
       const res = await (getLocalTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
 
-      const paginated = (res as any)?.data;
-      setTrades(paginated?.data ?? paginated ?? []);
-      setLastPage(paginated?.last_page ?? 1);
+      const payload = isRecord(res) ? res.data : null;
+      const paginated = isRecord(payload) ? payload : null;
+      const rows = Array.isArray(payload) ? payload : paginated?.data;
+      setTrades(Array.isArray(rows) ? rows as Trade[] : []);
+      setLastPage(typeof paginated?.last_page === 'number' ? paginated.last_page : 1);
     } catch (e) {
       console.error(e);
     } finally {
@@ -257,7 +261,8 @@ export default function Page() {
         showConfirmButton: false,
       });
       fetchTrades(true);
-    } catch (e: any) {
+    } catch (error) {
+      const e = error as { response?: { data?: { message?: string } } };
       Swal.fire("Error!", e?.response?.data?.message ?? "Failed to update.", "error");
     }
   };
@@ -396,8 +401,15 @@ export default function Page() {
   // ─── Render ───────────────────────────────────────────────────────────────────  
 
   return (
-    <div className="">
-      <h5 className="my-3 py-3 ">My Order List</h5>
+    <div className="local-orders-page">
+      <div className="local-orders-heading">
+        <span className="local-orders-heading-icon" aria-hidden="true"><i className="fa-solid fa-receipt" /></span>
+        <div>
+          <span className="local-orders-eyebrow">LOCAL MARKETPLACE</span>
+          <h1>My Orders</h1>
+          <p>Track your local trades and manage each order.</p>
+        </div>
+      </div>
 
       {/* ── Toolbar ── */}
       <div className="trades-toolbar">
@@ -417,7 +429,7 @@ export default function Page() {
         <div className="trades-actions d-flex gap-2">
           {/* Sync button */}
           <button
-            className="btn btn-outline-secondary btn-sm bg-light-white d-flex align-items-center gap-1"
+            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
             type="button"
             onClick={handleSync}
             disabled={syncing}
@@ -483,7 +495,7 @@ export default function Page() {
         <p className="text-center py-5 text-warning">No trades found.</p>
       ) : (
         <>
-          <div className="d-none d-md-block">
+          <div className="d-none d-md-block local-orders-table-wrap">
             <table className="trades-table">
               <thead>
                 <tr>
@@ -587,7 +599,6 @@ export default function Page() {
                       {/* Status */}
                       <td className="trade-status-cell">
                         <span className={statusUI.className}>{statusUI.text}</span>
-                        {trade.record_kind !== 'ad' && <div className="trade-receipt">Receipt</div>}
                       </td>
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
@@ -620,7 +631,7 @@ export default function Page() {
                 {group.trades.map(trade => {
                   const statusUI = getStatusUI(trade);
                   return (
-                    <div className="card mb-4" key={`${trade.record_kind ?? 'order'}-${trade.id}`}>
+                    <div className="card local-order-card mb-3" key={`${trade.record_kind ?? 'order'}-${trade.id}`}>
 
                   <div className="d-flex justify-content-between align-items-center">
                     <span className={trade.type === 'Sell' ? 'trade-type-sell' : 'trade-type-buy'}>
@@ -683,7 +694,6 @@ export default function Page() {
                           </Link>
                           <span className="trade-chat-icon">
                             <i className="fa-solid fa-message text-white" />
-                            <small className="text-black bg-warning px-1 rounded-pill top-0">2</small>
                           </span>
                         </>
                       )}

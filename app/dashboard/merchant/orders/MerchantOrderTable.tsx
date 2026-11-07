@@ -43,9 +43,9 @@ const getStatusUI = (trade: Trade): { text: string; className: string } => {
     case 3:  return { text: "Cancelled",          className: "trade-status-cancelled" };
     case 4:  return { text: "Rej. Balance",       className: "trade-status-cancelled" };
     case 5:  return { text: "Paid",               className: "trade-status-progress"  };
-    case 6:  return { text: "Dispatch Approved",  className: "trade-status-progress"  };
-    case 7:  return { text: "Dispatch Rejected",  className: "trade-status-cancelled" };
-    case 8:  return { text: "Dispatch Timeout",   className: "trade-status-cancelled" };
+    case 6:  return { text: "Approved",  className: "trade-status-progress"  };
+    case 7:  return { text: "Rejected",  className: "trade-status-cancelled" };
+    case 8:  return { text: "Timeout",   className: "trade-status-cancelled" };
     case 9:  return { text: "Completed",          className: "trade-status-completed" };
     case 10: return { text: "Claimed",            className: "trade-status-completed" };
     default: return { text: "Unknown",            className: ""                       };
