@@ -11,6 +11,7 @@ import { PaymentReceivedModel } from "./PaymentReceivedModel";
 import { useExpiryTimer } from "@/hooks/useExpiryTimer";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
+import OrderChatLink from "@/components/dashboard/p2p/OrderChatLink";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -494,6 +495,8 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         )}
 
         {/* Title */}
+        <div className="p2pStatusActionRow">
+          <div className="p2pStatusActionTitle">
         {trade.status === 1 ? null : confirmPayment ? (
           <div className="d-flex justify-content-between align-items-center">
             <h2 className="p2pTitle text-white">Payment Completed</h2>
@@ -503,9 +506,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
               </span>
             </span>
             {trade.status != 1 && (
-              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
-                <i className="fa-solid fa-message" />
-              </Link>
+              <OrderChatLink tradeId={trade.id} />
             )}
           </div>
         ) : (
@@ -522,12 +523,23 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
               )}
             </h2>
             {trade.status != 1 && (
-              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
-                <i className="fa-solid fa-message" />
-              </Link>
+              <OrderChatLink tradeId={trade.id} />
             )}
           </div>
         )}
+
+          </div>
+            {canCancelOrder && (
+              <button
+                className="p2pGhostBtn p2pActionCancel"
+                type="button"
+                onClick={() => void handleRejectTrade()}
+                disabled={submitting}
+              >
+                {submitting ? "Cancelling…" : "Cancel Order"}
+              </button>
+            )}
+        </div>
 
         {/* Order number */}
         {/* <div className={`p2pSubRow ${trade.status === 1 ? "p2pPendingOrderId" : ""}`}>
@@ -539,19 +551,9 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         </div> */}
       </div>
 
-      {(canCancelOrder || canReject || canApprove || canRelease || canDispute || canClaim || trade.status === 2) && (
+      {((canReject && !canCancelOrder) || canApprove || canRelease || canDispute || canClaim || trade.status === 2) && (
         <div className="p2pTopActions" role="group" aria-label="Order actions">
           <div className="p2pActions">
-            {canCancelOrder && (
-              <button
-                className="p2pGhostBtn p2pActionCancel"
-                type="button"
-                onClick={() => void handleRejectTrade()}
-                disabled={submitting}
-              >
-                {submitting ? "Cancelling…" : "Cancel Order"}
-              </button>
-            )}
             {canReject && !canCancelOrder && (
               <button
                 className="p2pGhostBtn p2pActionCancel"
@@ -843,6 +845,13 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
           buyerName={buyerName}
           amount={trade.payable_amount}
           currency={withFiat}
+          details={[
+            { label: 'Order ID', value: String(orderId) },
+            { label: 'Currency', value: withFiat },
+            { label: 'Sell Amount', value: `${cryptoAmountStr} ${asset}` },
+            { label: `Fee (${displayedFeePercent.toFixed(2)}%)`, value: `+ ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${withFiat}` },
+            { label: 'Total Amount', value: `${(fiatAmount + feeAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${withFiat}` },
+          ]}
         />
       )}
     </div>

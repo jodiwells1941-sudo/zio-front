@@ -134,11 +134,16 @@ export interface TradeMessageRow {
   created_at: string | null;
   sender: { id: number; name: string; avatar?: string } | null;
   is_sender?: boolean;
+  read_at?: string | null;
 }
 
 export const getTradeMessages = async (tradeId: number) => {
   const response = await apiClient.get(`/user/trade/${tradeId}/messages`);
   return response?.data;
+};
+
+export const markTradeMessagesRead = async (tradeId: number, throughId: number) => {
+  await apiClient.post(`/user/trade/${tradeId}/messages/read`, { through_id: throughId });
 };
 
 export const sendTradeMessage = async (

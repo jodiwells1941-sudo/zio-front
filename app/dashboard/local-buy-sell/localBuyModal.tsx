@@ -188,7 +188,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           <div className="local-trade-total-banner">
             <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
             <span className="local-trade-total-label">Pay Amount</span>
-            <strong>{money(fiatAmount)} {ad.with_fiat}</strong>
+            <strong className="d-flex gap-1 fw-bold">{money(fiatAmount)} {ad.with_fiat}</strong>
           </div>
           <div className="local-trade-payment-details">
             <div className="local-trade-payment-head border-0 pb-0">
@@ -227,7 +227,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             </div>
             <div className="local-trade-field local-trade-field--note">
               <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
-              <p>{ad.remarks || "No additional note provided."}</p>
+              <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
             </div>
           </div>
           <div className="local-trade-actions">

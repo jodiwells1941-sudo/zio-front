@@ -178,7 +178,7 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              <div className="chat-messages-area">
+              <div className="chat-messages-area" ref={chat.bodyRef}>
                 <div className="chat-messages-inner">
                   {chat.loading ? (
                     <p className="text-muted small p-3">Loading messages…</p>

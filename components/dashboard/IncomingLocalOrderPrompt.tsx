@@ -415,7 +415,7 @@ export default function IncomingLocalOrderPrompt() {
 
         <div className={styles.totalBanner}>
           <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
-          <span>Total Received Amount</span>
+          <span>Total Amount</span>
           <strong>{totalReceived}</strong>
         </div>
 

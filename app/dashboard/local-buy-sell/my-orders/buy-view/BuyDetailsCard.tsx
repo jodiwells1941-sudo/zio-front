@@ -11,6 +11,7 @@ import paymentTimeStyles from "../PaymentTimeExtension.module.css";
 import proofModalStyles from "./PaymentProofModal.module.css";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import Link from "next/link";
+import OrderChatLink from "@/components/dashboard/p2p/OrderChatLink";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -259,6 +260,7 @@ function PaymentProofModal({
   const [orderDetailsExpanded, setOrderDetailsExpanded] = useState(false);
   const orderDetailsId = useId();
   const uploadInputId = useId();
+  const receiptInputRef = useRef<HTMLInputElement>(null);
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
 
   useEffect(() => {
@@ -427,19 +429,19 @@ function PaymentProofModal({
         >
           <div className={`modal-body ${proofModalStyles.body}`}>
             {orderView && (
-              <div className={proofModalStyles.payAmount}>
+              <div className={`${proofModalStyles.payAmount} align-items-center`}>
                 <span className={proofModalStyles.payAmountIcon} aria-hidden="true">
                   <i className="fa-solid fa-sack-dollar" />
                 </span>
-                <span className={proofModalStyles.payAmountLabel}><b>Pay Amount</b></span>
-                <strong><b>{orderView.youPayLine}</b></strong>
+                <span className={'fs-5'}><b>Pay Amount</b></span>
+                <strong className={'fs-5'}><b>{orderView.youPayLine}</b></strong>
               </div>
             )}
 
             <section className={`${proofModalStyles.orderDetails} p2pCard px-3 mb-3`}>
               <button
                 type="button"
-                className={proofModalStyles.orderDetailsToggle}
+                className={`${proofModalStyles.orderDetailsToggle}, d-flex justify-content-between w-100 py-2`}
                 aria-expanded={orderDetailsExpanded}
                 aria-controls={orderDetailsId}
                 onClick={() => setOrderDetailsExpanded(expanded => !expanded)}
@@ -483,17 +485,20 @@ function PaymentProofModal({
                 </div>
                 <i className="fa-regular fa-image" aria-hidden="true" />
               </div>
+              {proofFiles.length === 0 && (
               <label htmlFor={uploadInputId} className={`${proofModalStyles.uploadDropzone} ${proofError ? proofModalStyles.uploadError : ""}`}>
                 <span className={proofModalStyles.uploadIcon} aria-hidden="true">
                   <i className="fa-solid fa-cloud-arrow-up" />
                 </span>
                 <span className={proofModalStyles.uploadCopy}>
-                  <strong>{proofFiles.length > 0 ? "Add another receipt" : "Choose receipt images"}</strong>
+                  <strong>Choose receipt images</strong>
                   <span>Tap to browse from your device</span>
                 </span>
                 <span className={proofModalStyles.browseButton}>Browse</span>
               </label>
+              )}
               <input
+                ref={receiptInputRef}
                 id={uploadInputId}
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
@@ -544,6 +549,17 @@ function PaymentProofModal({
                       </span>
                     </div>
                   ))}
+                  <button
+                    type="button"
+                    className={proofModalStyles.addReceiptTile}
+                    onClick={() => receiptInputRef.current?.click()}
+                    disabled={submitting || uploadedProofCount > 0}
+                    aria-label="Add another receipt"
+                    title="Add another receipt"
+                  >
+                    <i className="fa-solid fa-plus" aria-hidden="true" />
+                    <span>Add receipt</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -1126,7 +1142,7 @@ export default function BuyDetailsCard({
   const canClaim = statusList.includes(10);
   const canCancelOrder = trade.status === 1 || trade.status === 2;
   const isBuyFlow = trade.type === "buy";
-  const notifyTransferredLabel = isBuyFlow ? "Payment Proof Submit" : "Transferred, Notify Buyer";
+  const notifyTransferredLabel = isBuyFlow ? "Payment Proof Submit" : "Payment Proof";
 
   // Pending countdown (status === 1) — derived values
   const isPending = trade.status === 1;
@@ -1193,6 +1209,8 @@ export default function BuyDetailsCard({
           <StatusBanner status={trade.status} />
         )}
 
+        <div className="p2pStatusActionRow">
+          <div className="p2pStatusActionTitle">
         {uiStatus === "completed" ? (
           <div className="d-flex justify-content-between align-items-center">
             <h2 className="p2pTitle text-white">Order Completed</h2>
@@ -1202,10 +1220,7 @@ export default function BuyDetailsCard({
               </span>
             </span>
             {trade.status != 1 && (
-              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
-                <i className="fa-solid fa-message" />
-                <span className="chat-badge">0</span>
-              </Link>
+              <OrderChatLink tradeId={trade.id} />
             )}
           </div>
         ) : uiStatus === "rejected" ? (
@@ -1244,26 +1259,12 @@ export default function BuyDetailsCard({
               )}
             </h2>
             {trade.status != 1 && (
-              <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="chat-notification d-md-none">
-                <i className="fa-solid fa-message" />
-                <span className="chat-badge">0</span>
-              </Link>
+              <OrderChatLink tradeId={trade.id} />
             )}
           </div>
         )}
 
-        {/* <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
-          <div className="p2pOrderNo">
-            <span className="p2pMuted">Order ID</span>
-            <span className="p2pOrderValue">{orderId}</span>
-            <CopyBtn text={orderId} id="order_id" />
           </div>
-        </div> */}
-      </div>
-
-      {(canCancelOrder || canReject || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired))) && (
-        <div className="p2pTopActions" role="group" aria-label="Order actions">
-          <div className="p2pActions">
             {canCancelOrder && (
               <button
                 className="p2pGhostBtn p2pActionCancel"
@@ -1274,6 +1275,20 @@ export default function BuyDetailsCard({
                 {submitting === 3 ? "Cancelling…" : "Cancel Order"}
               </button>
             )}
+        </div>
+
+        {/* <div className={`p2pSubRow ${isPending ? "p2pPendingOrderId" : ""}`}>
+          <div className="p2pOrderNo">
+            <span className="p2pMuted">Order ID</span>
+            <span className="p2pOrderValue">{orderId}</span>
+            <CopyBtn text={orderId} id="order_id" />
+          </div>
+        </div> */}
+      </div>
+
+      {((canReject && !canCancelOrder) || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired))) && (
+        <div className="p2pTopActions" role="group" aria-label="Order actions">
+          <div className="p2pActions">
             {canReject && !canCancelOrder && (
               <button
                 className="p2pGhostBtn p2pActionCancel"

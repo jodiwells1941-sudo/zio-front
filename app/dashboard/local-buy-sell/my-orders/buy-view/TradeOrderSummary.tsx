@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { toast } from "react-toastify";
+import CopyPaymentDetail from "@/components/dashboard/p2p/CopyPaymentDetail";
 import styles from "./TradeOrderSummary.module.css";
 import PaymentMethodIcon from "../../PaymentMethodIcon";
 
@@ -157,7 +158,7 @@ export default function TradeOrderSummary({
         <span className={styles.receiveIcon}>
           <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
         </span>
-        <span>{isBuy ? "Pay Amount" : "Total Received Amount"}</span>
+        <span>{isBuy ? "Pay Amount" : "Total Amount"}</span>
         {/* <b>{formatAmount(totalReceived)} {currency}</b> */}
         {isBuy ? <b>{formatAmount(fiatAmount)} {currency}</b> : <b>{formatAmount(totalReceived)} {currency}</b>}
         
@@ -180,7 +181,10 @@ export default function TradeOrderSummary({
           {showPaymentDetails && paymentDetails.length > 0 ? paymentDetails.map(detail => (
             <div className={styles.paymentRow} key={detail.label}>
               <span>{detail.label}</span>
-              <b>{detail.value}</b>
+              <span className={styles.paymentValue}>
+                <b>{detail.value}</b>
+                <CopyPaymentDetail value={detail.value} label={detail.label} className={styles.copyButton} />
+              </span>
             </div>
           )) : showPaymentDetails ? (
             <div className={styles.paymentEmpty}>No payment details available.</div>

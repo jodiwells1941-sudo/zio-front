@@ -274,3 +274,25 @@
     font-size: 14px;
   }
 }
+
+.paymentValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 65%;
+  min-width: 0;
+  text-align: right;
+}
+.paymentRow .paymentValue b {
+  color: var(--summary-accent);
+  max-width: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.paymentValue button { flex-shrink: 0; }
+.paymentValue button:focus-visible {
+  outline: 2px solid var(--summary-accent);
+  outline-offset: 2px;
+}

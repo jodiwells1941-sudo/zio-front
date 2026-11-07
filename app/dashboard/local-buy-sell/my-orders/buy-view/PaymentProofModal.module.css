@@ -250,6 +250,26 @@
   border-radius: 7px;
   object-fit: cover;
 }
+.addReceiptTile {
+  display: flex;
+  min-width: 0;
+  min-height: 70px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px dashed rgba(242, 201, 76, .5);
+  border-radius: 10px;
+  background: rgba(242, 201, 76, .06);
+  color: #f2c94c;
+  cursor: pointer;
+}
+.addReceiptTile i { font-size: 18px; }
+.addReceiptTile span { font-size: 10px; font-weight: 700; }
+.addReceiptTile:hover:not(:disabled) { background: rgba(242, 201, 76, .13); }
+.addReceiptTile:focus-visible { outline: 2px solid #f2c94c; outline-offset: 2px; }
+.addReceiptTile:disabled { cursor: not-allowed; opacity: .5; }
 .removeButton {
   position: absolute;
   top: -7px;
