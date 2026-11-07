@@ -6,9 +6,14 @@ class CustomError extends Error {
     status?: number;
 }
 
+const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api')
+    .replace(/\/+$/, '');
+const apiBaseUrl = /\/api$/i.test(configuredApiUrl)
+    ? configuredApiUrl
+    : `${configuredApiUrl}/api`;
+
 const apiClient = axios.create({
-    // use environment variable for base URL
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api',
+    baseURL: apiBaseUrl,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
