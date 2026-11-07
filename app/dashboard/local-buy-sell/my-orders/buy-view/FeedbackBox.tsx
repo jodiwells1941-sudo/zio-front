@@ -90,11 +90,15 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
       const res = await generateTradeReview(payload);
       setIsOpen(false);
 
-      await Swal.fire(
-        "Review Submitted!",
-        res?.message ?? "Thank you for your feedback.",
-        "success"
-      );
+      await Swal.fire({
+        title: "Review submitted successfully",
+        text: res?.message ?? "Thank you for your feedback.",
+        icon: "success",
+        background: "#151a23",
+        color: "#f8fafc",
+        confirmButtonColor: "#f0a500",
+        iconColor: "#f0a500",
+      });
 
       setType("");
       setSelectedTags([]);

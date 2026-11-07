@@ -1,3 +1,13 @@
+.dialog {
+  max-height: calc(100dvh - 32px);
+}
+.dialog > :first-child,
+.dialog > :last-child { flex-shrink: 0; }
+.scrollBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 .receivedAmount {
   display: flex;
   align-items: center;

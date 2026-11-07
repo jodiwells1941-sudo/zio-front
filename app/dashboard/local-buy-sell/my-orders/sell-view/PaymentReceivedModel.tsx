@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './PaymentReceivedModel.module.css';
+import PaymentDetailsCollapse from '@/components/dashboard/wallet/sell/PaymentDetailsCollapse';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,6 +13,7 @@ interface PaymentReceivedModelProps {
   buyerName: string;
   amount: number;
   currency: string;
+  details?: Array<{ label: string; value: string }>;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -23,16 +25,17 @@ export function PaymentReceivedModel({
   buyerName,
   amount,
   currency,
+  details = [],
 }: PaymentReceivedModelProps) {
   const [isVerified, setIsVerified] = useState(false);
 
   if (!isOpen) return null;
 
-  const formattedAmount = Number(amount).toFixed(2);
+  const formattedAmount = Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className={`modal-content ${styles.dialog}`}>
 
         {/* Header */}
         <div className="modal-header">
@@ -48,15 +51,25 @@ export function PaymentReceivedModel({
         </div>
 
         {/* Body */}
-        <div className="m-2 bg-dark rounded">
+        <div className={`m-2 bg-dark rounded ${styles.scrollBody}`}>
           <div className="modal-body">
             <div className={styles.receivedAmount}>
               <span className={styles.icon} aria-hidden="true">
                 <i className="fa-solid fa-hand-holding-dollar" />
               </span>
-              <span className={styles.label}>Total Received Amount</span>
+              <span className={styles.label}>Total Amount</span>
               <strong className={styles.value}>{formattedAmount} {currency}</strong>
             </div>
+            {details.length > 0 && (
+              <PaymentDetailsCollapse>
+                {details.map((row, index) => (
+                  <div key={`${row.label}-${index}`} className="d-flex justify-content-between gap-3 py-1 small text-white-50">
+                    <span>{row.label}</span>
+                    <strong className="text-white text-end">{row.value}</strong>
+                  </div>
+                ))}
+              </PaymentDetailsCollapse>
+            )}
 
             {/* Steps — shown before checkbox is checked */}
             {/* {!isVerified && (

@@ -315,8 +315,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           </div>
           <div className="local-trade-total-banner">
             <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-            <span className="local-trade-total-label">Total Received Amount</span>
-            <strong><span>{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
+            <span className="local-trade-total-label">Total Amount</span>
+            <strong className="d-flex gap-1"><span className="fw-bold">{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
           </div>
 
           <div className="local-trade-payment-details">
@@ -345,7 +345,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             </div>
             <div className="local-trade-field local-trade-field--note">
               <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
-              <p>{ad.remarks || "No additional note provided."}</p>
+              <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
             </div>
           </div>
 

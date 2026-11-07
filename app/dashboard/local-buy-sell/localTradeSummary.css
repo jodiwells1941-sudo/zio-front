@@ -528,14 +528,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 72px;
+  /* min-height: 72px; */
   margin: 0 0 12px;
   padding: 11px 13px;
   border: 1.5px solid var(--trade-accent);
   border-radius: 13px;
-  background:
+  /* background:
     radial-gradient(120% 140% at 0% 50%, var(--trade-glow), transparent 65%),
-    linear-gradient(100deg, var(--trade-surface-soft), var(--trade-surface));
+    linear-gradient(100deg, var(--trade-surface-soft), var(--trade-surface)); */
   box-shadow: 0 9px 25px var(--trade-glow), 0 1px 0 rgba(255,255,255,.08) inset;
 }
 
@@ -554,10 +554,10 @@
 
 .local-trade-total-label {
   flex: 1 1 auto;
-  min-width: 0;
+  min-width: 120px;
   color: #f3faf7;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1.15;
 }
 
@@ -928,7 +928,7 @@
   }
 
   .local-trade-total-banner {
-    min-height: 66px;
+    /* min-height: 66px; */
     gap: 8px;
     padding: 9px 10px;
   }
@@ -941,7 +941,7 @@
   }
 
   .local-trade-total-label {
-    font-size: 10px;
+    font-size: 16px;
   }
 
   .local-trade-total-banner > strong {

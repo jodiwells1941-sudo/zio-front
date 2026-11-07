@@ -5,7 +5,10 @@ import FeedbackBox from "./FeedbackBox";
 import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
-import { normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import {
+  getViewerOrderAmountDisplay,
+  normalizeCryptoAsset,
+} from "@/components/dashboard/p2p/p2pOrderDisplay";
 
 interface TradeData {
   id: number;
@@ -27,6 +30,8 @@ interface TradeData {
   };
   customer_id: number;
   client_id: number;
+  type?: string;
+  is_client?: boolean;
   /** Legacy P2P status; feedback only when 9 (completed). */
   status?: number;
   trade_review?: any;
@@ -52,11 +57,28 @@ export default function PaymentCompleted({ trade, from }: Props) {
     ? new Date(trade.created_at).toLocaleString()
     : '—';
   const { user } = useAuth();
+  const isSeller = Boolean(trade.is_client ?? Number(user?.id) === Number(trade.client_id));
+  const amountDisplay = getViewerOrderAmountDisplay({
+    payable_amount: trade.payable_amount,
+    receivable_amount: trade.receivable_amount,
+    user_price: trade.user_price,
+    type: trade.type ?? "sell",
+    is_client: isSeller,
+    p2p_ad: trade.p2p_ad,
+  });
+  const receivedAmount = isSeller
+    ? `${amountDisplay.fiat} ${amountDisplay.fiatStr}`
+    : `${amountDisplay.cryptoStr} ${amountDisplay.asset}`;
+  const equivalentAmount = isSeller
+    ? `${amountDisplay.cryptoStr} ${amountDisplay.asset}`
+    : `${amountDisplay.fiat} ${amountDisplay.fiatStr}`;
     
   return (
     <>
       <CompletionCelebration
         isOpen={showCelebration}
+        receivedAmount={receivedAmount}
+        equivalentAmount={equivalentAmount}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);
