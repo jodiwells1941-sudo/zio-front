@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 // ─── Shared palette ───────────────────────────────────────────────────────────
 
 export const CHART_COLORS = {
-  total: "#a855f7",
+  total: "#fbbf24",
   resolved: "#22c55e",
   pending: "#f59e0b",
   cancelled: "#ef4444",
@@ -234,7 +234,9 @@ export function AppealDonutChart({ data, size = 200 }: { data: ReasonSlice[]; si
     <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
       <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Appeal by reason">
-          {arcs.map((a, i) => (
+          {arcs.length === 1 ? (
+            <circle cx={cx} cy={cy} r={(radius + innerRadius) / 2} fill="none" stroke={arcs[0].color} strokeWidth={radius - innerRadius} />
+          ) : arcs.map((a, i) => (
             <path key={i} d={a.path} fill={a.color} />
           ))}
         </svg>

@@ -21,6 +21,7 @@ export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatMainRef = useRef<HTMLElement>(null);
 
   const [trades, setTrades] = useState<TradeListRow[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -57,6 +58,28 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.messages, chat.loading, activeTradeId]);
+
+  useEffect(() => {
+    if (!activeTradeId) return;
+
+    const updateViewport = () => {
+      const panel = chatMainRef.current;
+      if (!panel) return;
+      const viewport = window.visualViewport;
+      panel.style.setProperty("--chat-viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+      panel.style.setProperty("--chat-viewport-top", `${viewport?.offsetTop ?? 0}px`);
+    };
+
+    updateViewport();
+    window.visualViewport?.addEventListener("resize", updateViewport);
+    window.visualViewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateViewport);
+      window.visualViewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, [activeTradeId]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -141,10 +164,10 @@ export default function ChatPage() {
           </div>
         </aside>
 
-        <main className={`chat-main ${activeTradeId ? "active" : ""}`}>
+        <main ref={chatMainRef} className={`chat-main ${activeTradeId ? "active" : ""}`}>
           {activeTradeId ? (
             <div className="chat-main-content">
-              <div className="chat-main-header mt-100 mt-md-0 bg-dark">
+              <div className="chat-main-header bg-dark">
                 <button
                   type="button"
                   className="chat-mobile-close"

@@ -570,9 +570,9 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               <div className="qsm-total qsm-total--hero qsm-total--sell-hero">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-                  <span>Total Amount</span>
+                  <span className='fw-bold fs-5'>Received Amount</span>
                 </div>
-                <b className="qsm-total-value">
+                <b className="qsm-total-value d-flex align-items-center gap-2">
                   <span>{feeLoading ? '…' : money(receiveFiat)}</span>
                   <span>{fiat}</span>
                 </b>
@@ -760,7 +760,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <b>{money(rate)} {fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Received Amount ({fiat})</span>
+                  <span className='fw-bold fs-5'>Received Amount ({fiat})</span>
                   <b className="qsm-green">
                     {money(receiveFiat)} {fiat}
                     {/* <small className="qsm-summary-sub">{money(fiatAmount)} − {money(feeFiat)} fee</small> */}
@@ -771,9 +771,9 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               <div className="qsm-total qsm-total--hero qsm-total--sell-hero">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-                  <span>Total Amount</span>
+                  <span className='fw-bold fs-5'>Received Amount</span>
                 </div>
-                <b className="qsm-total-value">
+                <b className="qsm-total-value d-flex align-items-center gap-2">
                   <span>{feeLoading ? '…' : money(receiveFiat)}</span>
                   <span>{fiat}</span>
                 </b>

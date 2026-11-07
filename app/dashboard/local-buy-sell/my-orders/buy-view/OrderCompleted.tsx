@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import FeedbackBox from "./FeedbackBox";
 import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
-import { getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import { getCompletedOrderAmounts, getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
 
 function CopyBtn({ text, id }: { text: string; id: string }) {
   const [copied, setCopied] = useState(false);
@@ -50,16 +50,18 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
       })
     : null;
   const isSeller = Boolean(trade?.is_client ?? Number(user?.id) === Number(trade?.client_id));
-  const receivedAmount = vd
-    ? isSeller
-      ? `${vd.fiat} ${vd.fiatStr}`
-      : `${vd.cryptoStr} ${vd.asset}`
-    : undefined;
-  const equivalentAmount = vd
-    ? isSeller
-      ? `${vd.cryptoStr} ${vd.asset}`
-      : `${vd.fiat} ${vd.fiatStr}`
-    : undefined;
+  const completedAmounts = trade
+    ? getCompletedOrderAmounts({
+        payable_amount: trade.payable_amount,
+        receivable_amount: trade.receivable_amount,
+        user_price: trade.user_price,
+        type: trade.type ?? "buy",
+        is_client: isSeller,
+        p2p_ad: trade.p2p_ad,
+        bonus_amount: trade.bonus_amount,
+        charge_amount: trade.charge_amount,
+      })
+    : null;
   const asset = vd?.asset ?? "USDT";
   const orderSideLabel = trade?.type === "sell" ? "Sell" : "Buy";
 
@@ -85,8 +87,8 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
     <>
       <CompletionCelebration
         isOpen={showCelebration}
-        receivedAmount={receivedAmount}
-        equivalentAmount={equivalentAmount}
+        receivedAmount={completedAmounts?.receivedAmount}
+        paidAmount={completedAmounts?.paidAmount}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);

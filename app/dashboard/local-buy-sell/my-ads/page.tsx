@@ -17,7 +17,10 @@ const n2 = (v: number | string, d = 2) => {
   const n = Number(v);
   return Number.isFinite(n) ? n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) : '-';
 };
-const apiMsg = (e: any, fallback: string) => e?.response?.data?.message ?? e?.message ?? fallback;
+const apiMsg = (error: unknown, fallback: string) => {
+  const e = error as { response?: { data?: { message?: string } }; message?: string };
+  return e?.response?.data?.message ?? e?.message ?? fallback;
+};
 
 /* ───────────── Row ───────────── */
 function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
@@ -31,16 +34,16 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
   return (
     <div className="ma-row">
       <div className="ma-ad">
-        <b>#{ad.id}</b>
+        <b>Ad #{ad.id}</b>
         <small>{new Date(ad.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</small>
       </div>
-      <div className={`ma-price ma-price--${ad.type}`}>{n2(price)} <small>{ad.with_fiat}</small></div>
-      <div className="ma-cell">{n2(ad.total_amount)} <small>{ad.asset}</small></div>
-      <div className="ma-cell">
+      <div className={`ma-price ma-price--${ad.type}`} data-label="Price">{n2(price)} <small>{ad.with_fiat}</small></div>
+      <div className="ma-cell" data-label="Available">{n2(ad.total_amount)} <small>{ad.asset}</small></div>
+      <div className="ma-cell ma-limits" data-label="Order limit">
         {n2(ad.order_limit_min, 0)} – {n2(ad.order_limit_max, 0)} <small>{ad.asset}</small>
         <small className="ma-sub">≈ {n2(ad.order_limit_min * price, 0)} – {n2(ad.order_limit_max * price, 0)} {ad.with_fiat}</small>
       </div>
-      <div className="ma-method">
+      <div className="ma-method" data-label="Payment">
         <PaymentMethodIcon
           methodName={method}
           iconImage={
@@ -52,7 +55,7 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
         />
         {method}
       </div>
-      <div className="ma-status">
+      <div className="ma-status" data-label="Status">
         <button
           type="button"
           role="switch"
@@ -62,9 +65,9 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
           className={`ma-switch ${ad.status ? 'is-on' : ''}`}
           onClick={() => onToggle(ad)}
         />
-        <span>{ad.status ? 'Active' : 'Inactive'}</span>
+        <span className={`ma-status-label ${ad.status ? 'is-active' : ''}`}>{ad.status ? 'Active' : 'Inactive'}</span>
       </div>
-      <div className="ma-actions">
+      <div className="ma-actions" data-label="Actions">
         <button type="button" className="ma-icon" title="Edit" aria-label={`Edit ad ${ad.id}`} onClick={() => onEdit(ad)}>
           <i className="fa-solid fa-pen" />
         </button>
@@ -104,7 +107,7 @@ export default function LocalMyAds() {
           loading: false,
         },
       }));
-    } catch (e: any) {
+    } catch (e) {
       toast.error(apiMsg(e, 'Failed to load your ads.'));
       setData(p => ({ ...p, [type]: { ...p[type], loading: false } }));
     }
@@ -129,7 +132,7 @@ export default function LocalMyAds() {
         },
       }));
       toast.success(ad.status ? 'Ad deactivated.' : 'Ad activated.');
-    } catch (e: any) {
+    } catch (e) {
       toast.error(apiMsg(e, 'Could not change the status.'));
     } finally {
       setToggling(null);
@@ -147,7 +150,7 @@ export default function LocalMyAds() {
       const page = b.items.length === 1 && b.page > 1 ? b.page - 1 : b.page;
       setToDelete(null);
       await load(t, page);
-    } catch (e: any) {
+    } catch (e) {
       toast.error(apiMsg(e, 'Could not delete the ad.'));
     } finally {
       setDeleting(false);
@@ -159,10 +162,18 @@ export default function LocalMyAds() {
   return (
     <div className={`ma ma--${tab}`}>
       {/* Header */}
-      <div className="ma-head justify-content-between mt-3">
-        <div>
-          <h2 className="ma-title">My Ads</h2>
-          <p className="ma-subtitle">Manage your local buy &amp; sell requests</p>
+      <div className="ma-head">
+        <div className="ma-head-main">
+          <span className="ma-head-icon" aria-hidden="true"><i className="fa-solid fa-bullhorn" /></span>
+          <div>
+            <span className="ma-eyebrow">LOCAL MARKETPLACE</span>
+            <h2 className="ma-title">My Ads</h2>
+            <p className="ma-subtitle">Create, edit and manage your local buy and sell ads.</p>
+          </div>
+        </div>
+        <div className="ma-overview" aria-label="Ad totals">
+          <span><i className="fa-solid fa-arrow-down" aria-hidden="true" /> {data.buy.loading && !data.buy.total ? '…' : data.buy.total} Buy</span>
+          <span><i className="fa-solid fa-arrow-up" aria-hidden="true" /> {data.sell.loading && !data.sell.total ? '…' : data.sell.total} Sell</span>
         </div>
       </div>
 
@@ -205,7 +216,9 @@ export default function LocalMyAds() {
           <button
             key={k}
             type="button"
+            id={`ma-tab-${k}`}
             role="tab"
+            aria-controls="ma-ads-panel"
             aria-selected={tab === k}
             className={`ma-tab ma-tab--${k} ${tab === k ? 'is-active' : ''}`}
             onClick={() => setTab(k)}
@@ -217,7 +230,14 @@ export default function LocalMyAds() {
       </div>
 
       {/* Table */}
-      <section className="ma-panel" role="tabpanel">
+      <section className="ma-panel" id="ma-ads-panel" role="tabpanel" aria-labelledby={`ma-tab-${tab}`}>
+        <div className="ma-panel-head">
+          <div>
+            <span className="ma-panel-eyebrow">YOUR LISTINGS</span>
+            <h3>{tab === 'buy' ? 'Buy ads' : 'Sell ads'}</h3>
+          </div>
+          <span className="ma-panel-total">{cur.total} {cur.total === 1 ? 'ad' : 'ads'}</span>
+        </div>
         <div className="pf-scroll">
           <div className="ma-table">
             <div className="ma-row ma-row--head">

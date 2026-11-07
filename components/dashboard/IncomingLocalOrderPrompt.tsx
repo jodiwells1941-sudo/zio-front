@@ -24,6 +24,10 @@ interface IncomingLocalOrder {
   user_price?: number;
   payable_amount?: number;
   receivable_amount?: number;
+  bonus_amount?: number | string | null;
+  bonus_percent?: number | string | null;
+  charge_amount?: number | string | null;
+  charge_percent?: number | string | null;
   client?: Party | null;
   customer?: Party | null;
   p2p_ad?: {
@@ -333,14 +337,20 @@ export default function IncomingLocalOrderPrompt() {
   const asset = order.p2p_ad?.asset ?? "USDT";
   const orderNumber = order.order_id || `#${order.id}`;
   const paymentMethod = order.p2p_ad?.payment_method?.sell_method?.name || "Payment method";
-  const totalReceived = order.type === "buy"
-    ? formatAmount(order.payable_amount, fiat)
-    : formatAmount(order.receivable_amount, asset);
+  const baseAssetAmount = Number(order.receivable_amount ?? 0);
+  const bonusAmount = Number(order.bonus_amount ?? 0);
+  const feeAmount = Number(order.charge_amount ?? 0);
+  const adjustmentAmount = order.type === "buy" ? bonusAmount : feeAmount;
+  const adjustmentPercent = Number(
+    order.type === "buy" ? order.bonus_percent ?? 0 : order.charge_percent ?? 0
+  );
+  const adjustmentLabel = order.type === "sell" ? "Bonus" : "Fee";
+  const totalAssetLabel = order.type === "buy" ? "Sell USD" : "Received USD";
   const summaryAmountLabel = order.type === "buy" ? "Sell Amount" : "Buy Amount";
   const creator = [order.client, order.customer].find(
     party => Number(party?.id) === Number(order.created_by)
   );
-  const action = order.type === "buy" ? "Withdraw" : "Deposit";
+  const action = order.type === "buy" ? "Sell" : "Deposit";
 
   return (
     <div className={styles.overlay}>
@@ -366,12 +376,22 @@ export default function IncomingLocalOrderPrompt() {
             <span className={styles.iconPulse} />
           </div>
           <div className={styles.headerCopy}>
-            <h2 id="incoming-local-order-title">Your {action} Request </h2>
+            <h2 id="incoming-local-order-title">Accept {action} Request </h2>
             <p className={styles.subtitle}>
               {creator?.name || "A user"} placed an order on your local ad.
             </p>
           </div>
         </header>
+
+        <div className={`${styles.totalBanner} ${order.type === "buy" ? styles.buyTotalBanner : styles.sellTotalBanner}`}>
+          <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
+          <span className={`fs-5 fw-bold ${order.type === "buy" ? 'text-warning' : 'text-danger'}`}>
+            {order.type === "buy" ? "Received Amount" : "Pay Amount"}
+          </span>
+          <strong className={`fs-4 fw-bold ${order.type === "buy" ? 'text-warning' : 'text-danger'}`}>
+            {formatAmount(order.payable_amount, fiat)}
+          </strong>
+        </div>
 
         <section className={styles.orderSummary} aria-label="Order summary">
           <div className={styles.summaryHeading}>
@@ -399,10 +419,6 @@ export default function IncomingLocalOrderPrompt() {
               <strong>{fiat || "—"}</strong>
             </div>
             <div className={styles.summaryRow}>
-              <span>{summaryAmountLabel}</span>
-              <strong>{formatAmount(order.receivable_amount, asset)}</strong>
-            </div>
-            <div className={styles.summaryRow}>
               <span>Market Price</span>
               <strong>{formatAmount(order.user_price, fiat)}</strong>
             </div>
@@ -410,13 +426,28 @@ export default function IncomingLocalOrderPrompt() {
               <span>Payable Amount</span>
               <strong>{formatAmount(order.payable_amount, fiat)}</strong>
             </div>
+            <div className={styles.summaryRow}>
+              <span>{summaryAmountLabel}</span>
+              <strong>{order.type === "buy" ? "- " : "+"}{formatAmount(order.receivable_amount, asset)}</strong>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>{adjustmentLabel} ({adjustmentPercent.toFixed(2)}%)</span>
+              <strong className={order.type === "buy" ? styles.feeValue : styles.bonusValue}>
+                {order.type === "buy" ? "- " : "+"} {formatAmount(adjustmentAmount, asset)}
+              </strong>
+            </div>
+            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+              <span>{order.type === "buy" ? "Sell USD" : "Received USD"}</span>
+              <strong>{order.type === "buy" ? "- " : "+"} {formatAmount(baseAssetAmount+adjustmentAmount, asset)}</strong>
+            </div>
+            
           </div>
         </section>
-
+        
         <div className={styles.totalBanner}>
           <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
-          <span>Total Amount</span>
-          <strong>{totalReceived}</strong>
+          <span className="fw-bold">{totalAssetLabel}</span>
+          <strong>+ {formatAmount(baseAssetAmount+adjustmentAmount, asset)}</strong>
         </div>
 
         <div className={styles.paymentCard}>

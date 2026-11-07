@@ -27603,18 +27603,19 @@ span {
   min-height: calc(100vh - 80px);
   padding: 30px 0 50px;
   color: #ffffff;
-  background:
+  border-radius: 12px;
+  /* background:
     radial-gradient(
       circle at 15% 10%,
-      rgba(156, 236, 254, 0.10),
+      rgba(251, 191, 36, 0.10),
       transparent 30%
     ),
     radial-gradient(
       circle at 90% 80%,
-      rgba(124, 207, 231, 0.08),
+      rgba(239, 68, 68, 0.05),
       transparent 28%
     ),
-    #121418;
+    #121418; */
 }
 
 .appeal-container {
@@ -27645,12 +27646,12 @@ span {
   align-items: center;
   gap: 9px;
   padding: 8px 15px;
-  border: 1px solid rgba(156, 236, 254, 0.28);
+  border: 1px solid rgba(251, 191, 36, 0.28);
   border-radius: 30px;
-  background: rgba(156, 236, 254, 0.04);
+  background: rgba(251, 191, 36, 0.04);
   box-shadow:
-    0 0 16px rgba(156, 236, 254, 0.08),
-    inset 0 0 10px rgba(156, 236, 254, 0.02);
+    0 0 16px rgba(251, 191, 36, 0.08),
+    inset 0 0 10px rgba(251, 191, 36, 0.02);
   color: rgba(255, 255, 255, 0.82);
   font-size: 12px;
   line-height: 1;
@@ -27660,7 +27661,7 @@ span {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9cecfe;
+  color: #fbbf24;
   font-size: 11px;
 }
 
@@ -27697,7 +27698,7 @@ span {
   align-items: center;
   gap: 14px;
   padding: 15px 18px;
-  border: 1px solid rgba(156, 236, 254, 0.18);
+  border: 1px solid rgba(251, 191, 36, 0.18);
   border-radius: 15px;
   background:
     linear-gradient(
@@ -27720,8 +27721,8 @@ span {
   border-radius: 12px;
   color: #0f1724;
   font-size: 18px;
-  background: linear-gradient(135deg, #dffcff, #9cecfe 55%, #7ccfe7);
-  box-shadow: 0 8px 22px rgba(156, 236, 254, 0.24);
+  background: linear-gradient(135deg, #fff2c2, #fbbf24 55%, #f59e0b);
+  box-shadow: 0 8px 22px rgba(251, 191, 36, 0.24);
 }
 
 .appeal-total-label {
@@ -27756,6 +27757,11 @@ span {
     inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
+/* Create Appeal uses the dashboard's navy surface instead of the list card gradient. */
+.appeal-create-page .appeal-content-card.bg-navy-blue {
+  background: #2A2D34;
+}
+
 .appeal-content-header {
   min-height: 82px;
   display: flex;
@@ -27774,7 +27780,7 @@ span {
 }
 
 .appeal-content-title i {
-  color: #9cecfe;
+  color: #fbbf24;
 }
 
 .appeal-content-subtitle {
@@ -27785,10 +27791,10 @@ span {
 
 .appeal-count {
   padding: 7px 13px;
-  border: 1px solid rgba(156, 236, 254, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.2);
   border-radius: 30px;
-  color: #9cecfe;
-  background: rgba(156, 236, 254, 0.06);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.06);
   font-size: 12px;
   font-weight: 600;
 }
@@ -27841,7 +27847,7 @@ span {
 }
 
 .appeal-table tbody tr:hover {
-  background: rgba(156, 236, 254, 0.035);
+  background: rgba(251, 191, 36, 0.035);
 }
 
 .appeal-table tbody tr:last-child td {
@@ -27853,7 +27859,7 @@ span {
 ========================================================= */
 
 .appeal-id {
-  color: #9cecfe;
+  color: #fbbf24;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
@@ -27875,7 +27881,7 @@ span {
 }
 
 .appeal-type i {
-  color: #9cecfe;
+  color: #fbbf24;
   font-size: 12px;
 }
 
@@ -27895,7 +27901,7 @@ span {
   height: 40px;
   flex: 0 0 40px;
   overflow: hidden;
-  border: 1px solid rgba(156, 236, 254, 0.25);
+  border: 1px solid rgba(251, 191, 36, 0.25);
   border-radius: 50%;
   background: #1b2530;
 }
@@ -27956,9 +27962,9 @@ span {
 }
 
 .appeal-status-review {
-  border: 1px solid rgba(156, 236, 254, 0.25);
-  color: #9cecfe;
-  background: rgba(156, 236, 254, 0.09);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.09);
 }
 
 .appeal-status-resolved {
@@ -27992,7 +27998,7 @@ span {
 }
 
 .appeal-date i {
-  color: #9cecfe;
+  color: #fbbf24;
 }
 
 /* =========================================================
@@ -28041,9 +28047,9 @@ span {
 }
 
 .pagination-btn:hover:not(:disabled) {
-  border-color: rgba(156, 236, 254, 0.45);
+  border-color: rgba(251, 191, 36, 0.45);
   color: #ffffff;
-  background: rgba(156, 236, 254, 0.12);
+  background: rgba(251, 191, 36, 0.12);
 }
 
 .pagination-btn:disabled {
@@ -28057,13 +28063,13 @@ span {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(156, 236, 254, 0.45);
+  border: 1px solid rgba(251, 191, 36, 0.45);
   border-radius: 8px;
   color: #0f1724;
-  background: linear-gradient(135deg, #dffcff, #9cecfe 55%, #7ccfe7);
+  background: linear-gradient(135deg, #fff2c2, #fbbf24 55%, #f59e0b);
   font-size: 12px;
   font-weight: 600;
-  box-shadow: 0 5px 16px rgba(156, 236, 254, 0.18);
+  box-shadow: 0 5px 16px rgba(251, 191, 36, 0.18);
 }
 
 /* =========================================================
@@ -28087,12 +28093,12 @@ span {
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
-  border: 1px solid rgba(156, 236, 254, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.2);
   border-radius: 50%;
-  color: #9cecfe;
-  background: rgba(156, 236, 254, 0.08);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
   font-size: 25px;
-  box-shadow: 0 0 30px rgba(156, 236, 254, 0.10);
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.10);
 }
 
 .appeal-empty h4 {
@@ -28202,7 +28208,7 @@ span {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.045),
-    rgba(156, 236, 254, 0.10),
+    rgba(251, 191, 36, 0.10),
     rgba(255, 255, 255, 0.045)
   );
   background-size: 200% 100%;
