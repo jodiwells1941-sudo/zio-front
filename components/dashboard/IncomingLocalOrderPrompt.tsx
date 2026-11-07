@@ -441,11 +441,11 @@ export default function IncomingLocalOrderPrompt() {
         <div className={styles.actions}>
           <button type="button" className={`${styles.button} ${styles.cancel}`} disabled={busy} onClick={() => void handleStatus(3)}>
             <i className="fa-solid fa-xmark" />
-            Cancel Order
+            Cancel Request
           </button>
           <button type="button" className={`${styles.button} ${styles.accept}`} disabled={busy} onClick={() => void handleStatus(2)}>
             <i className={busy ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"} />
-            {busy ? "Processing…" : "Accept order"}
+            {busy ? "Processing…" : "Accept Request"}
           </button>
         </div>
       </section>

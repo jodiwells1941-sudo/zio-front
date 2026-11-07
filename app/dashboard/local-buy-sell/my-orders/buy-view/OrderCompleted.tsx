@@ -45,10 +45,21 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
         receivable_amount: trade.receivable_amount,
         user_price: trade.user_price,
         type: trade.type ?? "buy",
-        is_client: Boolean(trade.is_client),
+        is_client: Boolean(trade.is_client ?? Number(user?.id) === Number(trade.client_id)),
         p2p_ad: trade.p2p_ad,
       })
     : null;
+  const isSeller = Boolean(trade?.is_client ?? Number(user?.id) === Number(trade?.client_id));
+  const receivedAmount = vd
+    ? isSeller
+      ? `${vd.fiat} ${vd.fiatStr}`
+      : `${vd.cryptoStr} ${vd.asset}`
+    : undefined;
+  const equivalentAmount = vd
+    ? isSeller
+      ? `${vd.cryptoStr} ${vd.asset}`
+      : `${vd.fiat} ${vd.fiatStr}`
+    : undefined;
   const asset = vd?.asset ?? "USDT";
   const orderSideLabel = trade?.type === "sell" ? "Sell" : "Buy";
 
@@ -74,6 +85,8 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
     <>
       <CompletionCelebration
         isOpen={showCelebration}
+        receivedAmount={receivedAmount}
+        equivalentAmount={equivalentAmount}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);
