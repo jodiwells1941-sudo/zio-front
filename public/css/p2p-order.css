@@ -459,6 +459,9 @@
   border-color:rgba(248,113,113,.32);
   color:#fca5a5;
 }
+.p2pDetailActionPage .p2pMobileTopActions{
+  display:none;
+}
 .p2pPrimaryBtn{
   border: 1px solid rgba(240,195,60,.35);
   background: var(--btn);
@@ -487,6 +490,12 @@
 }
 
 @media (max-width: 576px) {
+  .p2pDetailActionPage .p2pDesktopTopActions{
+    display:none;
+  }
+  .p2pDetailActionPage .p2pMobileTopActions{
+    display:block;
+  }
   .p2pTopActions{
     align-items:stretch;
     gap:8px;

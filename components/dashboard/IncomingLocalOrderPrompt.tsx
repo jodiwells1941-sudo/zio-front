@@ -340,9 +340,9 @@ export default function IncomingLocalOrderPrompt() {
   const baseAssetAmount = Number(order.receivable_amount ?? 0);
   const bonusAmount = Number(order.bonus_amount ?? 0);
   const feeAmount = Number(order.charge_amount ?? 0);
-  const adjustmentAmount = order.type === "buy" ? bonusAmount : feeAmount;
+  const adjustmentAmount = order.type === "buy" ? feeAmount : bonusAmount;
   const adjustmentPercent = Number(
-    order.type === "buy" ? order.bonus_percent ?? 0 : order.charge_percent ?? 0
+    order.type === "buy" ? order.charge_percent ?? 0 : order.bonus_percent ?? 0
   );
   const adjustmentLabel = order.type === "sell" ? "Bonus" : "Fee";
   const totalAssetLabel = order.type === "buy" ? "Sell USD" : "Received USD";
@@ -431,7 +431,7 @@ export default function IncomingLocalOrderPrompt() {
               <strong>{order.type === "buy" ? "- " : "+"}{formatAmount(order.receivable_amount, asset)}</strong>
             </div>
             <div className={styles.summaryRow}>
-              <span>{adjustmentLabel} ({adjustmentPercent.toFixed(2)}%)</span>
+              <span>{adjustmentLabel}{adjustmentPercent > 0 ? ` (${adjustmentPercent.toFixed(2)}%)` : ""}</span>
               <strong className={order.type === "buy" ? styles.feeValue : styles.bonusValue}>
                 {order.type === "buy" ? "- " : "+"} {formatAmount(adjustmentAmount, asset)}
               </strong>

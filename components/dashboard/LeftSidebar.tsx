@@ -90,7 +90,7 @@ export default function LeftSidebar({
     {
       label: "Local Buy & Sell", href: "/dashboard/wallet", iconClass: "fa-solid fa-handshake",
       subItems: [
-        { label: "Buy & Sell", href: "/dashboard/local-buy-sell", newTab: false },
+        { label: "Buy & Sell Marketplace", href: "/dashboard/local-buy-sell", newTab: false },
         { label: "My Orders", href: "/dashboard/local-buy-sell/my-orders", newTab: false },
         { label: "All Buy & Sell History", href: "/dashboard/local-buy-sell/history", newTab: false },
         { label: "Payment History", href: "/dashboard/local-buy-sell/payment-history", newTab: false },

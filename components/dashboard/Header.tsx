@@ -9,9 +9,10 @@ import {
   type UserNotification,
 } from "@/app/api/notifications";
 import { getTradeEcho } from "@/utils/tradeEcho";
+import { playChatChime } from "@/utils/chatSound";
 import { logout } from "@/utils/auth";
 import Link from "next/link";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 type NotificationItem = {
   name?: string;
@@ -75,6 +76,8 @@ export default function Header({
   })));
   const [unreadNotifications, setUnreadNotifications] = useState(() => Number(notificationsCount) || 0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const knownNotificationIds = useRef<Set<number>>(new Set());
+  const notificationsInitialized = useRef(false);
 
   const formatNotificationTime = useCallback((value?: string | null) => {
     if (!value) return "Just now";
@@ -91,15 +94,23 @@ export default function Header({
     if (!isLoggedIn || userId === undefined || userId === null) {
       setNotificationItems([]);
       setUnreadNotifications(0);
+      knownNotificationIds.current.clear();
+      notificationsInitialized.current = false;
       return;
     }
 
+    knownNotificationIds.current.clear();
+    notificationsInitialized.current = false;
     let active = true;
     const loadNotifications = async () => {
       setNotificationsLoading(true);
       try {
         const result = await getNotifications();
         if (!active) return;
+        const newItems = (result.items ?? []).filter(item => !knownNotificationIds.current.has(item.id));
+        if (notificationsInitialized.current && newItems.some(item => !item.read_at)) playChatChime();
+        for (const item of result.items ?? []) knownNotificationIds.current.add(item.id);
+        notificationsInitialized.current = true;
         setNotificationItems(result.items ?? []);
         setUnreadNotifications(Number(result.unread_count ?? 0));
       } catch {
@@ -117,8 +128,20 @@ export default function Header({
     const handleNotification = (payload: { notification?: UserNotification }) => {
       const incoming = payload?.notification;
       if (!incoming?.id) return;
+      if (knownNotificationIds.current.has(incoming.id)) return;
+      knownNotificationIds.current.add(incoming.id);
       setNotificationItems(current => [incoming, ...current.filter(item => item.id !== incoming.id)].slice(0, 30));
       setUnreadNotifications(count => count + (incoming.read_at ? 0 : 1));
+      if (!incoming.read_at) playChatChime();
+      if (incoming.type === "profile.verification_approved") {
+        void fetchUserInfoAPI().then(response => {
+          if (!response?.data) return;
+          localStorage.setItem("user", JSON.stringify(response.data));
+          window.dispatchEvent(new CustomEvent("authStateChanged", {
+            detail: { isAuthenticated: true, user: response.data },
+          }));
+        }).catch(() => undefined);
+      }
 
       if (typeof window !== "undefined" && document.visibilityState === "hidden" && "Notification" in window && Notification.permission === "granted") {
         new Notification(incoming.title, { body: incoming.message });
@@ -385,8 +408,8 @@ export default function Header({
 
                     <div className="dropdown">
                       <button
-                        className="squire-btn d-sm-flex d-none"
-                        aria-label="search products"
+                        className="squire-btn d-sm-flex d-none position-relative"
+                        aria-label={`Notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`}
                         title="Notification Dropdown"
                         type="button"
                         onClick={handleNotificationBellClick}
@@ -395,12 +418,12 @@ export default function Header({
                         data-bs-auto-close="outside"
                       >
                         <i className="fa-regular fa-bell"></i>
-                        <span className="notify-dot"></span>
+                        {unreadNotifications > 0 && <span className="header-notification-badge">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
                       </button>
 
                       <button
-                        className="d-sm-none d-flex h5 mb-0 me-2 me-md-0"
-                        aria-label="search products"
+                        className="d-sm-none d-flex h5 mb-0 me-2 me-md-0 position-relative"
+                        aria-label={`Notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`}
                         title="Notification Dropdown"
                         type="button"
                         onClick={handleNotificationBellClick}
@@ -409,6 +432,7 @@ export default function Header({
                         data-bs-auto-close="outside"
                       >
                         <i className="fa-regular fa-bell"></i>
+                        {unreadNotifications > 0 && <span className="header-notification-badge">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
                       </button>
 
                       <div className="dropdown-menu end-0 left-auto notification-dropdown rounded-4 header-notification-menu">
@@ -440,7 +464,7 @@ export default function Header({
                             >
                               <div className="d-flex align-items-start gap-3">
                                 <span className="header-notification-icon">
-                                  <i className={notification.type.includes("completed") ? "fa-solid fa-check" : notification.type.includes("appeal") ? "fa-solid fa-scale-balanced" : "fa-solid fa-arrow-right-arrow-left"} />
+                                  <i className={notification.type.startsWith("profile.") ? "fa-solid fa-user-check" : notification.type.includes("completed") ? "fa-solid fa-check" : notification.type.includes("appeal") ? "fa-solid fa-scale-balanced" : "fa-solid fa-arrow-right-arrow-left"} />
                                 </span>
                                 <div className="header-notification-copy">
                                   <h6>{notification.title}</h6>

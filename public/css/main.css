@@ -10095,6 +10095,25 @@ span {
   background: linear-gradient(145deg, #171e2a, #10151e);
   box-shadow: 0 18px 50px rgba(0, 0, 0, .42);
 }
+.header-notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #171e2a;
+  border-radius: 999px;
+  background: #f2c94c;
+  color: #17130a;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
 .header-notification-heading {
   border: 1px solid rgba(242, 201, 76, .16);
   border-radius: 12px;

@@ -1170,6 +1170,44 @@ export default function BuyDetailsCard({
       : sellFeePercent;
   const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;
 
+  const hasTopActions = (canReject && !canCancelOrder) || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired));
+  const renderTopActions = () => !hasTopActions ? null : (
+    <div className="p2pTopActions" role="group" aria-label="Order actions">
+      <div className="p2pActions">
+        {canReject && !canCancelOrder && (
+          <button className="p2pGhostBtn p2pActionCancel" type="button" onClick={() => void handleStatusUpdate(3)} disabled={submitting !== null}>
+            {submitting === 3 ? "Rejecting…" : "Reject Order"}
+          </button>
+        )}
+        {canApprove && (
+          <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(2)} disabled={submitting !== null}>
+            {submitting === 2 ? "Approving…" : "Approve Order"}
+          </button>
+        )}
+        {canDispatch && (
+          <button className="p2pPrimaryBtn" type="button" onClick={() => setShowProofModal(true)} disabled={submitting !== null}>
+            {submitting === 5 ? "Notifying…" : notifyTransferredLabel}
+          </button>
+        )}
+        {canRelease && (
+          <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
+            {submitting === 6 ? "Processing…" : "Payment Received"}
+          </button>
+        )}
+        {canDispute && (
+          <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(7)} disabled={submitting !== null}>
+            {submitting === 7 ? "Submitting…" : "Appeal"}
+          </button>
+        )}
+        {canClaim && (uiStatus === "pending" || timerExpired) && (
+          <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(10)} disabled={submitting !== null}>
+            {submitting === 10 ? "Submitting…" : "Claim to Admin"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="p2pDetailActionPage">
@@ -1286,47 +1324,7 @@ export default function BuyDetailsCard({
         </div> */}
       </div>
 
-      {((canReject && !canCancelOrder) || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired))) && (
-        <div className="p2pTopActions" role="group" aria-label="Order actions">
-          <div className="p2pActions">
-            {canReject && !canCancelOrder && (
-              <button
-                className="p2pGhostBtn p2pActionCancel"
-                type="button"
-                onClick={() => void handleStatusUpdate(3)}
-                disabled={submitting !== null}
-              >
-                {submitting === 3 ? "Rejecting…" : "Reject Order"}
-              </button>
-            )}
-            {canApprove && (
-              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(2)} disabled={submitting !== null}>
-                {submitting === 2 ? "Approving…" : "Approve Order"}
-              </button>
-            )}
-            {canDispatch && (
-              <button className="p2pPrimaryBtn" type="button" onClick={() => setShowProofModal(true)} disabled={submitting !== null}>
-                {submitting === 5 ? "Notifying…" : notifyTransferredLabel}
-              </button>
-            )}
-            {canRelease && (
-              <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
-                {submitting === 6 ? "Processing…" : "Payment Received"}
-              </button>
-            )}
-            {canDispute && (
-              <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(7)} disabled={submitting !== null}>
-                {submitting === 7 ? "Submitting…" : "Appeal"}
-              </button>
-            )}
-            {canClaim && (uiStatus === "pending" || timerExpired) && (
-              <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(10)} disabled={submitting !== null}>
-                {submitting === 10 ? "Submitting…" : "Claim to Admin"}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      {hasTopActions && <div className="p2pDesktopTopActions">{renderTopActions()}</div>}
 
       {uiStatus !== "rejected" && (
         <TradeProgressSteps tone="buy" currentStep={uiStatus === "completed" ? 3 : 2} />
@@ -1557,6 +1555,8 @@ export default function BuyDetailsCard({
           </div>
         </div>
       )}
+
+      {hasTopActions && <div className="p2pMobileTopActions">{renderTopActions()}</div>}
 
       <PaymentProofModal
         isOpen={showProofModal}
