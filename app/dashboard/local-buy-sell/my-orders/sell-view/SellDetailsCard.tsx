@@ -476,7 +476,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         )}
         {canClaim && (
           <button className="p2pGhostBtn" type="button" onClick={handleClaimToAdmin} disabled={submitting}>
-            Time Expired, Claim to Admin
+            Appeal
           </button>
         )}
       </div>
@@ -589,7 +589,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         </div> */}
       </div>
 
-      {hasTopActions && <div className="p2pDesktopTopActions">{renderTopActions()}</div>}
+      {hasTopActions && <div className="p2pMobileTopActions">{renderTopActions()}</div>}
 
       {![3, 4, 7, 8, 10].includes(trade.status) && (
         <TradeProgressSteps
@@ -799,7 +799,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
                         onClick={handleClaimToAdmin}
                         disabled={submitting}
                       >
-                        Time Expired, Claim to Admin
+                        Appeal
                       </button>
                     )}
                   </div>
@@ -829,7 +829,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
       {/* ── COMPLETED ── */}
       {confirmPayment && <PaymentCompleted trade={trade} from="local" />}
 
-      {hasTopActions && <div className="p2pMobileTopActions">{renderTopActions()}</div>}
+      {hasTopActions && <div className="p2pDesktopBottomActions">{renderTopActions()}</div>}
 
       {/* ── PAYMENT RECEIVED MODAL ── */}
       {paymentReceived && canRelease && (

@@ -9,8 +9,8 @@ import { getTradeEcho } from "@/utils/tradeEcho";
 import QuickBuyModal from "../create-ad/QuickBuyModal";
 import QuickSellModal from "../create-ad/QuickSellModal";
 import OrderUnreadBadge from "../my-orders/OrderUnreadBadge";
-import OrderStatusWithTimer from "../my-orders/OrderStatusWithTimer";
-import { formatRelativeTime, STATUS_OPTIONS, type OrderSideFilter, type OrderStatusFilter } from "../my-orders/orderListUi";
+import OrderStatusWithTimer, { OrderNextStep } from "../my-orders/OrderStatusWithTimer";
+import { formatRelativeTime, maskOrderId, STATUS_OPTIONS, type OrderSideFilter, type OrderStatusFilter } from "../my-orders/orderListUi";
 import '../my-orders/myOrders.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -418,11 +418,12 @@ export default function Page() {
               <thead>
                 <tr>
                   <th>Type / Date</th>
-                  <th>Order Number</th>
+                  <th>Order ID</th>
                   <th>Price</th>
-                  <th>Fiat / Crypto Amount</th>
+                  <th>Amount</th>
                   <th>Counterparty</th>
                   <th>Status</th>
+                  <th>Next Step</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -439,19 +440,19 @@ export default function Page() {
                         <time className="trade-date" dateTime={trade.created_at ?? undefined} title={trade.created_at ?? trade.date}>{formatRelativeTime(trade, nowMs)}</time>
                       </td>
 
-                      {/* Order Number */}
+                      {/* Order ID */}
                       <td>
                         <div className="trade-order-cell">
 
                           <Link href={getTradeDetailsPath(trade)} className="trade-link ms-2">
-                            {trade.orderNumber}
+                            {maskOrderId(trade.orderNumber)}
                           </Link>
 
                           <button
                             className="trade-copy-icon"
                             type="button"
                             onClick={() => copyText(trade.orderNumber)}
-                            title="Copy order number"
+                            title="Copy full order ID"
                           >
                             <i className="fa-regular fa-copy" />
                           </button>
@@ -482,7 +483,11 @@ export default function Page() {
 
                       {/* Status */}
                       <td className="trade-status-cell">
-                        <OrderStatusWithTimer trade={trade} nowMs={nowMs} />
+                        <OrderStatusWithTimer trade={trade} nowMs={nowMs} showCountdown={false} />
+                      </td>
+
+                      <td className="trade-next-step-cell">
+                        <OrderNextStep trade={trade} nowMs={nowMs} />
                       </td>
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
@@ -525,10 +530,10 @@ export default function Page() {
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
-                    <span className="text-white-50">Order</span>
+                    <span className="text-white-50">Order ID</span>
                     <div className="trade-order-cell">
                       <Link href={getTradeDetailsPath(trade)} className="text-xs">
-                        {trade.orderNumber}
+                        {maskOrderId(trade.orderNumber)}
                       </Link>
                       <button
                         className="trade-copy-icon"

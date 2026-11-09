@@ -1201,7 +1201,7 @@ export default function BuyDetailsCard({
         )}
         {canClaim && (uiStatus === "pending" || timerExpired) && (
           <button className="p2pGhostBtn" type="button" onClick={() => void handleStatusUpdate(10)} disabled={submitting !== null}>
-            {submitting === 10 ? "Submitting…" : "Claim to Admin"}
+            {submitting === 10 ? "Submitting…" : "Appeal"}
           </button>
         )}
       </div>
@@ -1324,7 +1324,7 @@ export default function BuyDetailsCard({
         </div> */}
       </div>
 
-      {hasTopActions && <div className="p2pDesktopTopActions">{renderTopActions()}</div>}
+      {hasTopActions && <div className="p2pMobileTopActions">{renderTopActions()}</div>}
 
       {uiStatus !== "rejected" && (
         <TradeProgressSteps tone="buy" currentStep={uiStatus === "completed" ? 3 : 2} />
@@ -1476,7 +1476,7 @@ export default function BuyDetailsCard({
                           Submitting Claim…
                         </>
                       ) : (
-                        "⏱ Time Expired — Claim to Admin"
+                        "⏱ Time Expired — Appeal"
                       )}
                     </button>
                   )}
@@ -1556,7 +1556,7 @@ export default function BuyDetailsCard({
         </div>
       )}
 
-      {hasTopActions && <div className="p2pMobileTopActions">{renderTopActions()}</div>}
+      {hasTopActions && <div className="p2pDesktopBottomActions">{renderTopActions()}</div>}
 
       <PaymentProofModal
         isOpen={showProofModal}

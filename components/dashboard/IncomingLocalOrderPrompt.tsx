@@ -447,7 +447,7 @@ export default function IncomingLocalOrderPrompt() {
         <div className={styles.totalBanner}>
           <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
           <span className="fw-bold">{totalAssetLabel}</span>
-          <strong>+ {formatAmount(baseAssetAmount+adjustmentAmount, asset)}</strong>
+          <strong>{order.type === "buy" ? "- " : "+"} {formatAmount(baseAssetAmount+adjustmentAmount, asset)}</strong>
         </div>
 
         <div className={styles.paymentCard}>
