@@ -11,6 +11,7 @@ import 'sweetalert2/src/sweetalert2.scss'
 import 'react-toastify/dist/ReactToastify.css';
 import ToastProvider from "@/components/containers/ToastProvider";
 import IncomingLocalOrderPrompt from "@/components/dashboard/IncomingLocalOrderPrompt";
+import AcceptedLocalOrderPrompt from "@/components/dashboard/AcceptedLocalOrderPrompt";
 
 const chakraPetch = Chakra_Petch({
 	variable: "--chakra",
@@ -80,6 +81,7 @@ export default function RootLayout({
 			<body className={`${chakraPetch.variable}`}>
 
 				<IncomingLocalOrderPrompt />
+				<AcceptedLocalOrderPrompt />
 				
 				{children}
 				<ToastProvider />

@@ -57,7 +57,7 @@ export default function IncomingChatSound() {
       }}
     >
       <i className="fa-solid fa-volume-high me-2" aria-hidden="true" />
-      {failed ? "Sound blocked — tap to retry" : "Enable message sound"}
+      {failed ? "Sound blocked — tap to retry" : "Enable notification sound"}
     </button>
   );
 }

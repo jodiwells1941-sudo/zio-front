@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactSelect from 'react-select';
+import { isAxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import { createAd, getAd, updateAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
 import {
@@ -39,6 +40,7 @@ const CURRENCIES = [
 ];
 
 const ASSET_CODE = 'USDT';
+const DISPLAY_ASSET_CODE = 'USD';
 const QUICK_USDT = [10, 25, 50, 100, 500];
 const MIN_AMOUNT_USDT = 10;
 const MAX_AMOUNT_USDT = 500;
@@ -53,6 +55,28 @@ const money = (n: number, d = 2) =>
 
 const num = (v: string) => v.replace(/[^\d.]/g, '');
 
+// The payment methods API exposes saved field values as flat keys; newly
+// created/updated methods may also have a nested field_values object.
+const getSavedMethodValue = (method: UserPaymentMethod, key: string): string => {
+  const flatValue = (method as UserPaymentMethod & Record<string, unknown>)[key];
+  const value = method.field_values?.[key] ?? flatValue;
+  return value === null || value === undefined ? '' : String(value);
+};
+
+const getInitialMethodValues = (method: UserPaymentMethod): Record<string, string> => {
+  const values: Record<string, string> = {};
+  for (const field of method.fields ?? []) {
+    values[field.key] = getSavedMethodValue(method, field.key);
+  }
+  for (const [key, value] of Object.entries(method.field_values ?? {})) {
+    if (values[key] === undefined) values[key] = String(value);
+  }
+  if (values.name === undefined && (method.fields ?? []).some(field => field.key === 'walletNumber')) {
+    values.name = getSavedMethodValue(method, 'name');
+  }
+  return values;
+};
+
 /* ───────────── Component ───────────── */
 export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   const isEdit = Boolean(editId);
@@ -61,7 +85,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
   /* ── step 1 ── */
   const [fiat, setFiat] = useState('BDT');
-  const [amountUsdt, setAmountUsdt] = useState('50');
+  const [amountUsdt, setAmountUsdt] = useState('');
 
   const [rate, setRate] = useState(FALLBACK_RATE);
   const [rateLoading, setRateLoading] = useState(false);
@@ -79,6 +103,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   const [methodFieldErrors, setMethodFieldErrors] = useState<Record<string, string>>({});
   const [methodSubmitting, setMethodSubmitting] = useState(false);
   const [methodDetailsDirty, setMethodDetailsDirty] = useState(false);
+  const hydratedMethodId = useRef<number | null>(null);
 
   /* ── step 2 ── */
   const [remarks, setRemarks] = useState('');
@@ -98,6 +123,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     ? methods.filter(method => method.currency_id === selectedPaymentCurrency.value && method.is_active)
     : [];
   const selectedMethod = currencyMethods.find(method => Number(method.id) === methodId);
+  useEffect(() => {
+    if (selectedMethod && hydratedMethodId.current !== Number(selectedMethod.id)) {
+      hydratedMethodId.current = Number(selectedMethod.id);
+      setMethodFieldValues(isEdit ? getInitialMethodValues(selectedMethod) : {});
+    }
+  }, [isEdit, selectedMethod]);
   const selectedMethodFields: SellMethodField[] = selectedMethod
     ? (selectedMethod.fields?.length
         ? selectedMethod.fields
@@ -134,11 +165,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
           key: field.key,
           label: field.label,
           value: String(
-            selectedMethod.field_values?.[field.key]
-              ?? (field.key === 'name' ? selectedMethod.name : undefined)
-              ?? (field.key === 'walletNumber' ? selectedMethod.walletNumber : undefined)
-              ?? (field.key === 'bankName' ? selectedMethod.bankName : undefined)
-              ?? ''
+            getSavedMethodValue(selectedMethod, field.key)
           ).trim(),
         }))
         .filter(detail => Boolean(detail.value))
@@ -222,32 +249,18 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
       ]);
       setMethods(methodsRes?.data ?? []);
       setPaymentCurrencies(currenciesRes?.data ?? []);
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? 'Failed to load payment methods.');
+    } catch (e) {
+      toast.error(isAxiosError<{ message?: string }>(e) ? e.response?.data?.message ?? 'Failed to load payment methods.' : 'Failed to load payment methods.');
     } finally {
       setLoadingMethods(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { loadMethods(); }, [loadMethods]);
 
   const handleSelectMethod = (method: UserPaymentMethod) => {
+    hydratedMethodId.current = Number(method.id);
     setMethodId(Number(method.id));
-    const initialValues: Record<string, string> = {};
-    for (const field of method.fields ?? []) {
-      const value = method.field_values?.[field.key]
-        ?? (field.key === 'name' ? method.name : undefined)
-        ?? (field.key === 'walletNumber' ? method.walletNumber : undefined)
-        ?? (field.key === 'bankName' ? method.bankName : undefined);
-      if (value !== undefined && value !== null) initialValues[field.key] = String(value);
-    }
-    for (const [key, value] of Object.entries(method.field_values ?? {})) {
-      if (initialValues[key] === undefined) initialValues[key] = value;
-    }
-    if (initialValues.name === undefined && method.name) {
-      initialValues.name = method.name;
-    }
-    setMethodFieldValues(initialValues);
+    setMethodFieldValues(isEdit ? getInitialMethodValues(method) : {});
     setMethodRemarks(method.remarks ?? '');
     setMethodQrFile(null);
     setMethodFieldErrors({});
@@ -313,7 +326,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   /* ── Next / Submit ── */
   const validateAmount = () => {
     if (!Number.isFinite(amountUsdtNum) || amountUsdtNum < MIN_AMOUNT_USDT || amountUsdtNum > MAX_AMOUNT_USDT) {
-      toast.error(`Amount must be between ${MIN_AMOUNT_USDT} and ${MAX_AMOUNT_USDT} ${ASSET_CODE}.`);
+      toast.error(`Amount must be between ${MIN_AMOUNT_USDT} and ${MAX_AMOUNT_USDT} ${DISPLAY_ASSET_CODE}.`);
       return false;
     }
     return true;
@@ -323,6 +336,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     if (!validateAmount()) return;
     if (!currencyMethods.some(method => method.id === methodId)) {
       toast.error('Please select a payment method for the selected currency.');
+      return;
+    }
+    const missingFields = methodEditorFields.filter(field => field.required && !methodFieldValues[field.key]?.trim());
+    if (missingFields.length) {
+      setMethodFieldErrors(Object.fromEntries(missingFields.map(field => [field.key, `${field.label} is required.`])));
+      toast.error(`Enter ${missingFields[0].label} for the selected payment method.`);
       return;
     }
     if (methodDetailsDirty) {
@@ -369,12 +388,13 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
       }
       onSuccess?.();
       onClose();
-    } catch (e: any) {
-      const laravel: Record<string, string[]> = e?.response?.data?.errors ?? {};
+    } catch (e) {
+      const apiError = isAxiosError<{ message?: string; errors?: Record<string, string[]> }>(e) ? e.response?.data : undefined;
+      const laravel = apiError?.errors ?? {};
       if (Object.keys(laravel).length) {
         toast.error(Object.values(laravel)[0][0]);
       } else {
-        toast.error(e?.response?.data?.message ?? e?.message ?? 'Something went wrong.');
+        toast.error(apiError?.message ?? (e instanceof Error ? e.message : 'Something went wrong.'));
       }
     } finally {
       setSubmitting(false);
@@ -417,7 +437,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
           </span>
           <div className="qsm-head-text">
             <h2>{isEdit ? 'Edit Sell Request' : 'Create Sell Request'}</h2>
-            <p>{isEdit ? 'Update your sell request details.' : `Sell your ${ASSET_CODE} and receive local currency.`}</p>
+            <p>{isEdit ? 'Update your sell request details.' : `Sell your ${DISPLAY_ASSET_CODE} and receive local currency.`}</p>
           </div>
           <button type="button" className="qsm-close" onClick={onClose} aria-label="Close">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -474,10 +494,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 />
               </div>
 
-              {/* Amount in USDT */}
+              {/* Amount in USD */}
               <div className="qsm-field">
                 <label className="qsm-label">
-                  <i className="fa-solid fa-coins" /> Enter Amount ({ASSET_CODE})
+                  <i className="fa-solid fa-coins" /> Enter Amount ({DISPLAY_ASSET_CODE})
                 </label>
                 <div className="qsm-amount mb-3">
                   <span className="qsm-amount-icon"> $ </span>
@@ -486,14 +506,17 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     inputMode="decimal"
                     value={amountUsdt}
                     onChange={e => setAmountUsdt(num(e.target.value))}
-                    placeholder="0"
+                    placeholder="Enter amount"
                   />
+                  <span className="qsm-rate-label">
+                    (1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`})
+                  </span>
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
                   <small className="qsm-amount-limits">
-                    Min {MIN_AMOUNT_USDT} · Max {MAX_AMOUNT_USDT} {ASSET_CODE}
+                    Min {MIN_AMOUNT_USDT} · Max {MAX_AMOUNT_USDT} {DISPLAY_ASSET_CODE}
                   </small>
-                  <small className='p-2 text-warning'>Fees {money(feeUsdt)} USDT ({money(feePercent, 2)}%)</small>
+                  <small className='p-2 text-warning'>Fees {money(feeUsdt)} USD ({money(feePercent, 2)}%)</small>
                 </div>
                 {/* <div className="qsm-chips">
                   {QUICK_USDT.map(v => (
@@ -515,7 +538,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span className="qsm-bd-ico"><i className="fa-solid fa-coins" /></span>
                   <span className="qsm-bd-label">Sell Amount</span>
                   <span className="qsm-bd-value">
-                    {money(amountUsdtNum)} {ASSET_CODE}
+                    {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                     {/* <small className="qsm-bd-sub">Amount entered</small> */}
                   </span>
                 </div>
@@ -526,7 +549,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     Fee <small>({money(feePercent, 2)}%)</small>
                   </span>
                   <span className="qsm-bd-value qsm-bd-value--green">
-                    {feeLoading ? '…' : `+ ${money(feeUsdt)} ${ASSET_CODE}`}
+                    {feeLoading ? '…' : `+ ${money(feeUsdt)} ${DISPLAY_ASSET_CODE}`}
                     {/* {!feeLoading && (
                       <small className="qsm-bd-sub">
                         deducted from fiat received: {money(feeFiat)} {fiat}
@@ -539,14 +562,14 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span className="qsm-bd-ico"><i className="fa-solid fa-calculator" /></span>
                   <span className="qsm-bd-label">Total Amount</span>
                   <span className="qsm-bd-value qsm-bd-value--green">
-                    {feeLoading ? '…' : `${money(totalUsdtWithFee)} ${ASSET_CODE}`}
+                    {feeLoading ? '…' : `${money(totalUsdtWithFee)} ${DISPLAY_ASSET_CODE}`}
                   </span>
                 </div>
 
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico"><i className="fa-solid fa-chart-line" /></span>
                   <span className="qsm-bd-label">
-                    Market Price <small>(1 {ASSET_CODE} = {money(rate)} {fiat})</small>
+                    Market Price <small>(1 {DISPLAY_ASSET_CODE} = {money(rate)} {fiat})</small>
                   </span>
                   <span className="qsm-bd-value qsm-bd-value--price">
                     {rateLoading ? '…' : `${money(rate)} ${fiat}`}
@@ -573,15 +596,15 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span className='fw-bold fs-5'>Received Amount</span>
                 </div>
                 <b className="qsm-total-value d-flex align-items-center gap-2">
-                  <span>{feeLoading ? '…' : money(receiveFiat)}</span>
-                  <span>{fiat}</span>
+                  <span className='fw-bold fs-4'>{feeLoading ? '…' : money(receiveFiat)}</span>
+                  <span className='fw-bold fs-4'>{fiat}</span>
                 </b>
               </div>
 
               {/* Payment method */}
               <div className="qsm-field">
                 <label className="qsm-label">
-                  <i className="fa-solid fa-credit-card" /> Select Preferred Payment Method (Required)
+                  <i className="fa-solid fa-credit-card" /> Select Payment Method (Required)
                 </label>
                 <div className="qsm-methods">
                   {loadingMethods && <div className="qsm-muted">Loading payment methods…</div>}
@@ -614,15 +637,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                             m.sell_method?.icon_url ??
                             m.sell_method?.icon_image
                           }
-                          size={36}
+                          size={24}
                           fallbackMode="brand"
                         />
                         <span className="qsm-method-name">{m?.method_name ?? '—'}</span>
-                        {active && (
-                          <span className="qsm-method-check">
-                            <i className="fa-solid fa-circle-check" />
-                          </span>
-                        )}
                       </button>
                     );
                   })}
@@ -740,23 +758,23 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qsm-summary-row">
                   <span>Sell Amount</span>
                   <b>
-                    {money(amountUsdtNum)} {ASSET_CODE}
+                    {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                     {/* <small className="qsm-summary-sub">Amount entered</small> */}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
                   <span>Fee ({money(feePercent, 2)}%)</span>
                   <b className="qsm-green">
-                    + {money(feeUsdt)} {ASSET_CODE}
+                    + {money(feeUsdt)} {DISPLAY_ASSET_CODE}
                     {/* <small className="qsm-summary-sub">Deducted from fiat: {money(feeFiat)} {fiat}</small> */}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
                   <span>Total Amount</span>
-                  <b>{money(totalUsdtWithFee)} {ASSET_CODE}</b>
+                  <b>{money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Market Price (1 {ASSET_CODE})</span>
+                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{money(rate)} {fiat}</b>
                 </div>
                 <div className="qsm-summary-row">

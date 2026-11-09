@@ -1,0 +1,91 @@
+.overlay {
+  position: fixed;
+  z-index: 13010;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(2, 6, 16, .82);
+  backdrop-filter: blur(9px);
+}
+
+.modal {
+  --accent: #fbbf24;
+  --accent-rgb: 251, 191, 36;
+  width: min(100%, 440px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 26px;
+  border: 1px solid rgba(var(--accent-rgb), .4);
+  border-radius: 20px;
+  background: radial-gradient(120% 60% at 50% 0, rgba(var(--accent-rgb), .12), transparent 65%), #12151d;
+  box-shadow: 0 30px 80px #000000bf, inset 0 1px #ffffff0a;
+  color: #f8fafc;
+  text-align: center;
+}
+
+.buy { --accent: #f87171; --accent-rgb: 239, 68, 68; }
+.sell { --accent: #fbbf24; --accent-rgb: 251, 191, 36; }
+
+.icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin: 0 auto 13px;
+  border: 1px solid rgba(var(--accent-rgb), .4);
+  border-radius: 17px;
+  background: rgba(var(--accent-rgb), .16);
+  color: var(--accent);
+  font-size: 26px;
+}
+
+.eyebrow { margin: 0 0 5px; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.modal h2 { margin: 0; font-size: clamp(21px, 5vw, 26px); font-weight: 800; }
+.subtitle { margin: 8px 0 0; color: #aab6c8; font-size: 13px; line-height: 1.5; }
+
+.amountCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 21px;
+  padding: 15px;
+  border: 1px solid rgba(var(--accent-rgb), .4);
+  border-radius: 12px;
+  background: rgba(var(--accent-rgb), .12);
+  font-size: 13px;
+  text-align: left;
+}
+.amountCard strong { color: var(--accent); font-size: 17px; white-space: nowrap; }
+
+.details { margin-top: 14px; padding: 2px 13px; border: 1px solid #ffffff24; border-radius: 12px; background: #ffffff08; text-align: left; }
+.details > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #ffffff1c; font-size: 12px; }
+.details > div:last-child { border-bottom: 0; }
+.details span { color: #aab6c8; }
+.details strong { text-align: right; overflow-wrap: anywhere; }
+.queueNote { margin: 12px 0 0; color: #aab6c8; font-size: 11px; }
+
+.viewButton {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #1b130d;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.viewButton:hover { filter: brightness(1.1); }
+.viewButton:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+@media (max-width: 420px) {
+  .modal { padding: 19px; }
+  .amountCard { flex-wrap: wrap; }
+}

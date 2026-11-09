@@ -28,16 +28,32 @@
 .local-orders-page .filter-tab-btn:hover { color: #fff; }
 .local-orders-page .filter-tab-btn.active { border-color: rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .14); color: #fbbf24; }
 .local-orders-page .trades-actions { flex: none; }
+.local-orders-page .trades-actions { flex-wrap: wrap; }
 .local-orders-page .trades-actions .btn { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; }
 .local-orders-page .trades-actions .btn-outline-secondary { border: 1px solid var(--lo-line); background: var(--lo-card); color: #fff; }
 .local-orders-page .trades-actions .btn-outline-secondary:hover { border-color: #fbbf24; color: #fbbf24; }
-.local-orders-page .trades-actions .btn-warning { border: 1px solid #fbbf24; background: #fbbf24; color: #17191f; }
+.local-orders-page .local-orders-create { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 7px; padding: 6px 10px; border: 1px solid; border-radius: 8px; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.local-orders-page .local-orders-create--buy { border-color: rgba(251, 191, 36, .55); background: rgba(251, 191, 36, .16); color: #fbbf24; }
+.local-orders-page .local-orders-create--buy:hover { background: rgba(251, 191, 36, .26); }
+.local-orders-page .local-orders-create--sell { border-color: rgba(239, 68, 68, .55); background: rgba(239, 68, 68, .16); color: #ff7d83; }
+.local-orders-page .local-orders-create--sell:hover { background: rgba(239, 68, 68, .26); }
 
-.local-orders-page .trades-filter-bar { gap: 10px; margin-bottom: 16px; padding: 12px; border: 1px solid var(--lo-line); border-radius: 11px; background: var(--lo-card); }
-.local-orders-page .filter-date-row { min-width: 0; }
+.local-orders-page .trades-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(300px, 340px) minmax(140px, 1fr) minmax(145px, 190px) auto auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--lo-line);
+  border-radius: 11px;
+  background: var(--lo-card);
+}
+.local-orders-page .filter-date-row { min-width: 0; width: 100%; gap: 6px; }
 .local-orders-page .form-control-custom { min-height: 36px; padding: 7px 10px; border: 1px solid var(--lo-line); border-radius: 7px; background: var(--lo-field); color: #fff; color-scheme: dark; font-size: 12px; }
-.local-orders-page .filter-date-input { width: 145px; min-width: 0; }
-.local-orders-page .filter-search { min-width: min(210px, 100%); }
+.local-orders-page .filter-date-input { flex: 1 1 0; width: 0; min-width: 0; }
+.local-orders-page .filter-search { min-width: 0; }
+.local-orders-page .local-orders-status-select { min-width: 0; cursor: pointer; }
 .local-orders-page .trades-filter-bar .btn-primary { min-height: 36px; padding: 0 16px; border: 1px solid #fbbf24; border-radius: 7px; background: #fbbf24; color: #17191f; font-size: 12px; font-weight: 800; }
 .local-orders-page .btn-reset { min-height: 36px; padding: 0 14px; border: 1px solid var(--lo-line); border-radius: 7px; background: var(--lo-field); color: #fbbf24; font-size: 12px; }
 .local-orders-page .btn-reset:hover { border-color: #fbbf24; }
@@ -48,11 +64,45 @@
 .local-orders-page .trades-table th { padding: 12px; border-bottom: 1px solid var(--lo-line); color: var(--lo-muted); font-size: 11px; }
 .local-orders-page .trades-table td { padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, .08); color: #f8fafc; font-size: 12px; }
 .local-orders-page .trades-table tbody tr:hover { background: rgba(251, 191, 36, .045); }
+.local-orders-page .trade-date { display: inline-block; margin-top: 4px; color: var(--lo-muted); font-size: 11px; white-space: nowrap; }
+.local-orders-page .local-order-status { display: inline-flex; align-items: center; max-width: 100%; padding: 5px 9px; border: 1px solid rgba(var(--status-rgb), .3); border-radius: 999px; background: rgba(var(--status-rgb), .13); color: var(--status-color); font-size: 11px; font-weight: 750; line-height: 1.25; white-space: nowrap; }
+.local-orders-page .local-order-status-stack { display: flex; align-items: flex-start; flex-direction: column; gap: 5px; }
+.local-orders-page .local-order-countdown { color: #cbd5e1; font-size: 10px; line-height: 1.35; white-space: normal; }
+.local-orders-page .local-order-countdown strong { color: #fbbf24; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.local-orders-page .local-order-countdown.is-expired strong { color: #fb7185; }
+.local-orders-page .local-order-status--pending { --status-rgb: 251, 191, 36; --status-color: #fbbf24; }
+.local-orders-page .local-order-status--approved { --status-rgb: 99, 102, 241; --status-color: #a5b4fc; }
+.local-orders-page .local-order-status--rejected { --status-rgb: 244, 63, 94; --status-color: #fb7185; }
+.local-orders-page .local-order-status--refunded { --status-rgb: 217, 70, 239; --status-color: #e879f9; }
+.local-orders-page .local-order-status--paid { --status-rgb: 59, 130, 246; --status-color: #93c5fd; }
+.local-orders-page .local-order-status--payment-received { --status-rgb: 20, 184, 166; --status-color: #5eead4; }
+.local-orders-page .local-order-status--dispatch-rejected { --status-rgb: 190, 24, 93; --status-color: #f9a8d4; }
+.local-orders-page .local-order-status--cancelled { --status-rgb: 249, 115, 22; --status-color: #fdba74; }
+.local-orders-page .local-order-status--completed { --status-rgb: 34, 197, 94; --status-color: #86efac; }
+.local-orders-page .local-order-status--appealed { --status-rgb: 139, 92, 246; --status-color: #c4b5fd; }
+.local-orders-page .local-order-status--ad-active { --status-rgb: 14, 165, 233; --status-color: #7dd3fc; }
+.local-orders-page .local-order-status--ad-paused { --status-rgb: 148, 163, 184; --status-color: #cbd5e1; }
 .local-orders-page .local-order-ad-group-row td { background: rgba(251, 191, 36, .09); }
 .local-orders-page .trade-type-buy { color: #fbbf24; }
 .local-orders-page .trade-type-sell { color: #ff6b74; }
 .local-orders-page .trade-link { color: #fbbf24; text-decoration: none; }
 .local-orders-page .trade-link:hover { text-decoration: underline; }
+.local-orders-page .trade-counterparty-cell .trade-link,
+.local-orders-page .trade-counterparty-cell .trade-chat-icon { display: inline-flex; align-items: center; gap: 6px; }
+.local-orders-page .local-order-unread-badge {
+  display: inline-flex;
+  min-width: 19px;
+  height: 19px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #fbbf24;
+  color: #17191f;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
 .local-orders-page .trade-copy-icon { padding: 3px; border: 0; background: transparent; color: var(--lo-muted); }
 .local-orders-page .trade-copy-icon:hover { color: #fbbf24; }
 .local-orders-page .trades-table .btn,
@@ -77,17 +127,21 @@
   .local-orders-page { padding: 14px; }
   .local-orders-page .trades-toolbar { align-items: stretch; }
   .local-orders-page .trades-filter-tabs { overflow-x: auto; }
+  .local-orders-page .trades-filter-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; }
+  .local-orders-page .filter-date-row { grid-column: 1 / -1; }
+  .local-orders-page .filter-search { grid-column: 1; }
+  .local-orders-page .local-orders-status-select { grid-column: 2; }
 }
 @media (max-width: 767px) {
   .local-orders-page { padding: 11px; }
   .local-orders-heading { padding: 14px; }
   .local-orders-page .trades-toolbar { flex-direction: column; }
-  .local-orders-page .trades-actions { align-self: flex-end; }
+  .local-orders-page .trades-actions { align-self: stretch; justify-content: flex-end; }
   .local-orders-page .trades-filter-tabs { width: 100%; }
   .local-orders-page .filter-tab-btn { flex: 1; padding: 7px 9px; }
-  .local-orders-page .trades-filter-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .local-orders-page .filter-date-row, .local-orders-page .filter-search { grid-column: 1 / -1; width: 100%; }
-  .local-orders-page .filter-date-input { flex: 1; width: 0; }
+  .local-orders-page .trades-filter-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; gap: 8px; }
+  .local-orders-page .trades-filter-bar .btn-primary,
+  .local-orders-page .btn-reset { padding-right: 9px; padding-left: 9px; }
   .local-orders-page .local-order-card > .d-flex { gap: 9px; }
   .local-orders-page .local-order-card .trade-counterparty-cell { min-width: 0; flex-wrap: wrap; }
 }

@@ -7,6 +7,11 @@ import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { getUserInfo } from "@/utils/auth";
 import { getTradeEcho } from "@/utils/tradeEcho";
+import QuickBuyModal from "../create-ad/QuickBuyModal";
+import QuickSellModal from "../create-ad/QuickSellModal";
+import OrderUnreadBadge from "./OrderUnreadBadge";
+import OrderStatusWithTimer from "./OrderStatusWithTimer";
+import { formatRelativeTime, STATUS_OPTIONS, type OrderSideFilter, type OrderStatusFilter } from "./orderListUi";
 import './myOrders.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -28,18 +33,20 @@ interface Trade {
   status_list?: number[];
   asset: string;
   date: string;
+  created_at?: string | null;
   orderNumber: string;
   price: string;
   cryptoAmount: string;
   cryptoValue: string;
   counterparty: string;
+  unread_messages_count?: number;
+  pending_time_limit?: string | null;
+  payment_expires_at?: string | null;
   status: number;
   status_text: string;
   ad_status?: boolean;
   isCustomer: boolean;
 }
-
-type ActiveTab = 'all' | 'completed' | 'cancelled' | 'buy' | 'sell';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -73,34 +80,8 @@ const getSourceAdId = (value: unknown): string | null => {
 const formatAdReference = (adId: string): string =>
   /^\d+$/.test(adId) ? `AD-${adId.padStart(6, "0")}` : `AD-${adId}`;
 
-// ─── Status badge helper ──────────────────────────────────────────────────────
-
-const getStatusUI = (trade: Trade): { text: string; className: string } => {
-  if (trade.record_kind === 'ad') {
-    return {
-      text: trade.status_text,
-      className: trade.ad_status ? 'trade-status-approved' : 'trade-status-cancelled',
-    };
-  }
-
-  const { status, type } = trade;
-  switch (status) {
-    case 1:  return {
-      text: type === "Sell" ? "Waiting for Approved" : "Pending",
-      className: "trade-status-pending",
-    };
-    case 2:  return { text: "Approved",           className: "trade-status-approved"  };
-    case 3:  return { text: "Cancelled",          className: "trade-status-cancelled" };
-    case 4:  return { text: "Rej. Balance",       className: "trade-status-cancelled" };
-    case 5:  return { text: "Paid",               className: "trade-status-progress"  };
-    case 6:  return { text: "Approved",  className: "trade-status-progress"  };
-    case 7:  return { text: "Rejected",  className: "trade-status-cancelled" };
-    case 8:  return { text: "Timeout",   className: "trade-status-cancelled" };
-    case 9:  return { text: "Completed",          className: "trade-status-completed" };
-    case 10: return { text: "Claimed",            className: "trade-status-claimed" };
-    default: return { text: "Unknown",            className: ""                       };
-  }
-};
+const getRecordPriority = (trade: Trade): number =>
+  trade.record_kind === 'ad' ? 1 : trade.status === 9 ? 2 : 0;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -109,12 +90,22 @@ export default function Page() {
   const [resolvedAdIds, setResolvedAdIds] = useState<Record<number, string>>({});
   const [loading,   setLoading]   = useState(true);
   const [syncing,   setSyncing]   = useState(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('all');
+  const [activeTab, setActiveTab] = useState<OrderSideFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all');
+  const [requestModal, setRequestModal] = useState<'buy' | 'sell' | null>(null);
+  const [nowMs, setNowMs] = useState(0);
+
+  useEffect(() => {
+    setNowMs(Date.now());
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // Filters
   const [search,   setSearch]   = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate,   setToDate]   = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({ search: '', fromDate: '', toDate: '' });
 
   // Pagination
   const [page,     setPage]     = useState(1);
@@ -129,9 +120,11 @@ export default function Page() {
 
       const params = {
         page,
-        ...(search   ? { search }    : {}),
-        ...(fromDate ? { from_date: fromDate } : {}),
-        ...(toDate   ? { to_date: toDate }     : {}),
+        ...(activeTab !== 'all' ? { side: activeTab } : {}),
+        ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+        ...(appliedFilters.search ? { search: appliedFilters.search } : {}),
+        ...(appliedFilters.fromDate ? { from_date: appliedFilters.fromDate } : {}),
+        ...(appliedFilters.toDate ? { to_date: appliedFilters.toDate } : {}),
       };
 
       const res = await (getLocalTrades as (args?: Record<string, string | number>) => Promise<unknown>)(params);
@@ -147,10 +140,34 @@ export default function Page() {
       setLoading(false);
       setSyncing(false);
     }
-  }, [page, search, fromDate, toDate]);
+  }, [page, activeTab, statusFilter, appliedFilters]);
 
   useEffect(() => {
     void fetchTrades();
+  }, [fetchTrades]);
+
+  useEffect(() => {
+    const uid = Number(getUserInfo()?.id);
+    if (!Number.isFinite(uid) || uid < 1) return;
+
+    const channel = getTradeEcho()?.private(`chat-user.${uid}`);
+    const refresh = () => { void fetchTrades(true); };
+    const onMessage = (payload: { data?: { sender_id?: number } }) => {
+      if (payload.data && Number(payload.data.sender_id) !== uid) refresh();
+    };
+    channel?.listen('.p2p-order-message.update', onMessage);
+    window.addEventListener('trade-chat-read', refresh);
+    window.addEventListener('focus', refresh);
+    const poll = window.setInterval(() => {
+      if (!document.hidden) refresh();
+    }, 30000);
+
+    return () => {
+      channel?.stopListening('.p2p-order-message.update', onMessage);
+      window.removeEventListener('trade-chat-read', refresh);
+      window.removeEventListener('focus', refresh);
+      window.clearInterval(poll);
+    };
   }, [fetchTrades]);
 
   useEffect(() => {
@@ -219,7 +236,7 @@ export default function Page() {
 
   const handleFilter = () => {
     setPage(1);
-    fetchTrades();
+    setAppliedFilters({ search: search.trim(), fromDate, toDate });
   };
 
   const resetFilter = () => {
@@ -227,12 +244,18 @@ export default function Page() {
     setFromDate("");
     setToDate("");
     setPage(1);
-    fetchTrades();
+    setActiveTab('all');
+    setStatusFilter('all');
+    setAppliedFilters({ search: '', fromDate: '', toDate: '' });
   };
 
   // ─── Sync button ─────────────────────────────────────────────────────────────
 
   const handleSync = () => fetchTrades(true);
+  const handleRequestCreated = () => {
+    setPage(1);
+    if (page === 1) void fetchTrades(true);
+  };
 
   // ─── Status update with Swal ─────────────────────────────────────────────────
 
@@ -269,26 +292,20 @@ export default function Page() {
 
   // ─── Client-side tab filter ───────────────────────────────────────────────────
 
-  const filteredTrades = trades.filter(t => {
-    if (activeTab === 'completed') return t.status === 9 || t.status === 10;
-    if (activeTab === 'cancelled') return t.status === 3 || t.status === 4 || t.status === 7 || t.status === 8;
-    if (activeTab === 'buy') {
-      return t.order_side === 'buy' || (!t.order_side && t.type === 'Buy');
-    }
-    if (activeTab === 'sell') {
-      return t.order_side === 'sell' || (!t.order_side && t.type === 'Sell');
-    }
-    return true;
-  });
-  const adGroups = filteredTrades.reduce<Array<{ adId: string | null; trades: Trade[] }>>(
+  const filteredTrades = trades;
+  const adGroups = filteredTrades.reduce<Array<{ adId: string | null; priority: number; trades: Trade[] }>>(
     (groups, trade) => {
       const adId = getSourceAdId(trade) ?? resolvedAdIds[trade.id] ?? null;
-      const existingGroup = adId ? groups.find(group => group.adId === adId) : undefined;
+      const priority = getRecordPriority(trade);
+      const previousGroup = groups[groups.length - 1];
+      const existingGroup = adId && previousGroup?.adId === adId && previousGroup.priority === priority
+        ? previousGroup
+        : undefined;
 
       if (existingGroup) {
         existingGroup.trades.push(trade);
       } else {
-        groups.push({ adId, trades: [trade] });
+        groups.push({ adId, priority, trades: [trade] });
       }
 
       return groups;
@@ -414,12 +431,12 @@ export default function Page() {
       {/* ── Toolbar ── */}
       <div className="trades-toolbar">
         <div className="trades-filter-tabs">
-          {(['all', 'completed', 'cancelled', 'buy', 'sell'] as ActiveTab[]).map(tab => (
+          {(['all', 'buy', 'sell'] as OrderSideFilter[]).map(tab => (
             <button
               key={tab}
               className={`filter-tab-btn ${activeTab === tab ? 'active' : ''}`}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => { setActiveTab(tab); setPage(1); }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
@@ -439,11 +456,12 @@ export default function Page() {
             <span className="d-none d-md-inline">{syncing ? 'Syncing...' : 'Sync'}</span>
           </button>
 
-          {/* Create Ad */}
-          <Link href="/dashboard/local-buy-sell/create-ad" className="btn btn-warning btn-sm d-flex align-items-center gap-1">
-            <i className="fa-solid fa-plus" />
-            <span className="d-none d-md-inline">Ads Create</span>
-          </Link>
+          <button type="button" className="local-orders-create local-orders-create--buy" onClick={() => setRequestModal('buy')}>
+            <i className="fa-solid fa-plus" aria-hidden="true" /> Create Buy Request
+          </button>
+          <button type="button" className="local-orders-create local-orders-create--sell" onClick={() => setRequestModal('sell')}>
+            <i className="fa-solid fa-plus" aria-hidden="true" /> Create Sell Request
+          </button>
         </div>
       </div>
 
@@ -479,6 +497,15 @@ export default function Page() {
           onKeyDown={e => e.key === 'Enter' && handleFilter()}
         />
 
+        <select
+          className="form-control-custom local-orders-status-select"
+          aria-label="Filter by order status"
+          value={statusFilter}
+          onChange={event => { setStatusFilter(event.target.value as OrderStatusFilter); setPage(1); }}
+        >
+          {STATUS_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
+
         <button className="btn btn-primary btn-sm" onClick={handleFilter}>
           Filter
         </button>
@@ -511,7 +538,7 @@ export default function Page() {
               </thead>
               <tbody>
                 {adGroups.map(group => (
-                  <Fragment key={group.adId ?? `trade-${group.trades[0].id}`}>
+                  <Fragment key={`${group.priority}-${group.adId ?? 'no-ad'}-${group.trades[0].id}`}>
                     {group.adId && group.trades.length > 1 && (
                       <tr className="local-order-ad-group-row">
                         <td colSpan={8}>
@@ -526,7 +553,6 @@ export default function Page() {
                       </tr>
                     )}
                     {group.trades.map(trade => {
-                      const statusUI = getStatusUI(trade);
                       return (
                         <tr key={`${trade.record_kind ?? 'order'}-${trade.id}`}>
 
@@ -535,7 +561,7 @@ export default function Page() {
                         <span className={trade.type === 'Buy' ? 'trade-type-buy' : 'trade-type-sell'}>
                           {trade.type} {trade.asset}
                         </span>
-                        <div className="trade-date">{trade.date}</div>
+                        <time className="trade-date w-100 mt-0 pt-0" dateTime={trade.created_at ?? undefined} title={trade.created_at ?? trade.date}>{formatRelativeTime(trade, nowMs)}</time>
                       </td>
 
                       {/* Order Number */}
@@ -591,6 +617,7 @@ export default function Page() {
                               <span className="trade-chat-icon">
                                 <i className="fa-regular fa-comment" />
                               </span>
+                              <OrderUnreadBadge count={trade.unread_messages_count} />
                             </Link>
                           )}
                         </div>
@@ -598,7 +625,7 @@ export default function Page() {
 
                       {/* Status */}
                       <td className="trade-status-cell">
-                        <span className={statusUI.className}>{statusUI.text}</span>
+                        <OrderStatusWithTimer trade={trade} nowMs={nowMs} />
                       </td>
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
@@ -616,7 +643,7 @@ export default function Page() {
           {/* ── Mobile Cards ── */}
           <div className="d-md-none">
             {adGroups.map(group => (
-              <div key={group.adId ?? `trade-${group.trades[0].id}`}>
+              <div key={`${group.priority}-${group.adId ?? 'no-ad'}-${group.trades[0].id}`}>
                 {group.adId && group.trades.length > 1 && (
                   <div className="local-order-mobile-ad-group">
                     <span className="local-order-ad-group-title">
@@ -629,7 +656,6 @@ export default function Page() {
                   </div>
                 )}
                 {group.trades.map(trade => {
-                  const statusUI = getStatusUI(trade);
                   return (
                     <div className="card local-order-card mb-3" key={`${trade.record_kind ?? 'order'}-${trade.id}`}>
 
@@ -638,7 +664,7 @@ export default function Page() {
                       {trade.type}{' '}
                       <span className="text-white fw-7 text-xs">{trade.asset}</span>
                     </span>
-                    <span className={statusUI.className}>{statusUI.text}</span>
+                    <OrderStatusWithTimer trade={trade} nowMs={nowMs} />
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
@@ -692,13 +718,14 @@ export default function Page() {
                           <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="text-xs text-white-50">
                             {trade.counterparty}
                           </Link>
-                          <span className="trade-chat-icon">
+                          <Link href={`/dashboard/local-buy-sell/chat-list?trade_id=${trade.id}`} className="trade-chat-icon" aria-label={`Open chat with ${trade.counterparty}`}>
                             <i className="fa-solid fa-message text-white" />
-                          </span>
+                            <OrderUnreadBadge count={trade.unread_messages_count} />
+                          </Link>
                         </>
                       )}
                     </div>
-                    <div className="trade-date">{trade.date}</div>
+                    <time className="trade-date" dateTime={trade.created_at ?? undefined} title={trade.created_at ?? trade.date}>{formatRelativeTime(trade, nowMs)}</time>
                   </div>
 
                   {/* Mobile action buttons */}
@@ -733,6 +760,13 @@ export default function Page() {
           <i className="fa-solid fa-chevron-right" />
         </button>
       </div>
+
+      {requestModal === 'buy' && (
+        <QuickBuyModal onClose={() => setRequestModal(null)} onSuccess={handleRequestCreated} />
+      )}
+      {requestModal === 'sell' && (
+        <QuickSellModal onClose={() => setRequestModal(null)} onSuccess={handleRequestCreated} />
+      )}
 
     </div>
   );

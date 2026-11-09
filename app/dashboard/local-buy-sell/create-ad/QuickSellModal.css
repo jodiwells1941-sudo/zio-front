@@ -288,6 +288,15 @@
   font-variant-numeric: tabular-nums;
 }
 .qsm-amount input::placeholder { color: var(--qsm-muted-2); font-weight: 500; }
+.qsm-rate-label {
+  flex: none;
+  color: var(--qsm-muted);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
 .qsm-amount-limits {
   display: block;
   margin: -7px 0 8px;
@@ -447,41 +456,40 @@
 }
 
 /* Payment methods */
-.qsm-methods { display: flex; gap: 10px; flex-wrap: wrap; }
+.qsm-methods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .qsm-method {
-  position: relative;
   display: inline-flex;
+  min-width: 0;
+  min-height: 36px;
   align-items: center;
-  gap: 9px;
-  padding: 9px 16px 9px 9px;
+  gap: 7px;
+  padding: 5px 8px;
   background: var(--qsm-surface);
   border: 1.5px solid var(--qsm-line);
-  border-radius: 11px;
+  border-radius: 8px;
   color: var(--qsm-text);
-  font-size: 12.5px;
+  font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all .15s;
 }
-.qsm-method:hover { border-color: var(--qsm-line-2); background: var(--qsm-surface-2); transform: translateY(-1px); }
+.qsm-method:hover { border-color: var(--qsm-line-2); background: var(--qsm-surface-2); }
 .qsm-method.is-active {
-  background: rgba(239, 68, 68, .14);
-  border-color: var(--qsm-red-l);
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, .35) inset, 0 6px 16px rgba(239, 68, 68, .2);
+  background: rgba(239, 68, 68, .23);
 }
 .qsm-method-icon {
   flex: none;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 7px;
   color: #ffffff;
   font-weight: 800;
   font-size: 13px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
 }
-.qsm-method-name { white-space: nowrap; }
+.qsm-method-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qsm-method-check {
   position: absolute;
   top: -7px;
@@ -1217,32 +1225,27 @@
   letter-spacing: -.5px !important;
 }
 
-/* ── Payment method tiles — bigger, roomier ───────────────── */
+/* ── Compact payment method tiles ──────────────────────────── */
 .qsm-modal .qsm-methods {
-  gap: 12px !important;
+  gap: 6px !important;
 }
 .qsm-modal .qsm-method {
-  padding: 11px 20px 11px 11px !important;
-  gap: 11px !important;
-  border-radius: 12px !important;
-  font-size: 13.5px !important;
-  font-weight: 700 !important;
+  padding: 5px 8px !important;
+  gap: 7px !important;
+  border-radius: 8px !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
   border-width: 1.5px !important;
   transition: all .15s !important;
 }
 .qsm-modal .qsm-method-icon {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 8px !important;
-  font-size: 14px !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
 }
 .qsm-modal .qsm-method.is-active {
-  background:
-    linear-gradient(180deg, rgba(248, 113, 113, .2), rgba(220, 38, 38, .12)) !important;
-  border-color: #f87171 !important;
-  box-shadow:
-    0 0 0 1px rgba(248, 113, 113, .5) inset,
-    0 6px 18px rgba(239, 68, 68, .25) !important;
+  background: rgba(239, 68, 68, .23) !important;
 }
 .qsm-modal .qsm-method-check {
   color: #fca5a5 !important;
@@ -1340,6 +1343,7 @@
 
 /* ── Responsive tweaks ────────────────────────────────────── */
 @media (max-width: 480px) {
+  .qsm-methods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .qsm-modal .qsm-head { padding: 20px 18px 14px !important; }
   .qsm-modal .qsm-body { padding: 0 18px 12px !important; }
   .qsm-modal .qsm-footer { padding: 12px 18px 20px !important; }
@@ -1361,7 +1365,7 @@
   .qsm-modal .qsm-total--hero .qsm-total-value {
     font-size: clamp(21px, 6vw, 26px) !important;
   }
-  .qsm-modal .qsm-method-name { font-size: 12.5px !important; }
+  .qsm-modal .qsm-method-name { font-size: 10.5px !important; }
   .qsm-method-editor-fields { grid-template-columns: 1fr; }
   .qsm-method-editor { padding: 14px; }
   .qsm-method-editor-actions { align-items: stretch; flex-direction: column; }
