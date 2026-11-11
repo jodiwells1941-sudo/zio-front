@@ -1130,7 +1130,7 @@ export default function P2PTransferCard({
                           Submitting Claim…
                         </>
                       ) : (
-                        "⏱ Time Expired — Claim to Admin"
+                        "⏱ Time Expired — Appeal"
                       )}
                     </button>
                   )}

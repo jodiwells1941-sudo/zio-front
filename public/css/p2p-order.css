@@ -490,7 +490,7 @@
 }
 
 @media (max-width: 576px) {
-  .p2pDetailActionPage .p2pDesktopTopActions{
+  .p2pDetailActionPage .p2pDesktopBottomActions{
     display:none;
   }
   .p2pDetailActionPage .p2pMobileTopActions{

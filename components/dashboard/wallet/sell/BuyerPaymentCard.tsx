@@ -631,7 +631,7 @@ export default function BuyerPaymentCard() {
                           onClick={handleClaimToAdmin}
                           disabled={submitting}
                         >
-                          Time Expired, Claim to Admin
+                          Appeal
                         </button>
                       )}
                     </div>

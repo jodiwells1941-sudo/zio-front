@@ -1,4 +1,11 @@
 export type OrderSideFilter = 'all' | 'buy' | 'sell';
+
+export const maskOrderId = (value: string): string => {
+  const id = value.trim();
+  const prefix = id.match(/^[A-Za-z]+/)?.[0] ?? id.slice(0, 3);
+  return id.length > prefix.length + 3 ? `${prefix}**${id.slice(-3)}` : id;
+};
+
 export type OrderStatusFilter =
   | 'all' | 'pending' | 'approved' | 'payment_sent' | 'payment_received'
   | 'completed' | 'appealed' | 'rejected' | 'cancelled' | 'refunded' | 'no_order';
