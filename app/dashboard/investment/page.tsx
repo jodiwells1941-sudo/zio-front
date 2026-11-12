@@ -34,6 +34,15 @@ const timeUntil = (value: string | null | undefined, now: number) => {
   return `In ${days ? `${days}d ` : ''}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 const interval = (frequency?: string) => ({ daily: 1, weekly: 7, monthly: 30 }[frequency || ''] || 0);
+const calculatePreview = (plan: Plan, principal: number, length: number) => {
+  const perDays = interval(plan.payout_frequency);
+  const periods = perDays ? Math.ceil(length / perDays) : 1;
+  const rate = plan.profit_rate == null ? null : Number(plan.profit_rate);
+  const durationRate = plan.duration_rates?.find(row => Number(row.duration_days) === length);
+  const totalRate = durationRate ? Number(durationRate.total_profit_rate) : null;
+  const profit = totalRate != null ? Math.round(principal * totalRate) / 100 : rate == null ? Number(plan.return_amount) - Number(plan.investment_amount) : Math.round(principal * rate * periods) / 100;
+  return { principal, length, periods, rate, totalRate, profit, total: principal + profit, perPayment: profit / periods };
+};
 const paymentRows = (item: Holding) => {
   const count = Math.max(1, Number(item.total_periods) || 1);
   const totalCents = Math.round(Number(item.total_profit || 0) * 100);
@@ -133,13 +142,7 @@ export default function InvestmentPage() {
     if (!selected) return null;
     const principal = Number(amount === '' ? selected.investment_amount : amount);
     const length = duration || Number(selected.duration);
-    const perDays = interval(selected.payout_frequency);
-    const periods = perDays ? Math.ceil(length / perDays) : 1;
-    const rate = selected.profit_rate == null ? null : Number(selected.profit_rate);
-    const durationRate = selected.duration_rates?.find(row => Number(row.duration_days) === length);
-    const totalRate = durationRate ? Number(durationRate.total_profit_rate) : null;
-    const profit = totalRate != null ? Math.round(principal * totalRate) / 100 : rate == null ? Number(selected.return_amount) - Number(selected.investment_amount) : Math.round(principal * rate * periods) / 100;
-    return { principal, length, periods, rate, totalRate, profit, total: principal + profit, perPayment: profit / periods };
+    return calculatePreview(selected, principal, length);
   }, [selected, amount, duration]);
   const valid = selected && preview && amount !== '' && preview.principal > 0 && preview.principal >= Number(selected.min_amount ?? selected.investment_amount) && preview.principal <= Number(selected.max_amount ?? selected.investment_amount) && days(selected).includes(preview.length);
   const buy = async () => {
@@ -293,9 +296,13 @@ export default function InvestmentPage() {
                         <span className={styles.selectedPackageFacts}><span><i className="fa-solid fa-calendar-days" aria-hidden="true" /> {days(selected).map(day => `${day}d`).join(' · ')}</span><span><i className="fa-solid fa-coins" aria-hidden="true" /> {money(selected.min_amount ?? selected.investment_amount)} – {money(selected.max_amount ?? selected.investment_amount)}</span></span>
                       </div>
                     </div>
-                    <label>Duration
+                    <label className={styles.durationField}>Duration
                       <select value={duration || ''} disabled={!selected} onChange={event => setDuration(Number(event.target.value))}>
-                        {selected ? days(selected).map(d => <option value={d} key={d}>{d} days</option>) : <option value="">Select a plan</option>}
+                        {selected ? days(selected).map(d => {
+                          const option = calculatePreview(selected, Number(amount === '' ? selected.investment_amount : amount), d);
+                          const percent = option.totalRate ?? (option.principal > 0 ? option.profit / option.principal * 100 : 0);
+                          return <option value={d} key={d}>{d} {d === 1 ? 'Day' : 'Days'} - ({percent.toFixed(2)}%) Profit - {money(option.profit)}</option>;
+                        }) : <option value="">Select a plan</option>}
                       </select>
                     </label>
                   </div>
@@ -323,9 +330,9 @@ export default function InvestmentPage() {
                       <dl className={styles.summary}>
                         <div className={styles.summaryRow}><dt><i className="fa-solid fa-chart-line" aria-hidden="true" /> Selected Plan</dt><span className={styles.summaryColon}>:</span><dd>{selected.name}</dd></div>
                         <div className={styles.summaryRow}><dt><i className="fa-solid fa-money-bill-trend-up" aria-hidden="true" /> Investment Amount</dt><span className={styles.summaryColon}>:</span><dd>{money(preview.principal)}</dd></div>
-                        <div className={styles.summaryRow}><dt><i className="fa-solid fa-percent" aria-hidden="true" /> Profit Rate</dt><span className={styles.summaryColon}>:</span><dd>{preview.totalRate != null ? selected.payout_frequency === 'fixed' ? `${preview.totalRate.toFixed(2)}% for ${preview.length} days` : `${(preview.totalRate / preview.periods).toFixed(2)}% / ${periodName(selected.payout_frequency)} (${preview.totalRate.toFixed(2)}% total)` : preview.rate == null ? `${(preview.principal > 0 ? preview.profit / preview.principal * 100 : 0).toFixed(2)}% total` : `${preview.rate.toFixed(2)}% / ${periodName(selected.payout_frequency)}`}</dd></div>
+                        <div className={styles.summaryRow}><dt><i className="fa-solid fa-percent" aria-hidden="true" /> {selected.payout_frequency === 'daily' ? 'Daily Per Payment' : selected.payout_frequency === 'weekly' ? 'Weekly Per Payment' : selected.payout_frequency === 'monthly' ? 'Monthly Per Payment' : 'Profit Rate'}</dt><span className={styles.summaryColon}>:</span><dd>{preview.totalRate != null ? selected.payout_frequency === 'fixed' ? `${preview.totalRate.toFixed(2)}% for ${preview.length} days` : `${(preview.totalRate / preview.periods).toFixed(2)}% / ${periodName(selected.payout_frequency)} (${preview.totalRate.toFixed(2)}% total)` : preview.rate == null ? `${(preview.principal > 0 ? preview.profit / preview.principal * 100 : 0).toFixed(2)}% total` : `${preview.rate.toFixed(2)}% / ${periodName(selected.payout_frequency)}`}</dd></div>
                         <div className={styles.summaryRow}><dt><i className="fa-solid fa-circle-dollar-to-slot" aria-hidden="true" /> Total Profit</dt><span className={styles.summaryColon}>:</span><dd className={styles.positive}>{money(preview.profit)}</dd></div>
-                        <div className={styles.summaryRow}><dt><i className="fa-solid fa-calendar-check" aria-hidden="true" /> Profit Per Payment</dt><span className={styles.summaryColon}>:</span><dd>{money(preview.perPayment)} <small>({selected.payout_frequency === 'fixed' ? 'At maturity' : `Every ${interval(selected.payout_frequency)} days`})</small></dd></div>
+                        <div className={styles.summaryRow}><dt><i className="fa-solid fa-calendar-check" aria-hidden="true" /> {selected.payout_frequency === 'daily' ? 'Daily Per Payment' : selected.payout_frequency === 'weekly' ? 'Weekly Per Payment' : selected.payout_frequency === 'monthly' ? 'Monthly Per Payment' : 'Profit Per Payment'}</dt><span className={styles.summaryColon}>:</span><dd>{money(preview.perPayment)} <small>({selected.payout_frequency === 'fixed' ? 'At maturity' : `Every ${interval(selected.payout_frequency)} days`})</small></dd></div>
                         <div className={styles.summaryRow}><dt><i className="fa-solid fa-calendar-days" aria-hidden="true" /> Total Payments</dt><span className={styles.summaryColon}>:</span><dd>{preview.periods} {preview.periods === 1 ? 'time' : 'times'}</dd></div>
                         <div className={styles.summaryRow}><dt><i className="fa-regular fa-calendar" aria-hidden="true" /> Investment Period</dt><span className={styles.summaryColon}>:</span><dd>{preview.length} days</dd></div>
                         <div className={styles.summaryRow}><dt><i className="fa-regular fa-clock" aria-hidden="true" /> Profit Payout</dt><span className={styles.summaryColon}>:</span><dd>{selected.payout_frequency === 'fixed' ? 'At maturity' : `Every ${interval(selected.payout_frequency)} days`}</dd></div>
