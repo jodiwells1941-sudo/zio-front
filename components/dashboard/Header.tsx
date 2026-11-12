@@ -317,8 +317,8 @@ export default function Header({
                   </button>
                 </div>
 
-                <div className="border border-dark-light rounded-pill py-2 px-sm-3 px-2 d-flex align-items-center gap-1 d-md-none">
-                  <span className="d-none d-md-block">
+                <div className="border border-dark-light rounded-pill py-1 px-sm-3 px-2 d-flex align-items-center gap-1 d-md-none">
+                  <span>
                     <img src="/images/coin.png" alt="Coin" />
                   </span>
                   <span className="text-white fw-bold text-xl">${walletAmount.toFixed(2)}</span>
@@ -333,7 +333,7 @@ export default function Header({
                       <button
                         type="button"
                         title="Play Lottery"
-                        className="btn--secondary py-lg-2 py-1 px-3 d-sm-flex d-none"
+                        className="btn--secondary py-1 px-3 d-sm-flex d-none"
                         onClick={depositClick}
                       >
                         Deposit
