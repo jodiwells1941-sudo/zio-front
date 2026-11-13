@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import apiClient from '@/utils/apiClient';
+import InvestmentPlanCard, { type InvestmentPlan } from '@/components/dashboard/Investment/InvestmentPlanCard';
 import styles from './investment.module.css';
 
-type Plan = { id: number; name: string; short_description?: string | null; icon_key?: string | null; duration: number; investment_amount: number | string; return_amount: number | string; payout_frequency?: string; profit_rate?: number | string | null; min_amount?: number | string | null; max_amount?: number | string | null; duration_options?: number[] | null; duration_rates?: { duration_days: number; total_profit_rate: number | string }[] | null };
+type Plan = InvestmentPlan;
 type Holding = { id: number; code_no: string; started_at: string; closed_at?: string | null; principal_repaid_at?: string | null; investment_amount: number | string; return_amount: number | string; total_profit: number | string; paid_profit: number | string; paid_periods: number; total_periods: number; next_payment_at?: string | null; ended_at: string; status: string; payout_frequency?: string; profit_rate?: number | string | null; total_profit_rate?: number | string | null; investment?: { name: string } };
 type Overview = { total_invested: number; total_profit_expected: number; total_profit_paid: number; remaining_profit: number; active_investments: number };
 type ProfitRow = { id: number | string; amount: number | string; description: string; created_at: string; trx_id?: string };
@@ -82,6 +83,8 @@ export default function InvestmentPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState('');
+  const initialPlanApplied = useRef(false);
+  const [autoScrollPlanId, setAutoScrollPlanId] = useState<number | null>(null);
   const selected = plans.find(plan => plan.id === selectedId) || null;
   useEffect(() => {
     if (!selected) return;
@@ -114,6 +117,26 @@ export default function InvestmentPage() {
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [load]);
+  useEffect(() => {
+    if (loading || initialPlanApplied.current || plans.length === 0) return;
+    initialPlanApplied.current = true;
+    const requestedId = Number(new URLSearchParams(window.location.search).get('plan'));
+    const requestedPlan = plans.find(plan => plan.id === requestedId);
+    if (!requestedPlan) return;
+    setSelectedId(requestedPlan.id);
+    setDuration(days(requestedPlan)[0]);
+    setTab('overview');
+    setPlanFilter('all');
+    setAutoScrollPlanId(requestedPlan.id);
+  }, [loading, plans]);
+  useEffect(() => {
+    if (!selected || selected.id !== autoScrollPlanId) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('create-investment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setAutoScrollPlanId(null);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selected, autoScrollPlanId]);
   useEffect(() => {
     setNow(Date.now());
     const timer = window.setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 1000);
@@ -159,12 +182,12 @@ export default function InvestmentPage() {
   const shown = holdings.filter(item => filter === 'all' || item.status === filter);
   const detail = holdings.find(item => item.id === detailId);
   const metrics = [
-    ['Total Investment', overview?.total_invested, 'fa-sack-dollar', 'gold'],
+    ['Total Invested', overview?.total_invested, 'fa-coins', 'gold'],
     ['Total Profit Earned', overview?.total_profit_paid, 'fa-arrow-trend-up', 'green'],
     ['Expected Profit', overview?.total_profit_expected, 'fa-chart-line', 'purple'],
-    ['Total Paid Profit', overview?.total_profit_paid, 'fa-circle-check', 'green'],
-    ['Remaining Profit', overview?.remaining_profit, 'fa-hourglass-half', 'cyan'],
-    ['Active Investments', overview?.active_investments, 'fa-layer-group', 'gold'],
+    ['Total Paid Profit', overview?.total_profit_paid, 'fa-shield-halved', 'green'],
+    ['Remaining Profit', overview?.remaining_profit, 'fa-clock-rotate-left', 'amber'],
+    ['Active Plans', overview?.active_investments, 'fa-layer-group', 'cyan'],
   ] as const;
   const visiblePlans = plans.filter(plan => planFilter === 'all' || (plan.payout_frequency || 'fixed') === planFilter);
   const tabs = [
@@ -176,8 +199,9 @@ export default function InvestmentPage() {
     ['calculator', 'Profit Calculator', 'fa-calculator'],
   ] as const;
   const packageFilters = [
-    ['all', 'All Packages'], ['fixed', 'Fixed Return'], ['daily', 'Daily'],
-    ['weekly', 'Weekly'], ['monthly', 'Monthly'],
+    ['all', 'All Packages', 'fa-calendar-days'], ['daily', 'Daily', 'fa-calendar-day'],
+    ['weekly', 'Weekly', 'fa-calendar-week'], ['monthly', 'Monthly', 'fa-calendar-days'],
+    ['fixed', 'Fixed Return', 'fa-award'],
   ] as const;
   const showPlans = tab === 'overview' || tab === 'plans' || tab === 'calculator';
   const showHistory = tab === 'overview' || tab === 'my' || tab === 'schedule' || tab === 'profit';
@@ -236,7 +260,7 @@ export default function InvestmentPage() {
                 <span className={styles.metricIcon}><i className={`fa-solid ${icon}`} aria-hidden="true" /></span>
                 <div>
                   <small>{name}</small>
-                  <strong>{name === 'Active Investments' ? Number(value || 0) : money(value)}</strong>
+                  <strong>{name === 'Active Plans' ? Number(value || 0) : money(value)}</strong>
                 </div>
               </article>
             ))}
@@ -244,41 +268,17 @@ export default function InvestmentPage() {
 
           {showPlans && (
             <>
-              <section className={styles.section} id="investment-plans">
-                <div className={styles.sectionTitle}>
-                  <div><span className={styles.kicker}>FIND YOUR PLAN</span><h2>Choose an investment package</h2></div>
+              <section className={`${styles.section} ${styles.planSection}`} id="investment-plans">
+                <div className={`${styles.sectionTitle} ${styles.planSectionTitle}`}>
+                  <h2><i className="fa-solid fa-crown" aria-hidden="true" /> Choose an Investment Package</h2>
                   <div className={styles.planFilters} role="group" aria-label="Filter packages">
-                    {packageFilters.map(([id, name]) => (
-                      <button key={id} type="button" className={planFilter === id ? styles.currentFilter : ''} aria-pressed={planFilter === id} onClick={() => setPlanFilter(id)}>{name}</button>
+                    {packageFilters.map(([id, name, icon]) => (
+                      <button key={id} type="button" className={planFilter === id ? styles.currentFilter : ''} aria-pressed={planFilter === id} onClick={() => setPlanFilter(id)}><i className={`fa-solid ${icon}`} aria-hidden="true" /> {name}</button>
                     ))}
                   </div>
                 </div>
                 <div className={styles.planGrid}>
-                  {visiblePlans.map(plan => {
-                    const durationRates = plan.duration_rates?.map(row => Number(row.total_profit_rate)) || [];
-                    const rate = durationRates.length ? Math.max(...durationRates) : plan.profit_rate == null
-                      ? (Number(plan.return_amount) - Number(plan.investment_amount)) / Number(plan.investment_amount) * 100
-                      : Number(plan.profit_rate);
-                    return (
-                      <article className={`${styles.plan} ${styles[`plan_${plan.payout_frequency || 'fixed'}`] || ''} ${selectedId === plan.id ? styles.selectedPlan : ''}`} key={plan.id}>
-                        <div className={styles.planTop}>
-                          <span className={styles.planIcon}><i className={`fa-solid ${iconClass(plan)}`} aria-hidden="true" /></span>
-                          <span className={styles.planType}>{label(plan.payout_frequency)}</span>
-                        </div>
-                        <h3>{plan.name}</h3>
-                        <div className={styles.planRate}>{Number.isFinite(rate) ? `${rate.toFixed(2)}%` : '—'} <small>{durationRates.length ? 'total profit, up to' : `per ${plan.profit_rate == null || plan.payout_frequency === 'fixed' ? 'term' : periodName(plan.payout_frequency)}`}</small></div>
-                        {plan.short_description && <p className={styles.planDescription}>{plan.short_description}</p>}
-                        <div className={styles.planFacts}>
-                          <div><i className="fa-solid fa-circle-check" aria-hidden="true" /><span>{days(plan).map(d => `${d} days`).join(' · ')}</span></div>
-                          <div><i className="fa-solid fa-circle-check" aria-hidden="true" /><span>{plan.min_amount == null ? money(plan.investment_amount) : `${money(plan.min_amount)} – ${money(plan.max_amount ?? plan.investment_amount)}`}</span></div>
-                          <div><i className="fa-solid fa-circle-check" aria-hidden="true" /><span>Principal returned at maturity</span></div>
-                        </div>
-                        <button type="button" className={styles.planSelect} onClick={() => choosePlan(plan)}>
-                          {selectedId === plan.id ? 'Selected plan' : 'Select plan'} <i className={`fa-solid ${selectedId === plan.id ? 'fa-check' : 'fa-arrow-right'}`} aria-hidden="true" />
-                        </button>
-                      </article>
-                    );
-                  })}
+                  {visiblePlans.map(plan => <InvestmentPlanCard key={plan.id} plan={plan} selected={selectedId === plan.id} onSelect={() => choosePlan(plan)} />)}
                   {visiblePlans.length === 0 && <p className={styles.empty}>No plans are available in this category.</p>}
                 </div>
               </section>
@@ -326,7 +326,7 @@ export default function InvestmentPage() {
                   <div className={styles.sectionTitle}><div><span className={styles.kicker}>BEFORE YOU INVEST</span><h2>Plan summary</h2></div>{selected && <span className={styles.liveBadge}><i className="fa-solid fa-circle" aria-hidden="true" /> Live preview</span>}</div>
                   {selected && preview ? (
                     <>
-                      {amount === '' && <p className={styles.summaryExample}>Example based on this plan&apos;s default amount. Enter your amount to see your return.</p>}
+                      {/* {amount === '' && <p className={styles.summaryExample}>Example based on this plan&apos;s default amount. Enter your amount to see your return.</p>} */}
                       <dl className={styles.summary}>
                         <div className={styles.summaryRow}><dt><i className="fa-solid fa-chart-line" aria-hidden="true" /> Selected Plan</dt><span className={styles.summaryColon}>:</span><dd>{selected.name}</dd></div>
                         <div className={styles.summaryRow}><dt><i className="fa-solid fa-money-bill-trend-up" aria-hidden="true" /> Investment Amount</dt><span className={styles.summaryColon}>:</span><dd>{money(preview.principal)}</dd></div>

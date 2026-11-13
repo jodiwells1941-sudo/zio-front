@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Header />
 
         <div className="affiliate-wrapper page-wrapper a-cursor mt-60">
-          <div className="dash-layout-wrapper p-md-4">
+          <div className={`dash-layout-wrapper p-md-4 ${pathname === '/dashboard' || pathname === '/dashboard/' ? 'dashboard-home-layout' : ''}`}>
             <LeftSidebar />
             {/* content-area  */}
             <main className="mx-auto page-wrapper a-cursor flex-grow-1 w-100 px-2 px-md-0">
