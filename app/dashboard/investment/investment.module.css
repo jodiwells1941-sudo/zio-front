@@ -232,6 +232,9 @@
 .fields label, .amountLabel { display: block; color: #d5dbe5; font-size: 11px; font-weight: 650; }
 .fields select, .amountLabel input { display: block; width: 100%; height: 40px; margin-top: 7px; padding: 8px 11px; border: 1px solid #48515e; border-radius: 8px; background: #191f29; color: #f5f7fb; font-size: 12px; }
 .packageField { grid-column: 1 / -1; min-width: 0; color: #d5dbe5; font-size: 14px; font-weight: 650; }
+.packageField > label { display: block; }
+.packageSelect { width: 100%; margin-top: 7px; margin-bottom: 16px; border-color: #66758a !important; background: #202a37 !important; color: #f5f7fb !important; font-weight: 650; }
+.packageSelect option { background: #202a37; color: #f5f7fb; }
 .selectedPackage { --package-color: #ffc746; --package-bg: #55401844; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 80px; margin-top: 7px; padding: 12px; border: 1px solid var(--package-color); border-radius: 9px; background: linear-gradient(110deg, var(--package-bg), #191f29); box-shadow: inset 0 1px #ffffff13; }
 .package_daily { --package-color: #73dfed; --package-bg: #257d8940; }
 .package_weekly { --package-color: #c589f6; --package-bg: #71419540; }
@@ -245,6 +248,7 @@
 .selectedPackageFacts i { margin-right: 4px; color: var(--package-color); }
 .fields select:disabled, .amountLabel input:disabled { opacity: .55; }
 .amountLabel { margin-top: 14px; }
+.amountLabel input::placeholder { color: #b8c4d3; opacity: 1; }
 .amountLabel span { color: var(--gold); }
 .quickAmounts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin: 11px 0 15px; }
 .quickAmounts button { padding: 6px 0px 2px 0px; display: flex; justify-content: center; align-items: center; border: 1px solid #46505c; border-radius: 7px; background: #303641; color: #dce2e9; font-size: 12px; font-weight: 650; }
@@ -296,12 +300,12 @@
 .holdingsTable { overflow-x: hidden; }
 .investmentTable { table-layout: fixed; }
 .investmentTable th:nth-child(1) { width: 3%; }
-.investmentTable th:nth-child(2) { width: 15%; }
+.investmentTable th:nth-child(2) { width: 14%; }
 .investmentTable th:nth-child(3) { width: 8%; }
-.investmentTable th:nth-child(4) { width: 11%; }
+.investmentTable th:nth-child(4) { width: 10%; }
 .investmentTable th:nth-child(5) { width: 8%; }
 .investmentTable th:nth-child(6) { width: 8%; }
-.investmentTable th:nth-child(7) { width: 8%; }
+.investmentTable th:nth-child(7) { width: 10%; }
 .investmentTable th:nth-child(8) { width: 12%; }
 .investmentTable th:nth-child(9) { width: 12%; }
 .investmentTable th:nth-child(10) { width: 10%; }
@@ -313,7 +317,9 @@
 .investmentTable .rowNumber { color: #aebac8; font-weight: 700; text-align: center; }
 .planCell, .dateCell { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .planCell > span:last-child, .dateCell > span { min-width: 0; }
-.planCell strong { overflow-wrap: anywhere; }
+.planCell strong, .planCell small { display: block; overflow-wrap: anywhere; }
+.planCell small { color: #aab6c3; font-size: 10px; }
+.planCell .investmentId, .mobileHoldingTop .investmentId { font-size: 14px; line-height: 1.4; font-weight: 700; }
 .holdingIcon { flex: none; display: grid; place-items: center; width: 29px; height: 29px; border-radius: 7px; background: #bb91332a; color: #ffd25d; font-size: 15px; }
 .holding_daily { background: #2b8b9a34; color: #73dfed; }
 .holding_weekly { background: #81529d38; color: #d295f8; }
@@ -321,8 +327,13 @@
 .amountCell { font-weight: 700; }
 .rateCell { color: #ffcb4d; font-weight: 800; }
 .totalProfitCell, .remainingCell { color: #ffcb4d; font-weight: 800; }
+.remainingBreakdown { display: grid; gap: 4px; }
+.investmentTable tbody td:nth-child(7).remainingCell .remainingBreakdown span { display: block; color: #b9c6d2; font-size: 11px; font-weight: 600; }
+.investmentTable tbody td:nth-child(7).remainingCell .remainingBreakdown strong { display: block; color: #ffcb4d; font-size: 13px; }
 .dateCell > i { flex: none; color: #7ce6eb; font-size: 15px; }
 .dateCell strong { display: block; font-size: 10px; }
+.investmentTable tbody td:nth-child(8) .dateCell .nextProfitAmount { color: #9fe6ee; font-size: 11px; line-height: 1.3; }
+.investmentTable tbody td:nth-child(9) .dateCell .capitalReturn { color: #ffd26b; font-size: 11px; line-height: 1.3; }
 .progressCell { display: grid; justify-items: start; gap: 5px; }
 .progressCell .status { padding: 2px 7px; font-size: 9px; }
 .progressLine { display: flex; align-items: center; gap: 5px; width: 100%; }
@@ -361,20 +372,28 @@
 .detailStats > div { display: grid; gap: 4px; padding: 11px; border: 1px solid #394552; border-radius: 9px; background: #242c36; }
 .detailStats span, .detailDates span { color: #aebbc9; font-size: 11px; }
 .detailStats strong { color: #f5f7fb; font-size: 15px; }
+.detailStats .capitalCard { border-color: #91713c; background: linear-gradient(120deg, #3b311f, #242c36); }
+.detailStats .capitalCard strong { color: #ffd26b; }
+.detailStats .capitalCard small { color: #aebbc9; font-size: 11px; }
 .detailDates { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 13px 0 17px; }
 .detailDates strong { color: #e9eff6; font-weight: 650; }
 .detail h4 { margin: 0 0 8px; color: #f3f6fa; font-size: 14px; }
 .paymentList { max-height: 310px; overflow-y: auto; border: 1px solid #394552; border-radius: 9px; scrollbar-width: thin; }
-.paymentRow { display: grid; grid-template-columns: 26px minmax(110px, 1fr) 75px 95px minmax(105px, 130px); align-items: center; gap: 10px; padding: 9px 11px; border-bottom: 1px solid #35404b; font-size: 12px; }
+.paymentRow { display: grid; grid-template-columns: 26px minmax(130px, 1fr) minmax(125px, .8fr) minmax(95px, 110px) minmax(105px, 125px) minmax(105px, 130px); align-items: center; gap: 10px; padding: 9px 11px; border-bottom: 1px solid #35404b; font-size: 12px; }
 .paymentRow:last-child { border-bottom: 0; }
 .paymentRow:nth-child(even) { background: #ffffff06; }
 .paymentRow.paymentNext { background: #e5b43512; box-shadow: inset 3px 0 #f5c74d; }
 .paymentRow strong { color: #eef3f8; }
 .paymentRow small { display: block; color: #a8b5c3; font-size: 10px; }
+.paymentInfo { min-width: 0; }
+.paymentInfo strong { display: block; overflow-wrap: anywhere; }
 .paymentRow .paymentCountdown { color: #ffd26b; text-align: right; font-size: 10px; font-weight: 750; font-variant-numeric: tabular-nums; }
 .paymentNumber { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 7px; background: #a27b2b3d; color: #ffd26b; font-weight: 800; }
+.paymentMiddle { display: flex; justify-content: center; min-width: 0; }
+.paymentCountdownMiddle { color: #ffd26b; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .paymentRate { color: #9fe6ee; text-align: right; }
-.paymentAmount { text-align: right; }
+.paymentAmount { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 2px 4px; text-align: right; }
+.paymentAmount small { color: #9fe6ee; font-weight: 700; }
 .paymentStatus { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 0; }
 .paymentState { padding: 3px 6px; border-radius: 20px; background: #6e5b2d55; color: #f5d47d; text-align: center; font-size: 10px; font-weight: 750; }
 .paymentPaid { background: #285e4655; color: #75e2ad; }
@@ -409,6 +428,15 @@
   .holdingsTable { display: none; }
   .mobileHoldings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
 }
+@container (max-width: 760px) {
+  .paymentRow { grid-template-columns: 24px minmax(0, 1fr) minmax(95px, 110px); gap: 6px; }
+  .paymentInfo { grid-column: 2; grid-row: 1; }
+  .paymentAmount { grid-column: 3; grid-row: 1; }
+  .paymentMiddle { grid-column: 2; grid-row: 3; justify-content: flex-start; }
+  .paymentRate { grid-column: 2; grid-row: 2; text-align: left; }
+  .paymentStatus { grid-column: 3; grid-row: 2 / span 2; }
+  .paymentMiddle:empty { display: none; }
+}
 @media (max-width: 620px) {
   .summary .summaryRow { grid-template-columns: minmax(112px, 1fr) 10px minmax(0, 1.2fr); gap: 4px; }
   .summaryRow dt { gap: 5px; }
@@ -420,10 +448,6 @@
   .summaryTotal strong { font-size: 13px; }
   .summaryTotal b { font-size: 18px; }
   .detailStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .paymentRow { grid-template-columns: 24px minmax(90px, 1fr) minmax(95px, 110px); gap: 6px; }
-  .paymentRate { grid-column: 2; text-align: left; }
-  .paymentAmount { grid-column: 3; grid-row: 1; }
-  .paymentStatus { grid-column: 3; grid-row: 2; }
   .hero { min-height: 0; }
   .heroContent { padding: 23px; }
   .hero h1 { font-size: 28px; }
