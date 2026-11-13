@@ -79,6 +79,17 @@ export default function PaymentCompleted({ trade, from }: Props) {
     bonus_amount: trade.bonus_amount,
     charge_amount: trade.charge_amount,
   });
+  const fee = Number(trade.charge_amount ?? 0);
+  const bonus = Number(trade.bonus_amount ?? 0);
+  const tradeType = String(trade.type ?? "sell").toLowerCase();
+  const formatAdjustment = (amount: number) => `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${asset}`;
+  const summaryRows = [
+    { label: "Order ID", value: trade.order_id || `#${trade.id}` },
+    ...amountDisplay.detailRows.map(({ label, value }) => ({ label, value })),
+    ...(isSeller && tradeType === "sell" && fee > 0 ? [{ label: "Fee", value: formatAdjustment(fee) }] : []),
+    ...(!isSeller && tradeType === "buy" && bonus > 0 ? [{ label: "Bonus", value: formatAdjustment(bonus) }] : []),
+    { label: "Payment method", value: methodName },
+  ];
     
   return (
     <>
@@ -86,6 +97,7 @@ export default function PaymentCompleted({ trade, from }: Props) {
         isOpen={showCelebration}
         receivedAmount={completedAmounts.receivedAmount}
         paidAmount={completedAmounts.paidAmount}
+        summaryRows={summaryRows}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);
