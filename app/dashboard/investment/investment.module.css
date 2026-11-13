@@ -46,7 +46,7 @@
   content: '';
   pointer-events: none;
 }
-.heroContent { position: relative; z-index: 1; padding: 28px clamp(20px, 3vw, 42px); }
+.heroContent { position: relative; z-index: 1; flex: 0 0 42%; max-width: 42%; padding: 28px clamp(20px, 3vw, 42px); }
 .eyebrow,
 .kicker { color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: .14em; }
 .eyebrow i { margin-right: 6px; }
@@ -67,6 +67,10 @@
   box-shadow: 0 8px 22px #f0ae2526;
 }
 .heroButton:hover { filter: brightness(1.08); }
+.heroFrame { position: absolute; z-index: 1; top: 50%; left: 50%; display: grid; place-items: center; width: 270px; min-height: 64px; transform: translate(-50%, -50%); pointer-events: none; }
+.heroFrame::after { position: absolute; z-index: 2; top: -4px; left: -4px; width: 8px; height: 8px; border-radius: 50%; background: #ffca4d; box-shadow: 0 0 11px 3px #ffca4d; content: ''; animation: planFramePointer 6s linear infinite; }
+.heroFrameText { color: #f6f7fb; font-size: 32px; font-weight: 900; letter-spacing: .12em; text-shadow: 0 2px 10px #000a; }
+.heroFrame .planFrameCorner { width: 42px; height: 21px; }
 .heroArt { position: relative; flex: 0 0 32%; height: 208px; display: grid; place-items: center; }
 .heroRing {
   display: grid;
@@ -84,6 +88,8 @@
 .orbitOne, .orbitTwo { position: absolute; display: grid; place-items: center; width: 37px; height: 37px; border: 1px solid #f5c34360; border-radius: 12px; background: #272b31; color: #ffd363; }
 .orbitOne { top: 26px; right: 17%; transform: rotate(12deg); }
 .orbitTwo { bottom: 18px; left: 14%; transform: rotate(-13deg); }
+@media (max-width: 1100px) { .heroFrame { width: 225px; min-height: 56px; } .heroFrameText { font-size: 21px; } }
+@media (max-width: 850px) { .heroContent { flex: 1; max-width: none; } .heroFrame { display: none; } }
 
 .tabs { display: flex; gap: 7px; margin-bottom: 17px; padding: 5px; overflow-x: auto; border: 1px solid #303744; border-radius: 11px; background: #1c212a; scrollbar-width: thin; }
 .tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; flex: 1 0 auto; min-height: 46px; padding: 9px 14px; white-space: nowrap; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #b8c2d0; font-size: 14px; font-weight: 650; }
@@ -168,7 +174,7 @@
   50% { top: calc(100% - 4px); left: calc(100% - 4px); }
   89% { top: calc(100% - 4px); left: -4px; }
 }
-@media (prefers-reduced-motion: reduce) { .planFrame::after { animation: none; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .planFrame::after, .heroFrame::after { animation: none; opacity: 0; } }
 .planFrameText { color: #f5f7fb; font-size: 17px; font-weight: 900 !important; letter-spacing: .12em; text-transform: uppercase; text-shadow: 0 1px 8px #0008; white-space: nowrap; }
 .planFrameCorner { position: absolute; width: 33px; height: 16px; border-color: currentColor; border-style: solid; filter: drop-shadow(0 0 5px currentColor); }
 .planFrameTopLeft { top: 0; left: 0; color: #72e7f2; border-width: 4px 0 0 4px; }
@@ -325,6 +331,8 @@
 .planCell strong, .planCell small { display: block; overflow-wrap: anywhere; }
 .planCell small { color: #aab6c3; font-size: 10px; }
 .planCell .investmentId, .mobileHoldingTop .investmentId { font-size: 14px; line-height: 1.4; font-weight: 700; }
+.planCell .investmentDuration, .mobileHoldingTop .investmentDuration { color: #ffd26b; font-size: 11px; font-weight: 650; }
+.investmentDuration i { margin-right: 3px; }
 .holdingIcon { flex: none; display: grid; place-items: center; width: 29px; height: 29px; border-radius: 7px; background: #bb91332a; color: #ffd25d; font-size: 15px; }
 .holding_daily { background: #2b8b9a34; color: #73dfed; }
 .holding_weekly { background: #81529d38; color: #d295f8; }
@@ -337,6 +345,8 @@
 .investmentTable tbody td:nth-child(7).remainingCell .remainingBreakdown strong { display: block; color: #ffcb4d; font-size: 13px; }
 .dateCell > i { flex: none; color: #7ce6eb; font-size: 15px; }
 .dateCell strong { display: block; font-size: 10px; }
+.investmentTable tbody td:nth-child(8) .dateCell > span > small:first-of-type,
+.investmentTable tbody td:nth-child(9) .dateCell > span > small:first-of-type { font-size: 12px; line-height: 1.3; }
 .investmentTable tbody td:nth-child(8) .dateCell .nextProfitAmount { color: #9fe6ee; font-size: 11px; line-height: 1.3; }
 .investmentTable tbody td:nth-child(9) .dateCell .capitalReturn { color: #ffd26b; font-size: 11px; line-height: 1.3; }
 .progressCell { display: grid; justify-items: start; gap: 5px; }
@@ -365,8 +375,10 @@
 .active { border-color: #37845e; background: #255d3c55; color: #64e1a4; }
 .completed { border-color: #367b89; background: #245b6955; color: #81e4ed; }
 .closed { border-color: #956543; background: #6b462e55; color: #f9b473; }
-.viewButton { padding: 5px 10px; border: 1px solid #4b8991; border-radius: 17px; background: #24535a66; color: #9ce7ee; font-size: 10px; font-weight: 700; }
+.viewButton { padding: 0px 10px; border: 1px solid #4b8991; border-radius: 6px; background: #24535a66; color: #9ce7ee; font-size: 10px; font-weight: 700; }
 .viewButton:hover { background: #315f66; }
+.viewButtonActive { border-color: #d1a343; background: #72541f; color: #ffe2a1; }
+.viewButtonActive:hover { background: #8c6826; }
 .mobileHoldings { display: none; }
 .detail { margin-top: 13px; padding: 18px; border: 1px solid #4b5765; border-radius: 12px; background: radial-gradient(70% 120% at 0 0, #d6aa2912, transparent), #1a222b; }
 .detailHeading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
