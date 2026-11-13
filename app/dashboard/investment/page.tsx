@@ -236,6 +236,10 @@ export default function InvestmentPage() {
   const paidProfit = (item: Holding) => item.profit_rate == null
     ? (item.status === 'completed' ? expectedProfit(item) : 0)
     : Number(item.paid_profit);
+  const detailExpectedProfit = detail ? expectedProfit(detail) : 0;
+  const detailProfitProgress = detailExpectedProfit > 0 && detail
+    ? Math.min(100, Math.max(0, paidProfit(detail) / detailExpectedProfit * 100))
+    : detail?.status === 'completed' ? 100 : 0;
 
   return (
     <main className={`${styles.page} bg-navy-blue rounded-4`}>
@@ -314,16 +318,19 @@ export default function InvestmentPage() {
                   <div className={styles.fields}>
                     <div className={styles.packageField}>
                       <label htmlFor="investment-package">Package type</label>
-                      <select id="investment-package" className={styles.packageSelect} value={selectedId ?? ''} onChange={event => { const plan = plans.find(item => item.id === Number(event.target.value)); if (plan) select(plan); }}>
-                        <option value="" disabled>Select an investment package</option>
-                        {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {label(plan.payout_frequency)}</option>)}
-                      </select>
-                      {selected && <div className={`${styles.selectedPackage} ${styles[`package_${selected.payout_frequency || 'fixed'}`]}`}>
-                        <span className={styles.selectedPackageIcon}><i className={`fa-solid ${iconClass(selected)}`} aria-hidden="true" /></span>
-                        <span className={styles.selectedPackageInfo}><strong>{selected.name}</strong><small>{label(selected.payout_frequency)}{selected.short_description ? ` · ${selected.short_description}` : ''}</small></span>
-                        <i className="fa-solid fa-circle-check" aria-label="Selected package" />
-                        <span className={styles.selectedPackageFacts}><span><i className="fa-solid fa-calendar-days" aria-hidden="true" /> {days(selected).map(day => `${day}d`).join(' · ')}</span><span><i className="fa-solid fa-coins" aria-hidden="true" /> {money(selected.min_amount ?? selected.investment_amount)} – {money(selected.max_amount ?? selected.investment_amount)}</span></span>
-                      </div>}
+                      <div className={`${styles.selectedPackage} ${selected ? styles[`package_${selected.payout_frequency || 'fixed'}`] : ''}`}>
+                        <span className={styles.selectedPackageIcon}><i className={`fa-solid ${selected ? iconClass(selected) : 'fa-layer-group'}`} aria-hidden="true" /></span>
+                        <span className={styles.selectedPackageInfo}>
+                          <select id="investment-package" className={styles.packageSelect} value={selectedId ?? ''} onChange={event => { const plan = plans.find(item => item.id === Number(event.target.value)); if (plan) select(plan); }}>
+                            <option value="" disabled>Select an investment package</option>
+                            {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
+                          </select>
+                          <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+                          {selected && <small className='ps-2'>{label(selected.payout_frequency)}{selected.short_description ? ` · ${selected.short_description}` : ''}</small>}
+                        </span>
+                        {selected && <i className="fa-solid fa-circle-check" aria-label="Selected package" />}
+                        {selected && <span className={styles.selectedPackageFacts}><span><i className="fa-solid fa-calendar-days" aria-hidden="true" /> {days(selected).map(day => `${day}d`).join(' · ')}</span><span><i className="fa-solid fa-coins" aria-hidden="true" /> {money(selected.min_amount ?? selected.investment_amount)} – {money(selected.max_amount ?? selected.investment_amount)}</span></span>}
+                      </div>
                     </div>
                     <label className={styles.durationField}>Duration
                       <select value={duration || ''} disabled={!selected} onChange={event => setDuration(Number(event.target.value))}>
@@ -453,7 +460,27 @@ export default function InvestmentPage() {
                       <div><span>Profit paid</span><strong>{money(paidProfit(detail))}</strong></div>
                       <div><span>Remaining profit</span><strong className={styles.remaining}>{money(detail.status === 'closed' ? 0 : Math.max(0, expectedProfit(detail) - paidProfit(detail)))}</strong></div>
                       <div><span>Payment progress</span><strong>{detail.paid_periods || 0} / {detail.total_periods || 1}</strong></div>
-                      <div className={styles.capitalCard}><span>Capital Return</span><strong>{money(detail.investment_amount)}</strong><small>{detail.principal_repaid_at ? 'Returned' : detail.status === 'closed' ? 'Refunded' : 'Scheduled'}: {tableDate(detail.principal_repaid_at || (detail.status === 'closed' ? detail.closed_at : detail.ended_at))}</small></div>
+                      <div className={styles.capitalCard}>
+                        <div className={styles.capitalCardTitle}>
+                          <span className={styles.capitalCardIcon}><i className="fa-solid fa-coins" aria-hidden="true" /></span>
+                          <span>Capital Return</span>
+                        </div>
+                        <div className={styles.capitalCardTimer}>
+                          <small>{detail.status === 'active' ? 'Time remaining' : 'Capital status'}</small>
+                          <strong>{detail.status === 'active' ? timeUntil(detail.ended_at, now) : detail.principal_repaid_at ? 'Returned' : detail.status === 'closed' ? 'Refunded' : 'Completed'}</strong>
+                          <div className={styles.capitalProfitProgress}>
+                              <div className={styles.capitalProfitProgressHeader}><small>Profit Progress</small><b>{detailProfitProgress.toFixed(2)}%</b></div>
+                              <div className={styles.capitalProfitProgressBar} role="progressbar" aria-label="Profit paid" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Number(detailProfitProgress.toFixed(2))}><span style={{ width: `${detailProfitProgress}%` }} /></div>
+                            </div>
+                        </div>
+                        <div className={styles.capitalCardValue}>
+                          <div className={styles.capitalCardAmountRow}>
+                            <strong>{money(detail.investment_amount)}</strong>
+                            <small className={`${styles.capitalBadge} ${detail.status === 'active' ? '' : styles.capitalBadgeDone}`}>{detail.status === 'active' ? 'Upcoming' : detail.status === 'closed' ? 'Refunded' : 'Returned'}</small>
+                          </div>
+                          <small>{detail.status === 'active' ? 'Scheduled' : detail.status === 'closed' ? 'Refunded' : 'Returned'} · {tableDate(detail.principal_repaid_at || (detail.status === 'closed' ? detail.closed_at : detail.ended_at))}</small>
+                        </div>
+                      </div>
                     </div>
                     <div className={styles.detailDates}><span>Started: <strong>{date(detail.started_at)}</strong></span><span>Next payment: <strong>{detail.status === 'active' ? date(detail.next_payment_at) : '—'}</strong></span><span>Principal return: <strong>{detail.principal_repaid_at ? date(detail.principal_repaid_at) : `Scheduled ${date(detail.ended_at)}`}</strong></span></div>
                     <h4 className='mb-0'>Profit payment schedule</h4>
@@ -464,7 +491,8 @@ export default function InvestmentPage() {
                         const payoutType = !detail.payout_frequency || detail.payout_frequency === 'fixed' ? 'One time' : detail.payout_frequency === 'daily' ? 'Daily' : detail.payout_frequency === 'weekly' ? 'Weekly' : 'Monthly';
                         return <div className={`${styles.paymentRow} ${isNextPayment ? styles.paymentNext : ''}`} key={row.number}>
                           <span className={styles.paymentNumber}>{row.number}</span>
-                          <span className={styles.paymentInfo}><strong>{detail.investment?.name || 'Investment'}</strong><small>Payment {row.number} · {date(dueAt)}</small></span>
+                          <span className={styles.paymentInfo}><strong>{payoutType === 'One time' ? 'One-Time' : payoutType} Profit Payout</strong><small>Payment {row.number} · {date(dueAt)}</small></span>
+                          <span className={styles.paymentId}><small>ID - #{detail.code_no || detail.id}</small></span>
                           <span className={styles.paymentMiddle} aria-hidden="true">{isNextPayment && <span className={styles.paymentCountdownMiddle}><i className="fa-regular fa-clock" /> {timeUntil(dueAt, now)}</span>}</span>
                           <span className={styles.paymentRate}>{Number(detail.investment_amount) > 0 ? `${(row.amount / Number(detail.investment_amount) * 100).toFixed(2)}% · ${payoutType}` : '—'}</span>
                           <span className={styles.paymentAmount}><strong>{money(row.amount)}</strong><small>{payoutType}</small></span>
