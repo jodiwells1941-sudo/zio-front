@@ -1,0 +1,8 @@
+.section { width: 100%; }
+.section .grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.banner { display: block; width: 100%; height: auto; margin-bottom: 24px; }
+.heading { margin-bottom: 22px; text-align: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #ffcb4b; font-size: 12px; font-weight: 800; letter-spacing: .12em; }
+.heading h2 { margin: 0; color: #f7f8fb; font-size: clamp(25px, 3vw, 36px); font-weight: 800; }
+.heading p { max-width: 680px; margin: 9px auto 0; color: #aeb8c8; font-size: 14px; line-height: 1.55; white-space: pre-line; }
+.state { padding: 20px; border: 1px solid #454b56; border-radius: 12px; background: #20252e; color: #d9e0e9; text-align: center; }

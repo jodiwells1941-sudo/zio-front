@@ -1,0 +1,5 @@
+.homeContent:global(.content-area) {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}

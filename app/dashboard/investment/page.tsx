@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import Image from 'next/image';
 import apiClient from '@/utils/apiClient';
+import InvestmentPlanCard, { type InvestmentPlan } from '@/components/dashboard/Investment/InvestmentPlanCard';
 import styles from './investment.module.css';
 
-type Plan = { id: number; name: string; short_description?: string | null; icon_key?: string | null; icon_image_url?: string | null; card_image_url?: string | null; duration: number; investment_amount: number | string; return_amount: number | string; payout_frequency?: string; profit_rate?: number | string | null; min_amount?: number | string | null; max_amount?: number | string | null; duration_options?: number[] | null; duration_rates?: { duration_days: number; total_profit_rate: number | string }[] | null };
+type Plan = InvestmentPlan;
 type Holding = { id: number; code_no: string; started_at: string; closed_at?: string | null; principal_repaid_at?: string | null; investment_amount: number | string; return_amount: number | string; total_profit: number | string; paid_profit: number | string; paid_periods: number; total_periods: number; next_payment_at?: string | null; ended_at: string; status: string; payout_frequency?: string; profit_rate?: number | string | null; total_profit_rate?: number | string | null; investment?: { name: string } };
 type Overview = { total_invested: number; total_profit_expected: number; total_profit_paid: number; remaining_profit: number; active_investments: number };
 type ProfitRow = { id: number | string; amount: number | string; description: string; created_at: string; trx_id?: string };
@@ -16,27 +16,6 @@ const days = (plan: Plan) => plan.duration_rates?.length ? plan.duration_rates.m
 const iconClass = (plan: Plan) => ({ crown: 'fa-crown', daily: 'fa-calendar-day', weekly: 'fa-calendar-week', monthly: 'fa-calendar-days', coins: 'fa-coins', growth: 'fa-chart-line', shield: 'fa-shield-halved', gem: 'fa-gem' }[plan.icon_key || ''] || (plan.payout_frequency === 'fixed' ? 'fa-crown' : 'fa-calendar-days'));
 const label = (frequency?: string) => ({ daily: 'Daily Income', weekly: 'Weekly Income', monthly: 'Monthly Income', fixed: 'Fixed Return' }[frequency || 'fixed'] || 'Fixed Return');
 const periodName = (frequency?: string) => ({ daily: 'day', weekly: 'week', monthly: 'month', fixed: 'term' }[frequency || 'fixed'] || 'term');
-const payoutLabel = (frequency?: string) => ({ daily: 'Every day', weekly: 'Every 7 days', monthly: 'Every 30 days', fixed: 'At maturity' }[frequency || 'fixed'] || 'At maturity');
-const planRate = (plan: Plan) => {
-  if (plan.duration_rates?.length) return Math.max(...plan.duration_rates.map(row => Number(row.total_profit_rate)));
-  if (plan.profit_rate != null) {
-    const periodDays = interval(plan.payout_frequency);
-    return Number(plan.profit_rate) * (periodDays ? Math.ceil(Math.max(...days(plan)) / periodDays) : 1);
-  }
-  const principal = Number(plan.investment_amount);
-  return principal > 0 ? (Number(plan.return_amount) - principal) / principal * 100 : 0;
-};
-const planPaymentRate = (plan: Plan) => {
-  const periodDays = interval(plan.payout_frequency);
-  if (!periodDays) return planRate(plan);
-  if (plan.duration_rates?.length) {
-    const bestRate = plan.duration_rates.reduce((best, row) => Number(row.total_profit_rate) > Number(best.total_profit_rate) ? row : best);
-    return Number(bestRate.total_profit_rate) / Math.ceil(Number(bestRate.duration_days) / periodDays);
-  }
-  if (plan.profit_rate != null) return Number(plan.profit_rate);
-  return planRate(plan) / Math.ceil(Number(plan.duration) / periodDays);
-};
-const yearlyPeriods: Record<string, number> = { daily: 365, weekly: 52, monthly: 12 };
 const holdingRate = (item: Holding) => item.total_profit_rate != null ? `${Number(item.total_profit_rate).toFixed(2)}% total` : item.profit_rate == null ? 'Fixed return' : `${Number(item.profit_rate).toFixed(2)}% / ${item.payout_frequency}`;
 const tableRate = (item: Holding) => {
   const total = item.total_profit_rate != null ? Number(item.total_profit_rate) : Number(item.investment_amount) > 0 ? Number(item.total_profit || Number(item.return_amount) - Number(item.investment_amount)) / Number(item.investment_amount) * 100 : 0;
@@ -104,6 +83,8 @@ export default function InvestmentPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState('');
+  const initialPlanApplied = useRef(false);
+  const [autoScrollPlanId, setAutoScrollPlanId] = useState<number | null>(null);
   const selected = plans.find(plan => plan.id === selectedId) || null;
   useEffect(() => {
     if (!selected) return;
@@ -136,6 +117,26 @@ export default function InvestmentPage() {
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [load]);
+  useEffect(() => {
+    if (loading || initialPlanApplied.current || plans.length === 0) return;
+    initialPlanApplied.current = true;
+    const requestedId = Number(new URLSearchParams(window.location.search).get('plan'));
+    const requestedPlan = plans.find(plan => plan.id === requestedId);
+    if (!requestedPlan) return;
+    setSelectedId(requestedPlan.id);
+    setDuration(days(requestedPlan)[0]);
+    setTab('overview');
+    setPlanFilter('all');
+    setAutoScrollPlanId(requestedPlan.id);
+  }, [loading, plans]);
+  useEffect(() => {
+    if (!selected || selected.id !== autoScrollPlanId) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('create-investment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setAutoScrollPlanId(null);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selected, autoScrollPlanId]);
   useEffect(() => {
     setNow(Date.now());
     const timer = window.setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 1000);
@@ -277,47 +278,7 @@ export default function InvestmentPage() {
                   </div>
                 </div>
                 <div className={styles.planGrid}>
-                  {visiblePlans.map(plan => {
-                    const rate = planRate(plan);
-                    const planDays = days(plan).filter(value => Number.isFinite(value)).sort((a, b) => a - b);
-                    const frequency = plan.payout_frequency || 'fixed';
-                    const paymentRate = planPaymentRate(plan);
-                    const annualRate = yearlyPeriods[frequency] ? paymentRate * yearlyPeriods[frequency] : null;
-                    return (
-                      <article className={`${styles.plan} ${styles[`plan_${frequency}`] || ''} ${selectedId === plan.id ? styles.selectedPlan : ''}`} key={plan.id}>
-                        {(frequency === 'fixed' || frequency === 'daily') && <span className={styles.planRibbon}>{frequency === 'fixed' ? 'Most Stable' :
-                          <> Popular
-                          <i className="fa-solid fa-star ms-1 fs-10" aria-hidden="true" />
-                         </>}</span>}
-                        <span className={styles.planIcon}>{plan.icon_image_url ? <Image src={plan.icon_image_url} alt="" width={43} height={40} unoptimized /> : <i className={`fa-solid ${iconClass(plan)}`} aria-hidden="true" />}</span>
-                        {/* <h3>{plan.name}</h3> */}
-                        <div className={`${styles.planFrame} mb-4`} aria-hidden="true">
-                          <span className={`${styles.planFrameCorner} ${styles.planFrameTopLeft}`} />
-                          <span className={`${styles.planFrameCorner} ${styles.planFrameTopRight}`} />
-                          <span className={`${styles.planFrameText} fs-5`}>{plan.name}</span>
-                          <span className={`${styles.planFrameCorner} ${styles.planFrameBottomLeft}`} />
-                          <span className={`${styles.planFrameCorner} ${styles.planFrameBottomRight}`} />
-                        </div>
-                        <p className={styles.planDescription}>{plan.short_description || (frequency === 'fixed' ? 'Return at maturity' : `Profit ${payoutLabel(frequency).toLowerCase()}`)}</p>
-                        <div className={styles.planRate}><small>Up to</small> <strong>{Number.isFinite(rate) ? `${rate.toFixed(2)}%` : '—'}</strong> <span>Profit</span></div>
-                        <div className={styles.planHighlights}>
-                          <div><i className="fa-solid fa-check" aria-hidden="true" /><span>Profit Rate: <strong>{Number.isFinite(paymentRate) ? `${paymentRate.toFixed(2)}%` : '—'} {frequency === 'fixed' ? '(One Time)' : `/ ${periodName(frequency)}`}</strong></span></div>
-                          {annualRate !== null && Number.isFinite(annualRate) && <div className={styles.planAnnual}><i className="fa-solid fa-check" aria-hidden="true" /><strong>≈ {annualRate.toFixed(2)}% / Year</strong></div>}
-                        </div>
-                        <div className={styles.planFacts}>
-                          <div><i className="fa-regular fa-calendar-days" aria-hidden="true" /><span>Duration: {planDays.length ? `${planDays[0]} days${planDays.length > 1 ? ` · Up to ${planDays[planDays.length - 1]} days` : ''}` : '—'}</span></div>
-                          <div><i className="fa-solid fa-coins" aria-hidden="true" /><span>Payout: {frequency === 'fixed' ? '1 Time' : payoutLabel(frequency)}</span></div>
-                          <div><i className="fa-regular fa-calendar-check" aria-hidden="true" /><span>{frequency === 'fixed' ? 'Total Payment' : 'Total Payment (Yearly)'}: {yearlyPeriods[frequency] ? `${yearlyPeriods[frequency]} times` : '1 Time'}</span></div>
-                          <div><i className="fa-solid fa-circle-check" aria-hidden="true" /><span>Capital: 100% Return</span></div>
-                          <div><i className="fa-solid fa-shield-halved" aria-hidden="true" /><span>Min: {money(plan.min_amount ?? plan.investment_amount)} · Max: {money(plan.max_amount ?? plan.investment_amount)}</span></div>
-                        </div>
-                        <div className={styles.planArt} aria-hidden="true">{plan.card_image_url ? <Image src={plan.card_image_url} alt="" width={110} height={68} unoptimized /> : <><i className={`fa-solid ${frequency === 'fixed' ? 'fa-shield-halved' : 'fa-calendar-days'}`} /><i className="fa-solid fa-coins" /></>}</div>
-                        <button type="button" className={styles.planSelect} onClick={() => choosePlan(plan)}>
-                          {selectedId === plan.id ? 'Selected plan' : 'Select plan'} <i className={`fa-solid ${selectedId === plan.id ? 'fa-check' : 'fa-arrow-right'}`} aria-hidden="true" />
-                        </button>
-                      </article>
-                    );
-                  })}
+                  {visiblePlans.map(plan => <InvestmentPlanCard key={plan.id} plan={plan} selected={selectedId === plan.id} onSelect={() => choosePlan(plan)} />)}
                   {visiblePlans.length === 0 && <p className={styles.empty}>No plans are available in this category.</p>}
                 </div>
               </section>

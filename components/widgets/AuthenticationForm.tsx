@@ -48,16 +48,20 @@ const AuthenticationForm = () => {
       const responseData = data?.data;
 
       if (responseData?.access_token && responseData?.user) {
-        await fetch('/api/auth/login', {
+        const sessionResponse = await fetch('/api/auth/login/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: responseData.access_token }),
         });
+        if (!sessionResponse.ok) throw new Error('Could not create your login session. Please try again.');
 
-        login(responseData.access_token, responseData.user);
+        await login(responseData.access_token, responseData.user);
 
         toast.success("Login successful...");
-        window.location.href = redirect || "/dashboard";
+        const destination = redirect?.trim().replace(/^\/+/, '') || 'dashboard';
+        const nextUrl = new URL(`/${destination}`, window.location.origin);
+        const isDashboardPath = nextUrl.pathname === '/dashboard' || nextUrl.pathname.startsWith('/dashboard/');
+        window.location.href = isDashboardPath ? `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}` : '/dashboard/';
         return;
       } else {
         setError("Invalid login response. Please try again.");
@@ -65,7 +69,7 @@ const AuthenticationForm = () => {
       }
     } catch (err: unknown) {
       // ✅ Extract backend error message
-      let message = "Login failed. Please try again.";
+      let message = err instanceof Error ? err.message : "Login failed. Please try again.";
 
       if (err && typeof err === "object" && "response" in err) {
         const axiosErr = err as { response?: { status?: number; data?: { message?: string } } };
@@ -138,6 +142,7 @@ const AuthenticationForm = () => {
           {isLoading ? "Signing In..." : <>Sign In <i className="ti ti-arrow-narrow-right"></i></>}
         </button>
       </div>
+      {error && <p className="text-danger mt-3" role="alert">{error}</p>}
 
       <p className="text-end mt-16 forget-pass text-center">
         <Link href="/verify-email">Forget Password ?</Link>

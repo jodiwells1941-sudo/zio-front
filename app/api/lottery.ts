@@ -70,7 +70,7 @@ export const getPopularLottery = async () => {
 const url = '/user/investments';
 
 export const investmentsApi = async (page = 1) => {
-    return (await apiClient.get(`all-investments?page=${page}`)).data;
+    return (await apiClient.get('all-investments', { params: { page, per_page: 100 } })).data;
 };
 
 export const investmentHistoryApi = async (page = 1) => {

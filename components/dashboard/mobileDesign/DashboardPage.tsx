@@ -10,88 +10,12 @@ import LotteryResultMobileCard from "./LotteryResultMobileCard";
 import LotterySliderCard from "./LotterySliderCard";
 import ActionBottomSheet from "./Actionbottomsheet";
 import Link from "next/link";
-import { Investment } from "@/types/CommonTypes";
-import { investmentPurchase } from "@/app/api/lottery";
-import Swal from "sweetalert2";
-import { toast } from "react-toastify";
 
 type ModalType = "deposit" | "withdraw" | null;
 
-export default function DashboardPage({investment}: {investment: Investment | null}) {
+export default function DashboardPage() {
 
   const [modalType, setModalType] = useState<ModalType>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const formatMoney = (value?: string | number) => {
-    const num = typeof value === "string" ? parseFloat(value) : value ?? 0;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(num);
-  };
-
-  const handlePurchase = async () => {
-      if (!investment) {
-        Swal.fire({
-          title: "No Investment Available",
-          text: "Please try again later.",
-          icon: "warning",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const response = await investmentPurchase(investment.id.toString());
-  
-        if (response) {
-          toast.success("Investment successful! Your returns will be reflected in your account soon.");
-        }
-  
-      } catch (err) {
-        // Set the error message from the API response
-        const errorMessage = err instanceof Error ? err.message : "Ticket purchase failed";
-        Swal.fire({
-          title: "Purchase Failed",
-          text: errorMessage,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  
-    const buyInvestment = async () => {
-      if (!investment) {
-        Swal.fire({
-          title: "No Investment Available",
-          text: "Please try again later.",
-          icon: "warning",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      const result = await Swal.fire({
-        title: "Investment Confirmation",
-        icon: "info",
-        html: ` Are you sure you want to invest <strong>${formatMoney(investment.investment_amount)}</strong> and get <strong>${formatMoney(investment.return_amount)}</strong> in return?`,
-        showCloseButton: true,
-        showCancelButton: true,
-        focusConfirm: false,
-        confirmButtonAriaLabel: "Thumbs up, great!",
-        cancelButtonText: `No, Cancel!`,
-        confirmButtonText: `Yes, Invest!`,
-        cancelButtonAriaLabel: "Thumbs down"
-      });
-  
-      if (result.isConfirmed) {
-        await handlePurchase();
-      }
-    };
 
   return (
     <main className={`d-md-none ${styles.screen}`}>
@@ -177,7 +101,7 @@ export default function DashboardPage({investment}: {investment: Investment | nu
                 </div>
 
                 <div className="col-3">
-                  <Link href="/dashboard/invesment">
+                  <Link href="/dashboard/investment/">
                     <div>
                       <div className={`${styles.navTile} ${styles.tileGold}`}>
                         <i className={`fa-solid fa-chart-line ${styles.navIcon}`} /> 
@@ -211,37 +135,6 @@ export default function DashboardPage({investment}: {investment: Investment | nu
               </div>
             </nav>
 
-          </div>
-        </div>
-
-        <div className="my-0 pt-0 bg-cover rounded" 
-          style={{ backgroundImage: "url('/images/new/investment-img.png')" }}
-        >
-          <div className="investment-wrapper my-0 pt-0 bg-cover rounded" 
-            style={{ backgroundImage: "url('/images/new/bg.png')" }}
-          >
-            <div className="content d-flex justify-content-start pb-2">
-              <div className="text-center px-3 pt-3">
-                <div className="inv-box">
-                  <span className="inv-corner--tl"></span>
-                  <span className="inv-corner--tr"></span>
-                  <span className="inv-corner--bl"></span>
-                  <span className="inv-corner--br"></span>
-                  <h3 className="inv-title px-1">Investment</h3>
-                </div>
-                <div className="inv-logo bg-gradient"></div>
-
-                <h6 className="fw-6">{investment ? formatMoney(investment.investment_amount) : "$0"}</h6>
-                <small>Returns</small>
-                <h6 className="price-2 fs-5 fw-6 text-warning">{investment ? formatMoney(investment.return_amount) : "$0"}</h6>
-
-                <button className="btn--primary py-1 px-2 d-flex align-items-center justify-content-center text-xs my-2" onClick={buyInvestment}>
-                  {isLoading ? "Processing..." : "Invest Now"} <span className='fa-solid fa-angle-right '></span>
-                </button>
-                
-                <small>*Guaranteed</small>
-              </div>
-            </div>
           </div>
         </div>
 
