@@ -90,7 +90,7 @@
 .tabs button i { font-size: 15px; }
 .tabs button:hover { color: #fff; background: #ffffff0b; }
 .tabs .activeTab { border-color: #edbd44; background: linear-gradient(110deg, #ffce55, #efb733); color: #1c1b1a; box-shadow: 0 3px 12px #eeb52b36; }
-.tabs .activeTab:hover { color: #1c1b1a; background: #ffd45e; }
+.tabs .activeTab:hover { color: #121110 !important; background: #ffd45e; }
 
 .metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 17px; }
 .metric { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 91px; padding: 13px; border: 1px solid #3b424e; border-radius: 14px; background: linear-gradient(145deg, #2b303a, #20252e); box-shadow: inset 0 1px #ffffff14, 0 8px 18px #0000001a; }
@@ -147,12 +147,18 @@
 .plan_daily { --plan-accent: #73dfed; --plan-line: #337883; --plan-tint: #45dcea20; --plan-image: url('/images/package-bg-img/pac-1-bg.png'); }
 .plan_weekly { --plan-accent: #c589f6; --plan-line: #71518d; --plan-tint: #a76be827; --plan-image: url('/images/package-bg-img/pac-4-bg.png'); }
 .plan_monthly { --plan-accent: #64dc95; --plan-line: #3d8260; --plan-tint: #42d48b20; --plan-image: url('/images/package-bg-img/pac-3-bg.png'); }
-.selectedPlan { box-shadow: inset 0 0 0 1px var(--plan-accent), 0 0 0 2px var(--plan-tint), 0 14px 28px #0005; }
+.selectedPlan {
+  border: 4px solid var(--plan-accent);
+  padding: 18px 15px 15px;
+  background-image: var(--plan-image), radial-gradient(85% 35% at 50% 100%, var(--plan-tint), transparent 85%), radial-gradient(95% 70% at 50% 0%, var(--plan-tint), transparent 85%), linear-gradient(155deg, color-mix(in srgb, var(--plan-accent) 22%, #282c35), color-mix(in srgb, var(--plan-accent) 12%, #1b2028) 70%);
+  box-shadow: inset 0 0 0 1px #ffffff3d, inset 0 0 28px var(--plan-tint), 0 0 0 2px var(--plan-tint), 0 14px 28px #0005;
+}
+.selectedPlan:hover { box-shadow: inset 0 0 0 1px #ffffff3d, inset 0 0 28px var(--plan-tint), 0 0 22px var(--plan-tint), 0 15px 30px #0006; }
 .planRibbon { position: absolute; top: 14px; left: -36px; width: 145px; padding: 5px 0; background: linear-gradient(90deg, #ffdf83, #ffc237); color: #271c05; text-align: center; font-size: 12px; font-weight: 850; transform: rotate(-35deg); box-shadow: 0 4px 10px #0006; }
 .planIcon { display: grid; place-items: center; width: 55px; height: 50px; margin: 1px 0 8px; border: 2px solid color-mix(in srgb, var(--plan-accent) 75%, transparent); border-radius: 14px; background: transparent; box-shadow: inset 0 0 14px 2px color-mix(in srgb, var(--plan-accent) 28%, transparent), 0 0 12px var(--plan-tint); color: var(--plan-accent); font-size: 37px; }
 .planIcon img { display: block; width: 43px; height: 40px; object-fit: contain; }
 .plan h3 { margin: 0 0 8px; color: #f5f7fb; font-size: clamp(18px, 1.75vw, 24px); line-height: 1.2; font-weight: 800; text-align: center; overflow-wrap: anywhere; }
-.planDescription { display: inline-flex; align-items: center; justify-content: center; max-width: 100%; min-height: 32px; margin: 0; padding: 4px 12px; border: 1px solid var(--plan-accent); border-radius: 20px; background: transparent; box-shadow: inset 0 0 12px 2px color-mix(in srgb, var(--plan-accent) 45%, transparent), inset 0 0 3px 1px color-mix(in srgb, var(--plan-accent) 35%, transparent), 0 0 10px var(--plan-tint); color: var(--plan-accent); text-align: center; font-size: 14px; line-height: 1.2; font-weight: 750; }
+.planDescription { display: inline-flex; align-items: center; justify-content: center; max-width: 100%; min-height: 32px; margin: 0; padding: 4px 12px; border: 1px solid var(--plan-accent); border-radius: 20px; background: var(--plan-accent); box-shadow: inset 0 1px 2px #ffffff70, inset 0 -2px 5px #00000024, 0 0 10px var(--plan-tint); color: #17212a; text-align: center; font-size: 14px; line-height: 1.2; font-weight: 750; }
 .planFrame { position: relative; display: grid; place-items: center; width: min(100%, 215px); min-height: 44px; margin-top: 14px; background: linear-gradient(90deg, transparent, var(--plan-tint), transparent); }
 .planFrame::after { position: absolute; z-index: 2; top: -4px; left: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--plan-accent); box-shadow: 0 0 0 2px var(--plan-tint), 0 0 11px 3px var(--plan-accent); content: ''; pointer-events: none; animation: planFramePointer 6s linear infinite; }
 @keyframes planFramePointer {
@@ -177,8 +183,7 @@
 .planHighlights { display: grid; align-self: stretch; gap: 5px; margin: 0 0 8px; }
 .planHighlights div { display: flex; align-items: start; gap: 9px; color: #e4e8ef; font-size: 12px; line-height: 1.3; }
 .planHighlights i { flex: none; width: 15px; color: var(--plan-accent); text-align: center; font-size: 13px; }
-.planHighlights strong { font-weight: 750; }
-.planHighlights .planAnnual strong { color: #ffca4d; }
+.planHighlights strong { color: var(--plan-accent); font-weight: 750; }
 .planFacts { display: grid; gap: 6px; align-self: stretch; margin: 0 0 6px; }
 .planFacts div { display: flex; align-items: start; gap: 9px; color: #d7dce5; font-size: 11px; line-height: 1.3; }
 .planFacts i { flex: none; width: 15px; color: #ffc43c; text-align: center; font-size: 14px; }
@@ -330,6 +335,11 @@
 .tableScroll tbody tr:hover { background: #ffffff08; }
 .tableScroll td strong { color: #f4f6f8; font-weight: 700; }
 .tableScroll td small { display: block; margin-top: 3px; color: #a6b2c2; font-size: 10px; }
+.investmentTable tbody td:nth-child(n+3):nth-child(-n+9),
+.investmentTable tbody td:nth-child(n+3):nth-child(-n+9) strong,
+.investmentTable tbody td:nth-child(n+3):nth-child(-n+9) small { font-size: 16px; }
+.investmentTable tbody td:nth-child(8) .dateCell strong,
+.investmentTable tbody td:nth-child(9) .dateCell strong { font-size: 14px; }
 .progress { width: 75px; height: 7px; overflow: hidden; border-radius: 9px; background: #3c4651; }
 .progress span { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg, #60d9e6, #83e8ee); }
 .status { display: inline-block; padding: 4px 9px; border: 1px solid #57616c; border-radius: 20px; text-transform: capitalize; font-size: 10px; font-weight: 750; }
@@ -352,14 +362,17 @@
 .detailDates strong { color: #e9eff6; font-weight: 650; }
 .detail h4 { margin: 0 0 8px; color: #f3f6fa; font-size: 14px; }
 .paymentList { max-height: 310px; overflow-y: auto; border: 1px solid #394552; border-radius: 9px; scrollbar-width: thin; }
-.paymentRow { display: grid; grid-template-columns: 26px minmax(110px, 1fr) 75px 95px 80px; align-items: center; gap: 10px; padding: 9px 11px; border-bottom: 1px solid #35404b; font-size: 12px; }
+.paymentRow { display: grid; grid-template-columns: 26px minmax(110px, 1fr) 75px 95px minmax(105px, 130px); align-items: center; gap: 10px; padding: 9px 11px; border-bottom: 1px solid #35404b; font-size: 12px; }
 .paymentRow:last-child { border-bottom: 0; }
 .paymentRow:nth-child(even) { background: #ffffff06; }
+.paymentRow.paymentNext { background: #e5b43512; box-shadow: inset 3px 0 #f5c74d; }
 .paymentRow strong { color: #eef3f8; }
 .paymentRow small { display: block; color: #a8b5c3; font-size: 10px; }
+.paymentRow .paymentCountdown { color: #ffd26b; text-align: right; font-size: 10px; font-weight: 750; font-variant-numeric: tabular-nums; }
 .paymentNumber { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 7px; background: #a27b2b3d; color: #ffd26b; font-weight: 800; }
 .paymentRate { color: #9fe6ee; text-align: right; }
 .paymentAmount { text-align: right; }
+.paymentStatus { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 0; }
 .paymentState { padding: 3px 6px; border-radius: 20px; background: #6e5b2d55; color: #f5d47d; text-align: center; font-size: 10px; font-weight: 750; }
 .paymentPaid { background: #285e4655; color: #75e2ad; }
 .paymentCancelled { background: #75404b55; color: #ffadb7; }
@@ -404,10 +417,10 @@
   .summaryTotal strong { font-size: 13px; }
   .summaryTotal b { font-size: 18px; }
   .detailStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .paymentRow { grid-template-columns: 24px minmax(90px, 1fr) 65px; gap: 6px; }
+  .paymentRow { grid-template-columns: 24px minmax(90px, 1fr) minmax(95px, 110px); gap: 6px; }
   .paymentRate { grid-column: 2; text-align: left; }
   .paymentAmount { grid-column: 3; grid-row: 1; }
-  .paymentState { grid-column: 3; grid-row: 2; }
+  .paymentStatus { grid-column: 3; grid-row: 2; }
   .hero { min-height: 0; }
   .heroContent { padding: 23px; }
   .hero h1 { font-size: 28px; }

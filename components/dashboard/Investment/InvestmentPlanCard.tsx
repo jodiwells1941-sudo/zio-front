@@ -63,7 +63,7 @@ export default function InvestmentPlanCard({ plan, selected = false, onSelect, h
   const perPaymentRate = paymentRate(plan);
   const annualRate = yearlyPeriods[frequency] ? perPaymentRate * yearlyPeriods[frequency] : null;
   const availableDays = planDays(plan).filter(Number.isFinite).sort((a, b) => a - b);
-  const action = <>{selected ? 'Selected plan' : 'Select plan'} <i className={`fa-solid ${selected ? 'fa-check' : 'fa-arrow-right'}`} aria-hidden="true" /></>;
+  const action = <>{selected ? 'Selected plan' : 'Invest Now'} <i className={`fa-solid ${selected ? 'fa-check' : 'fa-arrow-right'}`} aria-hidden="true" /></>;
 
   return <article className={`${styles.plan} ${styles[`plan_${frequency}`] || ''} ${selected ? styles.selectedPlan : ''} ${compact ? styles.planCompact : ''}`}>
     {(frequency === 'fixed' || frequency === 'daily') && <span className={styles.planRibbon}>{frequency === 'fixed' ? 'Most Stable' : <>Popular <i className="fa-solid fa-star ms-1 fs-10" aria-hidden="true" /></>}</span>}

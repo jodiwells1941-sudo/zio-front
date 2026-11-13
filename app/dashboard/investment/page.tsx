@@ -13,6 +13,17 @@ type ProfitRow = { id: number | string; amount: number | string; description: st
 const money = (value: number | string | null | undefined) => `$${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const date = (value?: string | null) => value ? new Date(value).toLocaleString() : '—';
 const days = (plan: Plan) => plan.duration_rates?.length ? plan.duration_rates.map(row => Number(row.duration_days)) : plan.profit_rate != null && plan.duration_options?.length ? plan.duration_options.map(Number) : [Number(plan.duration)];
+const durationOptionLabel = (length: number, frequency?: string) => {
+  const dayLabel = `${length} ${length === 1 ? 'Day' : 'Days'}`;
+  const unit = length > 0 && length % 365 === 0
+    ? `${length / 365} ${length === 365 ? 'Year' : 'Years'}`
+    : length > 0 && length % 30 === 0
+      ? `${length / 30} ${length === 30 ? 'Month' : 'Months'}`
+      : frequency === 'weekly' && length > 0 && length % 7 === 0
+        ? `${length / 7} ${length === 7 ? 'Week' : 'Weeks'}`
+        : null;
+  return unit ? `${unit} - ${dayLabel}` : dayLabel;
+};
 const iconClass = (plan: Plan) => ({ crown: 'fa-crown', daily: 'fa-calendar-day', weekly: 'fa-calendar-week', monthly: 'fa-calendar-days', coins: 'fa-coins', growth: 'fa-chart-line', shield: 'fa-shield-halved', gem: 'fa-gem' }[plan.icon_key || ''] || (plan.payout_frequency === 'fixed' ? 'fa-crown' : 'fa-calendar-days'));
 const label = (frequency?: string) => ({ daily: 'Daily Income', weekly: 'Weekly Income', monthly: 'Monthly Income', fixed: 'Fixed Return' }[frequency || 'fixed'] || 'Fixed Return');
 const periodName = (frequency?: string) => ({ daily: 'day', weekly: 'week', monthly: 'month', fixed: 'term' }[frequency || 'fixed'] || 'term');
@@ -301,7 +312,7 @@ export default function InvestmentPage() {
                         {selected ? days(selected).map(d => {
                           const option = calculatePreview(selected, Number(amount === '' ? selected.investment_amount : amount), d);
                           const percent = option.totalRate ?? (option.principal > 0 ? option.profit / option.principal * 100 : 0);
-                          return <option value={d} key={d}>{d} {d === 1 ? 'Day' : 'Days'} - ({percent.toFixed(2)}%) Profit - {money(option.profit)}</option>;
+                          return <option value={d} key={d}>{durationOptionLabel(d, selected.payout_frequency)} - {percent.toFixed(2)}%</option>;
                         }) : <option value="">Select a plan</option>}
                       </select>
                     </label>
@@ -378,8 +389,8 @@ export default function InvestmentPage() {
                             <td className={styles.totalProfitCell}>{money(expected)}</td>
                             <td>{money(paid)}</td>
                             <td className={styles.remainingCell}>{money(remaining)}</td>
-                            <td><div className={styles.dateCell}><i className="fa-regular fa-clock" aria-hidden="true" /><span><strong>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong><small>{item.status === 'active' ? tableDate(item.next_payment_at || item.ended_at) : 'No upcoming payment'}</small></span></div></td>
-                            <td><div className={styles.dateCell}><i className="fa-regular fa-calendar" aria-hidden="true" /><span><strong>{item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Cancelled' : timeUntil(item.ended_at, now)}</strong><small>{tableDate(item.principal_repaid_at || item.ended_at)}</small></span></div></td>
+                            <td><div className={styles.dateCell}><i className="fa-regular fa-clock" aria-hidden="true" /><span><strong className='text-warning'>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong><small>{item.status === 'active' ? tableDate(item.next_payment_at || item.ended_at) : 'No upcoming payment'}</small></span></div></td>
+                            <td><div className={styles.dateCell}><i className="fa-regular fa-calendar" aria-hidden="true" /><span><strong className='text-warning'>{item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Cancelled' : timeUntil(item.ended_at, now)}</strong><small>{tableDate(item.principal_repaid_at || item.ended_at)}</small></span></div></td>
                             <td><div className={styles.progressCell}><span className={`${styles.status} ${styles[item.status] || ''}`}>{item.status}</span><div className={styles.progressLine}><div className={styles.progress} aria-label={`${progress.toFixed(2)}% of profit paid`}><span style={{ width: `${progress}%` }} /></div><small>{progress.toFixed(2)}%</small></div></div></td>
                             <td><button type="button" className={styles.viewButton} onClick={() => setDetailId(detailId === item.id ? null : item.id)}>{detailId === item.id ? 'Hide' : 'Details'}</button></td>
                           </tr>
@@ -426,15 +437,22 @@ export default function InvestmentPage() {
                       <div><span>Payment progress</span><strong>{detail.paid_periods || 0} / {detail.total_periods || 1}</strong></div>
                     </div>
                     <div className={styles.detailDates}><span>Started: <strong>{date(detail.started_at)}</strong></span><span>Next payment: <strong>{detail.status === 'active' ? date(detail.next_payment_at) : '—'}</strong></span><span>Principal return: <strong>{detail.principal_repaid_at ? date(detail.principal_repaid_at) : `Scheduled ${date(detail.ended_at)}`}</strong></span></div>
-                    <h4>Profit payment schedule</h4>
+                    <h4 className='mb-0'>Profit payment schedule</h4>
                     <div className={styles.paymentList}>
-                      {paymentRows(detail).map(row => <div className={styles.paymentRow} key={row.number}>
-                        <span className={styles.paymentNumber}>{row.number}</span>
-                        <span><strong>Payment {row.number}</strong><small>{date(row.dueDate)}</small></span>
-                        <span className={styles.paymentRate}>{Number(detail.investment_amount) > 0 ? `${(row.amount / Number(detail.investment_amount) * 100).toFixed(2)}%` : '—'}</span>
-                        <strong className={styles.paymentAmount}>{money(row.amount)}</strong>
-                        <span className={`${styles.paymentState} ${row.state === 'Paid' ? styles.paymentPaid : row.state === 'Cancelled' ? styles.paymentCancelled : ''}`}>{row.state}</span>
-                      </div>)}
+                      {paymentRows(detail).map(row => {
+                        const isNextPayment = detail.status === 'active' && row.state === 'Upcoming' && row.number === Number(detail.paid_periods || 0) + 1;
+                        const dueAt = isNextPayment ? detail.next_payment_at || row.dueDate : row.dueDate;
+                        return <div className={`${styles.paymentRow} ${isNextPayment ? styles.paymentNext : ''}`} key={row.number}>
+                          <span className={styles.paymentNumber}>{row.number}</span>
+                          <span><strong>Payment {row.number}</strong><small>{date(dueAt)}</small></span>
+                          <span className={styles.paymentRate}>{Number(detail.investment_amount) > 0 ? `${(row.amount / Number(detail.investment_amount) * 100).toFixed(2)}%` : '—'}</span>
+                          <strong className={styles.paymentAmount}>{money(row.amount)}</strong>
+                          <span className={styles.paymentStatus}>
+                            <span className={`${styles.paymentState} ${row.state === 'Paid' ? styles.paymentPaid : row.state === 'Cancelled' ? styles.paymentCancelled : ''}`}>{row.state}</span>
+                            {isNextPayment && <small className={styles.paymentCountdown}><i className="fa-regular fa-clock" aria-hidden="true" /> {timeUntil(dueAt, now)}</small>}
+                          </span>
+                        </div>;
+                      })}
                     </div>
                   </section>}
                   {historyPage < historyLastPage && <button type="button" className={styles.loadMore} onClick={loadMore} disabled={historyLoading}>{historyLoading ? 'Loading…' : 'Load more investments'}</button>}
