@@ -1083,33 +1083,41 @@
   animation:completionFadeIn .22s ease-out;
 }
 .completionCard{
+  display:flex;
+  flex-direction:column;
   position:relative;
   z-index:2;
-  width:min(100%,430px);
-  padding:32px;
+  width:min(100%,480px);
+  max-height:calc(100dvh - 40px);
   overflow:hidden;
   border:1px solid rgba(250,204,21,.36);
-  border-radius:24px;
+  border-radius:22px;
   background:
-    radial-gradient(300px 170px at 8% 0%,rgba(250,204,21,.18),transparent 75%),
-    radial-gradient(280px 170px at 100% 100%,rgba(249,115,22,.14),transparent 75%),
-    linear-gradient(155deg,#202a38 0%,#111722 72%);
-  box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 48px rgba(250,204,21,.12),0 0 72px rgba(249,115,22,.08);
+    radial-gradient(320px 180px at 50% 0%,rgba(250,204,21,.16),transparent 75%),
+    linear-gradient(155deg,#202833 0%,#111722 75%);
+  box-shadow:0 28px 90px rgba(0,0,0,.62),0 0 44px rgba(250,204,21,.1),inset 0 1px rgba(255,255,255,.08);
   text-align:center;
   animation:completionCardIn .32s cubic-bezier(.2,.8,.2,1);
 }
+.completionHeader{
+  padding:27px 28px 22px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(255,210,88,.08),transparent);
+}
+.completionBody{ min-height:0; padding:22px 28px 0; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#846d36 transparent; }
+.completionFooter{ flex:none; padding:18px 28px 27px; background:linear-gradient(180deg,rgba(17,23,34,.9),#111722); }
 .completionBadge{
   display:grid;
-  width:62px;
-  height:62px;
-  margin:0 auto 17px;
+  width:58px;
+  height:58px;
+  margin:0 auto 13px;
   place-items:center;
   border:1px solid rgba(250,204,21,.58);
-  border-radius:20px;
-  background:linear-gradient(145deg,rgba(250,204,21,.3),rgba(249,115,22,.14));
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(250,204,21,.32),rgba(249,115,22,.12));
   color:#fff1a8;
-  font-size:25px;
-  box-shadow:0 10px 32px rgba(250,204,21,.19),inset 0 1px rgba(255,255,255,.16);
+  font-size:24px;
+  box-shadow:0 10px 32px rgba(250,204,21,.16),inset 0 1px rgba(255,255,255,.16);
 }
 .completionEyebrow{
   color:#facc15;
@@ -1119,9 +1127,9 @@
   text-transform:uppercase;
 }
 .completionCard h2{
-  margin:8px 0 20px;
+  margin:8px 0 0;
   color:#fff;
-  font-size:27px;
+  font-size:28px;
   font-weight:850;
   letter-spacing:-.035em;
 }
@@ -1132,11 +1140,12 @@
 }
 .completionAmounts{
   overflow:hidden;
-  margin:0 0 16px;
-  border:1px solid rgba(255,255,255,.09);
+  margin:0;
+  border:1px solid rgba(250,204,21,.24);
   border-radius:17px;
   background:rgba(6,11,18,.48);
   text-align:left;
+  box-shadow:inset 0 1px rgba(255,255,255,.07);
 }
 .completionReceivedBlock{
   padding:18px 20px 19px;
@@ -1197,10 +1206,52 @@
   font-variant-numeric:tabular-nums;
 }
 .completionCard .completionMessage{
-  margin:0 0 21px;
-  color:rgba(255,255,255,.53);
+  margin:15px 0 17px;
+  color:#aeb9c8;
   font-size:12px;
 }
+.completionSummary{
+  margin:0 0 18px;
+  overflow:hidden;
+  border:1px solid rgba(250,204,21,.27);
+  border-radius:12px;
+  background:#171e29;
+  text-align:left;
+}
+.completionSummary summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  color:#fbd46c;
+  font-size:13px;
+  font-weight:750;
+  cursor:pointer;
+  list-style:none;
+}
+.completionSummary summary::-webkit-details-marker{ display:none; }
+.completionSummary summary span{ display:inline-flex; align-items:center; gap:9px; }
+.completionSummary summary:focus-visible{ outline:2px solid #ffcf52; outline-offset:-3px; }
+.completionSummaryChevron{ font-size:11px; transition:transform .18s ease; }
+.completionSummary[open] .completionSummaryChevron{ transform:rotate(180deg); }
+.completionSummaryRows{
+  margin:0;
+  padding:2px 16px 6px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.completionSummaryRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px dashed rgba(255,255,255,.1);
+  font-size:12px;
+  line-height:1.35;
+}
+.completionSummaryRow:last-child{ border-bottom:0; }
+.completionSummaryRow dt{ color:#aeb9c8; font-weight:500; }
+.completionSummaryRow dd{ margin:0; color:#f1f5fa; font-weight:700; text-align:right; overflow-wrap:anywhere; }
 .completionButton{
   display:flex;
   align-items:center;
@@ -1224,12 +1275,16 @@
 @keyframes completionCardIn{ from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:translateY(0) scale(1)} }
 @media (max-width:480px){
   .completionCelebration{ padding:14px; }
-  .completionCard{ padding:27px 21px 22px; border-radius:20px; }
-  .completionCard h2{ margin-bottom:17px; font-size:24px; }
+  .completionCard{ max-height:calc(100dvh - 28px); border-radius:20px; }
+  .completionHeader{ padding:22px 18px 19px; }
+  .completionBody{ padding:18px 18px 0; }
+  .completionFooter{ padding:15px 18px 18px; }
+  .completionCard h2{ font-size:24px; }
   .completionReceivedBlock{ padding:16px; }
   .completionCard .completionEquivalent{ padding:13px 16px; }
+  .completionSummaryRow{ grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:8px; }
 }
 @media (prefers-reduced-motion:reduce){
   .completionCelebration,.completionCard{ animation:none; }
-  .completionButton{ transition:none; }
+  .completionButton,.completionSummaryChevron{ transition:none; }
 }

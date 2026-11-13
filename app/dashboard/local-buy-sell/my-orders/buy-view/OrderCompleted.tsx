@@ -33,7 +33,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
   const [submitted,  setSubmitted]  = useState(false);
 
   // ── Derived values ─────────────────────────────────────────────────────────
-  const methodName = trade?.p2p_ad?.payment_method?.sell_method?.name ?? "Bank Transfer";
+  const methodName = trade?.current_status?.method ?? trade?.p2p_ad?.payment_method?.sell_method?.name ?? "—";
   const createdAt  = trade?.created_at
     ? new Date(trade.created_at).toLocaleString()
     : "—";
@@ -64,6 +64,17 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
     : null;
   const asset = vd?.asset ?? "USDT";
   const orderSideLabel = trade?.type === "sell" ? "Sell" : "Buy";
+  const fee = Number(trade?.charge_amount ?? 0);
+  const bonus = Number(trade?.bonus_amount ?? 0);
+  const tradeType = String(trade?.type ?? "buy").toLowerCase();
+  const formatAdjustment = (amount: number) => `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${asset}`;
+  const summaryRows = trade && vd ? [
+    { label: "Order ID", value: trade.order_id || `#${trade.id}` },
+    ...vd.detailRows.map(({ label, value }) => ({ label, value })),
+    ...(isSeller && tradeType === "sell" && fee > 0 ? [{ label: "Fee", value: formatAdjustment(fee) }] : []),
+    ...(!isSeller && tradeType === "buy" && bonus > 0 ? [{ label: "Bonus", value: formatAdjustment(bonus) }] : []),
+    { label: "Payment method", value: methodName },
+  ] : [];
 
 
   const feedbackTags = [
@@ -89,6 +100,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
         isOpen={showCelebration}
         receivedAmount={completedAmounts?.receivedAmount}
         paidAmount={completedAmounts?.paidAmount}
+        summaryRows={summaryRows}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);
