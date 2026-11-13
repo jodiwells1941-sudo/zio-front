@@ -75,7 +75,7 @@ export default function InvestmentPlanCard({ plan, selected = false, onSelect, h
       <span className={`${styles.planFrameCorner} ${styles.planFrameBottomLeft}`} />
       <span className={`${styles.planFrameCorner} ${styles.planFrameBottomRight}`} />
     </div>
-    <p className={styles.planDescription}>{plan.short_description || (frequency === 'fixed' ? 'Return at maturity' : `Profit ${payoutLabel(frequency).toLowerCase()}`)}</p>
+    <p className={styles.planDescription}>{plan.short_description || (frequency === 'fixed' ? 'One Time Return' : `Profit ${payoutLabel(frequency).toLowerCase()}`)}</p>
     <div className={styles.planRate}><small>Up to</small> <strong>{Number.isFinite(rate) ? `${rate.toFixed(2)}%` : '—'}</strong> <span>Profit</span></div>
     
     <div className={`${styles.planHighlights} gap-2 mt-2`}>
@@ -90,6 +90,6 @@ export default function InvestmentPlanCard({ plan, selected = false, onSelect, h
       <div><i className="fa-solid fa-shield-halved" aria-hidden="true" /><span>Min: {money(plan.min_amount ?? plan.investment_amount)} · Max: {money(plan.max_amount ?? plan.investment_amount)}</span></div>
     </div>
     <div className={styles.planArt} aria-hidden="true">{plan.card_image_url ? <Image src={plan.card_image_url} alt="" width={110} height={68} unoptimized /> : <><i className={`fa-solid ${frequency === 'fixed' ? 'fa-shield-halved' : 'fa-calendar-days'}`} /><i className="fa-solid fa-coins" /></>}</div>
-    {href ? <Link className={styles.planSelect} href={href}>{action}</Link> : <button type="button" className={styles.planSelect} onClick={onSelect}>{action}</button>}
+    {href ? <Link className={styles.planSelect} href={href} aria-label={`Select ${plan.name} investment plan`}>{action}</Link> : <button type="button" className={styles.planSelect} onClick={onSelect} aria-label={selected ? `${plan.name} selected` : `Select ${plan.name} investment plan`}>{action}</button>}
   </article>;
 }

@@ -142,13 +142,14 @@
   background-repeat: no-repeat;
   box-shadow: inset 0 1px #ffffff16, 0 12px 28px #00000025;
   transition: border-color .15s, transform .15s, box-shadow .15s;
+  cursor: pointer;
 }
 .plan:hover { transform: translateY(-3px); box-shadow: 0 15px 30px #0006, 0 0 20px var(--plan-tint); }
 .plan_daily { --plan-accent: #73dfed; --plan-line: #337883; --plan-tint: #45dcea20; --plan-image: url('/images/package-bg-img/pac-1-bg.png'); }
 .plan_weekly { --plan-accent: #c589f6; --plan-line: #71518d; --plan-tint: #a76be827; --plan-image: url('/images/package-bg-img/pac-4-bg.png'); }
 .plan_monthly { --plan-accent: #64dc95; --plan-line: #3d8260; --plan-tint: #42d48b20; --plan-image: url('/images/package-bg-img/pac-3-bg.png'); }
 .selectedPlan {
-  border: 4px solid var(--plan-accent);
+  border: 3px solid var(--plan-accent);
   padding: 18px 15px 15px;
   background-image: var(--plan-image), radial-gradient(85% 35% at 50% 100%, var(--plan-tint), transparent 85%), radial-gradient(95% 70% at 50% 0%, var(--plan-tint), transparent 85%), linear-gradient(155deg, color-mix(in srgb, var(--plan-accent) 22%, #282c35), color-mix(in srgb, var(--plan-accent) 12%, #1b2028) 70%);
   box-shadow: inset 0 0 0 1px #ffffff3d, inset 0 0 28px var(--plan-tint), 0 0 0 2px var(--plan-tint), 0 14px 28px #0005;
@@ -191,9 +192,11 @@
 .planArt img { display: block; width: min(110px, 65%); height: 68px; object-fit: contain; }
 .planArt i:first-child { font-size: 56px; transform: rotate(-8deg); }
 .planArt i:last-child { color: #ffd25b; font-size: 36px; transform: translateY(16px); }
-.planSelect { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 13px; width: 100%; min-height: 43px; border: 1px solid #98e9f2; border-radius: 25px; background: linear-gradient(100deg, #8ce9f4, #6fd9ee); color: #11252c; font-size: 14px; font-weight: 850; text-decoration: none; box-shadow: 0 6px 16px #0004; }
-.planSelect:hover { color: #11252c; filter: brightness(1.09); }
-.planSelect:focus-visible { outline: 2px solid #ffca4d; outline-offset: 3px; }
+.planSelect { display: flex; align-items: center; justify-content: center; gap: 13px; width: 100%; min-height: 43px; border: 1px solid #98e9f2; border-radius: 25px; background: linear-gradient(100deg, #8ce9f4, #6fd9ee); color: #11252c; font-size: 14px; font-weight: 850; text-decoration: none; box-shadow: 0 6px 16px #0004; }
+.planSelect::after { position: absolute; z-index: 3; inset: 0; border-radius: 19px; content: ''; }
+.planSelect:hover { color: #11252c; background: linear-gradient(100deg, #a3f1f8, #85e7f4); }
+.planSelect:focus-visible { outline: none; }
+.planSelect:focus-visible::after { outline: 2px solid #ffca4d; outline-offset: -4px; }
 .planCompact { min-height: 0; padding: 16px 12px 12px; }
 .planCompact .planFrame { width: min(100%, 200px); margin-top: 8px; }
 .planCompact .planFrameText { font-size: clamp(12px, 1.3vw, 16px) !important; font-weight: 900 !important; letter-spacing: .05em; white-space: normal; text-align: center; }
