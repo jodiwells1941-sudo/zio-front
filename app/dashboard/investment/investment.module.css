@@ -367,6 +367,9 @@
 .investmentTable tbody td:nth-child(n+3):nth-child(-n+9),
 .investmentTable tbody td:nth-child(n+3):nth-child(-n+9) strong,
 .investmentTable tbody td:nth-child(n+3):nth-child(-n+9) small { font-size: 16px; }
+.investmentTable tbody td:nth-child(4) .profitAmountLabel { color: #9fe6ee; font-size: 11px; line-height: 1.3; }
+.investmentTable tbody td:nth-child(5).totalProfitCell strong { display: block; color: #ffcb4d; }
+.investmentTable tbody td:nth-child(5).totalProfitCell small { color: #9fe6ee; font-size: 13px; line-height: 1.3; }
 .investmentTable tbody td:nth-child(8) .dateCell strong,
 .investmentTable tbody td:nth-child(9) .dateCell strong { font-size: 14px; }
 .progress { width: 75px; height: 7px; overflow: hidden; border-radius: 9px; background: #3c4651; }

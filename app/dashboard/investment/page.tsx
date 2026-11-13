@@ -35,7 +35,6 @@ const holdingDuration = (item: Holding) => {
 const iconClass = (plan: Plan) => ({ crown: 'fa-crown', daily: 'fa-calendar-day', weekly: 'fa-calendar-week', monthly: 'fa-calendar-days', coins: 'fa-coins', growth: 'fa-chart-line', shield: 'fa-shield-halved', gem: 'fa-gem' }[plan.icon_key || ''] || (plan.payout_frequency === 'fixed' ? 'fa-crown' : 'fa-calendar-days'));
 const label = (frequency?: string) => ({ daily: 'Daily Income', weekly: 'Weekly Income', monthly: 'Monthly Income', fixed: 'Fixed Return' }[frequency || 'fixed'] || 'Fixed Return');
 const periodName = (frequency?: string) => ({ daily: 'day', weekly: 'week', monthly: 'month', fixed: 'term' }[frequency || 'fixed'] || 'term');
-const holdingRate = (item: Holding) => item.total_profit_rate != null ? `${Number(item.total_profit_rate).toFixed(2)}% total` : item.profit_rate == null ? 'Fixed return' : `${Number(item.profit_rate).toFixed(2)}% / ${item.payout_frequency}`;
 const remainingCapital = (item: Holding) => item.status === 'active' && !item.principal_repaid_at ? Number(item.investment_amount) : 0;
 const nextProfitAmount = (item: Holding) => {
   if (item.status !== 'active') return null;
@@ -51,10 +50,16 @@ const nextProfitAmount = (item: Holding) => {
   return Math.max(0, nextCents) / 100;
 };
 const tableRate = (item: Holding) => {
-  const total = item.total_profit_rate != null ? Number(item.total_profit_rate) : Number(item.investment_amount) > 0 ? Number(item.total_profit || Number(item.return_amount) - Number(item.investment_amount)) / Number(item.investment_amount) * 100 : 0;
-  const period = item.profit_rate != null ? Number(item.profit_rate) : total;
+  const totalProfit = item.profit_rate == null
+    ? Math.max(0, Number(item.return_amount) - Number(item.investment_amount))
+    : Number(item.total_profit);
+  const principal = Number(item.investment_amount);
+  const totalPercent = item.total_profit_rate != null ? Number(item.total_profit_rate) : principal > 0 ? totalProfit / principal * 100 : 0;
+  const period = item.profit_rate != null ? Number(item.profit_rate) : totalPercent;
   const frequency = item.payout_frequency === 'fixed' || !item.payout_frequency ? 'Term' : periodName(item.payout_frequency);
-  return { period: `${period.toFixed(2)}% / ${frequency}`, total: item.total_profit_rate != null || item.payout_frequency !== 'fixed' ? `${total.toFixed(2)}% total` : '' };
+  const periods = Math.max(1, Number(item.total_periods) || 1);
+  const perPaymentAmount = Math.round(Math.round(totalProfit * 100) / periods) / 100;
+  return { period: `${period.toFixed(2)}% / ${frequency}`, totalPercent, perPaymentAmount };
 };
 const tableDate = (value?: string | null) => value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 const timeUntil = (value: string | null | undefined, now: number) => {
@@ -424,11 +429,11 @@ export default function InvestmentPage() {
                             <td className={styles.rowNumber}>{index + 1}</td>
                             <td><div className={styles.planCell}><span className={`${styles.holdingIcon} ${styles[`holding_${item.payout_frequency || 'fixed'}`]}`}><i className={`fa-solid ${item.payout_frequency === 'daily' ? 'fa-calendar-day' : item.payout_frequency === 'weekly' ? 'fa-calendar-week' : item.payout_frequency === 'monthly' ? 'fa-calendar-days' : 'fa-crown'}`} aria-hidden="true" /></span><span><strong>{item.investment?.name || 'Investment'}</strong><small className={styles.investmentId}>{item.code_no || `#${item.id}`}</small><small className={styles.investmentDuration}><i className="fa-regular fa-calendar" aria-hidden="true" /> {holdingDuration(item)}</small></span></div></td>
                             <td className={styles.amountCell}>{money(item.investment_amount)}</td>
-                            <td><span className={styles.rateCell}>{rate.period}</span>{rate.total && <small>{rate.total}</small>}</td>
-                            <td className={styles.totalProfitCell}>{money(expected)}</td>
+                            <td><span className={styles.rateCell}>{rate.period}</span><small className={styles.profitAmountLabel}>Profit — {money(rate.perPaymentAmount)}</small></td>
+                            <td className={styles.totalProfitCell}><strong>{rate.totalPercent.toFixed(2)}%</strong><small>{money(expected)}</small></td>
                             <td>{money(paid)}</td>
                             <td className={styles.remainingCell}><div className={styles.remainingBreakdown}><span>Profit <strong>{money(remaining)}</strong></span><span>Capital <strong>{money(remainingCapital(item))}</strong></span></div></td>
-                            <td><div className={styles.dateCell}><i className="fa-regular fa-clock" aria-hidden="true" /><span><strong className='text-warning'>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong><small>{item.status === 'active' ? tableDate(item.next_payment_at || item.ended_at) : 'No upcoming payment'}</small>{nextProfit !== null && <small className={styles.nextProfitAmount}>Profit Amount — {money(nextProfit)}</small>}</span></div></td>
+                            <td><div className={styles.dateCell}><i className="fa-regular fa-clock" aria-hidden="true" /><span><strong className='text-warning'>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong><small>{item.status === 'active' ? tableDate(item.next_payment_at || item.ended_at) : 'No upcoming payment'}</small>{nextProfit !== null && <small className={styles.nextProfitAmount}>Profit — {money(nextProfit)}</small>}</span></div></td>
                             <td><div className={styles.dateCell}><i className="fa-regular fa-calendar" aria-hidden="true" /><span><strong className='text-warning'>{item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Cancelled' : timeUntil(item.ended_at, now)}</strong><small>{tableDate(item.principal_repaid_at || (item.status === 'closed' ? item.closed_at : item.ended_at))}</small><small className={styles.capitalReturn}>Capital Return — ({money(item.investment_amount)})</small></span></div></td>
                             <td><div className={styles.progressCell}><span className={`${styles.status} ${styles[item.status] || ''}`}>{item.status}</span><div className={styles.progressLine}><div className={styles.progress} aria-label={`${progress.toFixed(2)}% of profit paid`}><span style={{ width: `${progress}%` }} /></div><small>{progress.toFixed(2)}%</small></div></div></td>
                             <td><div><button type="button" className={`${styles.viewButton} ${detailId === item.id ? styles.viewButtonActive : ''}`} aria-expanded={detailId === item.id} onClick={() => setDetailId(detailId === item.id ? null : item.id)}>{detailId === item.id ? 'Hide' : 'Details'}</button></div></td>
@@ -444,17 +449,18 @@ export default function InvestmentPage() {
                       const remaining = item.status === 'closed' ? 0 : Math.max(0, expected - paid);
                       const nextProfit = nextProfitAmount(item);
                       const progress = expected > 0 ? Math.min(100, paid / expected * 100) : item.status === 'completed' ? 100 : 0;
+                      const rate = tableRate(item);
                       return (
                         <article className={styles.mobileHolding} key={item.id}>
                           <div className={styles.mobileHoldingTop}>
-                            <div><strong>{item.investment?.name || 'Investment'}</strong><small className={styles.investmentId}>{item.code_no || `#${item.id}`}</small><small className={styles.investmentDuration}><i className="fa-regular fa-calendar" aria-hidden="true" /> {holdingDuration(item)}</small><small>{holdingRate(item)}</small></div>
+                            <div><strong>{item.investment?.name || 'Investment'}</strong><small className={styles.investmentId}>{item.code_no || `#${item.id}`}</small><small className={styles.investmentDuration}><i className="fa-regular fa-calendar" aria-hidden="true" /> {holdingDuration(item)}</small><small>{rate.period}</small><small>Profit — {money(rate.perPaymentAmount)}</small></div>
                           </div>
                           <div className={styles.mobileHoldingGrid}>
                             <span>Invested <strong>{money(item.investment_amount)}</strong></span>
-                            <span>Total profit <strong className={styles.positive}>{money(expected)}</strong></span>
+                            <span>Total profit <strong className={styles.positive}>{rate.totalPercent.toFixed(2)}%</strong><small>{money(expected)}</small></span>
                             <span>Paid profit <strong>{money(paid)}</strong></span>
                             <span>Remaining <strong className={styles.remaining}>Profit — {money(remaining)}<br />Capital — {money(remainingCapital(item))}</strong></span>
-                            <span>Next payment <strong>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong>{nextProfit !== null && <small>Profit Amount — {money(nextProfit)}</small>}</span>
+                            <span>Next payment <strong>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong>{nextProfit !== null && <small>Profit — {money(nextProfit)}</small>}</span>
                             <span>Capital return <strong>{item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Cancelled' : timeUntil(item.ended_at, now)}</strong><small>{tableDate(item.principal_repaid_at || (item.status === 'closed' ? item.closed_at : item.ended_at))}</small><small>Capital Return — ({money(item.investment_amount)})</small></span>
                           </div>
                           <div className={styles.mobileHoldingBottom}>
