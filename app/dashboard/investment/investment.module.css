@@ -137,7 +137,7 @@
   border-radius: 19px;
   background-color: #1b2029;
   background-image: var(--plan-image), radial-gradient(85% 35% at 50% 100%, var(--plan-tint), transparent 85%), radial-gradient(95% 70% at 50% 0%, var(--plan-tint), transparent 85%), linear-gradient(155deg, #282c35, #1b2028 70%);
-  background-position: center bottom 62px, center bottom, center, center;
+  background-position: 50% calc(100% - 62px), 50% 100%, 50% 50%, 50% 50%;
   background-size: 100% auto, cover, cover, cover;
   background-repeat: no-repeat;
   box-shadow: inset 0 1px #ffffff16, 0 12px 28px #00000025;
