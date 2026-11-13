@@ -77,11 +77,12 @@ export default function InvestmentPlanCard({ plan, selected = false, onSelect, h
     </div>
     <p className={styles.planDescription}>{plan.short_description || (frequency === 'fixed' ? 'Return at maturity' : `Profit ${payoutLabel(frequency).toLowerCase()}`)}</p>
     <div className={styles.planRate}><small>Up to</small> <strong>{Number.isFinite(rate) ? `${rate.toFixed(2)}%` : '—'}</strong> <span>Profit</span></div>
-    <div className={styles.planHighlights}>
-      <div><i className="fa-solid fa-check" aria-hidden="true" /><span>Profit Rate: <strong>{Number.isFinite(perPaymentRate) ? `${perPaymentRate.toFixed(2)}%` : '—'} {frequency === 'fixed' ? '(One Time)' : `/ ${periodName(frequency)}`}</strong></span></div>
-      {annualRate !== null && Number.isFinite(annualRate) && <div className={styles.planAnnual}><i className="fa-solid fa-check" aria-hidden="true" /><strong>≈ {annualRate.toFixed(2)}% / Year</strong></div>}
-    </div>
-    <div className={styles.planFacts}>
+    
+    <div className={`${styles.planHighlights} gap-2 mt-2`}>
+      <div><i className="fa-solid fa-coins" aria-hidden="true" /><span>Profit Rate: <strong>{Number.isFinite(perPaymentRate) ? `${perPaymentRate.toFixed(2)}%` : '—'} {frequency === 'fixed' ? '(One Time)' : `/ ${periodName(frequency)}`}</strong></span></div>
+      {annualRate !== null && Number.isFinite(annualRate) && <div className={styles.planAnnual}><i className="fa-solid fa-coins" aria-hidden="true" /><strong>≈ {annualRate.toFixed(2)}% / Year</strong></div>}
+    {/* </div>
+    <div className={styles.planFacts}> */}
       <div><i className="fa-regular fa-calendar-days" aria-hidden="true" /><span>Duration: {availableDays.length ? `${availableDays[0]} days${availableDays.length > 1 ? ` · Up to ${availableDays[availableDays.length - 1]} days` : ''}` : '—'}</span></div>
       <div><i className="fa-solid fa-coins" aria-hidden="true" /><span>Payout: {frequency === 'fixed' ? '1 Time' : payoutLabel(frequency)}</span></div>
       <div><i className="fa-regular fa-calendar-check" aria-hidden="true" /><span>{frequency === 'fixed' ? 'Total Payment' : 'Total Payment (Yearly)'}: {yearlyPeriods[frequency] ? `${yearlyPeriods[frequency]} times` : '1 Time'}</span></div>
