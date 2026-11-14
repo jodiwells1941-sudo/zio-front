@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 import PaymentMethodIcon from "./PaymentMethodIcon";
+import { localOrderSummaryRows } from "./localOrderSummary";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -70,7 +71,6 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
 
   const baseReceive = Number(receiveAmt) || 0;
   const bonusAmount = (baseReceive * bonus) / 100;
-  const totalUsdtReceive = baseReceive + bonusAmount;
   const fiatAmount = Number(payAmount) || 0;
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -176,14 +176,11 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
         <div className="local-trade-content">
           <div className="local-trade-summary">
             <h4 className="local-trade-summary-title">Order Summary</h4>
-            <div className="local-trade-row"><span>Currency</span><b>{ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>Amount</span><b>{money(fiatAmount)} {ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>Market Price (1 {ad.asset})</span><b>{money(ad.fixed_price)} {ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>{ad.asset} Amount</span><b>{money(baseReceive)} {ad.asset}</b></div>
-            {ad.type === "sell" && (
-              <div className="local-trade-row"><span>Bonus</span><b className="local-trade-positive">+ {money(bonusAmount)} {ad.asset}</b></div>
-            )}
-            <div className="local-trade-row local-trade-row--total"><span>Total You Will Receive</span><b>{money(totalUsdtReceive)} {ad.asset}</b></div>
+            {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: Number(ad.fixed_price), bonusAmount }).map(row => (
+              <div className={`local-trade-row ${row.total ? "local-trade-row--total" : ""}`} key={row.label}>
+                <span>{row.label}</span><b className={row.tone === "positive" ? "local-trade-positive" : undefined}>{row.value}</b>
+              </div>
+            ))}
           </div>
           <div className="local-trade-total-banner local-trade-total-banner--pay">
             <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>

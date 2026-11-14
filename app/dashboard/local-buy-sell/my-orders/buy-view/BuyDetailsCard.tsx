@@ -165,7 +165,7 @@ function StatusBanner({ status }: { status: number }) {
     5: (
       <div className="toast-body p-2 rounded-2 text-white toast-bg-warning d-flex align-items-center">
         <span className="spinner-border spinner-border-sm me-2" role="status" />
-        Payment Dispatched — waiting for seller to release crypto
+        Payment Dispatched — waiting for seller to release the amount
       </div>
     ),
     7: (
@@ -897,6 +897,7 @@ export default function BuyDetailsCard({
     }
 
     const v = getViewerOrderAmountDisplay(trade);
+    const releaseAsset = v.asset.toUpperCase() === "USDT" ? "USD" : v.asset;
 
     const confirmMap: Record<
       number,
@@ -926,9 +927,14 @@ export default function BuyDetailsCard({
         icon: "info",
       },
       6: {
-        title: "Release Crypto?",
-        html: `Confirm you have received <strong>${v.fiat} ${v.fiatStr}</strong> from the buyer.<br/>This will release <strong>${v.cryptoStr} ${v.asset}</strong> to the buyer's wallet.`,
-        confirmText: "Yes, Release!",
+        title: "Release Amount?",
+        html: `<p class="local-release-intro">Confirm the buyer's payment before releasing the order amount.</p>
+          <div class="local-release-amounts">
+            <div class="local-release-amount-row"><span>Payment received</span><strong>${v.fiat} ${v.fiatStr}</strong></div>
+            <div class="local-release-amount-row"><span>Release to buyer</span><strong>${v.cryptoStr} ${releaseAsset}</strong></div>
+          </div>
+          <p class="local-release-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Only continue after the payment is in your account.</p>`,
+        confirmText: "Release Amount",
         icon: "question",
       },
       7: {
@@ -955,7 +961,20 @@ export default function BuyDetailsCard({
         showCloseButton: true,
         showCancelButton: true,
         confirmButtonText: confirm.confirmText,
-        cancelButtonText: "No, Go Back!",
+        cancelButtonText: newStatus === 6 ? "Go Back" : "No, Go Back!",
+        ...(newStatus === 6 ? {
+          buttonsStyling: false,
+          iconHtml: '<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>',
+          customClass: {
+            popup: "local-release-confirm",
+            title: "local-release-confirm-title",
+            htmlContainer: "local-release-confirm-message",
+            icon: "local-release-confirm-icon",
+            confirmButton: "local-release-confirm-yes",
+            cancelButton: "local-release-confirm-no",
+            closeButton: "local-release-confirm-close",
+          },
+        } : {}),
         confirmButtonColor: [3, 7, 10].includes(newStatus)
           ? "#dc3545"
           : "#198754",

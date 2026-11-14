@@ -524,6 +524,14 @@
   color: var(--trade-accent-bright) !important;
 }
 
+.local-trade-row--received {
+  border-top-color: rgba(251, 191, 36, .55);
+}
+
+.local-trade-row--received b {
+  color: #fbbf24 !important;
+}
+
 .local-trade-total-banner {
   display: flex;
   align-items: center;

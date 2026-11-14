@@ -3,6 +3,7 @@
 import { getBonusFeesSettings } from "@/app/api/merchant";
 import { extendTradePaymentTime, getTrade, updateTradeStatus } from "@/app/api/trade";
 import { normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import { localOrderSummaryRows } from "../../localOrderSummary";
 import TradeOrderSummary from "./TradeOrderSummary";
 import TradeProgressSteps from "../TradeProgressSteps";
 import paymentTimeStyles from "../PaymentTimeExtension.module.css";
@@ -555,7 +556,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
               ) : trade.status === 10 ? (
                 <>{trade.current_status?.status_text ?? "Appealed"}</>
               ) : isBuyerDispatched ? (
-                <>Buyer has paid — verify &amp; release crypto <i className="fa-regular fa-circle-question text-xs" /> <span className="p2pTimer">{pad(mm)}:{pad(ss)}</span></>
+                <>Buyer has paid — verify &amp; release amount <i className="fa-regular fa-circle-question text-xs" /> <span className="p2pTimer">{pad(mm)}:{pad(ss)}</span></>
               ) : (
                 <>{`Waiting Buyer's Payment`} <span className="p2pTimer">{pad(mm)}:{pad(ss)}</span></>
               )}
@@ -619,7 +620,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         }
         paymentDetails={paymentDetails}
         showPaymentDetails={trade.status !== 1}
-        feeAmount={feeAmount}
+        feeAmount={feeCryptoAmount}
         feePercent={displayedFeePercent}
       />
 
@@ -842,10 +843,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
           currency={withFiat}
           details={[
             { label: 'Order ID', value: String(orderId) },
-            { label: 'Currency', value: withFiat },
-            { label: 'Sell Amount', value: `${cryptoAmountStr} ${asset}` },
-            { label: `Fee (${displayedFeePercent.toFixed(2)}%)`, value: `+ ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${withFiat}` },
-            { label: 'Total Amount', value: `${(fiatAmount + feeAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${withFiat}` },
+            ...localOrderSummaryRows({ side: 'sell', fiat: withFiat, asset, fiatAmount, assetAmount: cryptoAmount, price: Number(trade.user_price), feeAmount: feeCryptoAmount, feePercent: displayedFeePercent }),
           ]}
         />
       )}

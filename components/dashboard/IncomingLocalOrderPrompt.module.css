@@ -437,6 +437,7 @@
 }
 .summaryRow > .bonusValue { color: #fbbf24; }
 .summaryRow > .feeValue { color: #ff5470; }
+.summaryRow > .receivedValue { color: #fbbf24; }
 .summaryTotal {
   border-top-color: rgba(var(--order-accent-rgb), .35);
   background: rgba(var(--order-accent-rgb), .08);

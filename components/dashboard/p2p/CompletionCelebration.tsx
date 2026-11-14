@@ -1,5 +1,7 @@
 "use client";
 
+import type { LocalOrderSummaryRow } from "@/app/dashboard/local-buy-sell/localOrderSummary";
+
 const displayCurrency = (value: string) => value.replace(/\bUSDT\b/gi, "USD");
 
 type Props = {
@@ -7,7 +9,8 @@ type Props = {
   onClose: () => void;
   receivedAmount?: string;
   paidAmount?: string;
-  summaryRows?: Array<{ label: string; value: string }>;
+  summaryRows?: LocalOrderSummaryRow[];
+  side?: "buy" | "sell";
 };
 
 export default function CompletionCelebration({
@@ -16,6 +19,7 @@ export default function CompletionCelebration({
   receivedAmount,
   paidAmount,
   summaryRows = [],
+  side = "buy",
 }: Props) {
   if (!isOpen) return null;
 
@@ -54,13 +58,13 @@ export default function CompletionCelebration({
           ) : (
             <p className="completionMessage">Your order has been completed successfully.</p>
           )}
-          {summaryRows.length > 0 && <details className="completionSummary">
+          {summaryRows.length > 0 && <details className={`completionSummary completionSummary--${side}`}>
             <summary>
               <span><i className="fa-solid fa-receipt" aria-hidden="true" /> Order Summary</span>
               <i className="fa-solid fa-chevron-down completionSummaryChevron" aria-hidden="true" />
             </summary>
             <dl className="completionSummaryRows">
-              {summaryRows.map((row, index) => <div className="completionSummaryRow" key={`${row.label}-${index}`}>
+              {summaryRows.map((row, index) => <div className={`completionSummaryRow ${row.total ? "completionSummaryRow--total" : ""} ${row.tone ? `completionSummaryRow--${row.tone}` : ""}`} key={`${row.label}-${index}`}>
                 <dt>{displayCurrency(row.label)}</dt><dd>{displayCurrency(row.value)}</dd>
               </div>)}
             </dl>

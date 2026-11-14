@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 import PaymentMethodIcon from "./PaymentMethodIcon";
+import { localOrderSummaryRows } from "./localOrderSummary";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,6 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   const grossReceive = Number(receiveAmt) || 0;
   const sellValue     = Number(sellAmount || 0);
   const feeUsdt = (sellValue * feePercent) / 100;
-  const totalUsdtWithFee = sellValue + feeUsdt;
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -306,12 +306,11 @@ export default function LocalSellModal({ onClose, ad }: Props) {
         <div className="local-trade-content">
           <div className="local-trade-summary">
             <h4 className="local-trade-summary-title">Order Summary</h4>
-            <div className="local-trade-row"><span>Currency</span><b>{ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>Sell Amount</span><b>{money(sellValue)} {ad.asset}</b></div>
-            <div className="local-trade-row"><span>Fee ({money(feePercent)}%)</span><b className="local-trade-positive">+ {money(feeUsdt)} {ad.asset}</b></div>
-            <div className="local-trade-row"><span>Total Amount</span><b>{money(totalUsdtWithFee)} {ad.asset}</b></div>
-            <div className="local-trade-row"><span>Market Price (1 {ad.asset})</span><b>{money(ad.fixed_price)} {ad.with_fiat}</b></div>
-            <div className="local-trade-row"><span>Received Amount ({ad.with_fiat})</span><b className="local-trade-positive">{money(grossReceive)} {ad.with_fiat}</b></div>
+            {localOrderSummaryRows({ side: "sell", fiat: ad.with_fiat, asset: ad.asset, fiatAmount: grossReceive, assetAmount: sellValue, price: Number(ad.fixed_price), feeAmount: feeUsdt, feePercent }).map(row => (
+              <div className={`local-trade-row ${row.total ? "local-trade-row--total local-trade-row--received" : ""}`} key={row.label}>
+                <span>{row.label}</span><b className={row.tone === "negative" ? "local-trade-negative" : row.tone === "received" ? "local-trade-positive" : undefined}>{row.value}</b>
+              </div>
+            ))}
           </div>
           <div className="local-trade-total-banner local-trade-total-banner--received">
             <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>

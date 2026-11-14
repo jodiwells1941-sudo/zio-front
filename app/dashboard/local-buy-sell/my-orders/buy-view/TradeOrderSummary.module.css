@@ -1,6 +1,6 @@
 .card {
-  --summary-accent: #20c997;
-  --summary-border: rgba(32, 201, 151, .3);
+  --summary-accent: #fbbf24;
+  --summary-border: rgba(251, 191, 36, .35);
   margin: 16px 0;
   padding: 18px;
   border: 1px solid var(--summary-border);
@@ -19,14 +19,20 @@
   padding: 15px 16px;
   border: 1px solid var(--summary-border);
   border-radius: 12px;
-  background: rgba(0, 0, 0, .16);
+  background: linear-gradient(145deg, #2a2110, #151209);
+}
+
+.sell .summary {
+  background: linear-gradient(145deg, #2a1117, #160b0e);
 }
 
 .subtitle {
   margin: 0;
   color: var(--summary-accent);
-  font-size: 15px;
+  font-size: 11px;
   font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .summaryToggle {
@@ -71,6 +77,12 @@
   border-bottom: 1px dashed rgba(255, 255, 255, .1);
   color: #b7c0ce;
   font-size: 13px;
+}
+
+.summary .row {
+  padding: 7px 0;
+  border-bottom-color: var(--summary-border);
+  color: #f8fafc;
 }
 
 .row b,
@@ -132,13 +144,13 @@
   font-size: 15px;
 }
 
-.positive {
-  color: #20c997 !important;
-}
+.positive { color: #fbbf24 !important; }
 
 .negative {
   color: #ff6577 !important;
 }
+
+.received { color: #fbbf24 !important; }
 
 .receiveBanner {
   display: flex;

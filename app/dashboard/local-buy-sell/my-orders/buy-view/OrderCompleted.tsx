@@ -5,6 +5,7 @@ import FeedbackBox from "./FeedbackBox";
 import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
 import { getCompletedOrderAmounts, getViewerOrderAmountDisplay } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import { localOrderSummaryRows } from "../../localOrderSummary";
 
 function CopyBtn({ text, id }: { text: string; id: string }) {
   const [copied, setCopied] = useState(false);
@@ -66,14 +67,9 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
   const orderSideLabel = trade?.type === "sell" ? "Sell" : "Buy";
   const fee = Number(trade?.charge_amount ?? 0);
   const bonus = Number(trade?.bonus_amount ?? 0);
-  const tradeType = String(trade?.type ?? "buy").toLowerCase();
-  const formatAdjustment = (amount: number) => `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${asset}`;
   const summaryRows = trade && vd ? [
     { label: "Order ID", value: trade.order_id || `#${trade.id}` },
-    ...vd.detailRows.map(({ label, value }) => ({ label, value })),
-    ...(isSeller && tradeType === "sell" && fee > 0 ? [{ label: "Fee", value: formatAdjustment(fee) }] : []),
-    ...(!isSeller && tradeType === "buy" && bonus > 0 ? [{ label: "Bonus", value: formatAdjustment(bonus) }] : []),
-    { label: "Payment method", value: methodName },
+    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: vd.fiat, asset, fiatAmount: vd.fiatAmount, assetAmount: vd.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0) }),
   ] : [];
 
 
@@ -101,6 +97,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
         receivedAmount={completedAmounts?.receivedAmount}
         paidAmount={completedAmounts?.paidAmount}
         summaryRows={summaryRows}
+        side={isSeller ? "sell" : "buy"}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);
