@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import styles from './PaymentReceivedModel.module.css';
 import PaymentDetailsCollapse from '@/components/dashboard/wallet/sell/PaymentDetailsCollapse';
+import type { LocalOrderSummaryRow } from '../../localOrderSummary';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -13,7 +14,7 @@ interface PaymentReceivedModelProps {
   buyerName: string;
   amount: number;
   currency: string;
-  details?: Array<{ label: string; value: string }>;
+  details?: LocalOrderSummaryRow[];
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -63,9 +64,9 @@ export function PaymentReceivedModel({
             {details.length > 0 && (
               <PaymentDetailsCollapse>
                 {details.map((row, index) => (
-                  <div key={`${row.label}-${index}`} className="d-flex justify-content-between gap-3 py-1 small text-white-50">
+                  <div key={`${row.label}-${index}`} className={`d-flex justify-content-between gap-3 py-1 small text-white-50 ${styles.summaryRow} ${row.total ? styles.summaryTotal : ''}`}>
                     <span>{row.label}</span>
-                    <strong className="text-white text-end">{row.value}</strong>
+                    <strong className={`text-end ${row.tone === 'negative' ? styles.negative : row.tone === 'received' ? styles.received : ''}`}>{row.value}</strong>
                   </div>
                 ))}
               </PaymentDetailsCollapse>

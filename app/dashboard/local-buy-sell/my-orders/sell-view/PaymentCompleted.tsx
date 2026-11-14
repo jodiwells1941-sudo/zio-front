@@ -5,6 +5,7 @@ import FeedbackBox from "./FeedbackBox";
 import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { localOrderSummaryRows } from "../../localOrderSummary";
 import {
   getViewerOrderAmountDisplay,
   getCompletedOrderAmounts,
@@ -35,6 +36,7 @@ interface TradeData {
   is_client?: boolean;
   bonus_amount?: number | string | null;
   charge_amount?: number | string | null;
+  charge_percent?: number | string | null;
   /** Legacy P2P status; feedback only when 9 (completed). */
   status?: number;
   trade_review?: any;
@@ -81,14 +83,9 @@ export default function PaymentCompleted({ trade, from }: Props) {
   });
   const fee = Number(trade.charge_amount ?? 0);
   const bonus = Number(trade.bonus_amount ?? 0);
-  const tradeType = String(trade.type ?? "sell").toLowerCase();
-  const formatAdjustment = (amount: number) => `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${asset}`;
   const summaryRows = [
     { label: "Order ID", value: trade.order_id || `#${trade.id}` },
-    ...amountDisplay.detailRows.map(({ label, value }) => ({ label, value })),
-    ...(isSeller && tradeType === "sell" && fee > 0 ? [{ label: "Fee", value: formatAdjustment(fee) }] : []),
-    ...(!isSeller && tradeType === "buy" && bonus > 0 ? [{ label: "Bonus", value: formatAdjustment(bonus) }] : []),
-    { label: "Payment method", value: methodName },
+    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0) }),
   ];
     
   return (
@@ -98,6 +95,7 @@ export default function PaymentCompleted({ trade, from }: Props) {
         receivedAmount={completedAmounts.receivedAmount}
         paidAmount={completedAmounts.paidAmount}
         summaryRows={summaryRows}
+        side={isSeller ? "sell" : "buy"}
         onClose={() => {
           setShowCelebration(false);
           setOpenFeedback(true);

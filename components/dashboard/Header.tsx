@@ -206,7 +206,10 @@ export default function Header({
 
     const applyAmount = (value: unknown) => {
       const nextAmount = Number(value);
-      if (Number.isFinite(nextAmount)) setWalletAmount(nextAmount);
+      if (Number.isFinite(nextAmount)) {
+        setWalletAmount(nextAmount);
+        window.dispatchEvent(new CustomEvent("walletBalanceChanged", { detail: { amount: nextAmount } }));
+      }
     };
 
     const refreshBalance = async () => {

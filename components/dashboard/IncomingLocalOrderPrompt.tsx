@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import styles from "./IncomingLocalOrderPrompt.module.css";
+import { localOrderSummaryRows } from "@/app/dashboard/local-buy-sell/localOrderSummary";
 
 interface Party {
   id?: number;
@@ -334,19 +335,26 @@ export default function IncomingLocalOrderPrompt() {
   if (!order) return null;
 
   const fiat = order.p2p_ad?.with_fiat ?? "";
-  const asset = order.p2p_ad?.asset ?? "USDT";
+  const rawAsset = order.p2p_ad?.asset ?? "USD";
+  const asset = rawAsset.toUpperCase() === "USDT" ? "USD" : rawAsset;
   const orderNumber = order.order_id || `#${order.id}`;
   const paymentMethod = order.p2p_ad?.payment_method?.sell_method?.name || "Payment method";
   const baseAssetAmount = Number(order.receivable_amount ?? 0);
   const bonusAmount = Number(order.bonus_amount ?? 0);
   const feeAmount = Number(order.charge_amount ?? 0);
   const adjustmentAmount = order.type === "buy" ? feeAmount : bonusAmount;
-  const adjustmentPercent = Number(
-    order.type === "buy" ? order.charge_percent ?? 0 : order.bonus_percent ?? 0
-  );
-  const adjustmentLabel = order.type === "sell" ? "Bonus" : "Fee";
   const totalAssetLabel = order.type === "buy" ? "Sell USD" : "Received USD";
-  const summaryAmountLabel = order.type === "buy" ? "Sell Amount" : "Buy Amount";
+  const summaryRows = localOrderSummaryRows({
+    side: order.type === "buy" ? "sell" : "buy",
+    fiat,
+    asset,
+    fiatAmount: Number(order.payable_amount ?? 0),
+    assetAmount: baseAssetAmount,
+    price: Number(order.user_price ?? 0),
+    bonusAmount,
+    feeAmount,
+    feePercent: Number(order.charge_percent ?? 0),
+  });
   const creator = [order.client, order.customer].find(
     party => Number(party?.id) === Number(order.created_by)
   );
@@ -414,32 +422,12 @@ export default function IncomingLocalOrderPrompt() {
                 </button>
               </strong>
             </div>
-            <div className={styles.summaryRow}>
-              <span>Currency</span>
-              <strong>{fiat || "—"}</strong>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>Market Price</span>
-              <strong>{formatAmount(order.user_price, fiat)}</strong>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>Payable Amount</span>
-              <strong>{formatAmount(order.payable_amount, fiat)}</strong>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>{summaryAmountLabel}</span>
-              <strong>{order.type === "buy" ? "- " : "+"}{formatAmount(order.receivable_amount, asset)}</strong>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>{adjustmentLabel}{adjustmentPercent > 0 ? ` (${adjustmentPercent.toFixed(2)}%)` : ""}</span>
-              <strong className={order.type === "buy" ? styles.feeValue : styles.bonusValue}>
-                {order.type === "buy" ? "- " : "+"} {formatAmount(adjustmentAmount, asset)}
-              </strong>
-            </div>
-            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-              <span>{order.type === "buy" ? "Sell USD" : "Received USD"}</span>
-              <strong>{order.type === "buy" ? "- " : "+"} {formatAmount(baseAssetAmount+adjustmentAmount, asset)}</strong>
-            </div>
+            {summaryRows.map(row => (
+              <div className={`${styles.summaryRow} ${row.total ? styles.summaryTotal : ""}`} key={row.label}>
+                <span>{row.label}</span>
+                <strong className={row.tone === "negative" ? styles.feeValue : row.tone === "positive" ? styles.bonusValue : row.tone === "received" ? styles.receivedValue : undefined}>{row.value}</strong>
+              </div>
+            ))}
             
           </div>
         </details>

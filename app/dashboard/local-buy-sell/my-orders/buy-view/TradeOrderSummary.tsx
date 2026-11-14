@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import CopyPaymentDetail from "@/components/dashboard/p2p/CopyPaymentDetail";
 import styles from "./TradeOrderSummary.module.css";
 import PaymentMethodIcon from "../../PaymentMethodIcon";
+import { localOrderSummaryRows } from "../../localOrderSummary";
 
 type Props = {
   orderId: string;
@@ -49,12 +50,11 @@ export default function TradeOrderSummary({
   paymentDetails = [],
   showPaymentDetails = true,
   bonusAmount = 0,
-  bonusPercent = 0,
   feeAmount = 0,
   feePercent = 0,
 }: Props) {
   const isBuy = kind === "buy";
-  const totalReceived = isBuy ? cryptoAmount + bonusAmount : fiatAmount - feeAmount;
+  const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent });
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();
@@ -101,66 +101,20 @@ export default function TradeOrderSummary({
             </button>
           </span>
         </div>
-        <div className={styles.row}>
-          <span>Currency</span>
-          <b>{currency || "—"}</b>
-        </div>
-        {isBuy ? (
-          <>
-            <div className={styles.row}>
-              <span>Amount</span>
-              <b>{formatAmount(fiatAmount)} {currency}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Market Price (1 {asset})</span>
-              <b>{formatAmount(price)} {currency}</b>
-            </div>
-            <div className={styles.row}>
-              <span>{asset} Amount</span>
-              <b>{formatAmount(cryptoAmount)} {asset}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Bonus ({formatAmount(bonusPercent)}%)</span>
-              <b className={styles.positive}>+ {formatAmount(bonusAmount)} {asset}</b>
-            </div>
-            <div className={`${styles.row} ${styles.total}`}>
-              <span>Total You Will Receive</span>
-              <b>{formatAmount(totalReceived)} {asset}</b>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={styles.row}>
-              <span>Sell Amount</span>
-              <b>{formatAmount(cryptoAmount)} {asset}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Fee ({formatAmount(feePercent)}%)</span>
-              <b className={styles.negative}>- {formatAmount(feeAmount)} {currency}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Total Amount</span>
-              <b>{formatAmount(fiatAmount)} {currency}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Market Price (1 {asset})</span>
-              <b>{formatAmount(price)} {currency}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Received Amount ({currency})</span>
-              <b>{formatAmount(totalReceived)} {currency}</b>
-            </div>
-          </>
-        )}
+        {summaryRows.map(row => (
+          <div className={`${styles.row} ${row.total ? styles.total : ""}`} key={row.label}>
+            <span>{row.label}</span>
+            <b className={row.tone === "positive" ? styles.positive : row.tone === "negative" ? styles.negative : row.tone === "received" ? styles.received : undefined}>{row.value}</b>
+          </div>
+        ))}
       </div>
       </div>
       <div className={styles.receiveBanner}>
         <span className={styles.receiveIcon}>
           <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
         </span>
-        <span>{isBuy ? "Pay Amount" : "Total Amount"}</span>
-        {/* <b>{formatAmount(totalReceived)} {currency}</b> */}
-        {isBuy ? <b>{formatAmount(fiatAmount)} {currency}</b> : <b>{formatAmount(totalReceived)} {currency}</b>}
+        <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
+        <b>{formatAmount(fiatAmount)} {currency}</b>
         
       </div>
       {(paymentMethod || paymentDetails.length > 0) && (

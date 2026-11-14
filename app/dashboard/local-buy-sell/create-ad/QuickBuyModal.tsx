@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReactSelect from 'react-select';
+import ReactSelect, { components as selectComponents } from 'react-select';
 import { isAxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import { createAd, getAd, updateAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
@@ -15,6 +15,8 @@ import { CurrencyOption, ModalMode, PaymentFormData, UserPaymentMethod } from '@
 import './QuickBuyModal.css';
 import { getDepositBonusApi, getDepositBonusTiersApi } from '@/app/api/wallet';
 import PaymentMethodIcon from '../PaymentMethodIcon';
+import { useAuth } from '@/hooks/useAuth';
+import { fetchUserInfoAPI } from '@/app/api/auth';
 
 /* ───────────── Types ───────────── */
 type Option = { value: string; label: string };
@@ -75,6 +77,49 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   const isEdit = Boolean(editId);
   const [loadingAd, setLoadingAd] = useState(isEdit);
   const [step, setStep] = useState<1 | 2>(1);
+  const { user } = useAuth();
+  const walletId = user?.wallet?.id;
+  const [walletAmount, setWalletAmount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (user?.wallet?.amount == null) return;
+    const amount = Number(user.wallet.amount);
+    if (Number.isFinite(amount)) setWalletAmount(amount);
+  }, [user?.wallet?.amount]);
+
+  useEffect(() => {
+    let active = true;
+    const applyBalance = (value: unknown) => {
+      if (!active || value == null) return;
+      const amount = Number(value);
+      if (Number.isFinite(amount)) setWalletAmount(amount);
+    };
+    const refreshBalance = async () => {
+      try {
+        const response = await fetchUserInfoAPI();
+        applyBalance(response?.data?.wallet?.amount);
+      } catch {
+        // Keep the last known balance until the next wallet update or focus.
+      }
+    };
+
+    void refreshBalance();
+    const poll = window.setInterval(() => {
+      if (document.visibilityState !== 'hidden') void refreshBalance();
+    }, 15000);
+    const onWalletBalanceChanged = (event: Event) => {
+      applyBalance((event as CustomEvent<{ amount?: number }>).detail?.amount);
+    };
+    window.addEventListener('focus', refreshBalance);
+    window.addEventListener('walletBalanceChanged', onWalletBalanceChanged);
+
+    return () => {
+      active = false;
+      window.clearInterval(poll);
+      window.removeEventListener('focus', refreshBalance);
+      window.removeEventListener('walletBalanceChanged', onWalletBalanceChanged);
+    };
+  }, [walletId]);
 
   /* ── step 1 state ── */
   const [fiat, setFiat] = useState('BDT');
@@ -92,8 +137,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   const [bonusLoading, setBonusLoading] = useState(false);
   const [bonusError, setBonusError] = useState(false);
   const [bonusTiers, setBonusTiers] = useState<DepositBonusTier[]>([]);
-  const [bonusTiersLoading, setBonusTiersLoading] = useState(true);
-  const [bonusTiersError, setBonusTiersError] = useState(false);
 
   const [methods, setMethods] = useState<UserPaymentMethod[]>([]);
   const [paymentCurrencies, setPaymentCurrencies] = useState<CurrencyOption[]>([]);
@@ -126,17 +169,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
     let cancelled = false;
 
     const loadBonusTiers = async () => {
-      setBonusTiersLoading(true);
-      setBonusTiersError(false);
       try {
         const res = await getDepositBonusTiersApi();
         if (res?.error) throw new Error('Unable to load deposit bonus tiers.');
         if (!cancelled) setBonusTiers(res?.data ?? []);
       } catch (error) {
         console.error('Error fetching deposit bonus tiers:', error);
-        if (!cancelled) setBonusTiersError(true);
-      } finally {
-        if (!cancelled) setBonusTiersLoading(false);
       }
     };
 
@@ -158,14 +196,14 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
     const minimumLabel = `${fiatIcon}${money(minimum, 0)}`;
 
     return maximum === null
-      ? `${minimumLabel}+ ${fiat}`
-      : `${minimumLabel} - ${fiatIcon}${money(maximum, 0)} ${fiat}`;
+      ? `${minimumLabel}`
+      : `${minimumLabel} - ${fiatIcon}${money(maximum, 0)}`;
   };
 
   const tierBonusLabel = (tier: DepositBonusTier) =>
     tier.bonus_type === 'percentage'
       ? `${money(Number(tier.bonus_value), 0)}% Bonus`
-      : `${money(Number(tier.bonus_value))} USD Bonus`;
+      : `$${money(Number(tier.bonus_value))} Bonus`;
 
   /* ── Load market price ── */
   useEffect(() => {
@@ -421,108 +459,108 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
         <div className="qbm-body">
           {step === 1 && (
             <>
-              {/* Select Currency */}
-              <div className="qbm-field">
-                <label className="qbm-label">
-                  <i className="fa-solid fa-gear" /> Select Currency
-                </label>
-                <ReactSelect<Option>
-                  instanceId="qbmCurrency"
-                  classNamePrefix="qbm-sel"
-                  options={currencyOptions}
-                  value={currencyOptions.find(o => o.value === fiat) ?? null}
-                  onChange={v => {
-                    setFiat((v as Option)?.value ?? 'BDT');
-                    setMethodId(0);
-                  }}
-                  isSearchable
-                  components={{ IndicatorSeparator: null }}
-                  formatOptionLabel={o => (
-                    <span className="qbm-opt">
-                      <img
-                        src={`https://flagcdn.com/w40/${CURRENCIES.find(c => c.code === o.value)?.cc ?? 'un'}.png`}
-                        width={18}
-                        height={18}
-                        alt=""
-                      />
-                      {o.label}
-                    </span>
-                  )}
-                />
+              <div className="qbm-entry-label">
+                <span></span>
+                <strong>Balance : {walletAmount === null ? '—' : money(walletAmount)} USD</strong>
               </div>
+              <div className="qbm-entry-row">
+                {/* Amount */}
+                <div className="qbm-field">
+                  <div className="qbm-amount">
+                    <span className="qbm-amount-icon">{fiatIcon}</span>
+                    <input
+                      id="qbm-buy-amount"
+                      type="text"
+                      inputMode="decimal"
+                      aria-label={`Enter amount in ${fiat}`}
+                      value={amountBdt}
+                      onChange={e => setAmountBdt(num(e.target.value))}
+                      placeholder="Enter amount"
+                    />
+                  </div>
+                </div>
 
-              {/* Amount */}
-              <div className="qbm-field">
-                <div className="qbm-amount-label">
-                  <label className="qbm-label">
-                    <i className="fa-solid fa-coins" /> Enter Amount ({fiat})
-                  </label>
-                </div>
-                <div className="qbm-amount">
-                  <span className="qbm-amount-icon">{fiatIcon}</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={amountBdt}
-                    onChange={e => setAmountBdt(num(e.target.value))}
-                    placeholder="Enter amount"
+                {/* Select Currency */}
+                <div className="qbm-field">
+                  <ReactSelect<Option>
+                    instanceId="qbmCurrency"
+                    aria-label="Select currency"
+                    classNamePrefix="qbm-sel"
+                    options={currencyOptions}
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    menuPosition="fixed"
+                    menuPlacement="auto"
+                    value={currencyOptions.find(o => o.value === fiat) ?? null}
+                    onChange={v => {
+                      setFiat((v as Option)?.value ?? 'BDT');
+                      setMethodId(0);
+                    }}
+                    isSearchable
+                    components={{
+                      IndicatorSeparator: null,
+                      DropdownIndicator: props => (
+                        <selectComponents.DropdownIndicator {...props}>
+                          <span className="qbm-currency-all"><i className="fa-solid fa-chevron-down" aria-hidden="true" />All</span>
+                        </selectComponents.DropdownIndicator>
+                      ),
+                    }}
+                    formatOptionLabel={(o, { context }) => context === 'value' ? o.value : o.label}
                   />
-                  <span className="qbm-rate-label">
-                    (1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`})
-                  </span>
                 </div>
+              </div>
+              <div className="qbm-entry-meta">
                 <small className="qbm-amount-limits">
-                  Min {money(minimumFiatAmount)} {fiat} · Max {money(maximumFiatAmount)} {fiat}
-                  <span> ({MIN_AMOUNT_USDT}–{MAX_AMOUNT_USDT} {DISPLAY_ASSET_CODE})</span>
+                  Min {money(minimumFiatAmount)} {fiat} · Max {money(maximumFiatAmount)} {fiat} -
+                   ({MIN_AMOUNT_USDT}–{MAX_AMOUNT_USDT} {DISPLAY_ASSET_CODE})
                 </small>
-                <div className="qbm-bonus-options">
+                <small className="qbm-entry-rate">
+                  1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`}
+                </small>
+              </div>
+              <div className="qbm-summary-row">
+                  <span>You Buy</span>
+                  <b className="qbm-green">+ {money(baseUsdt)} {DISPLAY_ASSET_CODE}</b>
+                </div>
+              {bonusTiers.length > 0 && (
+                <div className="qbm-bonus-options mb-2">
                   <div className="qbm-bonus-head">
                     <span className="qbm-bonus-title">
                       <i className="fa-solid fa-gift" /> Deposit Bonus
                     </span>
                     <span className="qbm-bonus-badge">Limited Time Offer</span>
                   </div>
-                  {bonusTiersLoading ? (
-                    <small className="qbm-bonus-tiers-message">Loading bonus offers…</small>
-                  ) : bonusTiersError ? (
-                    <small className="qbm-bonus-tiers-message qbm-bonus-tiers-message--error">
-                      Bonus offers could not be loaded.
-                    </small>
-                  ) : bonusTiers.length > 0 ? (
-                    <div className="qbm-bonus-tier-list">
-                      {bonusTiers.map(tier => {
-                        const min = Number(tier.min_amount);
-                        const max = tier.max_amount === null ? null : Number(tier.max_amount);
-                        const isActive = baseUsdt >= min && (max === null || baseUsdt <= max);
+                  <div className="qbm-bonus-tier-list">
+                    {bonusTiers.map(tier => {
+                      const min = Number(tier.min_amount);
+                      const max = tier.max_amount === null ? null : Number(tier.max_amount);
+                      const isActive = baseUsdt >= min && (max === null || baseUsdt <= max);
 
-                        return (
-                          <button
-                            key={tier.id}
-                            type="button"
-                            className={`qbm-bonus-tier ${isActive ? 'is-active' : ''}`}
-                            onClick={() => selectBonusTier(tier)}
-                            aria-label={`Enter ${tierAmountRange(tier)} to qualify for this bonus.`}
-                          >
-                            <span className="qbm-bonus-tier-icon">
-                              <i className="fa-solid fa-gift" />
-                            </span>
-                            <span className="qbm-bonus-tier-copy">
-                              <span className="qbm-bonus-tier-range">Deposit {tierAmountRange(tier)}</span>
-                              <span className="qbm-bonus-tier-value">Get <strong>{tierBonusLabel(tier)}</strong></span>
-                            </span>
-                            {isActive && <span className="qbm-bonus-tier-tag">Your Tier</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <small className="qbm-bonus-tiers-message">No active bonus offers right now.</small>
-                  )}
+                      return (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          className={`qbm-bonus-tier ${isActive ? 'is-active' : ''}`}
+                          onClick={() => selectBonusTier(tier)}
+                          aria-label={`Enter ${tierAmountRange(tier)} to qualify for this bonus.`}
+                          aria-pressed={isActive}
+                          title={`${tierAmountRange(tier)} · ${tierBonusLabel(tier)}`}
+                        >
+                          <span className="qbm-bonus-tier-icon ms-1">
+                            <i className="fa-solid fa-gift" aria-hidden="true" />
+                          </span>
+                          <span className="qbm-bonus-tier-copy">
+                            <span className="qbm-bonus-tier-range">{tierAmountRange(tier)}</span>
+                            <span className="qbm-bonus-tier-value"><strong>{tierBonusLabel(tier)}</strong></span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Breakdown */}
-              <div className="qbm-breakdown">
+              {/* <div className="qbm-breakdown">
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-coins" /></span>
                   <span className="qbm-bd-label">Amount ({fiat})</span>
@@ -552,7 +590,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   </span>
                 </div>
 
-                {/* show bonus  */}
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-gift" /></span>
                   <span className="qbm-bd-label">
@@ -563,7 +600,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   </span>
                 </div>
 
-                {/* show total  */}
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-sack-dollar" /></span>
                   <span className="qbm-bd-label">
@@ -573,8 +609,34 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     + {bonusLoading ? '…' : `${money(totalUsdt)} ${DISPLAY_ASSET_CODE}`}
                   </span>
                 </div>
+              </div> */}
 
-              </div>
+              <details className="qbm-summary">
+                <summary className="qbm-summary-title">Order Summary</summary>
+
+                <div className="qbm-summary-row">
+                  <span>Currency</span><b>{fiat}</b>
+                </div>
+                <div className="qbm-summary-row">
+                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <b>{money(rate)} {fiat}</b>
+                </div>
+                <div className="qbm-summary-row">
+                  <span>Amount</span><b>{money(amountBdtNum)} {fiat}</b>
+                </div>
+                <div className="qbm-summary-row">
+                  <span>{DISPLAY_ASSET_CODE} Amount</span>
+                  <b className="qbm-green">+ {money(baseUsdt)} {DISPLAY_ASSET_CODE}</b>
+                </div>
+                <div className="qbm-summary-row">
+                  <span>Bonus</span>
+                  <b className="qbm-green">+ {money(bonusUsdt)} {DISPLAY_ASSET_CODE}</b>
+                </div>
+                <div className="qbm-summary-row qbm-summary-row--total">
+                  <span>Total You Will Receive</span>
+                  <b>+ {money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
+                </div>
+              </details>
 
               {/* Total */}
               {/* <div className="qbm-total">
@@ -588,7 +650,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div> */}
 
               {/* pay amount show  */}
-              <div className="qbm-total qbm-total--hero">
+              {/* <div className="qbm-total qbm-total--hero">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
                   <span className="fw-bold text-white">Pay Amount </span>
@@ -596,13 +658,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <b className="qbm-total-value">
                   {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
                 </b>
-              </div>
+              </div> */}
 
               <div className="qsm-field">
                 <label className="qsm-label">
                   <i className="fa-solid fa-credit-card" /> Select Payment Method
                 </label>
-                <p className="qbm-payment-hint">Choose how you would like to pay.</p>
                 <div className="qbm-payment-methods">
                   {loadingMethods && <div className="qbm-payment-message">Loading payment methods…</div>}
 
@@ -621,7 +682,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                         onClick={() => setMethodId(method.id)}
                       >
                         <PaymentMethodIcon
-                          className="qbm-payment-method-icon"
+                          className="qbm-payment-method-icon ms-1"
                           methodName={method.method_name}
                           iconImage={
                             method.icon_url ??
@@ -636,17 +697,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                       </button>
                     );
                   })}
-
-                  {/* <button
-                    type="button"
-                    className="qsm-method qsm-method--add"
-                    onClick={() => setModalMode('add')}
-                  >
-                    <span className="qsm-method-icon qsm-method-icon--add">
-                      <i className="fa-solid fa-plus" />
-                    </span>
-                    <span className="qsm-method-name">Add Payment Method</span>
-                  </button> */}
                 </div>
               </div>
             </>
@@ -655,18 +705,18 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
           {step === 2 && (
             <>
               {/* Summary */}
-              <div className="qbm-summary">
-                <h4 className="qbm-summary-title">Order Summary</h4>
+              <details className="qbm-summary">
+                <summary className="qbm-summary-title">Order Summary</summary>
 
                 <div className="qbm-summary-row">
                   <span>Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Amount</span><b>{money(amountBdtNum)} {fiat}</b>
-                </div>
-                <div className="qbm-summary-row">
                   <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{money(rate)} {fiat}</b>
+                </div>
+                <div className="qbm-summary-row">
+                  <span>Amount</span><b>{money(amountBdtNum)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
                   <span>{DISPLAY_ASSET_CODE} Amount</span>
@@ -680,7 +730,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   <span>Total You Will Receive</span>
                   <b>+ {money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
-              </div>
+              </details>
 
               <div className="qbm-total qbm-total--hero qbm-total--confirm">
                 <div className="qbm-total-left">

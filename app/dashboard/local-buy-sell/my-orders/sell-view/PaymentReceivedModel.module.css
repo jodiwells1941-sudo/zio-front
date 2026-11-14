@@ -46,6 +46,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+.summaryRow {
+  border-bottom: 1px dashed rgba(255, 101, 119, .2);
+}
+
+.summaryRow strong { color: #f8fafc; }
+.summaryRow .negative { color: #ff6577; }
+.summaryRow .received { color: #fbbf24; }
+.summaryTotal {
+  border-top: 1px solid rgba(255, 101, 119, .5);
+  border-bottom: 0;
+  font-weight: 800;
+}
+
 @media (max-width: 480px) {
   .receivedAmount {
     gap: 9px;

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReactSelect from 'react-select';
+import ReactSelect, { components as selectComponents } from 'react-select';
 import { isAxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import { createAd, getAd, updateAd, getLocalCurrencyRates, P2pAdPayload } from '@/app/api/p2padsapi';
@@ -14,6 +14,8 @@ import { CurrencyOption, PaymentFormData, SellMethodField, UserPaymentMethod } f
 import { getWithdrawChargeApi } from '@/app/api/wallet';
 import './QuickSellModal.css';
 import PaymentMethodIcon from '../PaymentMethodIcon';
+import { useAuth } from '@/hooks/useAuth';
+import { fetchUserInfoAPI } from '@/app/api/auth';
 
 /* ───────────── Types ───────────── */
 type Option = { value: string; label: string };
@@ -81,6 +83,49 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   const isEdit = Boolean(editId);
   const [loadingAd, setLoadingAd] = useState(isEdit);
   const [step, setStep] = useState<1 | 2>(1);
+  const { user } = useAuth();
+  const walletId = user?.wallet?.id;
+  const [walletAmount, setWalletAmount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (user?.wallet?.amount == null) return;
+    const amount = Number(user.wallet.amount);
+    if (Number.isFinite(amount)) setWalletAmount(amount);
+  }, [user?.wallet?.amount]);
+
+  useEffect(() => {
+    let active = true;
+    const applyBalance = (value: unknown) => {
+      if (!active || value == null) return;
+      const amount = Number(value);
+      if (Number.isFinite(amount)) setWalletAmount(amount);
+    };
+    const refreshBalance = async () => {
+      try {
+        const response = await fetchUserInfoAPI();
+        applyBalance(response?.data?.wallet?.amount);
+      } catch {
+        // Keep the last known balance until the next wallet update or focus.
+      }
+    };
+
+    void refreshBalance();
+    const poll = window.setInterval(() => {
+      if (document.visibilityState !== 'hidden') void refreshBalance();
+    }, 15000);
+    const onWalletBalanceChanged = (event: Event) => {
+      applyBalance((event as CustomEvent<{ amount?: number }>).detail?.amount);
+    };
+    window.addEventListener('focus', refreshBalance);
+    window.addEventListener('walletBalanceChanged', onWalletBalanceChanged);
+
+    return () => {
+      active = false;
+      window.clearInterval(poll);
+      window.removeEventListener('focus', refreshBalance);
+      window.removeEventListener('walletBalanceChanged', onWalletBalanceChanged);
+    };
+  }, [walletId]);
 
   /* ── step 1 ── */
   const [fiat, setFiat] = useState('BDT');
@@ -478,70 +523,106 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
         <div className="qsm-body">
           {step === 1 && (
             <>
-              {/* Currency */}
-              <div className="qsm-field">
-                <label className="qsm-label">
-                  <i className="fa-solid fa-gear" /> Select Currency
-                </label>
-                <ReactSelect<Option>
-                  instanceId="qsmCurrency"
-                  classNamePrefix="qsm-sel"
-                  options={currencyOptions}
-                  value={currencyOptions.find(o => o.value === fiat) ?? null}
-                  onChange={v => {
-                    setFiat((v as Option)?.value ?? 'BDT');
-                    setAmountFiat('');
-                    amountEdited.current = true;
-                    setRate(0);
-                    setRateLoading(true);
-                    setMethodId(0);
-                  }}
-                  isSearchable
-                  components={{ IndicatorSeparator: null }}
-                  formatOptionLabel={o => (
-                    <span className="qsm-opt">
-                      <img
-                        src={`https://flagcdn.com/w40/${CURRENCIES.find(c => c.code === o.value)?.cc ?? 'un'}.png`}
-                        width={18}
-                        height={18}
-                        alt=""
-                      />
-                      {o.label}
-                    </span>
-                  )}
-                />
+              <div className="qsm-entry-label">
+                <span></span>
+                <strong>Balance : {walletAmount === null ? '—' : money(walletAmount)} USD</strong>
               </div>
-
-              {/* Enter the selected fiat amount; the API still receives the USD asset amount. */}
-              <div className="qsm-field">
-                <label className="qsm-label">
-                  <i className="fa-solid fa-coins" /> Enter Amount ({fiat})
-                </label>
-                <div className="qsm-amount mb-3">
-                  <span className="qsm-amount-icon">{CURRENCIES.find(currency => currency.code === fiat)?.icon ?? fiat}</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={amountFiat}
-                    onChange={e => { amountEdited.current = true; setAmountFiat(num(e.target.value)); }}
-                    placeholder="Enter amount"
-                  />
-                  <span className="qsm-rate-label">
-                    (1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`})
-                  </span>
+              <div className="qsm-entry-row">
+                {/* Enter the selected fiat amount; the API still receives the USD asset amount. */}
+                <div className="qsm-field">
+                  <div className="qsm-amount">
+                    <span className="qsm-amount-icon">{CURRENCIES.find(currency => currency.code === fiat)?.icon ?? fiat}</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      aria-label={`Enter amount in ${fiat}`}
+                      value={amountFiat}
+                      onChange={e => { amountEdited.current = true; setAmountFiat(num(e.target.value)); }}
+                      placeholder="Enter amount"
+                    />
+                  </div>
                 </div>
-                <div className="d-flex justify-content-between align-items-center">
+
+                {/* Currency */}
+                <div className="qsm-field">
+                  <ReactSelect<Option>
+                    instanceId="qsmCurrency"
+                    aria-label="Select currency"
+                    classNamePrefix="qsm-sel"
+                    options={currencyOptions}
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    menuPosition="fixed"
+                    menuPlacement="auto"
+                    value={currencyOptions.find(o => o.value === fiat) ?? null}
+                    onChange={v => {
+                      setFiat((v as Option)?.value ?? 'BDT');
+                      setAmountFiat('');
+                      amountEdited.current = true;
+                      setRate(0);
+                      setRateLoading(true);
+                      setMethodId(0);
+                    }}
+                    isSearchable
+                    components={{
+                      IndicatorSeparator: null,
+                      DropdownIndicator: props => (
+                        <selectComponents.DropdownIndicator {...props}>
+                          <span className="qsm-currency-all"><i className="fa-solid fa-chevron-down" aria-hidden="true" />All</span>
+                        </selectComponents.DropdownIndicator>
+                      ),
+                    }}
+                    formatOptionLabel={(o, { context }) => context === 'value' ? o.value : o.label}
+                  />
+                </div>
+              </div>
+              <div className="qsm-entry-meta">
                   <small className="qsm-amount-limits">
                     {rateLoading || rate <= 0
                       ? 'Loading limits…'
-                      : `Min ${money(MIN_AMOUNT_USDT * rate)} · Max ${money(MAX_AMOUNT_USDT * rate)} ${fiat}`}
+                      : `Min ${money(MIN_AMOUNT_USDT * rate)} ${fiat} · Max ${money(MAX_AMOUNT_USDT * rate)} ${fiat} - (${MIN_AMOUNT_USDT}–${MAX_AMOUNT_USDT} ${DISPLAY_ASSET_CODE})`}
                   </small>
-                  <small className='p-2 text-warning'>Fees {money(feeUsdt)} USD ({money(feePercent, 2)}%)</small>
-                </div>
+                  <small className="qsm-entry-rate">
+                    1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`}
+                  </small>
               </div>
+              <small className="qsm-entry-fee">Fees {money(feeUsdt)} USD ({money(feePercent, 2)}%)</small>
 
               {/* Breakdown */}
-              <div className="qsm-breakdown">
+              <details className="qsm-summary">
+                <summary className="qsm-summary-title">Order Summary</summary>
+
+                <div className="qsm-summary-row">
+                  <span>Currency</span><b>{fiat}</b>
+                </div>
+                <div className="qsm-summary-row">
+                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <b>{money(rate)} {fiat}</b>
+                </div>
+                <div className="qsm-summary-row">
+                  <span>Sell Amount</span>
+                  <b className="qsm-green">
+                    - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
+                  </b>
+                </div>
+                <div className="qsm-summary-row">
+                  <span>Fee ({money(feePercent, 2)}%)</span>
+                  <b className="qsm-green">
+                    - {money(feeUsdt)} {DISPLAY_ASSET_CODE}
+                  </b>
+                </div>
+                <div className="qsm-summary-row">
+                  <span>Total Amount</span>
+                  <b className="qsm-green">- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
+                </div>
+                <div className="qsm-summary-row qsm-summary-row--total border-danger">
+                  <span>Received Amount ({fiat})</span>
+                  <b className="text-warning">
+                    {money(receiveFiat)} {fiat}
+                  </b>
+                </div>
+              </details>
+
+              {/* <div className="qsm-breakdown">
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico"><i className="fa-solid fa-coins" /></span>
                   <span className="qsm-bd-label">Sell Amount</span>
@@ -585,7 +666,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     {feeLoading ? '…' : `${money(receiveFiat)} ${fiat}`}
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               <div className="qsm-total qsm-total--hero qsm-total--sell-hero">
                 <div className="qsm-total-left">
@@ -626,7 +707,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                         aria-pressed={active}
                       >
                         <PaymentMethodIcon
-                          className="qsm-method-icon"
+                          className="qsm-method-icon ms-0"
                           methodName={m?.method_name}
                           iconImage={
                             m.icon_url ??
@@ -647,16 +728,6 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
               {selectedMethod && (
                 <div className="qsm-method-editor">
-                  {/* <div className="qsm-method-editor-head">
-                    <span className="qsm-method-editor-head-icon">
-                      <i className="fa-solid fa-building-columns" />
-                    </span>
-                    <div>
-                      <span className="qsm-method-editor-eyebrow">Payment details</span>
-                      <strong>Edit {selectedMethod.method_name} details</strong>
-                      <small>These details are shared with buyers for this payment method.</small>
-                    </div>
-                  </div> */}
 
                   {methodEditorFields.length > 0 ? (
                     <div className="qsm-method-editor-fields">
@@ -691,53 +762,6 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                       This payment method has no editable fields.
                     </p>
                   )}
-
-                  {/* <label className="qsm-method-editor-field qsm-method-editor-remarks">
-                    <span>Remarks <small>(Optional)</small></span>
-                    <textarea
-                      className="qsm-textarea"
-                      rows={2}
-                      value={methodRemarks}
-                      placeholder="Add a note visible to buyers"
-                      onChange={event => {
-                        setMethodRemarks(event.target.value);
-                        setMethodDetailsDirty(true);
-                      }}
-                    />
-                  </label> */}
-
-                  {/* <label className="qsm-method-editor-field qsm-method-editor-qr">
-                    <span>QR Code <small>(Optional)</small></span>
-                    <input
-                      className="qsm-input"
-                      type="file"
-                      accept="image/*"
-                      onChange={event => {
-                        setMethodQrFile(event.target.files?.[0] ?? null);
-                        setMethodDetailsDirty(true);
-                      }}
-                    />
-                    <small className="qsm-method-editor-hint">
-                      {methodQrFile?.name ?? (selectedMethod.qr_code ? 'Current QR code is saved. Choose a file to replace it.' : 'Optional · PNG, JPG or WebP')}
-                    </small>
-                  </label> */}
-
-                  {/* <div className="qsm-method-editor-actions">
-                    <button
-                      type="button"
-                      className="qsm-method-save"
-                      onClick={() => void saveSelectedMethod()}
-                      disabled={methodSubmitting}
-                    >
-                      {methodSubmitting
-                        ? <><i className="fa-solid fa-spinner fa-spin" /> Saving changes…</>
-                        : <><i className="fa-solid fa-floppy-disk" /> Save Payment Method</>}
-                    </button>
-                    {methodDetailsDirty && !methodSubmitting && (
-                      <small><i className="fa-solid fa-circle-info" /> Save your changes before continuing.</small>
-                    )}
-                  </div> */}
-
                 </div>
               )}
             </>
@@ -746,15 +770,19 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
           {step === 2 && (
             <>
               {/* Summary */}
-              <div className="qsm-summary">
-                <h4 className="qsm-summary-title">Order Summary</h4>
+              <details className="qsm-summary">
+                <summary className="qsm-summary-title">Order Summary</summary>
 
                 <div className="qsm-summary-row">
                   <span>Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
+                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <b>{money(rate)} {fiat}</b>
+                </div>
+                <div className="qsm-summary-row">
                   <span>Sell Amount</span>
-                  <b>
+                  <b className="qsm-green">
                     - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
@@ -766,19 +794,15 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
                 <div className="qsm-summary-row">
                   <span>Total Amount</span>
-                  <b>- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
+                  <b className="qsm-green">- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
                 </div>
-                <div className="qsm-summary-row">
-                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
-                  <b>{money(rate)} {fiat}</b>
-                </div>
-                <div className="qsm-summary-row">
+                <div className="qsm-summary-row qsm-summary-row--total border-danger">
                   <span>Received Amount ({fiat})</span>
                   <b className="text-warning">
                     {money(receiveFiat)} {fiat}
                   </b>
                 </div>
-              </div>
+              </details>
 
               <div className="qsm-total qsm-total--hero qsm-total--sell-hero qsm-total--confirm">
                 <div className="qsm-total-left">
