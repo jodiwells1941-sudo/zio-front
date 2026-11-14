@@ -313,7 +313,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             <div className="local-trade-row"><span>Market Price (1 {ad.asset})</span><b>{money(ad.fixed_price)} {ad.with_fiat}</b></div>
             <div className="local-trade-row"><span>Received Amount ({ad.with_fiat})</span><b className="local-trade-positive">{money(grossReceive)} {ad.with_fiat}</b></div>
           </div>
-          <div className="local-trade-total-banner">
+          <div className="local-trade-total-banner local-trade-total-banner--received">
             <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
             <span className="local-trade-total-label">Received Amount</span>
             <strong className="d-flex gap-1"><span className="fw-bold">{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>

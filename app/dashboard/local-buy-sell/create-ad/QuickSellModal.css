@@ -1636,3 +1636,52 @@
     font-size: 21px !important;
   }
 }
+
+/* Selected payment method and the fiat amount received. */
+.qsm-modal .qsm-method.is-active {
+  border-color: #fb7185 !important;
+  background: linear-gradient(135deg, rgba(244, 63, 94, .36), rgba(127, 29, 29, .25)) !important;
+  color: #fff0f2;
+  box-shadow: inset 0 0 0 1px rgba(254, 205, 211, .28), 0 0 16px rgba(244, 63, 94, .25);
+}
+
+.qsm-modal .qsm-total--sell-hero .qsm-total-left > span:last-child,
+.qsm-modal .qsm-total--sell-hero .qsm-total-value {
+  color: #8cf8cb;
+  text-shadow: 0 0 18px rgba(52, 211, 153, .38) !important;
+}
+
+.qsm-modal .qsm-total--sell-hero {
+  border-color: rgba(74, 222, 128, .76) !important;
+  background:
+    radial-gradient(110% 160% at 0% 50%, rgba(74, 222, 128, .34), transparent 65%),
+    linear-gradient(105deg, #154b39 0%, #0b2925 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 12px 26px rgba(16, 185, 129, .22) !important;
+}
+
+.qsm-modal .qsm-total--sell-hero .qsm-total-icon {
+  border: 1px solid rgba(167, 243, 208, .48);
+  background: linear-gradient(135deg, #34d399, #047857) !important;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, .38) !important;
+}
+
+/* The confirmation step uses the same green received amount treatment. */
+.qsm-modal .qsm-total--confirm {
+  border-color: rgba(74, 222, 128, .76) !important;
+  background:
+    radial-gradient(110% 160% at 0% 50%, rgba(74, 222, 128, .34), transparent 65%),
+    linear-gradient(105deg, #154b39 0%, #0b2925 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 12px 26px rgba(16, 185, 129, .22) !important;
+}
+
+.qsm-modal .qsm-total--confirm .qsm-total-left > span:last-child,
+.qsm-modal .qsm-total--confirm .qsm-total-value {
+  color: #8cf8cb !important;
+  text-shadow: 0 0 18px rgba(52, 211, 153, .38) !important;
+}
+
+.qsm-modal .qsm-total--confirm .qsm-total-icon {
+  background: linear-gradient(135deg, #34d399, #047857) !important;
+  color: #fff !important;
+}
