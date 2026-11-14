@@ -1,0 +1,110 @@
+.overlay {
+  position: fixed;
+  z-index: 13020;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(2, 6, 16, .78);
+  backdrop-filter: blur(7px);
+}
+
+.modal {
+  position: relative;
+  width: min(100%, 420px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 26px;
+  border: 1px solid rgba(52, 211, 153, .42);
+  border-radius: 18px;
+  background: radial-gradient(100% 55% at 50% 0, rgba(52, 211, 153, .12), transparent 70%), #131a1e;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, .6);
+  color: #f8fafc;
+  text-align: center;
+}
+
+.close {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .04);
+  color: #cbd5e1;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  margin: 0 auto 14px;
+  border: 1px solid rgba(52, 211, 153, .42);
+  border-radius: 14px;
+  background: rgba(52, 211, 153, .14);
+  color: #6ee7b7;
+  font-size: 23px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #6ee7b7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.modal h2 { margin: 0; font-size: clamp(20px, 5vw, 25px); font-weight: 800; }
+.subtitle { margin: 10px 0 0; color: #aab6c8; font-size: 13px; line-height: 1.5; }
+
+.details {
+  margin-top: 20px;
+  padding: 2px 13px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .04);
+  text-align: left;
+}
+
+.details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  font-size: 12px;
+}
+
+.details > div:last-child { border-bottom: 0; }
+.details span { color: #aab6c8; }
+.details strong { text-align: right; overflow-wrap: anywhere; }
+.queueNote { margin: 11px 0 0; color: #aab6c8; font-size: 11px; }
+
+.viewButton {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #34d399;
+  color: #052018;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.viewButton:hover { background: #6ee7b7; }
+.viewButton:focus-visible, .close:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+@media (max-width: 420px) {
+  .modal { padding: 22px 18px; }
+}

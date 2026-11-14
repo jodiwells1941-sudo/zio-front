@@ -143,13 +143,16 @@ export default function AcceptedLocalOrderPrompt() {
         <h2 id="accepted-local-order-title">Your Order Accepted</h2>
         <p className={styles.subtitle}>Your {isBuy ? "buy" : "sell"} request has been accepted. Open the order to continue.</p>
 
-        <div className={styles.amountCard}>
-          <span>{isBuy ? "Buy" : "Sell"} Amount</span>
+        <div className={`${styles.amountCard} ${isBuy ? styles.receivedCard : styles.payCard}`}>
+          <span>{isBuy ? "Received" : "Pay"} Amount</span>
           <strong>{formatAmount(order.receivable_amount, asset)}</strong>
+        </div>
+        <div className={`${styles.amountCard} ${isBuy ? styles.payCard : styles.receivedCard}`}>
+          <span>{isBuy ? "Pay" : "Received"} Amount</span>
+          <strong>{formatAmount(order.payable_amount, fiat)}</strong>
         </div>
         <div className={styles.details}>
           <div><span>Order ID</span><strong>{order.order_id || `#${order.id}`}</strong></div>
-          <div><span>{isBuy ? "Pay Amount" : "Receive Amount"}</span><strong>{formatAmount(order.payable_amount, fiat)}</strong></div>
           {deadline && !Number.isNaN(deadline.getTime()) && (
             <div><span>Payment deadline</span><strong>{deadline.toLocaleString()}</strong></div>
           )}

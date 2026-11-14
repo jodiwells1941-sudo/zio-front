@@ -393,11 +393,11 @@ export default function IncomingLocalOrderPrompt() {
           </strong>
         </div>
 
-        <section className={styles.orderSummary} aria-label="Order summary">
-          <div className={styles.summaryHeading}>
+        <details key={order.id} className={styles.orderSummary} aria-label="Order summary">
+          <summary className={styles.summaryHeading}>
             <strong>Order Summary</strong>
-            <i className="fa-solid fa-chevron-up" aria-hidden="true" />
-          </div>
+            <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+          </summary>
           <div className={styles.summaryRows}>
             <div className={styles.summaryRow}>
               <span>Order ID</span>
@@ -442,7 +442,7 @@ export default function IncomingLocalOrderPrompt() {
             </div>
             
           </div>
-        </section>
+        </details>
         
         <div className={styles.totalBanner}>
           <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>

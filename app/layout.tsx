@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ToastProvider from "@/components/containers/ToastProvider";
 import IncomingLocalOrderPrompt from "@/components/dashboard/IncomingLocalOrderPrompt";
 import AcceptedLocalOrderPrompt from "@/components/dashboard/AcceptedLocalOrderPrompt";
+import PaymentProofSubmittedPrompt from "@/components/dashboard/PaymentProofSubmittedPrompt";
 
 const chakraPetch = Chakra_Petch({
 	variable: "--chakra",
@@ -82,6 +83,7 @@ export default function RootLayout({
 
 				<IncomingLocalOrderPrompt />
 				<AcceptedLocalOrderPrompt />
+				<PaymentProofSubmittedPrompt />
 				
 				{children}
 				<ToastProvider />

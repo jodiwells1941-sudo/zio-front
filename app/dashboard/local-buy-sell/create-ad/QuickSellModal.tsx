@@ -41,7 +41,6 @@ const CURRENCIES = [
 
 const ASSET_CODE = 'USDT';
 const DISPLAY_ASSET_CODE = 'USD';
-const QUICK_USDT = [10, 25, 50, 100, 500];
 const MIN_AMOUNT_USDT = 10;
 const MAX_AMOUNT_USDT = 500;
 const FALLBACK_RATE = 121.5;
@@ -85,7 +84,9 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
   /* ── step 1 ── */
   const [fiat, setFiat] = useState('BDT');
-  const [amountUsdt, setAmountUsdt] = useState('');
+  const [amountFiat, setAmountFiat] = useState('');
+  const editAssetAmount = useRef<number | null>(null);
+  const amountEdited = useRef(false);
 
   const [rate, setRate] = useState(FALLBACK_RATE);
   const [rateLoading, setRateLoading] = useState(false);
@@ -110,8 +111,8 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   const [timeLimit, setTimeLimit] = useState('15');
   const [submitting, setSubmitting] = useState(false);
 
-  const amountUsdtNum = parseFloat(amountUsdt) || 0;
-  const fiatAmount = amountUsdtNum * rate;
+  const fiatAmount = parseFloat(amountFiat) || 0;
+  const amountUsdtNum = rate > 0 ? Number((fiatAmount / rate).toFixed(8)) : 0;
   const feeUsdt = (amountUsdtNum * feePercent) / 100;
   const totalUsdtWithFee = amountUsdtNum + feeUsdt;
   const feeFiat = (fiatAmount   * feePercent) / 100;
@@ -179,12 +180,17 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
       try {
         const res = await getLocalCurrencyRates({ currency_code: fiat });
         const amount = Number(res?.data?.amount ?? 0);
-        if (!cancelled && Number.isFinite(amount) && amount > 0) setRate(amount);
+        if (!cancelled && Number.isFinite(amount) && amount > 0) {
+          setRate(amount);
+          if (isEdit && !amountEdited.current && editAssetAmount.current !== null) {
+            setAmountFiat(String(Number((editAssetAmount.current * amount).toFixed(2))));
+          }
+        }
       } catch { /* fallback */ }
       finally { if (!cancelled) setRateLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [fiat]);
+  }, [fiat, isEdit]);
 
   /* ── Load withdraw charge percent (once) ── */
   useEffect(() => {
@@ -221,9 +227,13 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
         if (cancelled) return;
         if (!ad) throw new Error('not found');
 
+        const adRate = Number(ad.fixed_price ?? FALLBACK_RATE);
+        const adAmount = Number(ad.total_amount ?? 0);
+        editAssetAmount.current = adAmount;
+        amountEdited.current = false;
         setFiat(ad.with_fiat ?? 'BDT');
-        setRate(Number(ad.fixed_price ?? FALLBACK_RATE));
-        setAmountUsdt(String(ad.total_amount ?? ''));
+        setRate(adRate);
+        setAmountFiat(ad.total_amount == null ? '' : String(Number((adAmount * adRate).toFixed(2))));
         setMethodId(Number(ad.payment_method_id ?? 0));
         setTimeLimit(String(ad.payment_time_limit ?? '15'));
         setRemarks(ad.remarks ?? '');
@@ -325,8 +335,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
   /* ── Next / Submit ── */
   const validateAmount = () => {
+    if (rateLoading || !Number.isFinite(rate) || rate <= 0) {
+      toast.error('Please wait for a valid exchange rate.');
+      return false;
+    }
     if (!Number.isFinite(amountUsdtNum) || amountUsdtNum < MIN_AMOUNT_USDT || amountUsdtNum > MAX_AMOUNT_USDT) {
-      toast.error(`Amount must be between ${MIN_AMOUNT_USDT} and ${MAX_AMOUNT_USDT} ${DISPLAY_ASSET_CODE}.`);
+      toast.error(`Amount must be between ${money(MIN_AMOUNT_USDT * rate)} and ${money(MAX_AMOUNT_USDT * rate)} ${fiat}.`);
       return false;
     }
     return true;
@@ -476,6 +490,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   value={currencyOptions.find(o => o.value === fiat) ?? null}
                   onChange={v => {
                     setFiat((v as Option)?.value ?? 'BDT');
+                    setAmountFiat('');
+                    amountEdited.current = true;
+                    setRate(0);
+                    setRateLoading(true);
                     setMethodId(0);
                   }}
                   isSearchable
@@ -494,18 +512,18 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 />
               </div>
 
-              {/* Amount in USD */}
+              {/* Enter the selected fiat amount; the API still receives the USD asset amount. */}
               <div className="qsm-field">
                 <label className="qsm-label">
-                  <i className="fa-solid fa-coins" /> Enter Amount ({DISPLAY_ASSET_CODE})
+                  <i className="fa-solid fa-coins" /> Enter Amount ({fiat})
                 </label>
                 <div className="qsm-amount mb-3">
-                  <span className="qsm-amount-icon"> $ </span>
+                  <span className="qsm-amount-icon">{CURRENCIES.find(currency => currency.code === fiat)?.icon ?? fiat}</span>
                   <input
                     type="text"
                     inputMode="decimal"
-                    value={amountUsdt}
-                    onChange={e => setAmountUsdt(num(e.target.value))}
+                    value={amountFiat}
+                    onChange={e => { amountEdited.current = true; setAmountFiat(num(e.target.value)); }}
                     placeholder="Enter amount"
                   />
                   <span className="qsm-rate-label">
@@ -514,22 +532,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
                   <small className="qsm-amount-limits">
-                    Min {MIN_AMOUNT_USDT} · Max {MAX_AMOUNT_USDT} {DISPLAY_ASSET_CODE}
+                    {rateLoading || rate <= 0
+                      ? 'Loading limits…'
+                      : `Min ${money(MIN_AMOUNT_USDT * rate)} · Max ${money(MAX_AMOUNT_USDT * rate)} ${fiat}`}
                   </small>
                   <small className='p-2 text-warning'>Fees {money(feeUsdt)} USD ({money(feePercent, 2)}%)</small>
                 </div>
-                {/* <div className="qsm-chips">
-                  {QUICK_USDT.map(v => (
-                    <button
-                      key={v}
-                      type="button"
-                      className={`qsm-chip ${amountUsdtNum === v ? 'is-active' : ''}`}
-                      onClick={() => setAmountUsdt(String(v))}
-                    >
-                      {v}
-                    </button>
-                  ))}
-                </div> */}
               </div>
 
               {/* Breakdown */}
@@ -786,7 +794,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 </div>
               </div>
 
-              <div className="qsm-total qsm-total--hero qsm-total--sell-hero">
+              <div className="qsm-total qsm-total--hero qsm-total--sell-hero qsm-total--confirm">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
                   <span className='fw-bold fs-5'>Received Amount</span>

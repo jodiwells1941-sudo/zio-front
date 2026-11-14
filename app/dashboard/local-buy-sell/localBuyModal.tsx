@@ -185,7 +185,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             )}
             <div className="local-trade-row local-trade-row--total"><span>Total You Will Receive</span><b>{money(totalUsdtReceive)} {ad.asset}</b></div>
           </div>
-          <div className="local-trade-total-banner">
+          <div className="local-trade-total-banner local-trade-total-banner--pay">
             <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
             <span className="local-trade-total-label">Pay Amount</span>
             <strong className="d-flex gap-1 fw-bold">{money(fiatAmount)} {ad.with_fiat}</strong>

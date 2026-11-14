@@ -1581,3 +1581,52 @@
     font-size: 10px;
   }
 }
+
+/* Clear selected payment state and the fiat amount owed. */
+.qbm-modal .qbm-payment-method.is-active {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, rgba(251, 191, 36, .38), rgba(180, 83, 9, .2));
+  color: #fff4d1;
+  box-shadow: inset 0 0 0 1px rgba(255, 231, 153, .34), 0 0 16px rgba(251, 191, 36, .24);
+}
+
+.qbm-modal .qbm-total--hero .qbm-total-left > span:last-child,
+.qbm-modal .qbm-total--hero .qbm-total-value {
+  color: #ff9ba6;
+  text-shadow: 0 0 18px rgba(244, 63, 94, .42);
+}
+
+.qbm-modal .qbm-total--hero {
+  border-color: rgba(251, 113, 133, .82);
+  background:
+    radial-gradient(110% 160% at 0% 50%, rgba(251, 113, 133, .42), transparent 65%),
+    linear-gradient(105deg, #5c1724 0%, #321019 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 12px 26px rgba(225, 29, 72, .25);
+}
+
+.qbm-modal .qbm-total--hero .qbm-total-icon {
+  border: 1px solid rgba(255, 175, 186, .56);
+  background: linear-gradient(135deg, #fb7185, #be123c);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, .45);
+}
+
+/* Keep the confirmation amount as visible as the first-step amount. */
+.qbm-modal .qbm-total--confirm {
+  border-color: rgba(251, 113, 133, .82) !important;
+  background:
+    radial-gradient(110% 160% at 0% 50%, rgba(251, 113, 133, .42), transparent 65%),
+    linear-gradient(105deg, #5c1724 0%, #321019 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 12px 26px rgba(225, 29, 72, .25) !important;
+}
+
+.qbm-modal .qbm-total--confirm .qbm-total-left > span:last-child,
+.qbm-modal .qbm-total--confirm .qbm-total-value {
+  color: #ff9ba6 !important;
+  text-shadow: 0 0 18px rgba(244, 63, 94, .42) !important;
+}
+
+.qbm-modal .qbm-total--confirm .qbm-total-icon {
+  background: linear-gradient(135deg, #fb7185, #be123c) !important;
+  color: #fff !important;
+}
