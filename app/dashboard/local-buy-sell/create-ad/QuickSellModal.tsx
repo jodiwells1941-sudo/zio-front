@@ -545,9 +545,8 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico"><i className="fa-solid fa-coins" /></span>
                   <span className="qsm-bd-label">Sell Amount</span>
-                  <span className="qsm-bd-value">
-                    {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
-                    {/* <small className="qsm-bd-sub">Amount entered</small> */}
+                  <span className="qsm-bd-value qsm-bd-value--green">
+                    - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                   </span>
                 </div>
 
@@ -557,12 +556,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     Fee <small>({money(feePercent, 2)}%)</small>
                   </span>
                   <span className="qsm-bd-value qsm-bd-value--green">
-                    {feeLoading ? '…' : `+ ${money(feeUsdt)} ${DISPLAY_ASSET_CODE}`}
-                    {/* {!feeLoading && (
-                      <small className="qsm-bd-sub">
-                        deducted from fiat received: {money(feeFiat)} {fiat}
-                      </small>
-                    )} */}
+                    - {feeLoading ? '…' : `${money(feeUsdt)} ${DISPLAY_ASSET_CODE}`}
                   </span>
                 </div>
 
@@ -570,7 +564,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <span className="qsm-bd-ico"><i className="fa-solid fa-calculator" /></span>
                   <span className="qsm-bd-label">Total Amount</span>
                   <span className="qsm-bd-value qsm-bd-value--green">
-                    {feeLoading ? '…' : `${money(totalUsdtWithFee)} ${DISPLAY_ASSET_CODE}`}
+                    - {feeLoading ? '…' : `${money(totalUsdtWithFee)} ${DISPLAY_ASSET_CODE}`}
                   </span>
                 </div>
 
@@ -587,13 +581,8 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qsm-bd-row">
                   <span className="qsm-bd-ico"><i className="fa-solid fa-money-bill-wave" /></span>
                   <span className="qsm-bd-label">Received Amount ({fiat})</span>
-                  <span className="qsm-bd-value qsm-bd-value--green">
+                  <span className="qsm-bd-value text-warning">
                     {feeLoading ? '…' : `${money(receiveFiat)} ${fiat}`}
-                    {/* {!feeLoading && (
-                      <small className="qsm-bd-sub">
-                        {money(fiatAmount)} − {money(feeFiat)} fee
-                      </small>
-                    )} */}
                   </span>
                 </div>
               </div>
@@ -766,30 +755,27 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qsm-summary-row">
                   <span>Sell Amount</span>
                   <b>
-                    {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
-                    {/* <small className="qsm-summary-sub">Amount entered</small> */}
+                    - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
                   <span>Fee ({money(feePercent, 2)}%)</span>
                   <b className="qsm-green">
-                    + {money(feeUsdt)} {DISPLAY_ASSET_CODE}
-                    {/* <small className="qsm-summary-sub">Deducted from fiat: {money(feeFiat)} {fiat}</small> */}
+                    - {money(feeUsdt)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
                   <span>Total Amount</span>
-                  <b>{money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
+                  <b>- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qsm-summary-row">
                   <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{money(rate)} {fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span className='fw-bold fs-5'>Received Amount ({fiat})</span>
-                  <b className="qsm-green">
+                  <span>Received Amount ({fiat})</span>
+                  <b className="text-warning">
                     {money(receiveFiat)} {fiat}
-                    {/* <small className="qsm-summary-sub">{money(fiatAmount)} − {money(feeFiat)} fee</small> */}
                   </b>
                 </div>
               </div>
@@ -797,11 +783,11 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
               <div className="qsm-total qsm-total--hero qsm-total--sell-hero qsm-total--confirm">
                 <div className="qsm-total-left">
                   <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-                  <span className='fw-bold fs-5'>Received Amount</span>
+                  <span className='fw-bold fs-5'>Received</span>
                 </div>
                 <b className="qsm-total-value d-flex align-items-center gap-2">
-                  <span>{feeLoading ? '…' : money(receiveFiat)}</span>
-                  <span>{fiat}</span>
+                  <span className='fw-bold'>{feeLoading ? '…' : money(receiveFiat)}</span>
+                  <span className='fs-6 fw-bold'>{fiat}</span>
                 </b>
               </div>
 

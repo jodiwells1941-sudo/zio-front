@@ -545,7 +545,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     Buy Amount <small>(Base)</small>
                   </span>
                   <span className="qbm-bd-value qbm-bd-value--green">
-                    {money(baseUsdt)} {DISPLAY_ASSET_CODE}
+                    + {money(baseUsdt)} {DISPLAY_ASSET_CODE}
                     <small className="qbm-bd-sub">
                       {money(amountBdtNum, 0)} ÷ {money(rate)}
                     </small>
@@ -559,7 +559,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     Bonus <small>(Credited when the order is completed)</small>
                   </span>
                   <span className="qbm-bd-value qbm-bd-value--green">
-                    {money(bonusUsdt)} {DISPLAY_ASSET_CODE}
+                    + {money(bonusUsdt)} {DISPLAY_ASSET_CODE}
                   </span>
                 </div>
 
@@ -570,7 +570,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     Total You Will Receive <small>(Base + Bonus)</small>
                   </span>
                   <span className="qbm-bd-value qbm-bd-value--green">
-                    {bonusLoading ? '…' : `${money(totalUsdt)} ${DISPLAY_ASSET_CODE}`}
+                    + {bonusLoading ? '…' : `${money(totalUsdt)} ${DISPLAY_ASSET_CODE}`}
                   </span>
                 </div>
 
@@ -591,7 +591,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               <div className="qbm-total qbm-total--hero">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
-                  <span>Pay Amount </span>
+                  <span className="fw-bold text-white">Pay Amount </span>
                 </div>
                 <b className="qbm-total-value">
                   {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
@@ -670,7 +670,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 </div>
                 <div className="qbm-summary-row">
                   <span>{DISPLAY_ASSET_CODE} Amount</span>
-                  <b className="qbm-green">{money(baseUsdt)} {DISPLAY_ASSET_CODE}</b>
+                  <b className="qbm-green">+ {money(baseUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qbm-summary-row">
                   <span>Bonus</span>
@@ -678,14 +678,14 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 </div>
                 <div className="qbm-summary-row qbm-summary-row--total">
                   <span>Total You Will Receive</span>
-                  <b>{money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
+                  <b>+ {money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
               </div>
 
               <div className="qbm-total qbm-total--hero qbm-total--confirm">
                 <div className="qbm-total-left">
                   <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
-                  <span>Pay Amount</span>
+                  <span className="fw-bold">Pay Amount</span>
                 </div>
                 <b className="qbm-total-value">
                   {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}

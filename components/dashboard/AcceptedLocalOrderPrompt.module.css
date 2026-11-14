@@ -83,7 +83,7 @@
 .amountCard strong { color: var(--amount-accent); font-size: 17px; white-space: nowrap; }
 
 .payCard { --amount-accent: #ff9ba6; --amount-rgb: 244, 63, 94; }
-.receivedCard { --amount-accent: #8cf8cb; --amount-rgb: 16, 185, 129; }
+.receivedCard { --amount-accent: #fbbf24; --amount-rgb: 251, 191, 36; }
 
 .details { margin-top: 14px; padding: 2px 13px; border: 1px solid #ffffff24; border-radius: 12px; background: #ffffff08; text-align: left; }
 .details > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #ffffff1c; font-size: 12px; }

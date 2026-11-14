@@ -14,10 +14,10 @@
   gap: 12px;
   margin-bottom: 16px;
   padding: 12px 14px;
-  border: 1px solid rgba(32, 201, 151, .35);
+  border: 1px solid rgba(251, 191, 36, .42);
   border-radius: 11px;
-  background: linear-gradient(100deg, rgba(32, 201, 151, .16), rgba(32, 201, 151, .05));
-  color: #ecfff8;
+  background: linear-gradient(100deg, rgba(251, 191, 36, .19), rgba(251, 191, 36, .05));
+  color: #fffbeb;
 }
 
 .icon {
@@ -27,8 +27,8 @@
   height: 36px;
   place-items: center;
   border-radius: 10px;
-  background: rgba(32, 201, 151, .16);
-  color: #20c997;
+  background: rgba(251, 191, 36, .16);
+  color: #fbbf24;
   font-size: 15px;
 }
 
@@ -39,7 +39,7 @@
 
 .value {
   margin-left: auto;
-  color: #20c997;
+  color: #fbbf24;
   font-size: 16px;
   font-weight: 800;
   text-align: right;

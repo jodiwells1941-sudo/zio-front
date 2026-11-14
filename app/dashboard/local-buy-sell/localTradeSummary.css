@@ -103,7 +103,7 @@
 }
 
 .local-trade-positive {
-  color: #34d399 !important;
+  color: #fbbf24 !important;
 }
 
 .local-trade-field {
@@ -979,22 +979,22 @@
 }
 
 .local-trade-modal .local-trade-total-banner--received {
-  border-color: rgba(74, 222, 128, .76);
+  border-color: rgba(251, 191, 36, .76);
   background:
-    radial-gradient(110% 160% at 0% 50%, rgba(74, 222, 128, .34), transparent 65%),
-    linear-gradient(105deg, #154b39 0%, #0b2925 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 12px 26px rgba(16, 185, 129, .22);
+    radial-gradient(110% 160% at 0% 50%, rgba(251, 191, 36, .34), transparent 65%),
+    linear-gradient(105deg, #4b3915 0%, #29200b 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 12px 26px rgba(245, 158, 11, .22);
 }
 
 .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon {
-  border: 1px solid rgba(167, 243, 208, .48);
-  background: linear-gradient(135deg, #34d399, #047857);
+  border: 1px solid rgba(253, 230, 138, .48);
+  background: linear-gradient(135deg, #fbbf24, #b45309);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, .38);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, .38);
 }
 
 .local-trade-modal .local-trade-total-banner--received .local-trade-total-label,
 .local-trade-modal .local-trade-total-banner--received > strong {
-  color: #8cf8cb;
-  text-shadow: 0 0 18px rgba(52, 211, 153, .38);
+  color: #ffe185;
+  text-shadow: 0 0 18px rgba(251, 191, 36, .38);
 }
