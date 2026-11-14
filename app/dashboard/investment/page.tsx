@@ -7,7 +7,7 @@ import InvestmentPlanCard, { type InvestmentPlan } from '@/components/dashboard/
 import styles from './investment.module.css';
 
 type Plan = InvestmentPlan;
-type Holding = { id: number; code_no: string; started_at: string; closed_at?: string | null; principal_repaid_at?: string | null; investment_amount: number | string; return_amount: number | string; total_profit: number | string; paid_profit: number | string; paid_periods: number; total_periods: number; next_payment_at?: string | null; ended_at: string; status: string; payout_frequency?: string; profit_rate?: number | string | null; total_profit_rate?: number | string | null; investment?: { name: string } };
+type Holding = { id: number; code_no: string; started_at: string; closed_at?: string | null; principal_repaid_at?: string | null; admin_refund_amount?: number | string | null; admin_retained_amount?: number | string | null; investment_amount: number | string; return_amount: number | string; total_profit: number | string; paid_profit: number | string; paid_periods: number; total_periods: number; next_payment_at?: string | null; ended_at: string; status: string; payout_frequency?: string; profit_rate?: number | string | null; total_profit_rate?: number | string | null; investment?: { name: string } };
 type Overview = { total_invested: number; total_profit_expected: number; total_profit_paid: number; remaining_profit: number; active_investments: number };
 type ProfitRow = { id: number | string; amount: number | string; description: string; created_at: string; trx_id?: string };
 const money = (value: number | string | null | undefined) => `$${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -36,6 +36,10 @@ const iconClass = (plan: Plan) => ({ crown: 'fa-crown', daily: 'fa-calendar-day'
 const label = (frequency?: string) => ({ daily: 'Daily Income', weekly: 'Weekly Income', monthly: 'Monthly Income', fixed: 'Fixed Return' }[frequency || 'fixed'] || 'Fixed Return');
 const periodName = (frequency?: string) => ({ daily: 'day', weekly: 'week', monthly: 'month', fixed: 'term' }[frequency || 'fixed'] || 'term');
 const remainingCapital = (item: Holding) => item.status === 'active' && !item.principal_repaid_at ? Number(item.investment_amount) : 0;
+const returnedCapital = (item: Holding) => item.admin_refund_amount != null ? Number(item.admin_refund_amount) : Number(item.investment_amount);
+const capitalStatus = (item: Holding) => item.status === 'closed' && item.admin_refund_amount != null
+  ? Number(item.admin_refund_amount) > 0 ? 'Refunded' : 'No refund'
+  : item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Refunded' : 'Upcoming';
 const nextProfitAmount = (item: Holding) => {
   if (item.status !== 'active') return null;
   const periods = Math.max(1, Number(item.total_periods) || 1);
@@ -434,7 +438,7 @@ export default function InvestmentPage() {
                             <td>{money(paid)}</td>
                             <td className={styles.remainingCell}><div className={styles.remainingBreakdown}><span>Profit <strong>{money(remaining)}</strong></span><span>Capital <strong>{money(remainingCapital(item))}</strong></span></div></td>
                             <td><div className={styles.dateCell}><i className="fa-regular fa-clock" aria-hidden="true" /><span><strong className='text-warning'>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong><small>{item.status === 'active' ? tableDate(item.next_payment_at || item.ended_at) : 'No upcoming payment'}</small>{nextProfit !== null && <small className={styles.nextProfitAmount}>Profit — {money(nextProfit)}</small>}</span></div></td>
-                            <td><div className={styles.dateCell}><i className="fa-regular fa-calendar" aria-hidden="true" /><span><strong className='text-warning'>{item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Cancelled' : timeUntil(item.ended_at, now)}</strong><small>{tableDate(item.principal_repaid_at || (item.status === 'closed' ? item.closed_at : item.ended_at))}</small><small className={styles.capitalReturn}>Capital Return — ({money(item.investment_amount)})</small></span></div></td>
+                            <td><div className={styles.dateCell}><i className="fa-regular fa-calendar" aria-hidden="true" /><span><strong className='text-warning'>{item.status === 'active' ? timeUntil(item.ended_at, now) : capitalStatus(item)}</strong><small>{tableDate(item.principal_repaid_at || (item.status === 'closed' ? item.closed_at : item.ended_at))}</small><small className={styles.capitalReturn}>{item.status === 'closed' ? 'Capital Refund' : 'Capital Return'} — ({money(returnedCapital(item))})</small></span></div></td>
                             <td><div className={styles.progressCell}><span className={`${styles.status} ${styles[item.status] || ''}`}>{item.status}</span><div className={styles.progressLine}><div className={styles.progress} aria-label={`${progress.toFixed(2)}% of profit paid`}><span style={{ width: `${progress}%` }} /></div><small>{progress.toFixed(2)}%</small></div></div></td>
                             <td><div><button type="button" className={`${styles.viewButton} ${detailId === item.id ? styles.viewButtonActive : ''}`} aria-expanded={detailId === item.id} onClick={() => setDetailId(detailId === item.id ? null : item.id)}>{detailId === item.id ? 'Hide' : 'Details'}</button></div></td>
                           </tr>
@@ -461,7 +465,7 @@ export default function InvestmentPage() {
                             <span>Paid profit <strong>{money(paid)}</strong></span>
                             <span>Remaining <strong className={styles.remaining}>Profit — {money(remaining)}<br />Capital — {money(remainingCapital(item))}</strong></span>
                             <span>Next payment <strong>{item.status === 'active' ? timeUntil(item.next_payment_at || item.ended_at, now) : '—'}</strong>{nextProfit !== null && <small>Profit — {money(nextProfit)}</small>}</span>
-                            <span>Capital return <strong>{item.principal_repaid_at ? 'Returned' : item.status === 'closed' ? 'Cancelled' : timeUntil(item.ended_at, now)}</strong><small>{tableDate(item.principal_repaid_at || (item.status === 'closed' ? item.closed_at : item.ended_at))}</small><small>Capital Return — ({money(item.investment_amount)})</small></span>
+                            <span>Capital return <strong>{item.status === 'active' ? timeUntil(item.ended_at, now) : capitalStatus(item)}</strong><small>{tableDate(item.principal_repaid_at || (item.status === 'closed' ? item.closed_at : item.ended_at))}</small><small>{item.status === 'closed' ? 'Capital Refund' : 'Capital Return'} — ({money(returnedCapital(item))})</small></span>
                           </div>
                           <div className={styles.mobileHoldingBottom}>
                             <div className={styles.progressCell}><span className={`${styles.status} ${styles[item.status] || ''}`}>{item.status}</span><div className={styles.progressLine}><div className={styles.progress} aria-label={`${progress.toFixed(2)}% of profit paid`}><span style={{ width: `${progress}%` }} /></div><small>{progress.toFixed(2)}%</small></div></div>
@@ -488,7 +492,7 @@ export default function InvestmentPage() {
                         </div>
                         <div className={styles.capitalCardTimer}>
                           <small>{detail.status === 'active' ? 'Time remaining' : 'Capital status'}</small>
-                          <strong>{detail.status === 'active' ? timeUntil(detail.ended_at, now) : detail.principal_repaid_at ? 'Returned' : detail.status === 'closed' ? 'Refunded' : 'Completed'}</strong>
+                          <strong>{detail.status === 'active' ? timeUntil(detail.ended_at, now) : capitalStatus(detail)}</strong>
                           <div className={styles.capitalProfitProgress}>
                               <div className={styles.capitalProfitProgressHeader}><small>Profit Progress</small><b>{detailProfitProgress.toFixed(2)}%</b></div>
                               <div className={styles.capitalProfitProgressBar} role="progressbar" aria-label="Profit paid" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Number(detailProfitProgress.toFixed(2))}><span style={{ width: `${detailProfitProgress}%` }} /></div>
@@ -496,14 +500,14 @@ export default function InvestmentPage() {
                         </div>
                         <div className={styles.capitalCardValue}>
                           <div className={styles.capitalCardAmountRow}>
-                            <strong>{money(detail.investment_amount)}</strong>
-                            <small className={`${styles.capitalBadge} ${detail.status === 'active' ? '' : styles.capitalBadgeDone}`}>{detail.status === 'active' ? 'Upcoming' : detail.status === 'closed' ? 'Refunded' : 'Returned'}</small>
+                            <strong>{money(returnedCapital(detail))}</strong>
+                            <small className={`${styles.capitalBadge} ${detail.status === 'active' ? '' : styles.capitalBadgeDone}`}>{detail.status === 'active' ? 'Upcoming' : capitalStatus(detail)}</small>
                           </div>
-                          <small>{detail.status === 'active' ? 'Scheduled' : detail.status === 'closed' ? 'Refunded' : 'Returned'} · {tableDate(detail.principal_repaid_at || (detail.status === 'closed' ? detail.closed_at : detail.ended_at))}</small>
+                          <small>{detail.status === 'active' ? 'Scheduled' : capitalStatus(detail)} · {tableDate(detail.principal_repaid_at || (detail.status === 'closed' ? detail.closed_at : detail.ended_at))}</small>
                         </div>
                       </div>
                     </div>
-                    <div className={styles.detailDates}><span>Started: <strong>{date(detail.started_at)}</strong></span><span>Next payment: <strong>{detail.status === 'active' ? date(detail.next_payment_at) : '—'}</strong></span><span>Principal return: <strong>{detail.principal_repaid_at ? date(detail.principal_repaid_at) : `Scheduled ${date(detail.ended_at)}`}</strong></span></div>
+                    <div className={styles.detailDates}><span>Started: <strong>{date(detail.started_at)}</strong></span><span>Next payment: <strong>{detail.status === 'active' ? date(detail.next_payment_at) : '—'}</strong></span><span>Principal return: <strong>{detail.status === 'closed' ? `${money(returnedCapital(detail))} on ${date(detail.closed_at)}` : detail.principal_repaid_at ? date(detail.principal_repaid_at) : `Scheduled ${date(detail.ended_at)}`}</strong></span></div>
                     <h4 className='mb-0'>Profit payment schedule</h4>
                     <div className={styles.paymentList}>
                       {paymentRows(detail).map(row => {
