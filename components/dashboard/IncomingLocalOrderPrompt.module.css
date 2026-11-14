@@ -130,8 +130,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #4ade80;
-  box-shadow: 0 0 0 4px rgba(74, 222, 128, .12), 0 0 12px rgba(74, 222, 128, .7);
+  background: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, .12), 0 0 12px rgba(251, 191, 36, .7);
 }
 
 .eyebrow {
@@ -148,10 +148,10 @@
   align-items: center;
   gap: 5px;
   padding: 3px 7px;
-  border: 1px solid rgba(74, 222, 128, .2);
+  border: 1px solid rgba(251, 191, 36, .2);
   border-radius: 999px;
-  background: rgba(74, 222, 128, .1);
-  color: #86efac;
+  background: rgba(251, 191, 36, .1);
+  color: #fcd34d;
   font-size: 9px;
   font-weight: 750;
   letter-spacing: .06em;
@@ -162,7 +162,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #4ade80;
+  background: #fbbf24;
 }
 
 .modal h2 {

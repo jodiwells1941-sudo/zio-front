@@ -452,7 +452,7 @@ export default function Header({
                           </div>
                         </div>
 
-                        <div className="max-h-400-px overflow-y-auto scroll-sm d-flex flex-column">
+                        <div className="header-notification-list">
                           {notificationsLoading && notificationItems.length === 0 ? (
                             <div className="header-notification-empty"><i className="fa-solid fa-spinner fa-spin" /> Loading notifications…</div>
                           ) : notificationItems.length > 0 ? notificationItems.map(notification => (
@@ -482,7 +482,7 @@ export default function Header({
                           )}
                         </div>
 
-                        <div className="text-center py-3">
+                        <div className="text-center py-3 header-notification-footer">
                           <Link href="/dashboard/local-buy-sell/my-orders" className="header-notification-footer-link">View order activity</Link>
                         </div>
                       </div>
