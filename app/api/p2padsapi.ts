@@ -103,6 +103,16 @@ export interface LocalAdsParams {
   rate_max?: number | string;
 }
 
+export type LocalTradeLimits = {
+  buy: { min: number; max: number };
+  sell: { min: number; max: number };
+};
+
+export const getLocalTradeLimits = async (): Promise<LocalTradeLimits> => {
+  const response = await apiClient.get('/user/local-trade-limits');
+  return response.data.data as LocalTradeLimits;
+};
+
 // ─── API calls ────────────────────────────────────────────────────────────────
 
 export const getAllAds = async (params?: {
@@ -170,7 +180,7 @@ export const touchLocalMarketplacePresence = async () => {
 };
 
 // get local currency ret api 
-export const getLocalCurrencyRates = async (params?: { currency_code?: string }) => {
+export const getLocalCurrencyRates = async (params?: { currency_code?: string; order_type?: 'buy' | 'sell' }) => {
   const response = await apiClient.get('/user/local-currency-rate', { params });
   return response?.data;
 }

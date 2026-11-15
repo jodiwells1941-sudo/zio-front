@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 import PaymentMethodIcon from "./PaymentMethodIcon";
 import { localOrderSummaryRows } from "./localOrderSummary";
+import { useLocalTradeLimits } from "./useLocalTradeLimits";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ type Props = {
 
 export default function LocalSellModal({ onClose, ad }: Props) {
   const router = useRouter();
+  const { limits: tradeLimits, loading: limitsLoading } = useLocalTradeLimits();
 
   const [sellAmount,   setSellAmount]   = useState('');
   const [receiveAmt,   setReceiveAmt]   = useState('');
@@ -171,6 +173,10 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   // ─── Submit ────────────────────────────────────────────────────────────────
 
   const handleSell = async () => {
+    if (limitsLoading || !tradeLimits) {
+      toast.error('Could not load the current Sell amount limits. Please try again.');
+      return;
+    }
     const cryptoQty = parseFloat(String(sellAmount).replace(/,/g, "").trim());
 
     if (!selectedPaymentMethod) {
@@ -204,6 +210,11 @@ export default function LocalSellModal({ onClose, ad }: Props) {
 
     if (isNaN(cryptoQty) || cryptoQty <= 0) {
       toast.error("Please enter a valid amount.");
+      return;
+    }
+
+    if (cryptoQty < tradeLimits.sell.min || cryptoQty > tradeLimits.sell.max) {
+      toast.error(`Sell amount must be between ${money(tradeLimits.sell.min)} and ${money(tradeLimits.sell.max)} USD.`);
       return;
     }
 

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 import PaymentMethodIcon from "./PaymentMethodIcon";
 import { localOrderSummaryRows } from "./localOrderSummary";
+import { useLocalTradeLimits } from "./useLocalTradeLimits";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ type Props = {
 
 export default function LocalBuyModal({ onClose, ad }: Props) {
   const router = useRouter();
+  const { limits: tradeLimits, loading: limitsLoading } = useLocalTradeLimits();
 
   const [payAmount,   setPayAmount]   = useState('');
   const [receiveAmt,  setReceiveAmt]  = useState('');
@@ -80,6 +82,10 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   // ─── Submit ────────────────────────────────────────────────────────────────
 
   const handleBuy = async () => {
+    if (limitsLoading || !tradeLimits) {
+      toast.error('Could not load the current Buy amount limits. Please try again.');
+      return;
+    }
     // ── Required field validation ──────────────────────────────────────────
     if (!payAmount.trim() || !(parseAmount(payAmount) > 0)) {
       toast.error('Please enter how much you pay and how much crypto you receive.');
@@ -90,17 +96,17 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
       return;
     }
 
-    const payFiat = parseAmount(payAmount);
     const recvCrypto = parseAmount(receiveAmt);
-    let assetQty = Number.NaN;
-    if (payFiat > 0) {
-      assetQty = payFiat / ad.fixed_price;
-    } else if (recvCrypto > 0) {
-      assetQty = recvCrypto;
-    }
+    // The ad's asset amount is authoritative. Dividing a rounded fiat display
+    // amount by the rate can move an exact minimum just below the boundary.
+    const assetQty = recvCrypto;
 
     if (!(assetQty > 0)) {
       toast.error("Please enter how much you pay or how much crypto you receive.");
+      return;
+    }
+    if (assetQty < tradeLimits.buy.min || assetQty > tradeLimits.buy.max) {
+      toast.error(`Buy amount must be between ${money(tradeLimits.buy.min)} and ${money(tradeLimits.buy.max)} USD.`);
       return;
     }
     if (assetQty < ad.order_limit_min || assetQty > ad.order_limit_max) {

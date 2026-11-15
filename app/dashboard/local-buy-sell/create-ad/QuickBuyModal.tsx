@@ -17,6 +17,7 @@ import { getDepositBonusApi, getDepositBonusTiersApi } from '@/app/api/wallet';
 import PaymentMethodIcon from '../PaymentMethodIcon';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchUserInfoAPI } from '@/app/api/auth';
+import { useLocalTradeLimits } from '../useLocalTradeLimits';
 
 /* ───────────── Types ───────────── */
 type Option = { value: string; label: string };
@@ -60,15 +61,13 @@ const CURRENCIES = [
 const ASSET_CODE = 'USDT';
 const DISPLAY_ASSET_CODE = 'USD';
 const QUICK_BDT = [500, 1000, 5000, 10000, 50000];
-const MIN_AMOUNT_USDT = 10;
-const MAX_AMOUNT_USDT = 500;
-const FALLBACK_RATE = 121.5;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
 
 const money = (n: number, d = 2) =>
   Number.isFinite(n)
     ? n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
     : '0.00';
+const rateMoney = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const num = (v: string) => v.replace(/[^\d.]/g, '');
 
@@ -77,6 +76,9 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   const isEdit = Boolean(editId);
   const [loadingAd, setLoadingAd] = useState(isEdit);
   const [step, setStep] = useState<1 | 2>(1);
+  const { limits: tradeLimits, loading: limitsLoading } = useLocalTradeLimits();
+  const minimumUsd = tradeLimits?.buy.min ?? 0;
+  const maximumUsd = tradeLimits?.buy.max ?? 0;
   const { user } = useAuth();
   const walletId = user?.wallet?.id;
   const [walletAmount, setWalletAmount] = useState<number | null>(null);
@@ -125,8 +127,9 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   const [fiat, setFiat] = useState('BDT');
   const [amountBdt, setAmountBdt] = useState('');
 
-  const [rate, setRate] = useState(FALLBACK_RATE);
+  const [rate, setRate] = useState(0);
   const [rateLoading, setRateLoading] = useState(false);
+  const [rateRefresh, setRateRefresh] = useState(0);
 
   const [bonus, setBonus] = useState<DepositBonusData>({
     deposit_amount: 0,
@@ -153,9 +156,9 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
   const fiatIcon = cur.icon;
 
   const amountBdtNum = parseFloat(amountBdt) || 0;
-  const baseUsdt = rate > 0 ? amountBdtNum / rate : 0;
-  const minimumFiatAmount = Math.ceil(MIN_AMOUNT_USDT * rate * 100) / 100;
-  const maximumFiatAmount = Math.floor(MAX_AMOUNT_USDT * rate * 100) / 100;
+  const baseUsdt = rate > 0 ? Number((amountBdtNum / rate).toFixed(8)) : 0;
+  const minimumFiatAmount = Math.ceil(minimumUsd * rate * 100) / 100;
+  const maximumFiatAmount = Math.floor(maximumUsd * rate * 100) / 100;
   const bonusUsdt = Number(bonus.bonus_amount ?? 0);
   const totalUsdt = baseUsdt + bonusUsdt;
   const selectedPaymentCurrency = paymentCurrencies.find(
@@ -211,14 +214,17 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
     setRateLoading(true);
     (async () => {
       try {
-        const res = await getLocalCurrencyRates({ currency_code: fiat });
-        const amount = Number(res?.data?.amount ?? 0);
-        if (!cancelled && Number.isFinite(amount) && amount > 0) setRate(amount);
-      } catch { /* keep fallback */ }
+        const res = await getLocalCurrencyRates({ currency_code: fiat, order_type: 'buy' });
+        const amount = Number(res?.data?.effective_rate ?? 0);
+        if (!Number.isFinite(amount) || amount <= 0 || !res?.data?.is_active) throw new Error('This Buy rate is unavailable.');
+        if (!cancelled) setRate(amount);
+      } catch {
+        if (!cancelled) { setRate(0); toast.error('Could not load the current Buy exchange rate.'); }
+      }
       finally { if (!cancelled) setRateLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [fiat]);
+  }, [fiat, rateRefresh]);
 
   /* ── Load ad when editing ── */
   useEffect(() => {
@@ -235,7 +241,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
         const p = Number(ad.fixed_price ?? 0);
         const totalUsdtVal = Number(ad.total_amount ?? 0);
         setFiat(ad.with_fiat ?? 'BDT');
-        setRate(p > 0 ? p : FALLBACK_RATE);
         setAmountBdt(String(+(totalUsdtVal * p).toFixed(2)));
         setMethodId(Number(ad.payment_method_id ?? 0));
         setTimeLimit(String(ad.payment_time_limit ?? '15'));
@@ -331,9 +336,17 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
   /* ── Next / Submit ── */
   const validateAmount = () => {
-    if (!Number.isFinite(baseUsdt) || baseUsdt < MIN_AMOUNT_USDT || baseUsdt > MAX_AMOUNT_USDT) {
+    if (limitsLoading || !tradeLimits) {
+      toast.error('Could not load the current Buy amount limits. Please try again.');
+      return false;
+    }
+    if (rateLoading || !Number.isFinite(rate) || rate <= 0) {
+      toast.error('Please wait for a valid Buy exchange rate.');
+      return false;
+    }
+    if (!Number.isFinite(baseUsdt) || baseUsdt < minimumUsd || baseUsdt > maximumUsd) {
       toast.error(
-        `Amount must be between ${money(minimumFiatAmount)} and ${money(maximumFiatAmount)} ${fiat} (${MIN_AMOUNT_USDT}–${MAX_AMOUNT_USDT} USD).`,
+        `Amount must be between ${money(minimumFiatAmount)} and ${money(maximumFiatAmount)} ${fiat} (${money(minimumUsd)}–${money(maximumUsd)} USD).`,
       );
       return false;
     }
@@ -384,6 +397,11 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
       onSuccess?.();
       onClose();
     } catch (e) {
+      if (isAxiosError(e) && e.response?.status === 409) {
+        setStep(1);
+        setRateLoading(true);
+        setRateRefresh(value => value + 1);
+      }
       const apiError = isAxiosError<{ message?: string; errors?: Record<string, string[]> }>(e) ? e.response?.data : undefined;
       const laravel = apiError?.errors ?? {};
       if (Object.keys(laravel).length) {
@@ -493,6 +511,8 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                     value={currencyOptions.find(o => o.value === fiat) ?? null}
                     onChange={v => {
                       setFiat((v as Option)?.value ?? 'BDT');
+                      setRate(0);
+                      setRateLoading(true);
                       setMethodId(0);
                     }}
                     isSearchable
@@ -510,11 +530,10 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div>
               <div className="qbm-entry-meta">
                 <small className="qbm-amount-limits">
-                  Min {money(minimumFiatAmount)} {fiat} · Max {money(maximumFiatAmount)} {fiat} -
-                   ({MIN_AMOUNT_USDT}–{MAX_AMOUNT_USDT} {DISPLAY_ASSET_CODE})
+                  {limitsLoading || !tradeLimits ? 'Loading limits…' : `Min ${money(minimumFiatAmount)} ${fiat} · Max ${money(maximumFiatAmount)} ${fiat} - (${money(minimumUsd)}–${money(maximumUsd)} ${DISPLAY_ASSET_CODE})`}
                 </small>
                 <small className="qbm-entry-rate">
-                  1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${money(rate)} ${fiat}`}
+                  1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${rateMoney(rate)} ${fiat}`}
                 </small>
               </div>
               <div className="qbm-summary-row">
@@ -570,10 +589,10 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <div className="qbm-bd-row">
                   <span className="qbm-bd-ico"><i className="fa-solid fa-chart-line" /></span>
                   <span className="qbm-bd-label">
-                    Market Price <small>(1 {DISPLAY_ASSET_CODE} = {money(rate)} {fiat})</small>
+                    Market Price <small>(1 {DISPLAY_ASSET_CODE} = {rateMoney(rate)} {fiat})</small>
                   </span>
                   <span className="qbm-bd-value qbm-bd-value--price">
-                    {rateLoading ? '…' : `${money(rate)} ${fiat}`}
+                    {rateLoading ? '…' : `${rateMoney(rate)} ${fiat}`}
                   </span>
                 </div>
 
@@ -585,7 +604,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   <span className="qbm-bd-value qbm-bd-value--green">
                     + {money(baseUsdt)} {DISPLAY_ASSET_CODE}
                     <small className="qbm-bd-sub">
-                      {money(amountBdtNum, 0)} ÷ {money(rate)}
+                      {money(amountBdtNum, 0)} ÷ {rateMoney(rate)}
                     </small>
                   </span>
                 </div>
@@ -619,10 +638,10 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 </div>
                 <div className="qbm-summary-row">
                   <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
-                  <b>{money(rate)} {fiat}</b>
+                  <b>{rateMoney(rate)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Amount</span><b>{money(amountBdtNum)} {fiat}</b>
+                  <span>Buy Amount</span><b className='text-md'>{money(amountBdtNum)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
                   <span>{DISPLAY_ASSET_CODE} Amount</span>
@@ -661,7 +680,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div> */}
 
               <div className="qsm-field">
-                <label className="qsm-label">
+                <label className="qsm-label mb-1">
                   <i className="fa-solid fa-credit-card" /> Select Payment Method
                 </label>
                 <div className="qbm-payment-methods">
@@ -704,19 +723,29 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
           {step === 2 && (
             <>
+              {/* <div className="qbm-total qbm-total--hero qbm-total--confirm">
+                <div className="qbm-total-left">
+                  <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
+                  <span className="fw-bold">Pay Amount</span>
+                </div>
+                <b className="qbm-total-value">
+                  {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
+                </b>
+              </div> */}
+
               {/* Summary */}
-              <details className="qbm-summary">
-                <summary className="qbm-summary-title">Order Summary</summary>
+              <div className="qbm-summary">
+                <h4 className="qbm-summary-title qbm-summary-title--static">Order Summary</h4>
 
                 <div className="qbm-summary-row">
                   <span>Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
                   <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
-                  <b>{money(rate)} {fiat}</b>
+                  <b>{rateMoney(rate)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Amount</span><b>{money(amountBdtNum)} {fiat}</b>
+                  <span>Buy Amount</span><b className='text-md'>{money(amountBdtNum)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
                   <span>{DISPLAY_ASSET_CODE} Amount</span>
@@ -730,16 +759,6 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                   <span>Total You Will Receive</span>
                   <b>+ {money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
-              </details>
-
-              <div className="qbm-total qbm-total--hero qbm-total--confirm">
-                <div className="qbm-total-left">
-                  <span className="qbm-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
-                  <span className="fw-bold">Pay Amount</span>
-                </div>
-                <b className="qbm-total-value">
-                  {bonusLoading ? '…' : `${money(amountBdtNum)} ${fiat}`}
-                </b>
               </div>
 
               {/* Order time limit */}
@@ -763,19 +782,26 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div>
 
               {/* Additional note */}
-              <div className="qbm-field">
-                <label className="qbm-label">
-                  <i className="fa-solid fa-note-sticky" /> Additional Note (Optional)
-                </label>
-                <textarea
-                  className="qbm-textarea"
-                  value={remarks}
-                  onChange={e => e.target.value.length <= 200 && setRemarks(e.target.value)}
-                  placeholder="e.g. Preferred verified seller, available time, any other note..."
-                  rows={3}
-                />
-                <div className="qbm-count">{remarks.length}/200</div>
-              </div>
+              <details className="qbm-note">
+                <summary className="qbm-note-toggle">
+                  <span className='fs-12'><i className="fa-solid fa-note-sticky" aria-hidden="true" /> Add Note (Optional)</span>
+                  <span className="qbm-note-icon" aria-hidden="true">
+                    <i className="fa-solid fa-plus" />
+                    <i className="fa-solid fa-minus" />
+                  </span>
+                </summary>
+                <div className="qbm-note-body">
+                  <textarea
+                    className="qbm-textarea"
+                    aria-label="Additional note"
+                    value={remarks}
+                    onChange={e => e.target.value.length <= 200 && setRemarks(e.target.value)}
+                    placeholder="Add any other note..."
+                    rows={3}
+                  />
+                  <div className="qbm-count">{remarks.length}/200</div>
+                </div>
+              </details>
             </>
           )}
         </div>
