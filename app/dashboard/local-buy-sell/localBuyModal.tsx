@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 import PaymentMethodIcon from "./PaymentMethodIcon";
 import { localOrderSummaryRows } from "./localOrderSummary";
+import { localAdQuote } from "./localQuote";
 import { useLocalTradeLimits } from "./useLocalTradeLimits";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ type Props = {
 
 export default function LocalBuyModal({ onClose, ad }: Props) {
   const router = useRouter();
+  const marketPrice = Number(ad.market_price ?? 0);
   const { limits: tradeLimits, loading: limitsLoading } = useLocalTradeLimits();
 
   const [payAmount,   setPayAmount]   = useState('');
@@ -59,9 +61,9 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
 
   // Auto-fill amounts from ad when modal opens and prevent manual typing
   useEffect(() => {
-    const minCrypto = ad?.order_limit_min ?? 0;
-    setReceiveAmt(String(minCrypto));
-    setPayAmount((minCrypto * ad.fixed_price).toFixed(2));
+    const quote = localAdQuote(ad, ad.order_limit_min);
+    setReceiveAmt(String(Number(quote.visitorAmount.toFixed(4))));
+    setPayAmount(quote.fiatAmount.toFixed(2));
   }, [ad]);
 
   // Derive "you receive" whenever user types in "you pay"
@@ -72,7 +74,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   };
 
   const baseReceive = Number(receiveAmt) || 0;
-  const bonusAmount = (baseReceive * bonus) / 100;
+  const bonusAmount = Number(ad.order_limit_min) * bonus / 100;
   const fiatAmount = Number(payAmount) || 0;
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -82,6 +84,10 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   // ─── Submit ────────────────────────────────────────────────────────────────
 
   const handleBuy = async () => {
+    if (!Number.isFinite(marketPrice) || marketPrice <= 0) {
+      toast.error('The market rate is unavailable. Refresh the ad and try again.');
+      return;
+    }
     if (limitsLoading || !tradeLimits) {
       toast.error('Could not load the current Buy amount limits. Please try again.');
       return;
@@ -96,10 +102,9 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
       return;
     }
 
-    const recvCrypto = parseAmount(receiveAmt);
-    // The ad's asset amount is authoritative. Dividing a rounded fiat display
-    // amount by the rate can move an exact minimum just below the boundary.
-    const assetQty = recvCrypto;
+    // Orders request the ad owner's amount. The buyer receives the USD quoted
+    // at the buy rate, which is less than the seller's locked USD.
+    const assetQty = Number(ad.order_limit_min);
 
     if (!(assetQty > 0)) {
       toast.error("Please enter how much you pay or how much crypto you receive.");
@@ -126,6 +131,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
         type: 'buy',
         user_sell_method_id: ad.id,
         amount: Math.round(assetQty * 1e8) / 1e8,
+        market_price: marketPrice,
       });
 
       const tradeId = res?.data?.trade_id;
@@ -182,7 +188,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
         <div className="local-trade-content">
           <div className="local-trade-summary">
             <h4 className="local-trade-summary-title">Order Summary</h4>
-            {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: Number(ad.fixed_price), bonusAmount }).map(row => (
+            {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: marketPrice, bonusAmount }).map(row => (
               <div className={`local-trade-row ${row.total ? "local-trade-row--total" : ""}`} key={row.label}>
                 <span>{row.label}</span><b className={row.tone === "positive" ? "local-trade-positive" : undefined}>{row.value}</b>
               </div>

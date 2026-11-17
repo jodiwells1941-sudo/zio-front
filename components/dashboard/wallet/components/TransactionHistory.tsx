@@ -41,6 +41,7 @@ const typeLabelMap: Record<string, string> = {
   local_buy: 'Local Buy',
   local_buy_bonus: 'Local Buy Bonus',
   local_sell_fee: 'Local Sell Fee',
+  local_rate_margin: 'Local Trade Adjustment',
   local_sell_ad: 'Local Sell Ad Lock',
   local_sell_lock: 'Local Sell Order Lock',
   local_sell_refund: 'Local Sell Order Refund',
@@ -187,7 +188,7 @@ export default function TransactionHistory() {
                       <span>{getTypeLabel(r.case_type || r.type || r.trx_type || 'Transfer')}</span>
                     </div>
                   </td>
-                  <td>{r.description}</td>
+                  <td>{r.case_type === 'local_rate_margin' ? 'Local trade adjustment' : r.description}</td>
                   <td>
                     <div className="d-flex align-items-center">
                       {r.payment_method_icon && (
@@ -342,7 +343,7 @@ export default function TransactionHistory() {
 
                   <div style={{ padding: '14px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12 }}>
                     <div style={{ color: '#9aa9c2', fontSize: 12, marginBottom: 6 }}>Description</div>
-                    <div style={{ color: '#fff', lineHeight: 1.6 }}>{selectedTx.description}</div>
+                    <div style={{ color: '#fff', lineHeight: 1.6 }}>{selectedTx.case_type === 'local_rate_margin' ? 'Local trade adjustment' : selectedTx.description}</div>
                   </div>
                 </div>
               </form>

@@ -44,7 +44,7 @@ const CURRENCIES = [
 
 const ASSET_CODE = 'USDT';
 const DISPLAY_ASSET_CODE = 'USD';
-const DEFAULT_FEE_PCT = 3;
+const DEFAULT_FEE_PCT = 0;
 const TIME_LIMITS = Array.from({ length: 144 }, (_, i) => (i + 1) * 5);
 
 const money = (n: number, d = 2) =>
@@ -141,6 +141,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
   const [feePercent, setFeePercent] = useState<number>(DEFAULT_FEE_PCT);
   const [feeLoading, setFeeLoading] = useState(false);
+  const [feeReady, setFeeReady] = useState(false);
 
   const [methods, setMethods] = useState<UserPaymentMethod[]>([]);
   const [paymentCurrencies, setPaymentCurrencies] = useState<CurrencyOption[]>([]);
@@ -161,7 +162,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
   const fiatAmount = parseFloat(amountFiat) || 0;
   const amountUsdtNum = rate > 0 ? Number((fiatAmount / rate).toFixed(8)) : 0;
-  const feeUsdt = (amountUsdtNum * feePercent) / 100;
+  const feeUsdt = Math.round(((amountUsdtNum * feePercent) / 100 + Number.EPSILON) * 100) / 100;
   const totalUsdtWithFee = amountUsdtNum + feeUsdt;
   const feeFiat = (fiatAmount   * feePercent) / 100;
   const receiveFiat = fiatAmount;
@@ -247,18 +248,22 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
   useEffect(() => {
     let cancelled = false;
     setFeeLoading(true);
+    setFeeReady(false);
     (async () => {
       try {
         const res = await getWithdrawChargeApi();
         if (cancelled) return;
         if (!res?.error) {
           const pct = Number(res?.data?.withdraw_charge ?? DEFAULT_FEE_PCT);
-          setFeePercent(Number.isFinite(pct) && pct >= 0 ? pct : DEFAULT_FEE_PCT);
+          if (Number.isFinite(pct) && pct >= 0) {
+            setFeePercent(pct);
+            setFeeReady(true);
+          }
         } else {
-          setFeePercent(DEFAULT_FEE_PCT);
+          setFeeReady(false);
         }
       } catch {
-        if (!cancelled) setFeePercent(DEFAULT_FEE_PCT);
+        if (!cancelled) setFeeReady(false);
       } finally {
         if (!cancelled) setFeeLoading(false);
       }
@@ -385,6 +390,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
   /* ── Next / Submit ── */
   const validateAmount = () => {
+    if (feeLoading || !feeReady) {
+      toast.error('Could not load the current sell fee. Please try again.');
+      return false;
+    }
     if (limitsLoading || !tradeLimits) {
       toast.error('Could not load the current Sell amount limits. Please try again.');
       return false;
@@ -395,6 +404,10 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
     }
     if (!Number.isFinite(amountUsdtNum) || amountUsdtNum < minimumUsd || amountUsdtNum > maximumUsd) {
       toast.error(`Amount must be between ${money(minimumUsd * rate)} and ${money(maximumUsd * rate)} ${fiat} (${money(minimumUsd)}–${money(maximumUsd)} USD).`);
+      return false;
+    }
+    if (!isEdit && walletAmount !== null && totalUsdtWithFee > walletAmount + 0.0000001) {
+      toast.error(`You need ${money(totalUsdtWithFee)} USD for the sell amount and fee.`);
       return false;
     }
     return true;

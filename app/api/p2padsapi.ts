@@ -12,6 +12,10 @@ export type P2pAdsData = {
 
   price_type: "fixed" | "floating";
   fixed_price: number;
+  market_price?: number;
+  advertised_fiat_amount?: number;
+  market_buy_rate?: number;
+  market_sell_rate?: number;
   ad_create_type: "local" | "merchant";
 
   total_amount: number;
@@ -91,7 +95,7 @@ export interface P2pAdPayload {
 }
 
 export interface LocalAdsParams {
-  type?: 'buy' | 'sell';        // the AD's type (a sell ad is what a buyer wants to see)
+  type?: 'buy' | 'sell';        // the visitor's list side (buy lists sell ads)
   status?: boolean;
   page?: number;
   per_page?: number;

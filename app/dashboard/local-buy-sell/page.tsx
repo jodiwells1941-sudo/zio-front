@@ -49,7 +49,7 @@ type Option = { label: string; value: string };
 type Kind = 'buy' | 'sell';
 type OfferView = Kind | 'all';
 type MobileFilterSection = 'amount' | 'payment';
-const API_TYPE: Record<Kind, 'buy' | 'sell'> = { buy: 'sell', sell: 'buy' };
+const API_TYPE: Record<Kind, 'buy' | 'sell'> = { buy: 'buy', sell: 'sell' };
 
 type Bucket = {
   items: P2pAdsData[];
@@ -125,9 +125,12 @@ function Row({
   const method = ad.payment_method?.sell_method?.name ?? '—';
 
   const usdtAmount = Number(ad.total_amount ?? 0);
+  const marketPrice = Number(ad.market_price);
+  const advertisedFiatAmount = Number(ad.advertised_fiat_amount ?? (Number(ad.total_amount) * Number(ad.fixed_price)));
+  const visitorUsdAmount = marketPrice > 0 ? advertisedFiatAmount / marketPrice : 0;
   const isBuy = kind === 'buy';
   const pct = isBuy ? bonusPercent : feePercent;
-  const bonusFee = (usdtAmount * pct) / 100;
+  const bonusFee = ((isBuy ? usdtAmount : visitorUsdAmount) * pct) / 100;
   const iconImage = ad.payment_method?.sell_method?.icon_url ?? ad.payment_method?.sell_method?.icon_image;
   // When the presence channel is ready, its membership is authoritative and
   // lets an advertiser disappear immediately on a `leaving` event. If the
@@ -144,16 +147,16 @@ function Row({
             <div className="text-dark-icon-color">
               <CurrencyMark currency={currency} />
             </div>
-            {n2(ad.fixed_price * ad.total_amount, 0)}
+            {n2(advertisedFiatAmount, 0)}
           </span>
         </div>
-        <div className="lbs-cell lbs-cell--price" data-label={`Price ${currency}`}>
+        <div className="lbs-cell lbs-cell--price" data-label={`Market Price ${currency}`}>
           <CurrencyMark currency={currency} />
-          {n2(ad.fixed_price)}
+          {n2(marketPrice)}
         </div>
         <div className="lbs-cell lbs-cell--avail" data-label="USD Amount">
           <CurrencyMark currency="USD" />
-          <b>{n2(ad.total_amount)}</b>
+          <b>{n2(visitorUsdAmount)}</b>
         </div>
         <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USD)`}>
           <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
@@ -200,7 +203,7 @@ function Row({
               <h2 className='fs-4'>
                 <strong>
                   <CurrencyMark currency={currency} />
-                  {n2(ad.fixed_price * ad.total_amount, 0)}
+                  {n2(advertisedFiatAmount, 0)}
                 </strong>
               </h2>
               <span className="lbs-mobile-rating">
@@ -223,16 +226,16 @@ function Row({
             <span>Amount ({currency})</span>
             <strong className={`lbs-mobile-amount lbs-mobile-amount--${kind}`}>
               <span className='text-dark-icon-color'><CurrencyMark currency={currency} /></span>
-              {n2(ad.fixed_price * ad.total_amount, 0)}
+              {n2(advertisedFiatAmount, 0)}
             </strong>
           </div>
           <div className="lbs-mobile-stat">
-            <span>Price ({currency})</span>
-            <strong><CurrencyMark currency={currency} />{n2(ad.fixed_price)}</strong>
+            <span>Market Price ({currency})</span>
+            <strong><CurrencyMark currency={currency} />{n2(marketPrice)}</strong>
           </div>
           <div className="lbs-mobile-stat">
             <span>{isBuy ? 'You Get (USD)' : 'USD Amount'}</span>
-            <strong><CurrencyMark currency="USD" />{n2(usdtAmount)}</strong>
+            <strong><CurrencyMark currency="USD" />{n2(visitorUsdAmount)}</strong>
           </div>
           <div className="lbs-mobile-stat">
             <span>{isBuy ? 'Bonus' : 'Fee'}</span>
@@ -422,7 +425,7 @@ function Panel({
         <div className="lbs-table bg-dark">
           <div className="lbs-row lbs-row--head bg-dark">
             <div className="lbs-cell">Amount {cur}</div>
-            <div className="lbs-cell">Price {cur}</div>
+            <div className="lbs-cell">Market Price {cur}</div>
             <div className="lbs-cell">USD</div>
             <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'}</div>
             <div className="lbs-cell">Time</div>
