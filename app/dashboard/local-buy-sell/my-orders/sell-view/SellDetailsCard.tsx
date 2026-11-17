@@ -37,6 +37,7 @@ interface TradeData {
   pending_time_limit?: string | null;
   payment_expires_at: string | null; // ← new field
   charge_amount?: number; // ← fee shown in Order details (release quantity / fee breakdown)
+  charge_percent?: number;
   client: { id: number; name: string; avatar?: string };
   customer: { id: number; name: string; avatar?: string };
   customer_id: number;
@@ -431,8 +432,9 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
   const feeAmount = feeCryptoAmount > 0
     ? feeCryptoAmount * Number(trade.user_price)
     : fiatAmount * sellFeePercent / 100;
-  const displayedFeePercent =
-    fiatAmount > 0 && feeAmount > 0
+  const displayedFeePercent = trade.charge_percent != null
+    ? Number(trade.charge_percent)
+    : fiatAmount > 0 && feeAmount > 0
       ? feeAmount / fiatAmount * 100
       : sellFeePercent;
   const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;

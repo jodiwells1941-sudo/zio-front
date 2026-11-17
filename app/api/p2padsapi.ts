@@ -12,6 +12,10 @@ export type P2pAdsData = {
 
   price_type: "fixed" | "floating";
   fixed_price: number;
+  market_price?: number;
+  advertised_fiat_amount?: number;
+  market_buy_rate?: number;
+  market_sell_rate?: number;
   ad_create_type: "local" | "merchant";
 
   total_amount: number;
@@ -91,7 +95,7 @@ export interface P2pAdPayload {
 }
 
 export interface LocalAdsParams {
-  type?: 'buy' | 'sell';        // the AD's type (a sell ad is what a buyer wants to see)
+  type?: 'buy' | 'sell';        // the visitor's list side (buy lists sell ads)
   status?: boolean;
   page?: number;
   per_page?: number;
@@ -102,6 +106,16 @@ export interface LocalAdsParams {
   rate_min?: number | string;   // price per USDT in with_fiat
   rate_max?: number | string;
 }
+
+export type LocalTradeLimits = {
+  buy: { min: number; max: number };
+  sell: { min: number; max: number };
+};
+
+export const getLocalTradeLimits = async (): Promise<LocalTradeLimits> => {
+  const response = await apiClient.get('/user/local-trade-limits');
+  return response.data.data as LocalTradeLimits;
+};
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
@@ -170,7 +184,7 @@ export const touchLocalMarketplacePresence = async () => {
 };
 
 // get local currency ret api 
-export const getLocalCurrencyRates = async (params?: { currency_code?: string }) => {
+export const getLocalCurrencyRates = async (params?: { currency_code?: string; order_type?: 'buy' | 'sell' }) => {
   const response = await apiClient.get('/user/local-currency-rate', { params });
   return response?.data;
 }

@@ -11,10 +11,10 @@ export default function Page() {
   const { user } = useAuth();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   interface Wallet {
-    amount?: number;
-    real_amount?: number;
-    bonus_amount?: number;
-    pending_withdrawal?: number;
+    amount?: number | string;
+    real_amount?: number | string;
+    bonus_amount?: number | string;
+    pending_withdrawal?: number | string;
     // Add other wallet properties as needed
   }
 
@@ -173,8 +173,11 @@ export default function Page() {
   };
 
   // ── Derived / fallback display values ─────────────────────────────────────
-  const walletAmount = walletSettings?.wallet?.amount;
-  const balanceTotal = walletAmount != null ? `$${walletAmount.toFixed(2)}` : "$0.00";
+  const formatBalance = (value: number | string | null | undefined) => {
+    const amount = Number(value ?? 0);
+    return `$${Number.isFinite(amount) ? amount.toFixed(2) : "0.00"}`;
+  };
+  const balanceTotal = formatBalance(walletSettings?.wallet?.amount);
 
   const realMoney            = walletSettings?.wallet?.real_amount;
   const bonusMoney           = walletSettings?.wallet?.bonus_amount;
@@ -218,9 +221,9 @@ export default function Page() {
         }}
         balance={{
           total:               balanceTotal,
-          real:                realMoney            != null ? `$${Number(realMoney).toFixed(2)}`          : "$0.00",
-          bonus:               bonusMoney           != null ? `$${Number(bonusMoney).toFixed(2)}`         : "$0.00",
-          pendingWithdrawals:  pendingWithdrawals   != null ? `$${Number(pendingWithdrawals).toFixed(2)}` : "$0.00",
+          real:                formatBalance(realMoney),
+          bonus:               formatBalance(bonusMoney),
+          pendingWithdrawals:  formatBalance(pendingWithdrawals),
         }}
         personalInfo={{
           name:          user?.name  ?? "",

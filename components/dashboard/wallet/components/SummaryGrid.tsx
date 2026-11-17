@@ -7,9 +7,11 @@ import { useAuth } from '@/hooks/useAuth';
 export default function SummaryGrid() {
 
   const { user } =  useAuth();
+  const parsedBalance = Number(user?.balance ?? 0);
+  const balance = Number.isFinite(parsedBalance) ? parsedBalance : 0;
 
   const summaryItems: SummaryItem[] = [
-    { imgSrc: '/images/new/total.png', label: 'Total', price: user ? `$${user?.balance?.toFixed(2)}` : '$0.00' },
+    { imgSrc: '/images/new/total.png', label: 'Total', price: `$${balance.toFixed(2)}` },
     { imgSrc: '/images/new/available.png', label: 'Available for withdrawal', price: '$0.00' },
     { imgSrc: '/images/new/bonuses.png', label: 'Bonuses', price: '$0.00' },
   ];

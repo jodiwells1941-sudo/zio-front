@@ -53,6 +53,8 @@ export interface TradeData {
   payment_expires_at?: string | null;
   charge_amount?: number;
   bonus_amount?: number;
+  charge_percent?: number;
+  bonus_percent?: number;
   current_status: {
     id: number;
     note: string;
@@ -344,9 +346,9 @@ function PaymentProofModal({
   const bonusAmount = trade.type === "buy"
     ? Number(trade.bonus_amount ?? baseCryptoAmount * bonusPercent / 100)
     : 0;
-  const displayedBonusPercent = baseCryptoAmount > 0
-    ? bonusAmount / baseCryptoAmount * 100
-    : 0;
+  const displayedBonusPercent = trade.bonus_percent != null
+    ? Number(trade.bonus_percent)
+    : baseCryptoAmount > 0 ? bonusAmount / baseCryptoAmount * 100 : 0;
   const adjustedTotalAmount = trade.type === "buy"
     ? baseCryptoAmount + bonusAmount
     : Number(trade.payable_amount || 0);
@@ -1175,8 +1177,9 @@ export default function BuyDetailsCard({
   const bonusAmount = Number(
     trade.bonus_amount ?? (trade.type === "buy" ? cryptoAmount * bonusPercent / 100 : 0),
   );
-  const displayedBonusPercent =
-    cryptoAmount > 0 && bonusAmount > 0
+  const displayedBonusPercent = trade.bonus_percent != null
+    ? Number(trade.bonus_percent)
+    : cryptoAmount > 0 && bonusAmount > 0
       ? bonusAmount / cryptoAmount * 100
       : (trade.type === "buy" ? bonusPercent : 0);
   const feeCryptoAmount = Number(trade.charge_amount ?? 0);

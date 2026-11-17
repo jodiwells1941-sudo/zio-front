@@ -200,7 +200,7 @@ export default function P2PProfile(): React.JSX.Element {
                   <i className="fa-solid fa-circle-exclamation ms-1" aria-hidden="true" />
                 </div>
                 <div className="d-flex align-items-center gap-1">
-                  <span className={`${styles.fundingDots} fw-6`}>${user?.wallet?.amount?.toFixed(2)}</span>
+                  <span className={`${styles.fundingDots} fw-6`}>${Number.isFinite(Number(user?.wallet?.amount)) ? Number(user?.wallet?.amount).toFixed(2) : "0.00"}</span>
                 </div>
               </div>
               <div className={styles.fundingRow}>

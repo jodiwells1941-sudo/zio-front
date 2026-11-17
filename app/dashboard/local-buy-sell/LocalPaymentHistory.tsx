@@ -37,6 +37,7 @@ const labels: Record<string, string> = {
   local_buy: "Local Buy",
   local_buy_bonus: "Buy Bonus",
   local_sell_fee: "Sell Fee",
+  local_rate_margin: "Rate Adjustment",
   local_sell_ad: "Sell Ad Lock / Return",
   local_sell_lock: "Sell Amount (Locked)",
   local_sell_refund: "Sell Order Refund",
@@ -152,7 +153,7 @@ export default function LocalPaymentHistory() {
             <div><small>Amount</small><strong className={row.type === "credit" ? "local-history-yellow" : "local-history-red"}>{row.type === "credit" ? "+" : "−"} {formatAmount(row.display_amount ?? row.amount, row.asset)}</strong><em>{row.type === "credit" ? "Added to wallet" : "Deducted from wallet"}</em></div>
             <div><small>Transaction ID</small><strong>{row.trx_id || `#${row.id}`}</strong><em>{dateTime(row.created_at)}</em></div>
             <div><small>{row.case === "p2p_order" ? "Order" : "Ad"}</small><strong>{row.case === "p2p_order" && row.order_id && Number(row.can_view_order) === 1 ? <Link className="local-history-source-link" href={orderPath}>{source} <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" /></Link> : row.case !== "p2p_order" && row.ad_id && Number(row.can_view_ad) === 1 ? <Link className="local-history-source-link" href="/dashboard/local-buy-sell/my-ads">{source}</Link> : source}</strong><em>{row.case === "p2p_order" ? "Order transaction" : "Ad transaction"}</em></div>
-            <div className="local-payment-description"><small>Details</small><strong>{row.description || label(row.case_type)}</strong><em>Type: {row.case_type}</em></div>
+            <div className="local-payment-description"><small>Details</small><strong>{row.case_type === "local_rate_margin" ? "Local trade adjustment" : row.description || label(row.case_type)}</strong><em>Type: {label(row.case_type)}</em></div>
           </div>
         </article>;
       })}</div>

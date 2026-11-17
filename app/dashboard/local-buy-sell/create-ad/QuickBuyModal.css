@@ -944,16 +944,49 @@
   margin-top: 5px;
   font-variant-numeric: tabular-nums;
 }
+/* .qbm-note {
+  border: 1px solid var(--qbm-line);
+  border-radius: 10px;
+  background: var(--qbm-surface);
+} */
+.qbm-note[open] { border-color: var(--qbm-line-2); }
+.qbm-note-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 8px 10px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--qbm-muted);
+  font-size: 11px;
+  font-weight: 650;
+}m-note-toggle::-webkit-details-marker { display: none; }
+.qbm-note-toggle > span:first-child { display: flex; align-items: center; gap: 7px; }
+.qbm-note-toggle > span:first-child i { color: var(--qbm-green-l); }
+.qbm-note-toggle:focus-visible { outline: 2px solid var(--qbm-green-l); outline-offset: 2px; }
+.qbm-note-icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(251, 191, 36, .1);
+  color: var(--qbm-green-l);
+}
+.qbm-note-icon .fa-minus, .qbm-note[open] .qbm-note-icon .fa-plus { display: none; }
+.qbm-note[open] .qbm-note-icon .fa-minus { display: block; }
+.qbm-note-body { padding: 0 10px 10px; }
 
 /* ── Native select (step 2) ─────────────────────────────────── */
 .qbm-selwrap { position: relative; }
 .qbm-select {
   width: 100%;
-  height: 50px;
+  height: 42px;
   padding: 0 44px 0 16px;
   background: var(--qbm-surface);
   border: 1.5px solid var(--qbm-line);
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--qbm-text);
   font-size: 13.5px;
   font-weight: 600;
@@ -1316,7 +1349,7 @@
   min-height: 0;
   max-height: min(66vh, 560px);
   max-height: min(66dvh, 560px);
-  padding: 0 18px 10px !important;
+  padding: 0 16px 0px 16px !important;
 }
 .qbm-modal .qbm-summary {
   margin-bottom: 12px;
@@ -1348,6 +1381,8 @@
   transform: rotate(45deg);
   transition: transform .15s;
 }
+.qbm-modal .qbm-summary-title--static { margin-bottom: 6px; cursor: default; }
+.qbm-modal .qbm-summary-title--static::after { content: none; }
 .qbm-modal .qbm-summary[open] > .qbm-summary-title::after {
   transform: rotate(225deg);
 }
@@ -1373,10 +1408,10 @@
   font-size: 14px;
 }
 .qbm-modal .qbm-total--hero {
-  min-height: 72px;
+  min-height: 36px;
   gap: 12px;
   margin: 0 0 14px;
-  padding: 12px 14px;
+  padding: 4px 14px;
   border-width: 1.5px;
   border-radius: 13px;
   background:

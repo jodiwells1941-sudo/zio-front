@@ -59,7 +59,7 @@ type ApplicationData = {
 };
 
 interface Wallet {
-  amount?: number;
+  amount?: number | string;
   real_amount?: number;
   bonus_amount?: number;
   pending_withdrawal?: number;
@@ -333,7 +333,8 @@ export default function MerchantApplication() {
   const [depositInfoLoading, setDepositInfoLoading] =
     useState(true);
 
-  const walletAmount = walletSettings?.wallet?.amount ?? 0;
+  const parsedWalletAmount = Number(walletSettings?.wallet?.amount ?? 0);
+  const walletAmount = Number.isFinite(parsedWalletAmount) ? parsedWalletAmount : 0;
 
   useEffect(() => {
     const fetchDepositInfo = async () => {

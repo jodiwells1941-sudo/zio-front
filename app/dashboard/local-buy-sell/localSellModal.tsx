@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import "./localTradeSummary.css";
 import PaymentMethodIcon from "./PaymentMethodIcon";
 import { localOrderSummaryRows } from "./localOrderSummary";
+import { localAdQuote } from "./localQuote";
+import { useLocalTradeLimits } from "./useLocalTradeLimits";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +25,8 @@ type Props = {
 
 export default function LocalSellModal({ onClose, ad }: Props) {
   const router = useRouter();
+  const marketPrice = Number(ad.market_price ?? 0);
+  const { limits: tradeLimits, loading: limitsLoading } = useLocalTradeLimits();
 
   const [sellAmount,   setSellAmount]   = useState('');
   const [receiveAmt,   setReceiveAmt]   = useState('');
@@ -117,9 +121,9 @@ export default function LocalSellModal({ onClose, ad }: Props) {
 
   // Auto-fill sell/receive amounts from ad when modal opens and prevent manual typing
   useEffect(() => {
-    const minCrypto = ad?.order_limit_min ?? 0;
-    setSellAmount(String(minCrypto));
-    setReceiveAmt((minCrypto * ad.fixed_price).toFixed(2));
+    const quote = localAdQuote(ad, ad.order_limit_min);
+    setSellAmount(String(Number(quote.visitorAmount.toFixed(4))));
+    setReceiveAmt(quote.fiatAmount.toFixed(2));
     setErrors({});
   }, [ad]);
 
@@ -171,6 +175,14 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   // ─── Submit ────────────────────────────────────────────────────────────────
 
   const handleSell = async () => {
+    if (!Number.isFinite(marketPrice) || marketPrice <= 0) {
+      toast.error('The market rate is unavailable. Refresh the ad and try again.');
+      return;
+    }
+    if (limitsLoading || !tradeLimits) {
+      toast.error('Could not load the current Sell amount limits. Please try again.');
+      return;
+    }
     const cryptoQty = parseFloat(String(sellAmount).replace(/,/g, "").trim());
 
     if (!selectedPaymentMethod) {
@@ -207,7 +219,12 @@ export default function LocalSellModal({ onClose, ad }: Props) {
       return;
     }
 
-    if (cryptoQty < ad.order_limit_min || cryptoQty > ad.order_limit_max) {
+    if (cryptoQty < tradeLimits.sell.min || cryptoQty > tradeLimits.sell.max) {
+      toast.error(`Sell amount must be between ${money(tradeLimits.sell.min)} and ${money(tradeLimits.sell.max)} USD.`);
+      return;
+    }
+
+    if (Number(ad.order_limit_min) > ad.order_limit_max) {
       toast.error(
         `Amount must be between ${ad.order_limit_min} and ${ad.order_limit_max} ${ad.asset}`,
       );
@@ -252,7 +269,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
       const res = await generateTrade({
         type: 'sell',
         user_sell_method_id: ad.id,   // p2p_ad_id — backend validates against p2_p_ads table
-        amount: Math.round(cryptoQty * 1e8) / 1e8,
+        amount: Math.round(Number(ad.order_limit_min) * 1e8) / 1e8,
+        market_price: marketPrice,
         payment_method_id: selectedPaymentMethod.id,
       });
 
@@ -306,7 +324,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
         <div className="local-trade-content">
           <div className="local-trade-summary">
             <h4 className="local-trade-summary-title">Order Summary</h4>
-            {localOrderSummaryRows({ side: "sell", fiat: ad.with_fiat, asset: ad.asset, fiatAmount: grossReceive, assetAmount: sellValue, price: Number(ad.fixed_price), feeAmount: feeUsdt, feePercent }).map(row => (
+            {localOrderSummaryRows({ side: "sell", fiat: ad.with_fiat, asset: ad.asset, fiatAmount: grossReceive, assetAmount: sellValue, price: marketPrice, feeAmount: feeUsdt, feePercent }).map(row => (
               <div className={`local-trade-row ${row.total ? "local-trade-row--total local-trade-row--received" : ""}`} key={row.label}>
                 <span>{row.label}</span><b className={row.tone === "negative" ? "local-trade-negative" : row.tone === "received" ? "local-trade-positive" : undefined}>{row.value}</b>
               </div>

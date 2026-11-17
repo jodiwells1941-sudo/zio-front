@@ -8,6 +8,7 @@ export interface GenerateTradePayload {
   user_sell_method_id: number;
   amount: number;
   payment_method_id?: number;
+  market_price?: number;
 }
 
 export interface TradeData {
