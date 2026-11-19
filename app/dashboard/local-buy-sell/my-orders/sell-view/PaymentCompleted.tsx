@@ -37,6 +37,7 @@ interface TradeData {
   bonus_amount?: number | string | null;
   charge_amount?: number | string | null;
   charge_percent?: number | string | null;
+  ad_fee_amount?: number | string | null;
   /** Legacy P2P status; feedback only when 9 (completed). */
   status?: number;
   trade_review?: any;
@@ -80,12 +81,14 @@ export default function PaymentCompleted({ trade, from }: Props) {
     p2p_ad: trade.p2p_ad,
     bonus_amount: trade.bonus_amount,
     charge_amount: trade.charge_amount,
+    ad_fee_amount: trade.ad_fee_amount,
   });
-  const fee = Number(trade.charge_amount ?? 0);
+  const isPrepaidAdFee = isSeller && trade.type === "buy";
+  const fee = Number(isPrepaidAdFee ? trade.ad_fee_amount ?? 0 : trade.charge_amount ?? 0);
   const bonus = Number(trade.bonus_amount ?? 0);
   const summaryRows = [
     { label: "Order ID", value: trade.order_id || `#${trade.id}` },
-    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0) }),
+    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0), feeLabel: isPrepaidAdFee && fee > 0 ? "Ad Fee (Already Paid)" : undefined }),
   ];
     
   return (

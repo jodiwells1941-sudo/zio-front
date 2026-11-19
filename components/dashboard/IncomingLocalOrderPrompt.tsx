@@ -29,6 +29,7 @@ interface IncomingLocalOrder {
   bonus_percent?: number | string | null;
   charge_amount?: number | string | null;
   charge_percent?: number | string | null;
+  ad_fee_amount?: number | string | null;
   client?: Party | null;
   customer?: Party | null;
   p2p_ad?: {
@@ -341,7 +342,7 @@ export default function IncomingLocalOrderPrompt() {
   const paymentMethod = order.p2p_ad?.payment_method?.sell_method?.name || "Payment method";
   const baseAssetAmount = Number(order.receivable_amount ?? 0);
   const bonusAmount = Number(order.bonus_amount ?? 0);
-  const feeAmount = Number(order.charge_amount ?? 0);
+  const feeAmount = Number(order.type === "buy" ? order.ad_fee_amount ?? 0 : order.charge_amount ?? 0);
   const adjustmentAmount = order.type === "buy" ? feeAmount : bonusAmount;
   const totalAssetLabel = order.type === "buy" ? "Sell USD" : "Received USD";
   const summaryRows = localOrderSummaryRows({
@@ -354,6 +355,7 @@ export default function IncomingLocalOrderPrompt() {
     bonusAmount,
     feeAmount,
     feePercent: Number(order.charge_percent ?? 0),
+    feeLabel: order.type === "buy" ? "Ad Fee (Already Paid)" : undefined,
   });
   const creator = [order.client, order.customer].find(
     party => Number(party?.id) === Number(order.created_by)
