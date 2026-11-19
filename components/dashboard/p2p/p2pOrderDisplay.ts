@@ -103,7 +103,9 @@ export function getCompletedOrderAmounts(
   },
 ): { receivedAmount: string; paidAmount: string } {
   const display = getViewerOrderAmountDisplay(trade);
-  const bonus = trade.type.toLowerCase() === "buy" ? Number(trade.bonus_amount ?? 0) : 0;
+  // Both local buy flows credit the order's saved bonus to the buyer:
+  // a buyer taking a sell ad (side=buy), and a buy-ad owner (side=sell).
+  const bonus = !trade.is_client ? Number(trade.bonus_amount ?? 0) : 0;
   const fee = trade.type.toLowerCase() === "sell"
     ? Number(trade.charge_amount ?? 0)
     : trade.is_client ? Number(trade.ad_fee_amount ?? 0) : 0;

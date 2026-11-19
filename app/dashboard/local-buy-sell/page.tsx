@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { getLocalAds, LocalAdsParams, P2pAdsData } from '@/app/api/p2padsapi';
 import { currencyOptions as getPaymentCurrencies, sellMethodsByCurrency } from '@/app/api/common';
 import { getLocalBonusFeesSettings as getBonusFeesSettings } from '@/app/api/localBonusFees';
+import { calculateLocalBuyBonus, type LocalBonusTier } from '@/app/api/localBonusFees';
 import { CurrencyOption, SellMethodOption } from '@/types/P2PProfileTypes';
 import LocalBuyModal from './localBuyModal';
 import LocalSellModal from './localSellModal';
@@ -109,7 +110,7 @@ function Row({
   ad,
   kind,
   currency,
-  bonusPercent,
+  bonusTiers,
   feePercent,
   onTrade,
   onlineUserIds,
@@ -117,7 +118,7 @@ function Row({
   ad: P2pAdsData;
   kind: Kind;
   currency: string;
-  bonusPercent: number;
+  bonusTiers: LocalBonusTier[];
   feePercent: number;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
   onlineUserIds: ReadonlySet<number>;
@@ -128,8 +129,8 @@ function Row({
   const advertisedFiatAmount = Number(ad.advertised_fiat_amount ?? (Number(ad.total_amount) * Number(ad.fixed_price)));
   const visitorUsdAmount = marketPrice > 0 ? advertisedFiatAmount / marketPrice : 0;
   const isBuy = kind === 'buy';
-  const pct = isBuy ? bonusPercent : feePercent;
-  const bonusFee = (visitorUsdAmount * pct) / 100;
+  const bonus = calculateLocalBuyBonus(Math.round(visitorUsdAmount * 10000) / 10000, bonusTiers);
+  const bonusFee = isBuy ? bonus.amount : visitorUsdAmount * feePercent / 100;
   const iconImage = ad.payment_method?.sell_method?.icon_url ?? ad.payment_method?.sell_method?.icon_image;
   // When the presence channel is ready, its membership is authoritative and
   // lets an advertiser disappear immediately on a `leaving` event. If the
@@ -160,7 +161,7 @@ function Row({
         <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USD)`}>
           <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
             <span className={`${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
-              {isBuy ? '+' : '-'} <span className={`' fs-12 fw-bold' ${isBuy ? 'text-warning' : 'lbs-bonus-neg'}`}>$</span>{n2(Math.abs(bonusFee), 2)} <small className="lbs-bonus-pct text-reset">({n2(pct, 0)}%)</small>
+              {isBuy ? '+' : '-'} <span className="fs-12 fw-bold">$</span>{n2(Math.abs(bonusFee), 2)} {(isBuy ? bonus.percent != null : feePercent > 0) && <small className="lbs-bonus-pct">({Number(isBuy ? bonus.percent : feePercent).toLocaleString('en-US', { maximumFractionDigits: 2 })}%)</small>}
             </span>
           </span>
         </div>
@@ -237,7 +238,7 @@ function Row({
             <strong><CurrencyMark currency="USD" />{n2(visitorUsdAmount)}</strong>
           </div>
           <div className="lbs-mobile-stat">
-            <span>{isBuy ? 'Bonus' : 'Fee'}</span>
+            <span className={isBuy ? 'lbs-bonus-label--buy' : 'lbs-bonus-label--sell'}>{isBuy ? 'Bonus' : 'Fee'}</span>
             <strong className={isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}>
               <CurrencyMark currency="USD" />{isBuy ? '+' : '-'}{n2(Math.abs(bonusFee), 2)}
             </strong>
@@ -267,7 +268,7 @@ function Panel({
   kind,
   b,
   cur,
-  bonusPercent,
+  bonusTiers,
   feePercent,
   onRefresh,
   onTrade,
@@ -286,7 +287,7 @@ function Panel({
   kind: Kind;
   b: Bucket;
   cur: string;
-  bonusPercent: number;
+  bonusTiers: LocalBonusTier[];
   feePercent: number;
   onRefresh: () => void;
   onTrade: (ad: P2pAdsData, kind: Kind) => void;
@@ -426,7 +427,7 @@ function Panel({
             <div className="lbs-cell">Amount {cur}</div>
             <div className="lbs-cell">Market Price {cur}</div>
             <div className="lbs-cell">USD</div>
-            <div className="lbs-cell">{buy ? 'Bonus' : 'Fee'}</div>
+            <div className={`lbs-cell ${buy ? 'lbs-bonus-label--buy' : 'lbs-bonus-label--sell'}`}>{buy ? 'Bonus' : 'Fee'}</div>
             <div className="lbs-cell">Time</div>
             <div className="lbs-cell">Methods</div>
             <div className="lbs-cell">Action</div>
@@ -450,7 +451,7 @@ function Panel({
                 ad={ad}
                 kind={kind}
                 currency={cur}
-                bonusPercent={bonusPercent}
+                bonusTiers={bonusTiers}
                 feePercent={feePercent}
                 onTrade={onTrade}
                 onlineUserIds={onlineUserIds}
@@ -497,7 +498,7 @@ export default function Page() {
   const [tradeModal, setTradeModal] = useState<{ ad: P2pAdsData; kind: Kind } | null>(null);
 
   /* ── Bonus / Fee settings ── */
-  const [bonusPercent, setBonusPercent] = useState(0);
+  const [bonusTiers, setBonusTiers] = useState<LocalBonusTier[]>([]);
   const [feePercent, setFeePercent] = useState(0);
 
   /* ── Data ── */
@@ -604,12 +605,12 @@ export default function Page() {
         const res = await getBonusFeesSettings();
         const settings = res?.data ?? {};
         if (!mounted) return;
-        setBonusPercent(Number(settings?.user_buy_bonus ?? 0));
+        setBonusTiers(Array.isArray(settings?.buy_ad_bonus_tiers) ? settings.buy_ad_bonus_tiers : []);
         setFeePercent(Number(settings?.user_sell_charge ?? 0));
       } catch (error) {
         console.error('Failed to load bonus & fees settings:', error);
         if (mounted) {
-          setBonusPercent(0);
+          setBonusTiers([]);
           setFeePercent(0);
         }
       }
@@ -1302,7 +1303,7 @@ export default function Page() {
                   kind={kind}
                   b={data[kind]}
                   cur={filterFiat}
-                  bonusPercent={bonusPercent}
+                  bonusTiers={bonusTiers}
                   feePercent={feePercent}
                   onRefresh={() => fetchBucket(kind, 1)}
                   onTrade={handleTrade}

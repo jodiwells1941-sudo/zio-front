@@ -957,9 +957,11 @@
   font-size: 15px;
 }
 
-.lbs .lbs-bonus-pos { color: var(--lbs-yellow) !important; font-weight: 600; font-size: 13px;}
-.lbs .lbs-bonus-neg { color: #dc2626 !important; font-weight: 600; font-size: 13px;}
-.lbs .lbs-bonus-pct { color: var(--lbs-muted); font-size: 9px; }
+.lbs .lbs-bonus-pos { color: #4ade80 !important; font-weight: 600; font-size: 13px;}
+.lbs .lbs-bonus-neg { color: #f87171 !important; font-weight: 600; font-size: 13px;}
+.lbs .lbs-bonus-label--buy { color: #4ade80; }
+.lbs .lbs-bonus-label--sell { color: #f87171; }
+.lbs .lbs-bonus-pct { color: inherit; font-size: 9px; }
 .lbs .lbs-bonus-value {
   display: inline-flex;
   align-items: center;
@@ -1305,9 +1307,12 @@
   border: 0.5px solid #f7a820d4 !important;
 }
 
-.lbs-cell-bonus { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
-.lbs-cell-bonus--pos { color: #22c55e; }
-.lbs-cell-bonus--neg { color: #f87171; }
+.lbs-cell-bonus { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lbs-cell-bonus--pos,
+.lbs-cell-bonus--pos * { color: #4ade80 !important; }
+.lbs-cell-bonus--neg,
+.lbs-cell-bonus--neg * { color: #f87171 !important; }
+.lbs-recent-bonus-label { color: inherit; font-size: 10px; line-height: 1; }
 .lbs-recent-bonus-value {
   display: inline-flex;
   align-items: center;
@@ -1359,6 +1364,34 @@
 
 .lbs-card-empty { padding: 32px 16px; text-align: center; color: #7b8ba3; font-size: 13px; }
 .lbs-card-empty i { display: block; font-size: 26px; margin-bottom: 8px; opacity: .55; }
+
+.lbs-recent-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid #1f2a3d;
+  color: #a3afc2;
+  font-size: 12px;
+}
+.lbs-recent-pages, .lbs-recent-page-slot { display: inline-flex; align-items: center; gap: 5px; }
+.lbs-recent-pages button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 29px;
+  height: 29px;
+  padding: 0 8px;
+  border: 1px solid #344054;
+  border-radius: 7px;
+  color: #dce4ee;
+  background: #1b2432;
+}
+.lbs-recent-pages button:hover:not(:disabled) { border-color: #fbbf24; color: #fbbf24; }
+.lbs-recent-pages button.is-active { border-color: #fbbf24; color: #171b23; background: #fbbf24; font-weight: 700; }
+.lbs-recent-pages button:disabled { opacity: .45; cursor: not-allowed; }
+.lbs-recent-page-gap { padding: 0 3px; color: #8c9aaf; }
 
 .lbs-card-skel span {
   display: block;
@@ -2284,6 +2317,8 @@
     font-size: 8px;
     line-height: 1.2;
   }
+  .lbs .lbs-mobile-stat > span.lbs-bonus-label--buy { color: #4ade80; }
+  .lbs .lbs-mobile-stat > span.lbs-bonus-label--sell { color: #f87171; }
   .lbs .lbs-mobile-stat strong {
     display: inline-flex;
     min-width: 0;

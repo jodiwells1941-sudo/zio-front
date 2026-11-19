@@ -258,40 +258,11 @@ function PaymentProofModal({
   const [uploadedProofCount, setUploadedProofCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [proofError, setProofError] = useState(false);
-  const [bonusPercent, setBonusPercent] = useState(0);
   const [orderDetailsExpanded, setOrderDetailsExpanded] = useState(false);
   const orderDetailsId = useId();
   const uploadInputId = useId();
   const receiptInputRef = useRef<HTMLInputElement>(null);
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
-
-  useEffect(() => {
-    if (!trade) return;
-
-    let mounted = true;
-
-    const loadSettings = async () => {
-      try {
-        const res = await getBonusFeesSettings();
-        const settings = res?.data ?? {};
-        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
-
-        if (!mounted) return;
-        setBonusPercent(trade.type === "buy" ? nextBonus : 0);
-      } catch (error) {
-        console.error("Failed to load bonus & fees settings:", error);
-        if (mounted) {
-          setBonusPercent(0);
-        }
-      }
-    };
-
-    void loadSettings();
-
-    return () => {
-      mounted = false;
-    };
-  }, [trade]);
 
   useEffect(() => {
     const urls = proofFiles.map(file => URL.createObjectURL(file));
@@ -344,11 +315,11 @@ function PaymentProofModal({
 
   const baseCryptoAmount = Number(trade.receivable_amount || 0);
   const bonusAmount = trade.type === "buy"
-    ? Number(trade.bonus_amount ?? baseCryptoAmount * bonusPercent / 100)
+    ? Number(trade.bonus_amount ?? 0)
     : 0;
   const displayedBonusPercent = trade.bonus_percent != null
     ? Number(trade.bonus_percent)
-    : baseCryptoAmount > 0 ? bonusAmount / baseCryptoAmount * 100 : 0;
+    : 0;
   const adjustedTotalAmount = trade.type === "buy"
     ? baseCryptoAmount + bonusAmount
     : Number(trade.payable_amount || 0);
@@ -1048,7 +1019,6 @@ export default function BuyDetailsCard({
     })();
   }, [trade?.status, trade?.payment_expires_at, secondsLeft, handleExtendPaymentTime]);
 
-  const [bonusPercent, setBonusPercent] = useState(0);
   const [sellFeePercent, setSellFeePercent] = useState(0);
 
   useEffect(() => {
@@ -1060,16 +1030,13 @@ export default function BuyDetailsCard({
       try {
         const res = await getBonusFeesSettings();
         const settings = res?.data ?? {};
-        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
         const nextFee = Number(settings?.user_sell_charge ?? 0);
 
         if (!mounted) return;
-        setBonusPercent(trade.type === "buy" ? nextBonus : 0);
         setSellFeePercent(trade.type === "sell" ? nextFee : 0);
       } catch (error) {
         console.error("Failed to load bonus & fees settings:", error);
         if (mounted) {
-          setBonusPercent(0);
           setSellFeePercent(0);
         }
       }
@@ -1136,14 +1103,10 @@ export default function BuyDetailsCard({
   const fiatAmount = Number(trade.payable_amount);
   const cryptoAmount = Number(trade.receivable_amount);
   const price = Number(trade.user_price);
-  const bonusAmount = Number(
-    trade.bonus_amount ?? (trade.type === "buy" ? cryptoAmount * bonusPercent / 100 : 0),
-  );
+  const bonusAmount = Number(trade.bonus_amount ?? 0);
   const displayedBonusPercent = trade.bonus_percent != null
     ? Number(trade.bonus_percent)
-    : cryptoAmount > 0 && bonusAmount > 0
-      ? bonusAmount / cryptoAmount * 100
-      : (trade.type === "buy" ? bonusPercent : 0);
+    : 0;
   const feeCryptoAmount = Number(trade.charge_amount ?? 0);
   const feeAmount = feeCryptoAmount > 0
     ? feeCryptoAmount * price

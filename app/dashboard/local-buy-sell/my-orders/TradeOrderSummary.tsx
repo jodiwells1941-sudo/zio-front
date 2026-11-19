@@ -68,7 +68,7 @@ export default function TradeOrderSummary({
               <b>{formatAmount(cryptoAmount)} {asset}</b>
             </div>
             <div className={styles.row}>
-              <span>Bonus ({formatAmount(bonusPercent)}%)</span>
+              <span>{bonusPercent > 0 ? `Bonus (${formatAmount(bonusPercent)}%)` : 'Bonus'}</span>
               <b className={styles.positive}>+ {formatAmount(bonusAmount)} {asset}</b>
             </div>
             <div className={`${styles.row} ${styles.total}`}>
