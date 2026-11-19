@@ -1,6 +1,6 @@
 "use client";
 
-import { getLocalBonusFeesSettings as getBonusFeesSettings } from "@/app/api/localBonusFees";
+import { calculateLocalBuyBonus, getLocalBuyAdBonusTiers, type LocalBonusTier } from "@/app/api/localBonusFees";
 import { P2pAdsData } from "@/app/api/p2padsapi";
 import { generateTrade } from "@/app/api/trade";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,8 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   const [payAmount,   setPayAmount]   = useState('');
   const [receiveAmt,  setReceiveAmt]  = useState('');
   const [submitting,  setSubmitting]  = useState(false);
-  const [bonus, setBonus] = useState(0);
+  const [bonusTiers, setBonusTiers] = useState<LocalBonusTier[]>([]);
+  const [bonusReady, setBonusReady] = useState(false);
 
   // Close on Escape
   useEffect(() => {
@@ -41,23 +42,23 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   }, [onClose]);
 
   useEffect(() => {
-    const loadBonusFees = async () => {
+    let active = true;
+    const loadBonusTiers = async () => {
       try {
-        const res = await getBonusFeesSettings();
-        const settings = res?.data;
-
-        const configuredBonus = Number(settings?.user_buy_bonus ?? 0);
-        setBonus(ad.type === "sell" && Number.isFinite(configuredBonus) ? configuredBonus : 0);
+        const res = await getLocalBuyAdBonusTiers();
+        if (!res?.success || !Array.isArray(res.data)) throw new Error('Unable to load buy bonus tiers.');
+        if (active) {
+          setBonusTiers(res.data);
+          setBonusReady(true);
+        }
       } catch (error) {
-        console.error('Failed to load bonus & fees settings:', error);
-        setBonus(0);
+        console.error('Failed to load buy bonus tiers:', error);
+        if (active) setBonusReady(false);
       }
     };
-
-    if (ad?.type) {
-      loadBonusFees();
-    }
-  }, [ad]);
+    void loadBonusTiers();
+    return () => { active = false; };
+  }, []);
 
   // Auto-fill amounts from ad when modal opens and prevent manual typing
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   };
 
   const baseReceive = Number(receiveAmt) || 0;
-  const bonusAmount = Math.round(baseReceive * bonus / 100 * 10000) / 10000;
+  const bonusAmount = calculateLocalBuyBonus(baseReceive, bonusTiers).amount;
   const fiatAmount = Number(payAmount) || 0;
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -84,6 +85,10 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   // ─── Submit ────────────────────────────────────────────────────────────────
 
   const handleBuy = async () => {
+    if (!bonusReady) {
+      toast.error('Could not load the current buy bonus tiers. Please reopen this request.');
+      return;
+    }
     if (!Number.isFinite(marketPrice) || marketPrice <= 0) {
       toast.error('The market rate is unavailable. Refresh the ad and try again.');
       return;

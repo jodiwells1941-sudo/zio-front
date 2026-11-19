@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { getLocalMyTrades } from '@/app/api/trade';
+import { getLocalRecentOrders } from '@/app/api/trade';
 import { getUserInfo } from '@/utils/auth';
 import { getTradeEcho } from '@/utils/tradeEcho';
 import Link from 'next/link';
@@ -110,26 +110,39 @@ const renderFiatAmount = (value: string, currency?: string) => {
 // ─────────────────────────────────────────────────────────────
 export default function RecentRequestsCard() {
   const [tab, setTab] = useState<ActiveTab>('all');
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const requestId = useRef(0);
 
   const fetchTrades = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const res = await (getLocalMyTrades as (
-        args?: Record<string, string | number>
-      ) => Promise<unknown>)({ page: 1 });
-
-      // Backend wraps in { data: { data: [...] } } (paginator) OR { data: [...] }
-      const outer = (res as any)?.data;
-      const list: Trade[] = outer?.data ?? outer ?? [];
-      setTrades(Array.isArray(list) ? list.slice(0, 5) : []);
-    } catch (e: any) {
-      if (!silent) toast.error(e?.response?.data?.message ?? 'Failed to load requests.');
-    } finally {
-      setLoading(false);
+    const currentRequest = ++requestId.current;
+    if (!silent) {
+      setLoading(true);
+      setTrades([]);
     }
-  }, []);
+    try {
+      const res = await getLocalRecentOrders({ page, ...(tab === 'all' ? {} : { side: tab }) });
+      if (currentRequest !== requestId.current) return;
+
+      const paginator = res?.data;
+      const list: Trade[] = paginator?.data ?? [];
+      const nextLastPage = Math.max(1, Number(paginator?.last_page) || 1);
+      if (page > nextLastPage) {
+        setPage(nextLastPage);
+        return;
+      }
+      setTrades(Array.isArray(list) ? list : []);
+      setLastPage(nextLastPage);
+      setTotal(Number(paginator?.total) || 0);
+    } catch (e: any) {
+      if (currentRequest === requestId.current && !silent) toast.error(e?.response?.data?.message ?? 'Failed to load orders.');
+    } finally {
+      if (currentRequest === requestId.current) setLoading(false);
+    }
+  }, [page, tab]);
 
   useEffect(() => {
     void fetchTrades();
@@ -154,11 +167,9 @@ export default function RecentRequestsCard() {
     };
   }, [fetchTrades]);
 
-  const filtered = trades.filter((t) => {
-    if (tab === 'buy') return t.order_side === 'buy' || t.type === 'Buy';
-    if (tab === 'sell') return t.order_side === 'sell' || t.type === 'Sell';
-    return true;
-  });
+  const pageNumbers = [...new Set([1, page - 1, page, page + 1, lastPage])]
+    .filter(number => number >= 1 && number <= lastPage)
+    .sort((a, b) => a - b);
 
   return (
     <section className="lbs-card bg-dark">
@@ -166,7 +177,7 @@ export default function RecentRequestsCard() {
         <span className="lbs-card-icon lbs-card-icon--amber">
           <i className="fa-solid fa-clock-rotate-left" />
         </span>
-        <h3 className="lbs-card-title">Recent Buy &amp; Sell Requests</h3>
+        <h3 className="lbs-card-title">My Recent Orders</h3>
 
         <div className="lbs-card-tabs" role="tablist">
           {(['all', 'buy', 'sell'] as ActiveTab[]).map((k) => (
@@ -176,7 +187,7 @@ export default function RecentRequestsCard() {
               role="tab"
               aria-selected={tab === k}
               className={`lbs-card-tab px-3 py-1 ${tab === k ? 'is-active' : ''}`}
-              onClick={() => setTab(k)}
+              onClick={() => { setTab(k); setPage(1); }}
             >
               {k.charAt(0).toUpperCase() + k.slice(1)}
             </button>
@@ -196,8 +207,8 @@ export default function RecentRequestsCard() {
             <div>Type</div>
             <div>Amount</div>
             <div>Price </div>
-            <div>USDT Amount</div>
-            <div>Bonus/Fee</div>
+            <div>USD Amount</div>
+            <div><span className="lbs-bonus-label--buy">Bonus</span> / <span className="lbs-bonus-label--sell">Fee</span></div>
             <div>Time (Min)</div>
             <div>Status</div>
             <div>Created At</div>
@@ -213,15 +224,15 @@ export default function RecentRequestsCard() {
               </div>
             ))}
 
-          {!loading && filtered.length === 0 && (
+          {!loading && trades.length === 0 && (
             <div className="lbs-card-empty">
               <i className="fa-regular fa-folder-open" />
-              No recent requests yet.
+              No orders found.
             </div>
           )}
 
-          {filtered.map((t, i) => {
-            const typeBuy = t.order_side === 'buy' || t.type === 'Buy';
+          {trades.map((t, i) => {
+            const typeBuy = t.type.toLowerCase() === 'buy';
 
             // Bonus on Buy side / Charge on Sell side
             const bonusAmt = Number(t.bonus_amount ?? 0);
@@ -246,7 +257,7 @@ export default function RecentRequestsCard() {
             return (
               <div key={t.id} className="lbs-card-row lbs-card-row--requests">
                 <div>
-                  <span className="lbs-cell-idx">{i + 1}</span>
+                  <span className="lbs-cell-idx">{(page - 1) * 10 + i + 1}</span>
                 </div>
 
                 <div>
@@ -266,17 +277,18 @@ export default function RecentRequestsCard() {
                 </div>
 
                 {/* USDT Amount — backend sends "8.24 USDT" */}
-                <div className="lbs-cell-num">{usdtStr}</div>
+                  <div className="lbs-cell-num">{usdtStr.replace(/\bUSDT\b/gi, 'USD')}</div>
 
                 {/* Bonus/Fee — green +ve, red -ve */}
                 <div
                   className={`lbs-cell-bonus ${
-                    fee >= 0 ? 'lbs-cell-bonus--pos' : 'lbs-cell-bonus--neg'
+                    typeBuy ? 'lbs-cell-bonus--pos' : 'lbs-cell-bonus--neg'
                   }`}
                 >
+                  <span className="lbs-recent-bonus-label">{typeBuy ? 'Bonus' : 'Fee'}</span>
                   <span className="lbs-recent-bonus-value">
                     <CurrencyMark currency="USD" />
-                    {fee >= 0 ? '+' : ''}
+                    {typeBuy ? '+' : ''}
                     {num(fee)}
                   </span>
                   {feePct > 0 && (
@@ -307,6 +319,19 @@ export default function RecentRequestsCard() {
           })}
         </div>
       </div>
+      {total > 0 && (
+        <nav className="lbs-recent-pagination" aria-label="Recent orders pages">
+          <span>Showing {(page - 1) * 10 + 1}–{Math.min(page * 10, total)} of {total} orders</span>
+          <div className="lbs-recent-pages">
+            <button type="button" disabled={page === 1 || loading} onClick={() => setPage(previous => previous - 1)} aria-label="Previous page"><i className="fa-solid fa-chevron-left" /></button>
+            {pageNumbers.map((number, index) => <span key={number} className="lbs-recent-page-slot">
+              {index > 0 && number > pageNumbers[index - 1] + 1 && <span className="lbs-recent-page-gap" aria-hidden="true">…</span>}
+              <button type="button" disabled={loading} aria-label={`Page ${number}`} aria-current={number === page ? 'page' : undefined} className={number === page ? 'is-active' : ''} onClick={() => setPage(number)}>{number}</button>
+            </span>)}
+            <button type="button" disabled={page === lastPage || loading} onClick={() => setPage(previous => previous + 1)} aria-label="Next page"><i className="fa-solid fa-chevron-right" /></button>
+          </div>
+        </nav>
+      )}
     </section>
   );
 }

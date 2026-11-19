@@ -159,7 +159,7 @@ export default function PaymentProofSubmittedPrompt() {
 
   const viewOrder = () => {
     dismiss();
-    router.push(`/dashboard/local-buy-sell/my-orders/${order.type === "buy" ? "buy-view" : "sell-view"}/?trade_id=${order.id}`);
+    router.push(`/dashboard/local-buy-sell/my-orders/${order.type === "buy" ? "sell-view" : "buy-view"}/?trade_id=${order.id}`);
   };
 
   return (

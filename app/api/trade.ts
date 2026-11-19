@@ -179,6 +179,11 @@ export const getLocalMyTrades = async (params?: Record<string, string | number>)
   return response?.data;
 };
 
+export const getLocalRecentOrders = async (params?: Record<string, string | number>) => {
+  const response = await apiClient.get('/user/local-trade/recent-orders', { params });
+  return response?.data;
+};
+
 export const getLocalOrderHistory = async (params?: Record<string, string | number>) => {
   const response = await apiClient.get('/user/local-trade/history/orders', { params });
   return response.data;
