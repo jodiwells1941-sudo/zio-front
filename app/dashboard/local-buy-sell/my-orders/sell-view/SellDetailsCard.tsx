@@ -1,6 +1,6 @@
  "use client";
 
-import { getBonusFeesSettings } from "@/app/api/merchant";
+import { getLocalBonusFeesSettings as getBonusFeesSettings } from "@/app/api/localBonusFees";
 import { extendTradePaymentTime, getTrade, updateTradeStatus } from "@/app/api/trade";
 import { normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
 import { localOrderSummaryRows } from "../../localOrderSummary";
@@ -36,8 +36,9 @@ interface TradeData {
   is_client_seller: boolean;
   pending_time_limit?: string | null;
   payment_expires_at: string | null; // ← new field
-  charge_amount?: number; // ← fee shown in Order details (release quantity / fee breakdown)
+  charge_amount?: number; // Fee for a seller joining a buy ad.
   charge_percent?: number;
+  ad_fee_amount?: number | string | null; // Sell ad owner's fee, paid when the ad was created.
   client: { id: number; name: string; avatar?: string };
   customer: { id: number; name: string; avatar?: string };
   customer_id: number;
@@ -428,7 +429,9 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
   // "From" is always the seller side, "To" is always the buyer side.
   const fiatAmount = Number(trade.payable_amount);
   const cryptoAmount = Number(trade.receivable_amount);
-  const feeCryptoAmount = Number(trade.charge_amount ?? 0);
+  const isPrepaidAdFee = trade.type === "buy";
+  const feeCryptoAmount = Number(isPrepaidAdFee ? trade.ad_fee_amount ?? 0 : trade.charge_amount ?? 0);
+  const feeLabel = isPrepaidAdFee && feeCryptoAmount > 0 ? "Ad Fee (Already Paid)" : undefined;
   const feeAmount = feeCryptoAmount > 0
     ? feeCryptoAmount * Number(trade.user_price)
     : fiatAmount * sellFeePercent / 100;
@@ -624,6 +627,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         showPaymentDetails={trade.status !== 1}
         feeAmount={feeCryptoAmount}
         feePercent={displayedFeePercent}
+        feeLabel={feeLabel}
       />
 
       {canCancelOrder && (
@@ -845,7 +849,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
           currency={withFiat}
           details={[
             { label: 'Order ID', value: String(orderId) },
-            ...localOrderSummaryRows({ side: 'sell', fiat: withFiat, asset, fiatAmount, assetAmount: cryptoAmount, price: Number(trade.user_price), feeAmount: feeCryptoAmount, feePercent: displayedFeePercent }),
+            ...localOrderSummaryRows({ side: 'sell', fiat: withFiat, asset, fiatAmount, assetAmount: cryptoAmount, price: Number(trade.user_price), feeAmount: feeCryptoAmount, feePercent: displayedFeePercent, feeLabel }),
           ]}
         />
       )}

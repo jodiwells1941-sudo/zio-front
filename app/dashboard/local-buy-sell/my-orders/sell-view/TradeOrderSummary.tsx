@@ -25,6 +25,7 @@ type Props = {
   bonusPercent?: number;
   feeAmount?: number;
   feePercent?: number;
+  feeLabel?: string;
 };
 
 const formatAmount = (amount: number, digits = 2) =>
@@ -52,9 +53,10 @@ export default function TradeOrderSummary({
   bonusAmount = 0,
   feeAmount = 0,
   feePercent = 0,
+  feeLabel,
 }: Props) {
   const isBuy = kind === "buy";
-  const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent });
+  const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent, feeLabel });
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();

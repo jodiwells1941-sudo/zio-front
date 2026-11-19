@@ -99,11 +99,14 @@ export function getCompletedOrderAmounts(
   trade: P2pOrderAmountsInput & {
     bonus_amount?: string | number | null;
     charge_amount?: string | number | null;
+    ad_fee_amount?: string | number | null;
   },
 ): { receivedAmount: string; paidAmount: string } {
   const display = getViewerOrderAmountDisplay(trade);
   const bonus = trade.type.toLowerCase() === "buy" ? Number(trade.bonus_amount ?? 0) : 0;
-  const fee = trade.type.toLowerCase() === "sell" ? Number(trade.charge_amount ?? 0) : 0;
+  const fee = trade.type.toLowerCase() === "sell"
+    ? Number(trade.charge_amount ?? 0)
+    : trade.is_client ? Number(trade.ad_fee_amount ?? 0) : 0;
   const formatAsset = (amount: number) =>
     `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${display.asset}`;
   const fiat = `${display.fiat} ${display.fiatStr}`;

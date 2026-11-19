@@ -4,7 +4,7 @@ import countryList from 'react-select-country-list';
 import { toast } from 'react-toastify';
 import { getLocalAds, LocalAdsParams, P2pAdsData } from '@/app/api/p2padsapi';
 import { currencyOptions as getPaymentCurrencies, sellMethodsByCurrency } from '@/app/api/common';
-import { getBonusFeesSettings } from '@/app/api/merchant';
+import { getLocalBonusFeesSettings as getBonusFeesSettings } from '@/app/api/localBonusFees';
 import { CurrencyOption, SellMethodOption } from '@/types/P2PProfileTypes';
 import LocalBuyModal from './localBuyModal';
 import LocalSellModal from './localSellModal';
@@ -124,13 +124,12 @@ function Row({
 }) {
   const method = ad.payment_method?.sell_method?.name ?? '—';
 
-  const usdtAmount = Number(ad.total_amount ?? 0);
   const marketPrice = Number(ad.market_price);
   const advertisedFiatAmount = Number(ad.advertised_fiat_amount ?? (Number(ad.total_amount) * Number(ad.fixed_price)));
   const visitorUsdAmount = marketPrice > 0 ? advertisedFiatAmount / marketPrice : 0;
   const isBuy = kind === 'buy';
   const pct = isBuy ? bonusPercent : feePercent;
-  const bonusFee = ((isBuy ? usdtAmount : visitorUsdAmount) * pct) / 100;
+  const bonusFee = (visitorUsdAmount * pct) / 100;
   const iconImage = ad.payment_method?.sell_method?.icon_url ?? ad.payment_method?.sell_method?.icon_image;
   // When the presence channel is ready, its membership is authoritative and
   // lets an advertiser disappear immediately on a `leaving` event. If the

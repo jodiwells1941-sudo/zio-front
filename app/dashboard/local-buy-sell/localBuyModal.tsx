@@ -1,6 +1,6 @@
 "use client";
 
-import { getBonusFeesSettings } from "@/app/api/merchant";
+import { getLocalBonusFeesSettings as getBonusFeesSettings } from "@/app/api/localBonusFees";
 import { P2pAdsData } from "@/app/api/p2padsapi";
 import { generateTrade } from "@/app/api/trade";
 import { useRouter } from "next/navigation";
@@ -74,7 +74,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
   };
 
   const baseReceive = Number(receiveAmt) || 0;
-  const bonusAmount = Number(ad.order_limit_min) * bonus / 100;
+  const bonusAmount = Math.round(baseReceive * bonus / 100 * 10000) / 10000;
   const fiatAmount = Number(payAmount) || 0;
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,

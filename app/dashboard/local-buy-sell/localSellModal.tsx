@@ -1,7 +1,7 @@
 "use client";
 
 import { getUserPaymentMethods, updateUserPaymentMethod } from "@/app/api/common";
-import { getBonusFeesSettings } from "@/app/api/merchant";
+import { getLocalBonusFeesSettings as getBonusFeesSettings } from "@/app/api/localBonusFees";
 import { P2pAdsData } from "@/app/api/p2padsapi";
 import { generateTrade } from "@/app/api/trade";
 import type { SellMethodField, UserPaymentMethod } from "@/types/P2PProfileTypes";

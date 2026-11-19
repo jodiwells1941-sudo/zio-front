@@ -1,6 +1,6 @@
 "use client";
 
-import { getBonusFeesSettings } from "@/app/api/merchant";
+import { getLocalBonusFeesSettings as getBonusFeesSettings } from "@/app/api/localBonusFees";
 import { extendTradePaymentTime, getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay, normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
@@ -463,7 +463,7 @@ function PaymentProofModal({
                   ))}
 
                   <div className="p2pDetailRow">
-                    <span className="p2pMuted">Bonus ({displayedBonusPercent.toFixed(2)}%)</span>
+                    <span className="p2pMuted">{displayedBonusPercent > 0 ? `Bonus (${displayedBonusPercent.toFixed(2)}%)` : "Bonus"}</span>
                     <span className="p2pDetailVal text-warning">
                       +{bonusAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} {orderView.asset}
                     </span>
@@ -621,52 +621,15 @@ export function PaymentInfoCard({
   const remarks = pm?.remarks;
   const qrCode = pm?.qr_code;
   const orderId = trade.order_id;
-  const [bonusPercent, setBonusPercent] = useState(0);
-  const [sellFeePercent, setSellFeePercent] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadSettings = async () => {
-      try {
-        const res = await getBonusFeesSettings();
-        const settings = res?.data ?? {};
-        const nextBonus = Number(settings?.user_buy_bonus ?? 0);
-        const nextFee = Number(settings?.user_sell_charge ?? 0);
-
-        if (!mounted) return;
-        setBonusPercent(trade.type === "buy" ? nextBonus : 0);
-        setSellFeePercent(trade.type === "sell" ? nextFee : 0);
-      } catch (error) {
-        console.error("Failed to load bonus & fees settings:", error);
-        if (mounted) {
-          setBonusPercent(0);
-          setSellFeePercent(0);
-        }
-      }
-    };
-
-    void loadSettings();
-
-    return () => {
-      mounted = false;
-    };
-  }, [trade.type]);
-
+  const asset = normalizeCryptoAsset(trade.p2p_ad?.asset);
+  const bonus = Number(trade.bonus_amount ?? 0);
+  const fee = Number(trade.charge_amount ?? 0);
   const extraFeeOrBonusRow =
-    trade.type === "buy" && bonusPercent > 0
-      ? { label: "Buy Bonus", value: `+${bonusPercent}%` }
-      : trade.type === "sell" && sellFeePercent > 0
-        ? { label: "Selling Fee", value: `${sellFeePercent}%` }
+    trade.type === "buy" && bonus > 0
+      ? { label: "Buy Bonus", value: `+${bonus.toFixed(2)} ${asset}` }
+      : trade.type === "sell" && fee > 0
+        ? { label: "Selling Fee", value: `${fee.toFixed(2)} ${asset}` }
         : null;
-
-  const totalAmount = trade.type === "buy"
-    ? Number(trade.receivable_amount || 0) * (1 + (bonusPercent / 100))
-    : Number(trade.payable_amount || 0) * (1 - (sellFeePercent / 100));
-
-  const totalAmountCurrency = trade.type === "buy"
-    ? normalizeCryptoAsset(trade.p2p_ad?.asset)
-    : trade.p2p_ad?.with_fiat ?? view.fiat ?? "BDT";
 
   return (
     <div className="p2pCard p-0">
@@ -701,7 +664,6 @@ export function PaymentInfoCard({
         <div className="p2pCardLabel">Total Amount</div>
         <div className="p2pCardValue green">
           {view.youPayLine}
-          {/* {totalAmountCurrency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} */}
         </div>
       </div>
 

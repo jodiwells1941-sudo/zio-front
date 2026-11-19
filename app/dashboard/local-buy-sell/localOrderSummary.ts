@@ -15,6 +15,7 @@ type LocalOrderSummaryInput = {
   bonusAmount?: number;
   feeAmount?: number;
   feePercent?: number;
+  feeLabel?: string;
 };
 
 const money = (value: number) =>
@@ -33,6 +34,7 @@ export function localOrderSummaryRows({
   bonusAmount = 0,
   feeAmount = 0,
   feePercent = 0,
+  feeLabel,
 }: LocalOrderSummaryInput): LocalOrderSummaryRow[] {
   const assetName = asset.toUpperCase() === "USDT" ? "USD" : asset;
   const common: LocalOrderSummaryRow[] = [
@@ -44,7 +46,7 @@ export function localOrderSummaryRows({
     return [
       ...common,
       { label: "Sell Amount", value: `- ${money(assetAmount)} ${assetName}`, tone: "negative" },
-      { label: `Fee (${money(feePercent)}%)`, value: `- ${money(feeAmount)} ${assetName}`, tone: "negative" },
+      { label: feeLabel ?? `Fee (${money(feePercent)}%)`, value: `- ${money(feeAmount)} ${assetName}`, tone: "negative" },
       { label: "Total Amount", value: `- ${money(assetAmount + feeAmount)} ${assetName}`, tone: "negative" },
       { label: `Received Amount (${fiat})`, value: `${money(fiatAmount)} ${fiat}`, tone: "received", total: true },
     ];

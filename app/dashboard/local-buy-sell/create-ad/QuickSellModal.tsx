@@ -11,7 +11,7 @@ import {
   updateUserPaymentMethod,
 } from '@/app/api/common';
 import { CurrencyOption, PaymentFormData, SellMethodField, UserPaymentMethod } from '@/types/P2PProfileTypes';
-import { getWithdrawChargeApi } from '@/app/api/wallet';
+import { getLocalBonusFeesSettings as getWithdrawChargeApi } from '@/app/api/localBonusFees';
 import './QuickSellModal.css';
 import PaymentMethodIcon from '../PaymentMethodIcon';
 import { useAuth } from '@/hooks/useAuth';

@@ -13,7 +13,7 @@ import {
 import PaymentModal from '@/components/dashboard/p2pProfile/Paymentmodal';
 import { CurrencyOption, ModalMode, PaymentFormData, UserPaymentMethod } from '@/types/P2PProfileTypes';
 import './QuickBuyModal.css';
-import { getDepositBonusApi, getDepositBonusTiersApi } from '@/app/api/wallet';
+import { getLocalBuyAdBonusPreview as getDepositBonusApi, getLocalBuyAdBonusTiers as getDepositBonusTiersApi } from '@/app/api/localBonusFees';
 import PaymentMethodIcon from '../PaymentMethodIcon';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchUserInfoAPI } from '@/app/api/auth';
