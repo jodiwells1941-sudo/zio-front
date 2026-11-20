@@ -530,7 +530,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div>
               <div className="qbm-entry-meta">
                 <small className="qbm-amount-limits">
-                  {limitsLoading || !tradeLimits ? 'Loading limits…' : `Min ${money(minimumFiatAmount)} ${fiat} · Max ${money(maximumFiatAmount)} ${fiat} - (${money(minimumUsd)}–${money(maximumUsd)} ${DISPLAY_ASSET_CODE})`}
+                  {limitsLoading || !tradeLimits ? 'Loading limits…' : `Min ${money(minimumFiatAmount)} ${fiat} · Max ${money(maximumFiatAmount)} ${fiat}`}
                 </small>
                 <small className="qbm-entry-rate">
                   1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${rateMoney(rate)} ${fiat}`}

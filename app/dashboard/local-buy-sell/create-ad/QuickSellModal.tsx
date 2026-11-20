@@ -606,7 +606,7 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                   <small className="qsm-amount-limits">
                     {rateLoading || limitsLoading || !tradeLimits || rate <= 0
                       ? 'Loading limits…'
-                      : `Min ${money(minimumUsd * rate)} ${fiat} · Max ${money(maximumUsd * rate)} ${fiat} - (${money(minimumUsd)}–${money(maximumUsd)} ${DISPLAY_ASSET_CODE})`}
+                      : `Min ${money(minimumUsd * rate)} ${fiat} · Max ${money(maximumUsd * rate)} ${fiat}`}
                   </small>
                   <small className="qsm-entry-rate">
                     1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${rateMoney(rate)} ${fiat}`}

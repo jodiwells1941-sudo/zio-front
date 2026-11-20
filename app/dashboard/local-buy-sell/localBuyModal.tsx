@@ -190,20 +190,27 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
+        <div className="local-trade-total-banner local-trade-total-banner--pay mx-3">
+          <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
+          <span className="local-trade-total-label text-white">Pay Now</span>
+          <strong className="d-flex gap-1 fw-bold">{money(fiatAmount)} {ad.with_fiat}</strong>
+        </div>
+
         <div className="local-trade-content">
-          <div className="local-trade-summary">
-            <h4 className="local-trade-summary-title">Order Summary</h4>
-            {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: marketPrice, bonusAmount }).map(row => (
-              <div className={`local-trade-row ${row.total ? "local-trade-row--total" : ""}`} key={row.label}>
-                <span>{row.label}</span><b className={row.tone === "positive" ? "local-trade-positive" : undefined}>{row.value}</b>
-              </div>
-            ))}
-          </div>
-          <div className="local-trade-total-banner local-trade-total-banner--pay">
-            <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
-            <span className="local-trade-total-label">Pay Amount</span>
-            <strong className="d-flex gap-1 fw-bold">{money(fiatAmount)} {ad.with_fiat}</strong>
-          </div>
+          <details className="local-trade-summary local-trade-summary--collapsible">
+            <summary className="local-trade-summary-toggle">
+              <h4 className="local-trade-summary-title">Order Summary</h4>
+              <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+            </summary>
+            <div className="local-trade-summary-rows">
+              {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: marketPrice, bonusAmount }).map(row => (
+                <div className={`local-trade-row ${row.total ? "local-trade-row--total" : ""}`} key={row.label}>
+                  <span>{row.label}</span><b className={row.tone === "positive" ? "local-trade-positive" : undefined}>{row.value}</b>
+                </div>
+              ))}
+            </div>
+          </details>
+
           <div className="local-trade-payment-details">
             <div className="local-trade-payment-head border-0 pb-0">
               <PaymentMethodIcon
@@ -221,28 +228,18 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
                 <small>{ad.with_fiat} Payment Details</small>
               </span>
             </div>
-            {/* {paymentDetails.length > 0 ? (
-              <dl>
-                {paymentDetails.map(detail => (
-                  <div className="local-trade-payment-row" key={detail.label}>
-                    <dt>{detail.label}</dt>
-                    <dd>{detail.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : (
-              <p className="local-trade-payment-empty">No payment number available.</p>
-            )} */}
           </div>
           <div className="local-trade-info">
             <div className="local-trade-field">
               <span className="local-trade-label"><i className="fa-solid fa-hourglass-half" /> Order Time Limit</span>
               <b>{ad.payment_time_limit} min</b>
             </div>
-            <div className="local-trade-field local-trade-field--note">
-              <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
-              <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
-            </div>
+            {ad.remarks && 
+              <div className="local-trade-field local-trade-field--note">
+                <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
+                <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
+              </div>
+            }
           </div>
           <div className="local-trade-actions">
             <button type="button" onClick={onClose} className="btn--secondary fs-6 d-flex justify-content-center">Cancel</button>
