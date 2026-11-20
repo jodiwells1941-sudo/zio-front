@@ -185,13 +185,15 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
-        <div className="mx-1">
+        <div className="mx-1 mt-2">
           <div className="local-trade-total-banner local-trade-total-banner--pay mx-3 mb-0">
             <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
-            <span className="local-trade-total-label">Pay Now</span>
-            <strong className="d-flex gap-1 fw-bold">{money(fiatAmount)} {ad.with_fiat}</strong>
+            <span className="local-trade-total-label">
+              <span>Pay Now</span>
+            </span>
+            <strong className="d-flex gap-1 fw-bold mb-4">{money(fiatAmount)} {ad.with_fiat}</strong>
           </div>
-          <small className="local-trade-pay-receive px-2 pt-1">Received USD = <span className="fs-10 fw-bold">${money(totalUSD)}</span></small>
+          <small className="local-trade-pay-receive px-2 pt-1">You Will Receive: <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
         </div>
 
         <div className="local-trade-content px-3 mx-0">
@@ -202,15 +204,15 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             </summary>
             <div className="local-trade-summary-rows">
               {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: marketPrice, bonusAmount }).map(row => (
-                <div className={`local-trade-row ${row.total ? "local-trade-row--total" : ""}`} key={row.label}>
+                <div className={`local-trade-row ${row.total ? "local-trade-row--total mx-0" : ""}`} key={row.label}>
                   <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span><b className={row.tone === "positive" ? "local-trade-positive" : undefined}>{row.value}</b>
                 </div>
               ))}
             </div>
           </details>
 
-          <div className="local-trade-payment-details">
-            <div className="local-trade-payment-head border-0 pb-0">
+          <div className="local-trade-payment-time-card">
+            <div className="local-trade-method-details">
               <PaymentMethodIcon
                 className="local-trade-payment-icon"
                 methodName={methodName}
@@ -226,12 +228,16 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
                 <small>{ad.with_fiat} Payment Details</small>
               </span>
             </div>
+            <div className="local-trade-time-details">
+              <i className="fa-solid fa-hourglass-half ms-3" aria-hidden="true" />
+              <span className="mx-auto">
+                <span className="fs-10">Order Time Limit</span>
+                <strong className="fs-14"><b>{ad.payment_time_limit} Min</b></strong>
+              </span>
+            </div>
+            <i className="fa-solid fa-chevron-right local-trade-method-arrow" aria-hidden="true" />
           </div>
           <div className="local-trade-info">
-            <div className="local-trade-field">
-              <span className="local-trade-label"><i className="fa-solid fa-hourglass-half" /> Order Time Limit</span>
-              <b>{ad.payment_time_limit} min</b>
-            </div>
             {ad.remarks && 
               <div className="local-trade-field local-trade-field--note">
                 <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
@@ -241,7 +247,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           </div>
           <div className="local-trade-actions">
             <button type="button" onClick={onClose} className="btn--secondary fs-6 d-flex justify-content-center">Cancel</button>
-            <button type="button" className="btn--primary w-100 d-flex justify-content-center" onClick={handleBuy} disabled={submitting}>
+            <button type="button" className="bg-warning w-100 d-flex justify-content-center text-dark" onClick={handleBuy} disabled={submitting}>
               {submitting ? 'Processing...' : <><i className="fa-solid fa-circle-check" /> Accept Request</>}
             </button>
           </div>

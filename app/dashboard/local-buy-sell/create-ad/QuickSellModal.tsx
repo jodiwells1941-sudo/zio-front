@@ -623,31 +623,31 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <summary className="qsm-summary-title">Order Summary</summary>
 
                 <div className="qsm-summary-row">
-                  <span>Currency</span><b>{fiat}</b>
+                  <span><i className="fa-solid fa-coins text-danger" aria-hidden="true" />Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <span><i className="fa-solid fa-arrow-trend-up text-danger" aria-hidden="true" />Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{rateMoney(rate)} {fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Sell Amount</span>
+                  <span><i className="fa-solid fa-layer-group text-danger" aria-hidden="true" />Sell Amount</span>
                   <b className="qsm-green text-md">
                     - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Fee ({money(feePercent, 2)}%)</span>
+                  <span><i className="fa-solid fa-percent text-danger" aria-hidden="true" />Fee ({money(feePercent, 2)}%)</span>
                   <b className="qsm-green">
                     - {money(feeUsdt)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Total Amount</span>
+                  <span><i className="fa-solid fa-wallet text-danger" aria-hidden="true" />Total Amount</span>
                   <b className="qsm-green">- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
                 </div>
-                <div className="qsm-summary-row qsm-summary-row--total border-danger">
-                  <span>Received Amount ({fiat})</span>
-                  <b className="text-warning">
+                <div className="qsm-summary-row qsm-summary-row--total">
+                  <span><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" />Received Amount ({fiat})</span>
+                  <b>
                     {money(receiveFiat)} {fiat}
                   </b>
                 </div>
@@ -816,31 +816,31 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                 <h4 className="qsm-summary-title qsm-summary-title--static">Order Summary</h4>
 
                 <div className="qsm-summary-row">
-                  <span>Currency</span><b>{fiat}</b>
+                  <span><i className="fa-solid fa-coins" aria-hidden="true" />Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <span><i className="fa-solid fa-arrow-trend-up" aria-hidden="true" />Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{rateMoney(rate)} {fiat}</b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Sell Amount</span>
+                  <span><i className="fa-solid fa-layer-group" aria-hidden="true" />Sell Amount</span>
                   <b className="qsm-green text-md">
                     - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Fee ({money(feePercent, 2)}%)</span>
+                  <span><i className="fa-solid fa-percent" aria-hidden="true" />Fee ({money(feePercent, 2)}%)</span>
                   <b className="qsm-green">
                     - {money(feeUsdt)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
                 <div className="qsm-summary-row">
-                  <span>Total Amount</span>
+                  <span><i className="fa-solid fa-wallet" aria-hidden="true" />Total Amount</span>
                   <b className="qsm-green">- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
                 </div>
-                <div className="qsm-summary-row qsm-summary-row--total border-danger">
-                  <span>Received Amount ({fiat})</span>
-                  <b className="text-warning">
+                <div className="qsm-summary-row qsm-summary-row--total">
+                  <span><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" />Received Amount ({fiat})</span>
+                  <b>
                     {money(receiveFiat)} {fiat}
                   </b>
                 </div>

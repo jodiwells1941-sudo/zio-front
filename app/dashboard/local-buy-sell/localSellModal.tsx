@@ -334,17 +334,18 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
-        <div className="mx-1">
+        <div className="mx-1 mt-2">
           <div className="local-trade-total-banner local-trade-total-banner--received mx-3 mb-0">
             <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-            <span className="local-trade-total-label text-white">Received</span>
-            <strong className="d-flex gap-1"><span className="fw-bold">{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
+            <span className="local-trade-total-label text-white">
+              <span>Received</span>
+            </span>
+            <strong className="d-flex gap-1 mb-4 fw-bold text-white">{money(grossReceive)} {ad.with_fiat} </strong>
           </div>
           <div className="d-flex justify-content-end">
-            <small className="local-trade-sell-usd mx-4">Sell USD = <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
+            <small className="local-trade-sell-usd px-2 pt-1">Sell USD = <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
           </div>
         </div>
-
 
         <div className="local-trade-content px-3 mx-0">
           <details className="local-trade-summary local-trade-summary--collapsible">
@@ -354,7 +355,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             </summary>
             <div className="local-trade-summary-rows">
               {localOrderSummaryRows({ side: "sell", fiat: ad.with_fiat, asset: ad.asset, fiatAmount: grossReceive, assetAmount: sellValue, price: marketPrice, feeAmount: feeUsdt, feePercent }).map(row => (
-                <div className={`local-trade-row ${row.total ? "local-trade-row--total local-trade-row--received" : ""}`} key={row.label}>
+                <div className={`local-trade-row ${row.total ? "local-trade-row--total mx-0 local-trade-row--received" : ""}`} key={row.label}>
                   <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span><b className={row.tone === "negative" ? "local-trade-negative" : row.tone === "received" ? "local-trade-positive" : undefined}>{row.value}</b>
                 </div>
               ))}
@@ -381,10 +382,6 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           </div> */}
 
           <div className="local-trade-info mb-2">
-            <div className="local-trade-field">
-              <span className="local-trade-label"><i className="fa-solid fa-hourglass-half" /> Order Time Limit</span>
-              <b>{ad.payment_time_limit} min</b>
-            </div>
             {ad.remarks && 
               <div className="local-trade-field local-trade-field--note">
                 <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
@@ -416,58 +413,70 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             {errors.paymentMethodId && <span className="local-trade-error">{errors.paymentMethodId}</span>}
           </div> */}
           {selectedPaymentMethod && (
-            <div className="local-trade-payment-details" aria-live="polite">
-              <div className="local-trade-payment-head">
-                <PaymentMethodIcon
-                  className="local-trade-payment-icon"
-                  methodName={selectedPaymentMethod.method_name}
-                  iconImage={
-                    selectedPaymentMethod.icon_url ??
-                    selectedPaymentMethod.icon_image ??
-                    selectedPaymentMethod.sell_method?.icon_url ??
-                    selectedPaymentMethod.sell_method?.icon_image
-                  }
-                  size={36}
-                  fallbackMode="card"
-                />
-                <span>
-                  <strong>{selectedPaymentMethod.method_name}</strong>
-                  <small>Edit details; changes save when you accept the request.</small>
-                </span>
-              </div>
-              {paymentMethodFields.length > 0 ? (
-                <div className="local-sell-payment-fields">
-                  {paymentMethodFields.map(field => (
-                    <label className="local-sell-payment-field" key={field.key}>
-                      <span className="fs-10">
-                        {field.label}
-                        {field.required && <b aria-hidden="true"> *</b>}
-                      </span>
-                      <input
-                        type={field.type}
-                        value={paymentFieldValues[field.key] ?? ""}
-                        placeholder={field.placeholder}
-                        onChange={event => {
-                          setPaymentFieldValues(previous => ({
-                            ...previous,
-                            [field.key]: event.target.value,
-                          }));
-                          setPaymentFieldErrors(previous => ({
-                            ...previous,
-                            [field.key]: "",
-                          }));
-                        }}
-                        aria-invalid={Boolean(paymentFieldErrors[field.key])}
-                      />
-                      {paymentFieldErrors[field.key] && (
-                        <small className="local-trade-error">{paymentFieldErrors[field.key]}</small>
-                      )}
-                    </label>
-                  ))}
+            <div className="local-trade-payment-time-card local-trade-payment-time-card--editable" aria-live="polite">
+              <div className="local-trade-payment-time-head">
+                <div className="local-trade-payment-head">
+                  <PaymentMethodIcon
+                    className="local-trade-payment-icon"
+                    methodName={selectedPaymentMethod.method_name}
+                    iconImage={
+                      selectedPaymentMethod.icon_url ??
+                      selectedPaymentMethod.icon_image ??
+                      selectedPaymentMethod.sell_method?.icon_url ??
+                      selectedPaymentMethod.sell_method?.icon_image
+                    }
+                    size={36}
+                    fallbackMode="card"
+                  />
+                  <span>
+                    <strong>{selectedPaymentMethod.method_name}</strong>
+                    <small>Edit details; changes save when you accept the request.</small>
+                  </span>
                 </div>
-              ) : (
-                <p className="local-trade-payment-empty">No editable fields are configured for this payment method.</p>
-              )}
+                <div className="local-trade-time-details">
+                  <i className="fa-solid fa-hourglass-half ms-3" aria-hidden="true" />
+                  <span className="mx-auto">
+                    <span className="fs-10">Order Time Limit</span>
+                    <strong className="fs-14"><b>{ad.payment_time_limit} Min</b></strong>
+                  </span>
+                </div>
+                <i className="fa-solid fa-chevron-right local-trade-method-arrow" aria-hidden="true" />
+              </div>
+              <div className="local-trade-payment-details">
+                {paymentMethodFields.length > 0 ? (
+                  <div className="local-sell-payment-fields">
+                    {paymentMethodFields.map(field => (
+                      <label className="local-sell-payment-field" key={field.key}>
+                        <span className="fs-10">
+                          {field.label}
+                          {field.required && <b aria-hidden="true"> *</b>}
+                        </span>
+                        <input
+                          type={field.type}
+                          value={paymentFieldValues[field.key] ?? ""}
+                          placeholder={field.placeholder}
+                          onChange={event => {
+                            setPaymentFieldValues(previous => ({
+                              ...previous,
+                              [field.key]: event.target.value,
+                            }));
+                            setPaymentFieldErrors(previous => ({
+                              ...previous,
+                              [field.key]: "",
+                            }));
+                          }}
+                          aria-invalid={Boolean(paymentFieldErrors[field.key])}
+                        />
+                        {paymentFieldErrors[field.key] && (
+                          <small className="local-trade-error">{paymentFieldErrors[field.key]}</small>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="local-trade-payment-empty">No editable fields are configured for this payment method.</p>
+                )}
+              </div>
             </div>
           )}
           <div className="local-trade-actions">
