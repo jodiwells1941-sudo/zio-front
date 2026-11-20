@@ -1262,7 +1262,7 @@
 .lbs-card-row--head > div { text-align: center; }
 .lbs-card-row--head > div:first-child { text-align: left; }
 
-.lbs-card-row--requests { grid-template-columns: 28px 60px 1fr 1fr 1fr 0.9fr 60px 1.1fr 1.2fr 60px; }
+.lbs-card-row--requests { grid-template-columns: 24px 48px 1fr 0.9fr 0.9fr 0.9fr 0.85fr 52px 0.9fr 1.05fr 48px; }
 .lbs-card-row--ads      { grid-template-columns: 28px 60px 1fr 1fr 1fr 1fr 60px; }
 
 .lbs-cell-idx {
@@ -1312,7 +1312,7 @@
 .lbs-cell-bonus--pos * { color: #4ade80 !important; }
 .lbs-cell-bonus--neg,
 .lbs-cell-bonus--neg * { color: #f87171 !important; }
-.lbs-recent-bonus-label { color: inherit; font-size: 10px; line-height: 1; }
+.lbs-cell-total-usd { color: #e5e9f0; font-weight: 700; }
 .lbs-recent-bonus-value {
   display: inline-flex;
   align-items: center;
