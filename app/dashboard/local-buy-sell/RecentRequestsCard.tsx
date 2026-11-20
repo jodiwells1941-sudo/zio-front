@@ -208,6 +208,7 @@ export default function RecentRequestsCard() {
             <div>Amount</div>
             <div>Price </div>
             <div>USD Amount</div>
+            <div>Total USD</div>
             <div><span className="lbs-bonus-label--buy">Bonus</span> / <span className="lbs-bonus-label--sell">Fee</span></div>
             <div>Time (Min)</div>
             <div>Status</div>
@@ -218,7 +219,7 @@ export default function RecentRequestsCard() {
           {loading && trades.length === 0 &&
             [0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="lbs-card-row lbs-card-row--requests lbs-card-skel">
-                {Array.from({ length: 10 }).map((_, j) => (
+                {Array.from({ length: 11 }).map((_, j) => (
                   <span key={j} />
                 ))}
               </div>
@@ -238,9 +239,6 @@ export default function RecentRequestsCard() {
             const bonusAmt = Number(t.bonus_amount ?? 0);
             const chargeAmt = Number(t.charge_amount ?? 0);
             const fee = typeBuy ? bonusAmt : -chargeAmt;
-            const feePct = typeBuy
-              ? Number(t.bonus_percent ?? 0)
-              : Number(t.charge_percent ?? 0);
 
             // Backend sends formatted strings — strip the currency suffix for display
             // so we can render '41.25' + a small 'BDT' tag if needed. Here we keep
@@ -248,6 +246,8 @@ export default function RecentRequestsCard() {
             const amountStr = String(t.cryptoAmount ?? '—');
             const priceStr  = String(t.price ?? '—');
             const usdtStr   = String(t.cryptoValue ?? '—');
+            const baseUsd = Number.parseFloat(usdtStr.replace(/,/g, '').replace(/\b(?:USDT|USD)\b/gi, '').trim());
+            const totalUsd = (Number.isFinite(baseUsd) ? baseUsd : 0) + Math.abs(fee);
             const fiatCurrency = t.with_fiat ?? t.currency;
 
             const timeLimit = t.timeLimit ?? 15;
@@ -277,7 +277,9 @@ export default function RecentRequestsCard() {
                 </div>
 
                 {/* USDT Amount — backend sends "8.24 USDT" */}
-                  <div className="lbs-cell-num">{usdtStr.replace(/\bUSDT\b/gi, 'USD')}</div>
+                <div className="lbs-cell-num">{usdtStr.replace(/\bUSDT\b/gi, 'USD')}</div>
+
+                <div className="lbs-cell-num lbs-cell-total-usd">${num(totalUsd)}</div>
 
                 {/* Bonus/Fee — green +ve, red -ve */}
                 <div
@@ -285,15 +287,9 @@ export default function RecentRequestsCard() {
                     typeBuy ? 'lbs-cell-bonus--pos' : 'lbs-cell-bonus--neg'
                   }`}
                 >
-                  <span className="lbs-recent-bonus-label">{typeBuy ? 'Bonus' : 'Fee'}</span>
                   <span className="lbs-recent-bonus-value">
-                    <CurrencyMark currency="USD" />
-                    {typeBuy ? '+' : ''}
-                    {num(fee)}
+                    {typeBuy ? '+' : '-'}<CurrencyMark currency="USD" />{num(Math.abs(fee))}
                   </span>
-                  {feePct > 0 && (
-                    <small className="lbs-bonus-pct">({feePct}%)</small>
-                  )}
                 </div>
 
                 <div className="lbs-cell-time">{timeLimit} M</div>
