@@ -28,7 +28,7 @@ const levels: Level[] = [
     icon: "fa-solid fa-medal",
     className: "silver",
     requirements: [
-      "≥ 10,000 USDT Monthly Volume",
+      "≥ 10,000 USD Monthly Volume",
       "Completion Rate ≥ 90%",
     ],
   },
@@ -39,7 +39,7 @@ const levels: Level[] = [
     className: "gold current",
     current: true,
     requirements: [
-      "≥ 50,000 USDT Monthly Volume",
+      "≥ 50,000 USD Monthly Volume",
       "Completion Rate ≥ 96%",
       "Positive Feedback ≥ 95%",
     ],
@@ -50,7 +50,7 @@ const levels: Level[] = [
     icon: "fa-solid fa-gem",
     className: "platinum",
     requirements: [
-      "≥ 150,000 USDT Monthly Volume",
+      "≥ 150,000 USD Monthly Volume",
       "Completion Rate ≥ 97%",
       "Positive Feedback ≥ 97%",
     ],
@@ -61,7 +61,7 @@ const levels: Level[] = [
     icon: "fa-solid fa-gem",
     className: "diamond",
     requirements: [
-      "≥ 500,000 USDT Monthly Volume",
+      "≥ 500,000 USD Monthly Volume",
       "Completion Rate ≥ 98%",
       "Positive Feedback ≥ 98%",
     ],
@@ -87,7 +87,7 @@ const benefits = [
   {
     icon: "fa-solid fa-wallet",
     title: "Order Limit per Ad",
-    value: "500,000 USDT",
+    value: "500,000 USD",
   },
   {
     icon: "fa-solid fa-headset",
@@ -110,7 +110,7 @@ const performance = [
   {
     icon: "fa-solid fa-dollar-sign",
     title: "Trading Volume",
-    value: "102,450.50 USDT",
+    value: "102,450.50 USD",
     growth: "18.6%",
     type: "yellow",
   },
@@ -289,7 +289,7 @@ export default function MerchantLevel() {
 
                 <div>
                   <span>Monthly Volume</span>
-                  <strong>102,450 / 150,000 USDT</strong>
+                  <strong>102,450 / 150,000 USD</strong>
                 </div>
               </div>
 

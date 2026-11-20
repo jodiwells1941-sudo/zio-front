@@ -40,8 +40,8 @@ const APPEAL_TYPES: AppealTypeOption[] = [
   },
   {
     key: "usdt_not_released",
-    label: "USDT Not Released",
-    description: "Merchant not released USDT after payment.",
+    label: "USD Not Released",
+    description: "Merchant not released USD after payment.",
     icon: "fa-solid fa-t",
     iconBg: "#22c55e",
   },

@@ -6086,6 +6086,36 @@ span {
     line-height: 24px;
   }
 }
+
+/* Apply the same Local Buy & Sell palette to the remaining merchant screens. */
+.merchant-route-shell :is(.merchant-earnings-page, .merchant-level-page,
+.merchant-settings-page, .merchant-reviews-v2, .merchant-profile-page,
+.appeal-center-page, .appeals-page) {
+  color: #f5f0e7;
+}
+.merchant-route-shell :is(.earnings-summary-card, .earnings-panel, .merchant-panel,
+.level-card, .review-stat-card, .review-card, .merchant-card, .merchant-setting-card,
+.account-card, .appeal-card, .appeal-stat-card) {
+  border-color: rgba(251,191,36,.21) !important;
+  background: linear-gradient(145deg, #211d15, #131419) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.035);
+}
+.merchant-route-shell :is(.earnings-summary-card, .level-card, .review-stat-card,
+.review-card, .merchant-card, .merchant-setting-card, .appeal-card):hover {
+  border-color: rgba(251,191,36,.55) !important;
+}
+.merchant-route-shell :is(.earnings-tabs button.active, .merchant-settings-tabs button.active,
+.merchant-route-shell .review-tabs button.active, .merchant-route-shell .appeal-tab.active) {
+  color: #1b1405;
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #ffe38a, #fbbf24);
+}
+.merchant-route-shell :is(.earnings-summary-icon, .level-badge, .review-stat-icon,
+.setting-header-icon, .appeal-icon) {
+  color: #ffe48d !important;
+  border-color: rgba(251,191,36,.35) !important;
+  background: rgba(251,191,36,.13) !important;
+}
 .affiliate-wrapper .cta-banner-wrapper .content-box .app-download-btns {
   display: flex;
   gap: 16px;
@@ -6100,6 +6130,181 @@ span {
     flex-direction: column;
     align-items: center;
   }
+}
+
+/* =========================================================
+   MERCHANT / LOCAL BUY & SELL VISUAL SYSTEM
+   This stays at the end so legacy merchant page rules cannot bring back
+   the former blue/purple palette on any merchant route.
+========================================================= */
+.merchant-route-shell .merchant-application {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 16px;
+  color: #f6f1e8;
+}
+
+.merchant-route-shell .application-top {
+  margin-bottom: 12px;
+  padding: 14px 16px 0;
+  border: 1px solid rgba(251, 191, 36, .24);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  background: radial-gradient(100% 130% at 8% 0, rgba(251,191,36,.15), transparent 55%), linear-gradient(145deg, #251d0e, #121318);
+}
+
+.merchant-route-shell .application-heading h1 { color: #fff7df; font-weight: 750; }
+.merchant-route-shell .application-heading p,
+.merchant-route-shell .application-guide-btn small { color: #c6bda9; }
+.merchant-route-shell .verified-title { color: #fbbf24; }
+
+.merchant-route-shell .application-guide-btn {
+  border-color: rgba(251, 191, 36, .32);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #201b10, #111319);
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
+.merchant-route-shell .guide-info-icon {
+  color: #ffe38a;
+  border-color: rgba(251, 191, 36, .5);
+  background: rgba(251, 191, 36, .1);
+}
+
+.merchant-route-shell .merchant-progress {
+  margin: 18px 0 0;
+  padding: 13px 15px 16px;
+  border-top: 1px solid rgba(251, 191, 36, .14);
+}
+.merchant-route-shell .progress-circle {
+  color: #d3c9b7;
+  border-color: rgba(251, 191, 36, .22);
+  background: #191816;
+}
+.merchant-route-shell .progress-item.active .progress-circle,
+.merchant-route-shell .progress-item.completed .progress-circle {
+  color: #211706;
+  border-color: rgba(251, 191, 36, .85);
+  background: linear-gradient(135deg, #ffe28a, #fbbf24);
+  box-shadow: 0 0 16px rgba(251,191,36,.26);
+}
+.merchant-route-shell .progress-item.active .progress-title,
+.merchant-route-shell .progress-item.completed .progress-title { color: #fcd76b; }
+.merchant-route-shell .progress-connector { background: rgba(251, 191, 36, .17); }
+.merchant-route-shell .progress-connector.completed { background: linear-gradient(90deg, #d99910, #fbbf24); }
+
+.merchant-route-shell .application-card {
+  padding: 18px;
+  border-color: rgba(251, 191, 36, .21);
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(145deg, #191914, #101216);
+  box-shadow: 0 16px 38px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.035);
+}
+.merchant-route-shell .application-card + .application-card {
+  margin-top: 12px;
+  border-radius: 14px;
+}
+.merchant-route-shell .application-card .card-heading h2,
+.merchant-route-shell .field-label { color: #f2eadc; }
+.merchant-route-shell .card-heading p,
+.merchant-route-shell .field-helper { color: #b8ae9c; }
+.merchant-route-shell .field-label b,
+.merchant-route-shell .document-card-header h3 b { color: #ff7c87; }
+
+.merchant-route-shell .field-input-wrapper input,
+.merchant-route-shell .field-group textarea,
+.merchant-route-shell .select-input-wrapper select,
+.merchant-route-shell .phone-code,
+.merchant-route-shell .phone-number input {
+  color: #f8f2e8;
+  border-color: rgba(251, 191, 36, .25);
+  border-radius: 8px;
+  background: #111216;
+}
+.merchant-route-shell .field-input-wrapper input:focus,
+.merchant-route-shell .field-group textarea:focus,
+.merchant-route-shell .select-input-wrapper select:focus,
+.merchant-route-shell .phone-number input:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, .12);
+}
+
+.merchant-route-shell .side-illustration,
+.merchant-route-shell .document-upload-card,
+.merchant-route-shell .document-guidelines {
+  border-color: rgba(251, 191, 36, .24);
+  border-radius: 11px;
+  background: radial-gradient(circle at 50% 15%, rgba(251,191,36,.12), transparent 50%), #15140f;
+}
+.merchant-route-shell .side-icon-art,
+.merchant-route-shell .upload-icon,
+.merchant-route-shell .upload-zone strong,
+.merchant-route-shell .guideline-illustration,
+.merchant-route-shell .guideline-illustration span { color: #fbbf24; }
+.merchant-route-shell .side-icon-art span,
+.merchant-route-shell .benefit-icon,
+.merchant-route-shell .document-icon-small,
+.merchant-route-shell .important-icon {
+  color: #fff3cf;
+  background: linear-gradient(145deg, #8e5d09, #3d2505);
+  box-shadow: 0 0 15px rgba(251,191,36,.18);
+}
+
+.merchant-route-shell .application-info-bar,
+.merchant-route-shell .important-note {
+  border-color: rgba(251, 191, 36, .27);
+  background: linear-gradient(90deg, rgba(100,68,8,.26), rgba(25,22,15,.44));
+}
+.merchant-route-shell .application-info-bar > span,
+.merchant-route-shell .important-note strong { color: #ffe184; }
+
+.merchant-route-shell .benefit-card {
+  border-color: rgba(251, 191, 36, .17);
+  border-radius: 11px;
+  background: linear-gradient(145deg, #201b13, #151519);
+}
+.merchant-route-shell .benefit-card:hover { border-color: rgba(251, 191, 36, .58); }
+.merchant-route-shell .benefit-card h3 { color: #fff4d6; }
+.merchant-route-shell .benefit-card p { color: #baaf9d; }
+
+.merchant-route-shell .payment-methods button,
+.merchant-route-shell .upload-zone {
+  color: #d4c9b5;
+  border-color: rgba(251, 191, 36, .22);
+  background: #111216;
+}
+.merchant-route-shell .payment-methods button.selected,
+.merchant-route-shell .upload-zone:hover {
+  color: #ffe38a;
+  border-color: #fbbf24;
+  background: rgba(112, 75, 6, .24);
+}
+
+.merchant-route-shell .application-footer {
+  margin-top: 12px;
+  padding: 13px 16px;
+  border: 1px solid rgba(251, 191, 36, .18);
+  border-radius: 12px;
+  background: #121216;
+}
+.merchant-route-shell .application-next-btn,
+.merchant-route-shell .application-submit-btn {
+  color: #1a1304;
+  border-color: rgba(251,191,36,.7);
+  background: linear-gradient(135deg, #ffe18a, #fbbf24);
+}
+.merchant-route-shell .application-prev-btn {
+  color: #ddd2c0;
+  border-color: rgba(255,255,255,.13);
+  background: #1b1d24;
+}
+
+@media (max-width: 767px) {
+  .merchant-route-shell .merchant-application { padding: 9px; }
+  .merchant-route-shell .application-top { padding: 12px 12px 0; }
+  .merchant-route-shell .application-heading { gap: 12px; flex-direction: column; }
+  .merchant-route-shell .application-guide-btn { width: 100%; }
+  .merchant-route-shell .merchant-progress { overflow-x: auto; justify-content: flex-start; }
+  .merchant-route-shell .application-card { padding: 13px; }
 }
 .affiliate-wrapper .cta-banner-wrapper .content-box .app-download-btns .store-btn img {
   height: 50px;
@@ -7134,6 +7339,241 @@ span {
   .support-main-wrapper .topics-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* =========================================================
+   MERCHANT THEME POLISH
+   Keep the merchant workspace aligned with the dashboard's
+   dark navy / cyan / gold visual language.
+========================================================= */
+.merchant-page {
+  --merchant-bg: #0b0d12;
+  --merchant-bg-2: #15171f;
+  --merchant-card: #211a0d;
+  --merchant-card-2: #15171f;
+  --merchant-border: rgba(251, 191, 36, .22);
+  --merchant-primary: #fbbf24;
+  --merchant-primary-light: #ffe38a;
+  --merchant-primary-dark: #d9960b;
+  --merchant-purple: #f66b78;
+  --merchant-purple-light: #ff9ba6;
+  --merchant-text: #f4f8fc;
+  --merchant-muted: #9eafc2;
+  background: radial-gradient(90% 45% at 50% 0, rgba(251, 191, 36, .07), transparent 70%);
+  color: var(--merchant-text);
+}
+
+/* Shared shell for every merchant route (dashboard, ads, orders, earnings,
+   levels, profile, reviews, appeals and settings). */
+.merchant-route-shell {
+  --merchant-shell-bg: #0b0d12;
+  --merchant-shell-surface: #211a0d;
+  --merchant-shell-surface-2: #15171f;
+  --merchant-shell-line: rgba(251, 191, 36, .24);
+  --merchant-shell-text: #f5f1e9;
+  --merchant-shell-muted: #b8ad9d;
+  min-height: 100%;
+  color: var(--merchant-shell-text);
+  background:
+    radial-gradient(75% 35% at 50% 0, rgba(251, 191, 36, .07), transparent 72%),
+    linear-gradient(180deg, #11100d 0%, #0b0d12 100%);
+}
+
+.merchant-route-shell :is(.merchant-profile-page, .merchant-earnings-page,
+.merchant-level-page, .merchant-settings-page, .merchant-reviews-v2,
+.merchant-application, .p2pPage) {
+  color: var(--merchant-shell-text);
+}
+
+.merchant-route-shell :is(.merchant-page-header, .earnings-page-header,
+.merchant-level-header, .merchant-settings-header, .application-top) {
+  border-color: var(--merchant-shell-line);
+}
+
+.merchant-route-shell :is(.merchant-card, .merchant-panel, .earnings-panel,
+.review-card, .review-stat-card, .level-card, .merchant-setting-card,
+.account-card, .trades-section) {
+  border-color: var(--merchant-shell-line);
+  background: linear-gradient(145deg, rgba(34, 30, 24, .98), rgba(19, 20, 25, .98));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .16), inset 0 1px rgba(255,255,255,.035);
+}
+
+.merchant-route-shell :is(input, select, textarea, .merchant-date-btn,
+.earnings-date-picker, .chart-filter, .level-date-btn, .level-history-btn) {
+  color: #e7f4f8;
+  border-color: rgba(251, 191, 36, .24);
+  background: rgba(12, 13, 17, .8);
+}
+
+.merchant-route-shell :is(input, select, textarea):focus {
+  border-color: rgba(251, 191, 36, .72);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, .12);
+  outline: none;
+}
+
+.merchant-route-shell :is(.merchant-primary-btn, .settings-save-btn,
+.download-report-btn, .application-next-btn, .merchant-purple-btn) {
+  border-color: rgba(251, 191, 36, .58);
+  color: #1b1405;
+  background: linear-gradient(135deg, #ffe38a, #fbbf24);
+  box-shadow: 0 8px 20px rgba(251, 191, 36, .16);
+}
+
+.merchant-route-shell :is(.merchant-primary-btn, .settings-save-btn,
+.download-report-btn, .application-next-btn, .merchant-purple-btn):hover {
+  color: #1b1405;
+  filter: brightness(1.06);
+  box-shadow: 0 10px 24px rgba(251, 191, 36, .24);
+}
+
+.merchant-route-shell :is(h1, h2, h3, h4, h5, .panel-title, .section-title) {
+  color: #f1fbff;
+}
+
+.merchant-route-shell :is(p, small, .muted, .field-note, .helper-text) {
+  color: var(--merchant-shell-muted);
+}
+
+.merchant-route-shell :is(table thead, .merchant-table thead) {
+  background: rgba(6, 17, 29, .82);
+}
+
+.merchant-route-shell :is(table th, .merchant-table th) { color: #fcd66b; }
+.merchant-route-shell :is(table td, .merchant-table td) { color: #d1dfe8; }
+.merchant-route-shell :is(table tbody tr:hover, .merchant-table tbody tr:hover) {
+  background: rgba(80, 198, 224, .07);
+}
+
+.merchant-page .merchant-dashboard,
+.merchant-page .merchant-landing {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  padding: 14px 16px 28px;
+}
+
+.merchant-page .dashboard-header,
+.merchant-page .merchant-heading {
+  padding: 4px 2px 14px;
+  border-bottom: 1px solid rgba(156, 236, 254, .10);
+}
+
+.merchant-page .dashboard-brand-icon,
+.merchant-page .merchant-heading-icon {
+  color: #102132;
+  background: linear-gradient(135deg, #e8fdff, var(--merchant-primary) 55%, #50c5df);
+  border-color: rgba(156, 236, 254, .65);
+  box-shadow: 0 0 24px rgba(96, 216, 240, .22), inset 0 1px rgba(255,255,255,.65);
+}
+
+.merchant-page .dashboard-brand h5,
+.merchant-page .dashboard-brand h1,
+.merchant-page .merchant-heading h1 {
+  color: #f6fbff;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.merchant-page .dashboard-brand p,
+.merchant-page .merchant-heading p { color: var(--merchant-muted); }
+
+.merchant-page .dashboard-profile-btn,
+.merchant-page .merchant-primary-btn,
+.merchant-page .manage-ads {
+  border: 1px solid rgba(156, 236, 254, .42);
+  border-radius: 8px;
+  color: #08202c;
+  background: linear-gradient(135deg, #bff5ff, #69d5e9);
+  box-shadow: 0 8px 20px rgba(73, 205, 230, .14);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.merchant-page .dashboard-profile-btn:hover,
+.merchant-page .merchant-primary-btn:hover,
+.merchant-page .manage-ads:hover {
+  color: #06151d;
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(73, 205, 230, .23);
+}
+
+.merchant-page .stat-card,
+.merchant-page .dashboard-card,
+.merchant-page .merchant-section,
+.merchant-page .merchant-hero,
+.merchant-page .benefit-card {
+  border-color: var(--merchant-border);
+  background: linear-gradient(145deg, rgba(27, 43, 62, .98), rgba(13, 23, 37, .98));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .16), inset 0 1px rgba(255,255,255,.035);
+}
+
+.merchant-page .stat-card.purple,
+.merchant-page .stat-card.green,
+.merchant-page .stat-card.orange,
+.merchant-page .stat-card.blue {
+  background: linear-gradient(145deg, rgba(38, 66, 83, .92), rgba(15, 27, 43, .98));
+}
+
+.merchant-page .stat-title,
+.merchant-page .chart-legend,
+.merchant-page .summary-info span,
+.merchant-page .stat-bottom { color: #a9bacb; }
+
+.merchant-page .stat-value { color: #f7fbff; font-weight: 750; }
+.merchant-page .stat-card:nth-child(even) .stat-value,
+.merchant-page .earning-text,
+.merchant-page .netTotalValue { color: #62e3a0; }
+
+.merchant-page .dashboard-card .card-heading h3,
+.merchant-page .merchant-section > h3 { color: #edf7fc; font-weight: 700; }
+
+.merchant-page .small-select,
+.merchant-page .dashboard-date {
+  color: #dcecf4;
+  border-color: rgba(156, 236, 254, .24);
+  background: rgba(8, 19, 32, .82);
+}
+
+.merchant-page .merchant-hero {
+  border-color: rgba(156, 236, 254, .24);
+  background: radial-gradient(circle at 78% 55%, rgba(66, 191, 222, .18), transparent 35%), linear-gradient(110deg, #0b1b2c, #122338 60%, #0d1727);
+}
+
+.merchant-page .quick-actions { padding: 15px; }
+.merchant-page .quick-action {
+  width: 100%;
+  min-height: 64px;
+  height: auto;
+  padding: 10px;
+  border-color: rgba(156, 236, 254, .13);
+  border-radius: 10px;
+  background: rgba(9, 20, 34, .72);
+}
+.merchant-page .quick-action > span {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: #09202c;
+  background: linear-gradient(135deg, #c9f8ff, #69d5e9);
+}
+.merchant-page .quick-action strong { color: #edf8fc; }
+.merchant-page .quick-action small { color: #8fa6b9; }
+
+.merchant-page .merchant-table thead { background: rgba(7, 18, 31, .85); }
+.merchant-page .merchant-table th { color: #b8eaf4; }
+.merchant-page .merchant-table td { color: #d1dce5; }
+.merchant-page .merchant-table tbody tr:hover { background: rgba(80, 198, 224, .07); }
+.merchant-page .completed-badge { border-color: rgba(32, 212, 123, .35); background: rgba(32, 212, 123, .12); color: #65e9a4; }
+
+@media (max-width: 767px) {
+  .merchant-page .merchant-dashboard,
+  .merchant-page .merchant-landing { padding: 10px 8px 22px; }
+  .merchant-page .dashboard-header { flex-wrap: wrap; }
+  .merchant-page .dashboard-header-actions { width: 100%; }
+  .merchant-page .dashboard-profile-btn { width: 100%; justify-content: center; }
 }
 .support-main-wrapper .topic-card {
   background: #2A2D34;
@@ -17150,7 +17590,7 @@ span {
   background: rgba(20, 43, 68, 0.35);
 }
 
-.usdt-icon {
+.usd-icon {
   width: 22px;
   height: 22px;
 
@@ -18709,7 +19149,7 @@ span {
   font-size: 15px;
 }
 
-.usdt-dot {
+.usd-dot {
   width: 22px;
   height: 22px;
 
@@ -28408,3 +28848,1113 @@ span {
     flex: 1;
   }
 }
+
+/* Final merchant colour authority: Local Buy & Sell gold / red theme. */
+.merchant-route-shell .merchant-application {
+  color: #f6f1e8;
+  background: transparent;
+}
+.merchant-route-shell .application-top {
+  margin-bottom: 12px;
+  padding: 14px 16px 0;
+  border: 1px solid rgba(251,191,36,.24);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  background: radial-gradient(100% 130% at 8% 0, rgba(251,191,36,.15), transparent 55%), linear-gradient(145deg, #251d0e, #121318);
+}
+.merchant-route-shell .application-heading h1,
+.merchant-route-shell .application-card .card-heading h2,
+.merchant-route-shell .field-label { color: #fff4d6; }
+.merchant-route-shell .application-heading p,
+.merchant-route-shell .card-heading p,
+.merchant-route-shell .field-helper { color: #b9af9e; }
+.merchant-route-shell .application-guide-btn {
+  border-color: rgba(251,191,36,.34);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #201b10, #111319);
+}
+.merchant-route-shell .guide-info-icon { color: #ffe38a; border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.1); }
+.merchant-route-shell .merchant-progress { margin: 18px 0 0; padding: 13px 15px 16px; border-top: 1px solid rgba(251,191,36,.14); }
+.merchant-route-shell .progress-circle { color: #d3c9b7; border-color: rgba(251,191,36,.22); background: #191816; }
+.merchant-route-shell .progress-item.active .progress-circle,
+.merchant-route-shell .progress-item.completed .progress-circle { color: #211706; border-color: rgba(251,191,36,.85); background: linear-gradient(135deg,#ffe28a,#fbbf24); box-shadow: 0 0 16px rgba(251,191,36,.26); }
+.merchant-route-shell .progress-item.active .progress-title,
+.merchant-route-shell .progress-item.completed .progress-title { color: #fcd76b; }
+.merchant-route-shell .progress-connector { background: rgba(251,191,36,.17); }
+.merchant-route-shell .progress-connector.completed { background: linear-gradient(90deg,#d99910,#fbbf24); }
+.merchant-route-shell .application-card {
+  padding: 18px;
+  border-color: rgba(251,191,36,.21);
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(145deg,#191914,#101216);
+  box-shadow: 0 16px 38px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.035);
+}
+.merchant-route-shell .application-card + .application-card { margin-top: 12px; border-radius: 14px; }
+.merchant-route-shell .field-input-wrapper input,
+.merchant-route-shell .field-group textarea,
+.merchant-route-shell .select-input-wrapper select,
+.merchant-route-shell .phone-code,
+.merchant-route-shell .phone-number input { color: #f8f2e8; border-color: rgba(251,191,36,.25); border-radius: 8px; background: #111216; }
+.merchant-route-shell .field-input-wrapper input:focus,
+.merchant-route-shell .field-group textarea:focus,
+.merchant-route-shell .select-input-wrapper select:focus,
+.merchant-route-shell .phone-number input:focus { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,.12); }
+.merchant-route-shell .side-illustration,
+.merchant-route-shell .document-upload-card,
+.merchant-route-shell .document-guidelines { border-color: rgba(251,191,36,.24); border-radius: 11px; background: radial-gradient(circle at 50% 15%,rgba(251,191,36,.12),transparent 50%),#15140f; }
+.merchant-route-shell .side-icon-art,
+.merchant-route-shell .upload-icon,
+.merchant-route-shell .upload-zone strong,
+.merchant-route-shell .guideline-illustration,
+.merchant-route-shell .guideline-illustration span { color: #fbbf24; }
+.merchant-route-shell .side-icon-art span,
+.merchant-route-shell .benefit-icon,
+.merchant-route-shell .document-icon-small,
+.merchant-route-shell .important-icon { color: #fff3cf; background: linear-gradient(145deg,#8e5d09,#3d2505); box-shadow: 0 0 15px rgba(251,191,36,.18); }
+.merchant-route-shell .application-info-bar,
+.merchant-route-shell .important-note { border-color: rgba(251,191,36,.27); background: linear-gradient(90deg,rgba(100,68,8,.26),rgba(25,22,15,.44)); }
+.merchant-route-shell .benefit-card { border-color: rgba(251,191,36,.17); border-radius: 11px; background: linear-gradient(145deg,#201b13,#151519); }
+.merchant-route-shell .benefit-card:hover { border-color: rgba(251,191,36,.58); }
+.merchant-route-shell .benefit-card h3 { color: #fff4d6; }
+.merchant-route-shell .benefit-card p { color: #baaf9d; }
+.merchant-route-shell .payment-methods button,
+.merchant-route-shell .upload-zone { color: #d4c9b5; border-color: rgba(251,191,36,.22); background: #111216; }
+.merchant-route-shell .payment-methods button.selected,
+.merchant-route-shell .upload-zone:hover { color: #ffe38a; border-color: #fbbf24; background: rgba(112,75,6,.24); }
+.merchant-route-shell .application-footer { margin-top: 12px; padding: 13px 16px; border: 1px solid rgba(251,191,36,.18); border-radius: 12px; background: #121216; }
+.merchant-route-shell .application-next-btn,
+.merchant-route-shell .application-submit-btn { color: #1a1304; border-color: rgba(251,191,36,.7); background: linear-gradient(135deg,#ffe18a,#fbbf24); }
+.merchant-route-shell .application-prev-btn { color: #ddd2c0; border-color: rgba(255,255,255,.13); background: #1b1d24; }
+
+.merchant-route-shell :is(.merchant-earnings-page, .merchant-level-page, .merchant-settings-page, .merchant-reviews-v2, .merchant-profile-page, .appeal-page) { color: #f5f0e7; }
+.merchant-route-shell :is(.earnings-summary-card, .earnings-panel, .merchant-panel, .level-card, .review-stat-card, .review-card, .merchant-card, .merchant-setting-card, .account-card, .appeal-card, .appeal-stat-card) { border-color: rgba(251,191,36,.21) !important; background: linear-gradient(145deg,#211d15,#131419) !important; box-shadow: 0 12px 30px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.035); }
+.merchant-route-shell :is(.earnings-summary-card, .level-card, .review-stat-card, .review-card, .merchant-card, .merchant-setting-card, .appeal-card):hover { border-color: rgba(251,191,36,.55) !important; }
+.merchant-route-shell :is(.earnings-tabs button.active, .merchant-settings-tabs button.active, .review-tabs button.active, .appeal-tab.active) { color: #1b1405; border-color: #fbbf24; background: linear-gradient(135deg,#ffe38a,#fbbf24); }
+.merchant-route-shell :is(.earnings-summary-icon, .level-badge, .review-stat-icon, .setting-header-icon, .appeal-icon) { color: #ffe48d !important; border-color: rgba(251,191,36,.35) !important; background: rgba(251,191,36,.13) !important; }
+
+/* Pending merchant approval — colourful Local Buy & Sell treatment. */
+.merchant-route-shell .pending-approval-card {
+  padding: 28px;
+  border-color: rgba(251,191,36,.38);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 7% 42%, rgba(251,191,36,.16), transparent 29%),
+    radial-gradient(circle at 90% 16%, rgba(246,107,120,.12), transparent 25%),
+    linear-gradient(135deg,#231b0d,#121318 60%,#1b0e11);
+  box-shadow: 0 18px 42px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.055);
+}
+.merchant-route-shell .pending-approval-card::before {
+  height: 2px;
+  background: linear-gradient(90deg,transparent,#fbbf24 22%,#ffe38a 50%,#f66b78 78%,transparent);
+}
+.merchant-route-shell .pending-approval-glow { background: rgba(251,191,36,.16); }
+.merchant-route-shell .pending-approval-icon {
+  border-color: rgba(251,191,36,.62);
+  background: linear-gradient(145deg,rgba(251,191,36,.26),rgba(104,64,4,.22));
+  box-shadow: 0 0 26px rgba(251,191,36,.18), inset 0 1px rgba(255,255,255,.08);
+}
+.merchant-route-shell .pending-approval-icon i { color: #ffe38a; }
+.merchant-route-shell .pending-approval-badge {
+  border-color: rgba(251,191,36,.42);
+  border-radius: 99px;
+  background: rgba(251,191,36,.12);
+  color: #ffe38a;
+}
+.merchant-route-shell .pending-status-dot { background: #fbbf24; box-shadow: 0 0 9px rgba(251,191,36,.8); }
+.merchant-route-shell .pending-approval-info h2 { color: #fff4d7; font-size: 21px; font-weight: 750; }
+.merchant-route-shell .pending-approval-info p { color: #c9bcaa; }
+.merchant-route-shell .pending-approval-note {
+  border-color: rgba(246,107,120,.28);
+  border-radius: 8px;
+  background: rgba(113,25,35,.18);
+  color: #dfc3c6;
+}
+.merchant-route-shell .pending-approval-note i { color: #ff9ba6; }
+.merchant-route-shell .pending-approval-progress { border-top-color: rgba(251,191,36,.2); }
+.merchant-route-shell .pending-progress-header { color: #d7cbb9; }
+.merchant-route-shell .pending-progress-header strong { color: #fcd66b; }
+.merchant-route-shell .pending-progress-track { background: rgba(0,0,0,.35); }
+.merchant-route-shell .pending-progress-fill {
+  background: linear-gradient(90deg,#d99309,#fbbf24,#ffe38a);
+  box-shadow: 0 0 12px rgba(251,191,36,.42);
+}
+.merchant-route-shell .pending-progress-steps { color: #8f8579; }
+.merchant-route-shell .pending-progress-steps .active { color: #eadfcf; }
+.merchant-route-shell .pending-progress-steps .active i { color: #fbbf24; }
+
+@media (max-width: 767px) {
+  .merchant-route-shell .pending-approval-card { padding: 20px; border-radius: 13px; }
+  .merchant-route-shell .pending-approval-info h2 { font-size: 18px; }
+}
+
+/* Every merchant route: replace legacy blue/purple variables with Local Buy & Sell tokens. */
+.merchant-route-shell .merchant-earnings-page {
+  --earnings-bg: #0d0e12;
+  --earnings-panel: #211d15;
+  --earnings-panel-2: #17171a;
+  --earnings-border: rgba(251,191,36,.20);
+  --earnings-text: #f8f1e6;
+  --earnings-muted: #b9ad9b;
+  --earnings-muted-2: #8e8375;
+  --purple: #fbbf24;
+  --purple-light: #ffe38a;
+  --purple-dark: #d9950c;
+  --yellow: #fbbf24;
+}
+.merchant-route-shell .merchant-level-page {
+  --level-bg: #0d0e12;
+  --level-panel: #211d15;
+  --level-border: rgba(251,191,36,.20);
+  --level-primary: #fbbf24;
+  --level-primary-light: #ffe38a;
+}
+.merchant-route-shell .merchant-settings-page {
+  --settings-bg: #0d0e12;
+  --settings-card: #211d15;
+  --settings-border: rgba(251,191,36,.20);
+  --settings-primary: #fbbf24;
+}
+.merchant-route-shell .merchant-reviews-v2 {
+  --review-bg: #0d0e12;
+  --review-card: #211d15;
+  --review-border: rgba(251,191,36,.20);
+  --review-primary: #fbbf24;
+}
+.merchant-route-shell .merchant-profile-page {
+  --merchant-bg: #0d0e12;
+  --merchant-card: #211d15;
+  --merchant-card-light: #17171a;
+  --merchant-card-hover: #292316;
+  --merchant-primary: #fbbf24;
+  --merchant-primary-light: #ffe38a;
+  --merchant-border: rgba(251,191,36,.20);
+}
+
+.merchant-route-shell :is(.merchant-earnings-page, .merchant-level-page, .merchant-settings-page, .merchant-reviews-v2, .merchant-profile-page, .appeal-page, .p2pPage) {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+.merchant-route-shell :is(.earnings-page-header, .merchant-level-header, .merchant-settings-header, .merchant-page-header, .appeal-header) {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(251,191,36,.17);
+}
+.merchant-route-shell :is(.earnings-page-header h1, .merchant-level-header h1, .merchant-settings-header h1, .merchant-page-header h1, .appeal-title) {
+  color: #fff3d8 !important;
+  font-weight: 750;
+}
+.merchant-route-shell :is(.earnings-page-header p, .merchant-level-header p, .merchant-settings-header p, .merchant-page-header p, .appeal-description) { color: #baae9d !important; }
+
+.merchant-route-shell :is(.earnings-tabs, .merchant-settings-tabs, .review-tabs, .appeal-tabs) {
+  border-color: rgba(251,191,36,.18);
+  background: #151519;
+}
+.merchant-route-shell :is(.earnings-tabs button, .merchant-settings-tabs button, .review-tabs button, .appeal-tab) { color: #c7baa7; }
+.merchant-route-shell :is(.earnings-tabs button:hover, .merchant-settings-tabs button:hover, .review-tabs button:hover, .appeal-tab:hover) { color: #ffe38a; }
+
+.merchant-route-shell :is(.outline-purple-btn, .merchant-outline-btn, .level-history-btn, .merchant-date-btn, .earnings-date-picker, .download-report-btn, .appeal-retry-btn) {
+  color: #f9dfa0 !important;
+  border-color: rgba(251,191,36,.4) !important;
+  background: rgba(76,51,5,.20) !important;
+}
+.merchant-route-shell :is(.outline-purple-btn:hover, .merchant-outline-btn:hover, .level-history-btn:hover, .merchant-date-btn:hover, .earnings-date-picker:hover, .download-report-btn:hover, .appeal-retry-btn:hover) {
+  border-color: #fbbf24 !important;
+  background: rgba(251,191,36,.15) !important;
+}
+
+.merchant-route-shell .p2pPage .container-lg { max-width: 1440px; }
+.merchant-route-shell .p2pPage .trades-section {
+  border: 1px solid rgba(251,191,36,.20);
+  border-radius: 14px;
+  background: linear-gradient(145deg,#211d15,#131419);
+  box-shadow: 0 14px 32px rgba(0,0,0,.18);
+}
+@media (max-width: 767px) {
+  .merchant-route-shell :is(.merchant-earnings-page, .merchant-level-page, .merchant-settings-page, .merchant-reviews-v2, .merchant-profile-page, .appeal-page, .p2pPage) { padding-inline: 9px; }
+}
+
+/* Merchant card utility mapping: main cards use bg-navy-blue + rounded;
+   nested/support cards use bg-dark + rounded. */
+.merchant-route-shell :is(.dashboard-card, .stat-card, .merchant-section,
+.application-card, .earnings-summary-card, .earnings-panel, .merchant-panel,
+.level-card, .review-stat-card, .review-card, .merchant-card,
+.merchant-setting-card, .account-card, .appeal-card, .appeal-stat-card,
+.trades-section) {
+  border-radius: .375rem !important;
+  background-color: #2a2d34 !important; /* bg-navy-blue */
+  background-image: linear-gradient(145deg, rgba(255,255,255,.025), rgba(0,0,0,.11)) !important;
+  border-color: rgba(251,191,36,.19) !important;
+}
+.merchant-route-shell :is(.benefit-card, .merchant-step, .side-illustration,
+.document-upload-card, .document-guidelines, .quick-action, .summary-item,
+.payment-methods button, .upload-zone, .pending-approval-note,
+.application-info-bar, .important-note) {
+  border-radius: .375rem !important;
+  background-color: #212529 !important; /* bg-dark */
+  background-image: linear-gradient(145deg, rgba(255,255,255,.018), rgba(0,0,0,.14)) !important;
+  border-color: rgba(251,191,36,.17) !important;
+}
+.merchant-route-shell :is(.dashboard-card, .merchant-section, .application-card,
+.earnings-panel, .merchant-panel, .review-card, .merchant-card,
+.merchant-setting-card, .trades-section):hover {
+  border-color: rgba(251,191,36,.44) !important;
+}
+
+/* Final unified merchant surfaces: navy/dark everywhere, gold only as accent. */
+.merchant-route-shell {
+  background: #1d1e24 !important;
+}
+.merchant-route-shell .merchant-page,
+.merchant-route-shell .merchant-landing,
+.merchant-route-shell .merchant-application,
+.merchant-route-shell :is(.merchant-earnings-page, .merchant-level-page,
+.merchant-settings-page, .merchant-reviews-v2, .merchant-profile-page,
+.appeal-page, .p2pPage) {
+  background: transparent !important;
+}
+.merchant-route-shell :is(.dashboard-card, .stat-card, .merchant-section,
+.application-card, .earnings-summary-card, .earnings-panel, .merchant-panel,
+.level-card, .review-stat-card, .review-card, .merchant-card,
+.merchant-setting-card, .account-card, .appeal-card, .appeal-stat-card,
+.trades-section, .pending-approval-card, .merchant-hero, .merchant-cta) {
+  background-color: #2a2d34 !important; /* bg-navy-blue */
+  background-image: linear-gradient(145deg, rgba(255,255,255,.028), rgba(0,0,0,.13)) !important;
+  border-color: rgba(251,191,36,.22) !important;
+}
+.merchant-route-shell :is(.benefit-card, .merchant-step, .side-illustration,
+.document-upload-card, .document-guidelines, .quick-action, .summary-item,
+.payment-methods button, .upload-zone, .pending-approval-note,
+.application-info-bar, .important-note, .field-input-wrapper input,
+.field-group textarea, .select-input-wrapper select, .phone-code,
+.phone-number input) {
+  background-color: #212529 !important; /* bg-dark */
+  background-image: none !important;
+  border-color: rgba(251,191,36,.17) !important;
+}
+.merchant-route-shell .merchant-hero::before,
+.merchant-route-shell .cta-glow { background: rgba(251,191,36,.14) !important; }
+.merchant-route-shell .merchant-cta { border-color: rgba(251,191,36,.30) !important; }
+.merchant-route-shell .merchant-cta :is(h2, p, .secure-text) { color: #f3eadb !important; }
+.merchant-route-shell :is(.merchant-heading, .earnings-page-header, .merchant-level-header,
+.merchant-settings-header, .merchant-page-header, .appeal-header) { border-color: rgba(251,191,36,.18) !important; }
+
+/* Merchant landing — Local Buy & Sell gold / red themed onboarding. */
+.merchant-route-shell .merchant-page {
+  --merchant-primary: #fbbf24;
+  --merchant-primary-light: #ffe38a;
+  --merchant-primary-dark: #d99108;
+  --merchant-purple: #f66b78;
+  --merchant-purple-light: #ff9ba6;
+  padding: 0;
+  background: transparent;
+}
+.merchant-route-shell .merchant-landing {
+  width: min(100%, 1400px);
+  margin: 0 auto;
+  padding: 18px;
+}
+.merchant-route-shell .merchant-heading {
+  margin: 0 0 14px;
+  padding: 0 2px 15px;
+  border-bottom: 1px solid rgba(251,191,36,.18);
+}
+.merchant-route-shell .merchant-heading-icon {
+  color: #261903;
+  border-color: rgba(251,191,36,.7);
+  background: linear-gradient(135deg,#fff2bf,#fbbf24);
+  box-shadow: 0 0 22px rgba(251,191,36,.2), inset 0 1px rgba(255,255,255,.65);
+}
+.merchant-route-shell .merchant-heading h1 { color: #fff5dd; font-weight: 750; }
+.merchant-route-shell .merchant-heading p { color: #b9ad9a; }
+.merchant-route-shell .merchant-heading strong { color: #fcd56d; }
+
+.merchant-route-shell .merchant-hero {
+  min-height: 255px;
+  border-color: rgba(251,191,36,.32);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 73% 58%, rgba(246,107,120,.19), transparent 25%),
+    radial-gradient(circle at 31% 15%, rgba(251,191,36,.14), transparent 40%),
+    linear-gradient(112deg, #221a0b, #15140f 58%, #170c10);
+  box-shadow: 0 18px 42px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.05);
+}
+.merchant-route-shell .merchant-hero::before { background: rgba(251,191,36,.16); }
+.merchant-route-shell .merchant-hero-content { padding: 30px; }
+.merchant-route-shell .merchant-hero-content h2 { color: #fff3d4; font-size: 21px; font-weight: 750; }
+.merchant-route-shell .merchant-hero-content li { color: #d7cdbc; font-size: 14px; }
+.merchant-route-shell .merchant-hero-content li i,
+.merchant-route-shell .merchant-hero-content li strong { color: #fcd56c; }
+.merchant-route-shell .hero-glow { background: rgba(251,191,36,.53); }
+.merchant-route-shell .store-body { border-color: rgba(255,226,138,.78); background: linear-gradient(90deg,#5e430d,#d89a13 50%,#3b2805); }
+.merchant-route-shell .store-roof { border-color: rgba(255,226,138,.92); background: #fbbf24; }
+.merchant-route-shell .store-roof span:nth-child(odd) { background: #fff1be; }
+.merchant-route-shell .store-roof span:nth-child(even) { background: #e8ad22; }
+.merchant-route-shell .store-window { color: #ffe388; border-color: rgba(255,226,138,.84); background: #221707; }
+.merchant-route-shell .store-sign { color: #301e04; border-color: rgba(255,226,138,.88); background: linear-gradient(135deg,#fff3c6,#fbbf24); }
+.merchant-route-shell .coin-three { border-color: #ff9ba6; background: linear-gradient(135deg,#f66b78,#9f2431); box-shadow: 0 0 16px rgba(246,107,120,.42); }
+
+.merchant-route-shell .merchant-section {
+  margin-top: 14px;
+  padding: 17px;
+  border-color: rgba(251,191,36,.19);
+  border-radius: 15px;
+  background: linear-gradient(145deg,#1d1b16,#121318);
+  box-shadow: 0 12px 28px rgba(0,0,0,.15), inset 0 1px rgba(255,255,255,.025);
+}
+.merchant-route-shell .merchant-section > h3 { color: #fff2d3; font-size: 16px; font-weight: 750; }
+.merchant-route-shell .benefit-card {
+  min-height: 155px;
+  padding: 16px;
+  border-color: rgba(251,191,36,.2);
+  background: radial-gradient(circle at 50% 0, rgba(251,191,36,.09), transparent 54%), linear-gradient(145deg,#241d12,#141419);
+}
+.merchant-route-shell .benefit-card h4 { color: #fff3d8; font-weight: 700; }
+.merchant-route-shell .benefit-card p { color: #bcae98; font-size: 13px; }
+.merchant-route-shell .benefit-card p strong { color: #fcd15c; }
+.merchant-route-shell .benefit-icon {
+  color: #fff4d0;
+  background: linear-gradient(145deg,#a86f0b,#4c2e04);
+  box-shadow: 0 0 16px rgba(251,191,36,.19);
+}
+.merchant-route-shell .merchant-step {
+  min-height: 195px;
+  border-color: rgba(251,191,36,.18);
+  border-radius: 12px;
+  background: linear-gradient(145deg,#171713,#111217);
+}
+.merchant-route-shell .step-icon { color: #251704; border-color: rgba(251,191,36,.7); background: linear-gradient(135deg,#fff0b7,#fbbf24); box-shadow: 0 0 16px rgba(251,191,36,.17); }
+.merchant-route-shell .merchant-step h4 { color: #fff1d2; font-weight: 700; }
+.merchant-route-shell .merchant-step p { color: #b9ad9c; font-size: 13px; }
+.merchant-route-shell .step-arrow { color: #fbbf24; }
+
+.merchant-route-shell .merchant-cta {
+  margin-top: 14px;
+  border-color: rgba(246,107,120,.4);
+  border-radius: 15px;
+  background: radial-gradient(circle at 50% 0, rgba(246,107,120,.15), transparent 53%), linear-gradient(145deg,#261114,#130f13);
+  box-shadow: 0 16px 35px rgba(0,0,0,.22), inset 0 1px rgba(255,255,255,.035);
+}
+.merchant-route-shell .merchant-cta h2 { color: #fff0f1; font-weight: 750; }
+.merchant-route-shell .merchant-cta p,
+.merchant-route-shell .secure-text { color: #d1b8ba; }
+.merchant-route-shell .merchant-cta .merchant-primary-btn {
+  min-width: 176px;
+  border-color: rgba(251,191,36,.72);
+  color: #211603;
+  background: linear-gradient(135deg,#ffe58d,#fbbf24);
+  box-shadow: 0 9px 22px rgba(251,191,36,.22);
+}
+
+@media (max-width: 767px) {
+  .merchant-route-shell .merchant-landing { padding: 10px; }
+  .merchant-route-shell .merchant-hero { min-height: 390px; }
+  .merchant-route-shell .merchant-hero-content { padding: 22px 18px; }
+  .merchant-route-shell .merchant-section { padding: 13px; }
+  .merchant-route-shell .benefit-card { min-height: 132px; }
+}
+
+/* Merchant application: Security Deposit step. */
+.merchant-route-shell .deposit-layout .application-card,
+.merchant-route-shell .deposit-payment .payment-card {
+  border: 1px solid rgba(251,191,36,.24);
+  border-radius: 12px;
+  background: #2a2d34;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.035);
+}
+.merchant-route-shell .deposit-information {
+  padding: 16px;
+  border-color: rgba(251,191,36,.28);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(251,191,36,.08), transparent 48%), #212529;
+}
+.merchant-route-shell .deposit-information h3 { color: #ffe6a0; font-weight: 700; }
+.merchant-route-shell .required-deposit,
+.merchant-route-shell .deposit-purpose {
+  border-color: rgba(251,191,36,.18);
+  border-radius: 9px;
+  background: #181a20;
+}
+.merchant-route-shell .required-deposit > small,
+.merchant-route-shell .deposit-purpose > strong { color: #b9ad9b; }
+.merchant-route-shell .deposit-amount strong { color: #fff3d5; font-size: 24px; }
+.merchant-route-shell .deposit-amount > span:last-child { color: #fbd56c; font-weight: 700; }
+.merchant-route-shell .deposit-shield {
+  color: #241803;
+  border: 1px solid rgba(251,191,36,.68);
+  background: linear-gradient(135deg,#ffe58e,#fbbf24);
+  box-shadow: 0 7px 16px rgba(251,191,36,.18);
+}
+.merchant-route-shell .required-deposit > b { color: #63e8a3; }
+.merchant-route-shell .purpose-row { color: #d8cebd; }
+.merchant-route-shell .purpose-row i { color: #fbbf24; }
+
+.merchant-route-shell .deposit-step > div {
+  color: #241803;
+  border: 1px solid rgba(251,191,36,.72);
+  background: linear-gradient(135deg,#fff0b7,#fbbf24);
+  box-shadow: 0 0 16px rgba(251,191,36,.18);
+}
+.merchant-route-shell .deposit-step strong { color: #fff1d2; font-weight: 700; }
+.merchant-route-shell .deposit-step p { color: #b9ae9c; }
+.merchant-route-shell .deposit-arrow { color: #fbbf24; }
+
+.merchant-route-shell .deposit-payment .card-heading h2 { color: #fff2d2; }
+.merchant-route-shell .deposit-payment .card-heading p { color: #b9ae9c; }
+.merchant-route-shell .pay-box {
+  border-color: rgba(251,191,36,.28);
+  border-radius: 9px;
+  background: linear-gradient(105deg, rgba(251,191,36,.13), transparent 70%), #181a20;
+}
+.merchant-route-shell .pay-box small { color: #b9ae9c; }
+.merchant-route-shell .pay-box strong { color: #fff3d8; font-size: 17px; }
+.merchant-route-shell .usd-dot { color: #241803; background: #fbbf24; }
+.merchant-route-shell .payment-status { border-top-color: rgba(251,191,36,.18); }
+.merchant-route-shell .payment-status strong { color: #f6ebd8; }
+.merchant-route-shell .payment-status small { color: #af9f8a; }
+.merchant-route-shell .payment-status > .paid-status {
+  color: #6beaa7;
+  border-color: rgba(43,208,115,.36);
+  border-radius: 99px;
+  background: rgba(43,208,115,.1);
+}
+.merchant-route-shell .deposit-payment .merchant-purple-btn {
+  width: 100%;
+  margin-top: 4px;
+  color: #211603;
+  border-color: rgba(251,191,36,.72);
+  border-radius: 9px;
+  background: linear-gradient(135deg,#ffe58d,#fbbf24);
+  box-shadow: 0 9px 20px rgba(251,191,36,.18);
+}
+.merchant-route-shell .deposit-payment .application-info-bar { margin-top: 14px; }
+
+@media (max-width: 767px) {
+  .merchant-route-shell .deposit-layout { grid-template-columns: 1fr; }
+  .merchant-route-shell .deposit-info-grid { grid-template-columns: 1fr; }
+  .merchant-route-shell .deposit-steps { overflow-x: auto; align-items: stretch; }
+  .merchant-route-shell .deposit-step { min-width: 138px; }
+}
+
+/* Merchant application: Review & Submit step. */
+.merchant-route-shell .review-page { color: #f5efe5; }
+.merchant-route-shell .review-card,
+.merchant-route-shell .review-section {
+  border: 1px solid rgba(251,191,36,.22);
+  border-radius: 12px;
+  background: #2a2d34;
+  box-shadow: 0 10px 25px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.03);
+}
+.merchant-route-shell .review-card { padding: 18px; }
+.merchant-route-shell .review-header {
+  margin-bottom: 15px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(251,191,36,.16);
+}
+.merchant-route-shell .review-header h2 { color: #fff3d7; font-size: 19px; font-weight: 750; }
+.merchant-route-shell .review-header p { color: #b9ae9c; }
+.merchant-route-shell .review-good {
+  color: #63e8a2;
+  border: 1px solid rgba(43,208,115,.35);
+  border-radius: 99px;
+  background: rgba(43,208,115,.1);
+  font-weight: 700;
+}
+.merchant-route-shell .review-grid { gap: 12px; }
+.merchant-route-shell .review-grid .review-section,
+.merchant-route-shell .review-bottom-grid .review-section {
+  padding: 14px;
+  background: #212529;
+  box-shadow: none;
+}
+.merchant-route-shell .review-section-header { margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px dashed rgba(251,191,36,.18); }
+.merchant-route-shell .review-section-header > div > span {
+  color: #241803;
+  border: 1px solid rgba(251,191,36,.66);
+  background: linear-gradient(135deg,#fff0b7,#fbbf24);
+}
+.merchant-route-shell .review-section-header strong,
+.merchant-route-shell .review-section > h3 { color: #fff1d2; font-weight: 700; }
+.merchant-route-shell .review-section-header button {
+  color: #ffe38a;
+  border-color: rgba(251,191,36,.38);
+  border-radius: 7px;
+  background: rgba(251,191,36,.08);
+}
+.merchant-route-shell .review-section-header button:hover { border-color: #fbbf24; background: rgba(251,191,36,.15); }
+.merchant-route-shell .review-row { margin-bottom: 9px; }
+.merchant-route-shell .review-row span { color: #b9ad9c; }
+.merchant-route-shell .review-row span i { color: #fbbf24; }
+.merchant-route-shell .review-row strong { color: #f5eddf; }
+.merchant-route-shell .document-review-row { color: #c3b8a6; }
+.merchant-route-shell .document-review-row span i { color: #fbbf24; }
+.merchant-route-shell .document-review-row strong { color: #f1e5d2; }
+.merchant-route-shell .documents-valid { border-top-color: rgba(251,191,36,.16); color: #69e9a6; }
+.merchant-route-shell .documents-valid span { color: #70ecaa; background: rgba(43,208,115,.1); }
+
+.merchant-route-shell .review-bottom-grid { gap: 12px; margin-top: 12px; }
+.merchant-route-shell .big-security-icon {
+  color: #251903;
+  border: 1px solid rgba(251,191,36,.68);
+  background: linear-gradient(135deg,#fff0b7,#fbbf24);
+  box-shadow: 0 0 20px rgba(251,191,36,.18);
+}
+.merchant-route-shell .security-summary small { color: #b9ae9c; }
+.merchant-route-shell .security-summary strong { color: #f9efdf; }
+.merchant-route-shell .security-summary strong i,
+.merchant-route-shell .security-summary b { color: #66e6a3; }
+.merchant-route-shell .security-summary > div > span { color: #fbd56d; }
+.merchant-route-shell .deposit-completed { color: #66e7a3; border: 1px solid rgba(43,208,115,.3); border-radius: 99px; background: rgba(43,208,115,.1); }
+.merchant-route-shell .review-benefit { border-color: rgba(251,191,36,.18); border-radius: 9px; background: #191b20; }
+.merchant-route-shell .review-benefit > div { color: #241803; background: linear-gradient(135deg,#fff0b7,#fbbf24); }
+.merchant-route-shell .review-benefit strong { color: #fff0d2; }
+.merchant-route-shell .review-benefit span { color: #b9ad9c; }
+
+.merchant-route-shell .important-review-note {
+  border-color: rgba(251,191,36,.28);
+  border-radius: 10px;
+  background: linear-gradient(90deg,rgba(251,191,36,.12),transparent 70%), #212529;
+}
+.merchant-route-shell .blue-info { color: #251903; background: #fbbf24; }
+.merchant-route-shell .important-review-note strong { color: #ffe28b; }
+.merchant-route-shell .important-review-note p { color: #c1b5a3; }
+.merchant-route-shell .agreement { color: #d5c9b8; }
+.merchant-route-shell .custom-checkbox { border-color: rgba(251,191,36,.55); background: #17171a; }
+.merchant-route-shell .agreement input:checked + .custom-checkbox { color: #241803; background: #fbbf24; }
+.merchant-route-shell .agreement a { color: #fcd56d; }
+.merchant-route-shell .secure-submit { border: 1px solid rgba(251,191,36,.24); background: #212529; }
+.merchant-route-shell .secure-submit > div { color: #fbbf24; }
+.merchant-route-shell .secure-submit strong { color: #f7eddf; }
+.merchant-route-shell .secure-submit small { color: #b9ad9c; }
+
+@media (max-width: 991px) {
+  .merchant-route-shell .review-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 767px) {
+  .merchant-route-shell .review-card { padding: 13px; }
+  .merchant-route-shell .review-header { align-items: flex-start; gap: 10px; flex-direction: column; }
+  .merchant-route-shell .review-grid,
+  .merchant-route-shell .review-bottom-grid { grid-template-columns: 1fr; }
+  .merchant-route-shell .review-benefits { grid-template-columns: repeat(2, 1fr); }
+  .merchant-route-shell .secure-submit { float: none; width: 100%; margin-top: 12px; }
+}
+
+/* Review & Submit: balanced desktop grid and non-overlapping benefit cards. */
+.merchant-route-shell .review-page {
+  display: grid;
+  gap: 12px;
+}
+.merchant-route-shell .review-card {
+  padding: 18px;
+  border-radius: 12px;
+}
+.merchant-route-shell .review-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.merchant-route-shell .review-grid > .review-section {
+  min-height: 255px;
+}
+.merchant-route-shell .review-bottom-grid {
+  grid-template-columns: minmax(280px, .78fr) minmax(0, 1.22fr);
+  gap: 12px;
+  margin-top: 0;
+}
+.merchant-route-shell .review-bottom-grid > .review-section {
+  min-height: 248px;
+}
+.merchant-route-shell .review-section-header > div { min-width: 0; }
+.merchant-route-shell .review-section-header strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.merchant-route-shell .review-benefits {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
+}
+.merchant-route-shell .review-benefit {
+  min-height: 145px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 14px 9px;
+}
+/* The component renders its icon directly, then one text wrapper. */
+.merchant-route-shell .review-benefit > i {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #241803;
+  background: linear-gradient(135deg,#fff0b7,#fbbf24);
+  font-size: 15px;
+}
+.merchant-route-shell .review-benefit > div {
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  font-size: inherit;
+}
+.merchant-route-shell .review-benefit strong,
+.merchant-route-shell .review-benefit span {
+  display: block;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+.merchant-route-shell .review-benefit strong { font-size: 12px; }
+.merchant-route-shell .review-benefit span { font-size: 11px; }
+
+.merchant-route-shell .documents-valid.is-valid { color: #69e9a6; }
+.merchant-route-shell .documents-valid.is-valid span { color: #70ecaa; background: rgba(43,208,115,.1); }
+.merchant-route-shell .documents-valid.is-incomplete { color: #ffbd58; }
+.merchant-route-shell .documents-valid.is-incomplete span { color: #ffcf78; background: rgba(251,191,36,.11); }
+.merchant-route-shell .documents-valid.is-incomplete > i { color: #fbbf24; }
+
+.merchant-route-shell .important-review-note { margin-top: 0; min-height: 70px; }
+.merchant-route-shell .agreement { min-height: 30px; margin-top: 0; }
+.merchant-route-shell .secure-submit {
+  float: none;
+  justify-self: end;
+  width: fit-content;
+  margin: -2px 0 0 auto;
+}
+.merchant-route-shell .application-footer {
+  margin-top: 0;
+  border: 1px solid rgba(251,191,36,.20);
+  border-radius: 12px;
+  background: #18191f;
+}
+.merchant-route-shell .mini-progress span { background: #4a4033; }
+.merchant-route-shell .mini-progress span.active { background: linear-gradient(90deg,#d9950c,#fbbf24); }
+
+@media (max-width: 991px) {
+  .merchant-route-shell .review-bottom-grid { grid-template-columns: 1fr; }
+  .merchant-route-shell .review-bottom-grid > .review-section { min-height: auto; }
+}
+@media (max-width: 767px) {
+  .merchant-route-shell .review-grid { grid-template-columns: 1fr; }
+  .merchant-route-shell .review-grid > .review-section { min-height: auto; }
+  .merchant-route-shell .review-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .merchant-route-shell .review-benefit { min-height: 120px; }
+  .merchant-route-shell .secure-submit { justify-self: stretch; width: 100%; margin-top: 0; }
+}
+
+/* Final application consent and submit area. */
+.merchant-route-shell .review-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 15px;
+  border: 1px solid rgba(251,191,36,.20);
+  border-radius: 11px;
+  background: linear-gradient(100deg, rgba(251,191,36,.07), transparent 55%), #212529;
+}
+.merchant-route-shell .review-confirmation .agreement {
+  min-height: 42px;
+  margin: 0;
+  color: #eee3d3;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.merchant-route-shell .review-confirmation .custom-checkbox {
+  width: 21px;
+  height: 21px;
+  flex-basis: 21px;
+  border-radius: 6px;
+  border-color: rgba(251,191,36,.72);
+  background: #16171c;
+}
+.merchant-route-shell .review-confirmation .agreement input:checked + .custom-checkbox {
+  color: #251903;
+  background: #fbbf24;
+  box-shadow: 0 0 12px rgba(251,191,36,.25);
+}
+.merchant-route-shell .review-confirmation .agreement a { color: #ffdc74; font-weight: 700; }
+.merchant-route-shell .review-confirmation .secure-submit {
+  width: 230px;
+  min-height: 54px;
+  float: none;
+  margin: 0;
+  padding: 9px 12px;
+  border-color: rgba(251,191,36,.30);
+  border-radius: 9px;
+  background: #191a20;
+}
+.merchant-route-shell .review-confirmation .secure-submit > div { font-size: 23px; }
+.merchant-route-shell .review-confirmation .secure-submit strong { color: #fff0cb; }
+.merchant-route-shell .review-confirmation .secure-submit small { color: #b6aa99; }
+.merchant-route-shell .review-page > .field-error { margin: -5px 0 0; }
+.merchant-route-shell .application-footer {
+  min-height: 76px;
+  padding: 12px 16px;
+  background: linear-gradient(145deg,#1d1e24,#141519);
+}
+.merchant-route-shell .application-footer .application-prev-btn {
+  min-width: 145px;
+  height: 42px;
+  border-radius: 8px;
+}
+.merchant-route-shell .application-footer .application-next-btn {
+  min-width: 205px;
+  height: 42px;
+  border-radius: 8px;
+  font-weight: 750;
+}
+.merchant-route-shell .application-step-counter { color: #f3e6d4; font-weight: 700; }
+
+@media (max-width: 767px) {
+  .merchant-route-shell .review-confirmation { grid-template-columns: 1fr; gap: 10px; }
+  .merchant-route-shell .review-confirmation .secure-submit { width: 100%; }
+  .merchant-route-shell .application-footer { gap: 12px; flex-wrap: wrap; }
+  .merchant-route-shell .application-footer .application-prev-btn,
+  .merchant-route-shell .application-footer .application-next-btn { flex: 1; min-width: 0; }
+  .merchant-route-shell .application-step-counter { order: -1; width: 100%; text-align: center; }
+}
+
+/* Merchant application: Basic Information step. */
+.merchant-route-shell .application-card--basic {
+  padding: 18px;
+  border-color: rgba(251,191,36,.24);
+  border-radius: 12px;
+  background: #2a2d34;
+}
+.merchant-route-shell .application-card--basic > .card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(251,191,36,.16);
+}
+.merchant-route-shell .application-card--basic > .card-heading h2 {
+  position: relative;
+  padding-left: 12px;
+  color: #fff2d2;
+  font-size: 18px;
+  font-weight: 750;
+}
+.merchant-route-shell .application-card--basic > .card-heading h2::before {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 3px;
+  border-radius: 8px;
+  background: #fbbf24;
+  content: "";
+}
+.merchant-route-shell .application-card--basic > .card-heading p {
+  max-width: 340px;
+  margin-top: 2px;
+  color: #b9ae9c;
+  text-align: right;
+}
+.merchant-route-shell .basic-information-grid { align-items: stretch; }
+.merchant-route-shell .basic-form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.merchant-route-shell .basic-form-column .field-group,
+.merchant-route-shell .basic-form-column .input-wrapper { margin-bottom: 12px; }
+.merchant-route-shell .basic-form-column .field-group:last-child { margin-bottom: 0; }
+.merchant-route-shell .basic-form-column .field-label,
+.merchant-route-shell .basic-form-column .input-wrapper > label {
+  color: #f0e5d3;
+  font-size: 13px;
+  font-weight: 700;
+}
+.merchant-route-shell .basic-form-column .field-input-wrapper input,
+.merchant-route-shell .basic-form-column .field-group textarea,
+.merchant-route-shell .basic-form-column .phone-input-container,
+.merchant-route-shell .basic-form-column .input-single {
+  min-height: 48px;
+  border-color: rgba(251,191,36,.22);
+  border-radius: 9px;
+  background: #212529;
+}
+.merchant-route-shell .basic-form-column .field-group textarea { min-height: 72px; }
+.merchant-route-shell .basic-form-column .field-input-wrapper input:focus,
+.merchant-route-shell .basic-form-column .field-group textarea:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251,191,36,.11);
+}
+.merchant-route-shell .basic-form-column .field-success { color: #62e6a1; }
+.merchant-route-shell .basic-information-aside { display: flex; }
+.merchant-route-shell .basic-information-aside .side-illustration {
+  width: 100%;
+  min-height: 100%;
+  justify-content: center;
+  padding: 20px;
+  border-color: rgba(251,191,36,.25);
+  border-radius: 11px;
+  background: radial-gradient(circle at 50% 22%,rgba(251,191,36,.14),transparent 38%), #212529;
+}
+.merchant-route-shell .basic-information-aside .side-icon-art {
+  width: 126px;
+  height: 94px;
+  margin-bottom: 10px;
+  color: #fbbf24;
+  font-size: 60px;
+}
+.merchant-route-shell .basic-information-aside .side-icon-art span {
+  width: 42px;
+  height: 46px;
+  right: 3px;
+  bottom: 0;
+  color: #fff0bd;
+  background: linear-gradient(145deg,#9b6508,#472b04);
+}
+.merchant-route-shell .basic-information-aside .side-illustration h3 { color: #fff1d1; font-size: 15px; font-weight: 750; }
+.merchant-route-shell .basic-information-aside .side-illustration p { color: #bcae9b; line-height: 1.55; }
+.merchant-route-shell .application-card--basic .application-info-bar {
+  min-height: 42px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-color: rgba(251,191,36,.24);
+  border-radius: 9px;
+  background: linear-gradient(90deg,rgba(251,191,36,.10),transparent 65%), #212529;
+}
+
+@media (max-width: 991px) {
+  .merchant-route-shell .basic-information-aside .side-illustration { min-height: 215px; }
+}
+@media (max-width: 767px) {
+  .merchant-route-shell .application-card--basic { padding: 14px; }
+  .merchant-route-shell .application-card--basic > .card-heading { flex-direction: column; gap: 6px; }
+  .merchant-route-shell .application-card--basic > .card-heading p { max-width: none; text-align: left; }
+  .merchant-route-shell .basic-information-aside .side-illustration { min-height: 190px; }
+}
+
+/* Merchant application submitted state. */
+.merchant-route-shell .merchant-success-page {
+  min-height: min(580px, 72vh);
+  padding: 28px 16px;
+  background: radial-gradient(circle at 50% 18%,rgba(251,191,36,.10),transparent 40%);
+}
+.merchant-route-shell .merchant-success-card {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 500px);
+  padding: 34px 32px 30px;
+  border-color: rgba(251,191,36,.38);
+  border-radius: 18px;
+  background: linear-gradient(145deg,#2a2d34,#1a1b20);
+  box-shadow: 0 24px 65px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.05);
+}
+.merchant-route-shell .merchant-success-card::before {
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 2px;
+  background: linear-gradient(90deg,transparent,#fbbf24,transparent);
+  content: "";
+}
+.merchant-route-shell .success-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  padding: 6px 10px;
+  border: 1px solid rgba(251,191,36,.30);
+  border-radius: 999px;
+  color: #ffe18a;
+  background: rgba(251,191,36,.10);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.merchant-route-shell .success-check {
+  width: 78px;
+  height: 78px;
+  margin-bottom: 18px;
+  color: #fff7de;
+  border: 1px solid rgba(43,208,115,.60);
+  background: linear-gradient(145deg,#1ea760,#10603b);
+  box-shadow: 0 0 0 7px rgba(43,208,115,.08), 0 0 28px rgba(43,208,115,.22);
+  font-size: 30px;
+}
+.merchant-route-shell .merchant-success-card h1 { color: #fff3d6; font-size: 24px; font-weight: 750; }
+.merchant-route-shell .merchant-success-card p { color: #d6caba; font-size: 14px; }
+.merchant-route-shell .merchant-success-card > span { color: #b6aa9a; font-size: 13px; line-height: 1.6; }
+.merchant-route-shell .success-review-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 18px 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(251,191,36,.20);
+  border-radius: 10px;
+  background: #212529;
+  color: #cfc2b0;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.merchant-route-shell .success-review-note > i { margin-top: 2px; color: #fbbf24; }
+.merchant-route-shell .success-review-note strong { display: block; color: #ffe9ab; font-size: 12px; }
+.merchant-route-shell .merchant-success-card .merchant-purple-btn {
+  width: 100%;
+  min-height: 45px;
+  color: #221704;
+  border-color: rgba(251,191,36,.72);
+  border-radius: 9px;
+  background: linear-gradient(135deg,#ffe58c,#fbbf24);
+  box-shadow: 0 10px 22px rgba(251,191,36,.18);
+  font-weight: 750;
+}
+@media (max-width: 575px) {
+  .merchant-route-shell .merchant-success-page { min-height: 470px; padding: 18px 10px; }
+  .merchant-route-shell .merchant-success-card { padding: 26px 20px 22px; border-radius: 14px; }
+  .merchant-route-shell .merchant-success-card h1 { font-size: 21px; }
+}
+
+/* Route guard while checking whether a merchant application already exists. */
+.merchant-route-shell .merchant-application-route-loading {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.merchant-route-shell .merchant-application-route-loading > div {
+  display: flex;
+  min-width: min(100%, 320px);
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 28px;
+  border: 1px solid rgba(251,191,36,.28);
+  border-radius: 14px;
+  background: #2a2d34;
+  box-shadow: 0 16px 34px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.04);
+}
+.merchant-route-shell .merchant-application-route-loading i { color: #fbbf24; font-size: 28px; }
+.merchant-route-shell .merchant-application-route-loading strong { color: #fff0d2; }
+.merchant-route-shell .merchant-application-route-loading span { color: #b8ac9c; font-size: 13px; }
+
+/* Merchant dashboard — Local Buy & Sell navy/dark surface with gold accents. */
+.merchant-route-shell .merchant-dashboard { width: min(100%, 1440px); margin: 0 auto; padding: 18px 16px 30px; color: #f4ecdf; }
+.merchant-route-shell .dashboard-header { margin-bottom: 18px; padding: 0 2px 16px; border-bottom: 1px solid rgba(251,191,36,.17); }
+.merchant-route-shell .dashboard-brand-icon { width: 58px; height: 58px; color: #261a03; border-color: rgba(251,191,36,.72); background: linear-gradient(135deg,#fff1b9,#fbbf24); box-shadow: 0 0 22px rgba(251,191,36,.2); }
+.merchant-route-shell .dashboard-brand h5 { color: #fff3d6; font-size: 25px; font-weight: 750; }
+.merchant-route-shell .dashboard-brand p { color: #b9ad9b; }
+.merchant-route-shell .dashboard-profile-btn { min-height: 42px; color: #241803; border-color: rgba(251,191,36,.65); border-radius: 9px; background: linear-gradient(135deg,#ffe58d,#fbbf24); box-shadow: 0 9px 20px rgba(251,191,36,.18); }
+.merchant-route-shell .merchant-stats > [class*="col"] { display: flex; }
+.merchant-route-shell .stat-card { width: 100%; min-height: 132px; padding: 17px 16px 14px; border: 1px solid rgba(251,191,36,.22); border-radius: 12px; background: linear-gradient(145deg,#2a2d34,#202229)!important; box-shadow: 0 12px 26px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.035); }
+.merchant-route-shell .stat-card::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 2px; border-radius: 4px 4px 0 0; background: rgba(251,191,36,.68); }
+.merchant-route-shell .stat-card-icon { width: 34px; height: 34px; float: right; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(251,191,36,.34); border-radius: 9px; color: #fbd66f; background: rgba(251,191,36,.1); }
+.merchant-route-shell .stat-title { color: #b9ae9b; font-size: 13px; }
+.merchant-route-shell .stat-value { color: #fff3d7; font-size: 23px; font-weight: 750; }
+.merchant-route-shell .stat-bottom { color: #d2c5b3; }
+.merchant-route-shell .dashboard-card { border: 1px solid rgba(251,191,36,.20); border-radius: 12px; background: #2a2d34!important; box-shadow: 0 12px 26px rgba(0,0,0,.15); }
+.merchant-route-shell .dashboard-card .card-heading { padding-bottom: 11px; border-bottom: 1px solid rgba(251,191,36,.13); }
+.merchant-route-shell .dashboard-card .card-heading h3 { color: #fff0d2; font-size: 15px; font-weight: 750; }
+.merchant-route-shell .small-select { color: #f3e6d4; border-color: rgba(251,191,36,.28); background: #15171c; border-radius: 8px; }
+.merchant-route-shell .chart-legend { color: #d2c6b5; }
+.merchant-route-shell .legend-purple, .merchant-route-shell .legend-yellow { background: #fbbf24; }
+.merchant-route-shell .chart-bar { background: linear-gradient(to top,#b97907,#ffe18a); }
+.merchant-route-shell .line-point { border-color: #fbbf24; background: #201b10; box-shadow: 0 0 7px rgba(251,191,36,.45); }
+.merchant-route-shell .line-point::before { background: #fbbf24; }
+.merchant-route-shell .summary-item { border-color: rgba(251,191,36,.12); background: #212529!important; border-radius: 8px; margin-bottom: 6px; padding-inline: 8px; }
+.merchant-route-shell .summary-icon.yellow { color: #ffe18a; background: rgba(251,191,36,.16); }
+.merchant-route-shell .ads-ring { background: conic-gradient(#fbbf24 0 50%,#f66b78 50% 100%); }
+.merchant-route-shell .ads-ring::after { background: #212529; }
+.merchant-route-shell .manage-ads { height: 36px; border: 1px solid rgba(251,191,36,.7); border-radius: 8px; color: #241803; background: linear-gradient(135deg,#ffe58d,#fbbf24); }
+.merchant-route-shell .quick-actions { padding: 16px; }
+.merchant-route-shell .quick-action { min-height: 76px; border-color: rgba(251,191,36,.16)!important; background: #212529!important; }
+.merchant-route-shell .quick-action > span { color: #261a03; background: linear-gradient(135deg,#fff0b7,#fbbf24); }
+.merchant-route-shell .quick-action:hover { border-color: rgba(251,191,36,.58)!important; transform: translateY(-2px); }
+.merchant-route-shell .merchant-table { font-size: 13px; }
+.merchant-route-shell .merchant-table thead { background: #15171c; }
+.merchant-route-shell .merchant-table th { color: #fbd66f; }
+.merchant-route-shell .merchant-table td { color: #e5d9c8; }
+.merchant-route-shell .usd-icon { color: #251903; background: #fbbf24; }
+.merchant-route-shell .completed-badge { color: #66e8a3; border: 1px solid rgba(43,208,115,.3); background: rgba(43,208,115,.1); }
+.merchant-route-shell .view-all { color: #fcd56b; font-weight: 700; }
+@media (max-width: 767px) {
+  .merchant-route-shell .merchant-dashboard { padding: 12px 9px 24px; }
+  .merchant-route-shell .dashboard-header { gap: 12px; }
+  .merchant-route-shell .dashboard-brand h5 { font-size: 19px; }
+  .merchant-route-shell .dashboard-brand-icon { width: 46px; height: 46px; font-size: 18px; }
+  .merchant-route-shell .dashboard-profile-btn { width: 100%; justify-content: center; }
+  .merchant-route-shell .merchant-stats .stat-card { min-height: 116px; }
+  .merchant-route-shell .quick-action { min-height: 66px; }
+}
+
+/* Merchant profile — clearer account hierarchy in the shared Local Buy & Sell theme. */
+.merchant-route-shell .merchant-profile-page { min-height: auto; color: #f4ecdf; background: transparent; }
+.merchant-route-shell .merchant-profile-container { max-width: 1440px; padding: 18px 16px 32px; }
+.merchant-route-shell .merchant-page-header { align-items: center; margin-bottom: 18px; padding: 0 2px 16px; border-bottom-color: rgba(251,191,36,.18); }
+.merchant-route-shell .merchant-page-header h1 { color: #fff3d8; font-size: 26px; font-weight: 750; }
+.merchant-route-shell .merchant-page-header p { color: #baae9d; }
+.merchant-route-shell .merchant-profile-page .merchant-outline-btn { min-height: 42px; color: #271a04!important; border-color: rgba(251,191,36,.65)!important; border-radius: 9px; background: linear-gradient(135deg,#ffe58c,#fbbf24)!important; box-shadow: 0 9px 20px rgba(251,191,36,.16); font-weight: 750; }
+.merchant-route-shell .merchant-profile-grid { grid-template-columns: minmax(0,1fr) 285px; gap: 16px; }
+.merchant-route-shell .merchant-profile-page .merchant-card { border: 1px solid rgba(251,191,36,.20)!important; border-radius: 12px!important; background: linear-gradient(145deg,#2a2d34,#212329)!important; box-shadow: 0 12px 28px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.035); }
+.merchant-route-shell .merchant-profile-page .merchant-card::before { background: radial-gradient(circle at 8% 0%,rgba(251,191,36,.10),transparent 31%); }
+.merchant-route-shell .merchant-profile-page .merchant-card:hover { transform: translateY(-1px); border-color: rgba(251,191,36,.42)!important; }
+.merchant-route-shell .merchant-profile-card { padding: 22px 22px 0; }
+.merchant-route-shell .merchant-profile-top { min-height: 118px; gap: 22px; }
+.merchant-route-shell .merchant-avatar { background: linear-gradient(135deg,#ffe9a0,#fbbf24); box-shadow: 0 0 0 4px rgba(251,191,36,.10),0 0 28px rgba(251,191,36,.16); }
+.merchant-route-shell .merchant-avatar-fallback { color: #ffe8a0; background: linear-gradient(145deg,#272016,#121318); }
+.merchant-route-shell .merchant-avatar-edit-btn { border-color: rgba(251,191,36,.7); background: #211b10; color: #ffe48a; }
+.merchant-route-shell .top-rated-badge { justify-content: center; margin-top: 9px; border-color: rgba(43,208,115,.42); border-radius: 7px; background: rgba(43,208,115,.09); color: #6ce5a3; font-weight: 700; }
+.merchant-route-shell .top-rated-badge.status-pending { border-color: rgba(251,191,36,.42); background: rgba(251,191,36,.10); color: #ffe18a; }
+.merchant-route-shell .top-rated-badge.status-rejected { border-color: rgba(246,107,120,.44); background: rgba(246,107,120,.10); color: #ff9ca6; }
+.merchant-route-shell .merchant-name-row h2 { color: #fff3d8; font-size: 23px; font-weight: 750; }
+.merchant-route-shell .merchant-meta-grid { gap: 30px; margin-top: 14px; }
+.merchant-route-shell .merchant-meta-item span { color: #ac9f8e; }
+.merchant-route-shell .merchant-meta-item strong { color: #f1e3cf; font-weight: 650; }
+.merchant-route-shell .merchant-stats-row { margin-top: 20px; border-color: rgba(251,191,36,.17); border-radius: 9px 9px 0 0; background: #17191e; }
+.merchant-route-shell .merchant-stat { border-right-color: rgba(251,191,36,.12); }
+.merchant-route-shell .merchant-stat span { color: #b8aa99; }
+.merchant-route-shell .merchant-stat strong { color: #fff0d2; font-size: 21px; font-weight: 750; }
+.merchant-route-shell .business-info-card,.merchant-route-shell .verification-card,.merchant-route-shell .performance-card { padding: 20px 22px; }
+.merchant-route-shell .merchant-section-header { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid rgba(251,191,36,.13); }
+.merchant-route-shell .merchant-section-header h3,.merchant-route-shell .merchant-card > h3 { color: #fff0d2; font-size: 16px; font-weight: 750; }
+.merchant-route-shell .merchant-small-edit { border-color: rgba(251,191,36,.40); border-radius: 7px; background: rgba(251,191,36,.09); color: #ffe18a; font-weight: 700; }
+.merchant-route-shell .merchant-small-edit:hover { border-color: #fbbf24; background: rgba(251,191,36,.17); color: #fff2c2; }
+.merchant-route-shell .business-column + .business-column { border-left-color: rgba(251,191,36,.13); }
+.merchant-route-shell .info-item-icon { border: 1px solid rgba(251,191,36,.20); background: rgba(251,191,36,.11); color: #fbd66f; }
+.merchant-route-shell .info-item-content > span { color: #b6a998; }
+.merchant-route-shell .info-item-content > strong { color: #f1e4d2; font-weight: 650; }
+.merchant-route-shell .field-group input,.merchant-route-shell .field-group textarea,.merchant-route-shell .phone-input-container { color: #f5e9d8; border-color: rgba(251,191,36,.25); border-radius: 8px; background: #17191e; }
+.merchant-route-shell .field-group input:focus,.merchant-route-shell .field-group textarea:focus { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,.1); }
+.merchant-route-shell .verification-grid { column-gap: 40px; }
+.merchant-route-shell .verification-item { border-bottom-color: rgba(251,191,36,.12); }
+.merchant-route-shell .verification-icon { background: linear-gradient(145deg,rgba(251,191,36,.24),rgba(118,75,6,.20)); color: #ffe18a; }
+.merchant-route-shell .verification-content > span { color: #d1c5b3; }
+.merchant-route-shell .verification-value strong { color: #f4e6d2; font-weight: 700; }
+.merchant-route-shell .performance-filter { border-color: rgba(251,191,36,.25); border-radius: 7px; background: #17191e; color: #eadcca; }
+.merchant-route-shell .performance-item { border-right-color: rgba(251,191,36,.12); }
+.merchant-route-shell .performance-item > span { color: #b5a896; }
+.merchant-route-shell .performance-item > strong { color: #fff0d2; font-size: 17px; font-weight: 750; }
+.merchant-route-shell .performance-item > small { color: #938878; }
+.merchant-route-shell .completion-card,.merchant-route-shell .level-card,.merchant-route-shell .quick-actions-card { padding: 20px; }
+.merchant-route-shell .completion-circle { background: conic-gradient(#2bd073 0deg 260deg,#fbbf24 260deg 360deg); box-shadow: 0 0 30px rgba(43,208,115,.16); }
+.merchant-route-shell .completion-circle::before { background: #17191e; }
+.merchant-route-shell .completion-circle-inner strong { color: #fff2d8; font-size: 18px; font-weight: 750; }
+.merchant-route-shell .completion-circle-inner span,.merchant-route-shell .completion-card p { color: #bcae9b; }
+.merchant-route-shell .sidebar-purple-btn { min-height: 39px; border-color: rgba(251,191,36,.52); border-radius: 8px; background: rgba(251,191,36,.11); color: #ffe18a; font-weight: 750; }
+.merchant-route-shell .sidebar-purple-btn:hover { border-color: #fbbf24; background: rgba(251,191,36,.19); color: #fff4d1; }
+.merchant-route-shell .level-icon { color: #fbbf24; filter: drop-shadow(0 0 13px rgba(251,191,36,.26)); }
+.merchant-route-shell .level-star { color: #fff3ba; }
+.merchant-route-shell .level-info strong { color: #71eaa9; }
+.merchant-route-shell .level-info p,.merchant-route-shell .xp-row strong { color: #b7aa99; }
+.merchant-route-shell .xp-progress { background: #17191e; }
+.merchant-route-shell .xp-progress span { background: linear-gradient(90deg,#cf880b,#fbbf24,#ffe28a); }
+.merchant-route-shell .quick-actions-list { margin-top: 12px; }
+.merchant-route-shell .quick-actions-card .quick-action { min-height: 52px; margin-bottom: 7px; padding: 8px 9px; border: 1px solid rgba(251,191,36,.14); border-radius: 8px; background: #212529!important; color: #eadfce; }
+.merchant-route-shell .quick-actions-card .quick-action:hover { padding-left: 12px; color: #fff0cb; border-color: rgba(251,191,36,.5); transform: none; }
+.merchant-route-shell .quick-action-icon { border-radius: 8px; background: linear-gradient(135deg,#ffe8a1,#fbbf24); color: #261a03; }
+.merchant-route-shell .action-arrow { color: #fbd66f; }
+@media (max-width: 991px) { .merchant-route-shell .merchant-profile-grid { grid-template-columns: 1fr; } .merchant-route-shell .merchant-profile-sidebar { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; } }
+@media (max-width: 767px) { .merchant-route-shell .merchant-profile-container { padding: 12px 9px 26px; } .merchant-route-shell .merchant-page-header { align-items: flex-start; flex-direction: column; gap: 12px; } .merchant-route-shell .merchant-page-header .merchant-outline-btn { width: 100%; } .merchant-route-shell .merchant-profile-card,.merchant-route-shell .business-info-card,.merchant-route-shell .verification-card,.merchant-route-shell .performance-card { padding: 16px; } .merchant-route-shell .merchant-profile-sidebar { display: flex; } .merchant-route-shell .merchant-profile-top { align-items: flex-start; flex-direction: column; } .merchant-route-shell .merchant-avatar-wrapper { align-items: flex-start; } }

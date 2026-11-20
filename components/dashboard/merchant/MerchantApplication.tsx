@@ -847,6 +847,11 @@ export default function MerchantApplication() {
 
         <div className="merchant-success-card">
 
+          <div className="success-eyebrow">
+            <i className="fa-solid fa-store" />
+            Merchant Application Received
+          </div>
+
           <div className="success-check">
             <i className="fa-solid fa-check" />
           </div>
@@ -864,6 +869,11 @@ export default function MerchantApplication() {
             Our team will review your application
             and notify you within 24 hours.
           </span>
+
+          <div className="success-review-note">
+            <i className="fa-solid fa-clock" />
+            <span><strong>What happens next?</strong> Our verification team is reviewing your details.</span>
+          </div>
 
           <button
             type="button"
@@ -1271,7 +1281,7 @@ function StepOne({
 
   return (
     <>
-      <div className="application-card">
+      <div className="application-card application-card--basic">
 
         <div className="card-heading">
           <h2>Basic Information</h2>
@@ -1281,9 +1291,9 @@ function StepOne({
           </p>
         </div>
 
-        <div className="row g-4">
+        <div className="row g-4 basic-information-grid">
 
-          <div className="col-lg-4">
+          <div className="col-lg-4 basic-form-column">
 
             <Input
               label="Full Name"
@@ -1319,7 +1329,7 @@ function StepOne({
 
           </div>
 
-          <div className="col-lg-4">
+          <div className="col-lg-4 basic-form-column">
 
             <div className={`input-wrapper pt-4 pt-md-0 ${countryError ? "has-error" : ""}`}>
               <label>Country <span className="text-danger fs-4">*</span></label>
@@ -1397,7 +1407,7 @@ function StepOne({
             />
           </div>
 
-          <div className="col-lg-4">
+          <div className="col-lg-4 basic-information-aside">
             <SideIllustration
               icon="fa-solid fa-id-card"
               title="Start Your Merchant Journey"
@@ -1815,7 +1825,7 @@ function StepDeposit({
                   </strong>
 
                   <span>
-                    USDT
+                    USD
                   </span>
 
                 </div>
@@ -1843,7 +1853,7 @@ function StepDeposit({
                   </strong>
 
                   <span>
-                    USDT
+                    USD
                   </span>
 
                 </div>
@@ -1886,7 +1896,7 @@ function StepDeposit({
             <DepositStep
               icon="fa-solid fa-wallet"
               title="Make Deposit"
-              text={`Deposit ${requiredDepositAmount} USDT to the provided address, or use an existing wallet balance that already covers it.`}
+              text={`Deposit ${requiredDepositAmount} USD to the provided address, or use an existing wallet balance that already covers it.`}
             />
 
             <i className="fa-solid fa-arrow-right deposit-arrow" />
@@ -1953,11 +1963,11 @@ function StepDeposit({
               </small>
 
               <strong>
-                <span className="usdt-dot">
-                  ₮
+                <span className="usd-dot">
+                  $
                 </span>
 
-                {walletAmount.toFixed(2)} USDT
+                {walletAmount.toFixed(2)} USD
               </strong>
             </div>
 
@@ -1968,7 +1978,7 @@ function StepDeposit({
                 </strong>
 
                 <small>
-                  Required: {requiredDepositAmount} USDT
+                  Required: {requiredDepositAmount} USD
                 </small>
               </div>
 
@@ -2002,11 +2012,11 @@ function StepDeposit({
               </small>
 
               <strong>
-                <span className="usdt-dot">
-                  ₮
+                <span className="usd-dot">
+                  $
                 </span>
 
-                {requiredDepositAmount} USDT
+                {requiredDepositAmount} USD
               </strong>
             </div>
 
@@ -2140,8 +2150,8 @@ function StepReview({
               );
             })}
 
-            <div className="documents-valid">
-              <i className="fa-solid fa-circle-check" />
+            <div className={`documents-valid ${allDocumentsUploaded ? "is-valid" : "is-incomplete"}`}>
+              <i className={`fa-solid ${allDocumentsUploaded ? "fa-circle-check" : "fa-circle-exclamation"}`} />
               {allDocumentsUploaded ? "All documents uploaded" : "Some documents are missing"}
               <span>{allDocumentsUploaded ? "Valid" : "Incomplete"}</span>
             </div>
@@ -2215,7 +2225,7 @@ function StepReview({
             <ReviewBenefit
               icon="fa-solid fa-store"
               title="Create Ads"
-              text="Buy & Sell USDT"
+              text="Buy & Sell USD"
             />
 
             <ReviewBenefit
@@ -2260,59 +2270,61 @@ function StepReview({
 
       </div>
 
-      <label className="agreement">
+      <div className="review-confirmation mb-4">
+        <label className="agreement">
 
-        <input
-          type="checkbox"
-          checked={agreed}
-          onChange={(event) =>
-            setAgreed(
-              event.target.checked
-            )
-          }
-        />
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(event) =>
+              setAgreed(
+                event.target.checked
+              )
+            }
+          />
 
-        <span className="custom-checkbox">
-          {agreed && (
-            <i className="fa-solid fa-check" />
-          )}
-        </span>
+          <span className="custom-checkbox">
+            {agreed && (
+              <i className="fa-solid fa-check" />
+            )}
+          </span>
 
-        <span>
-          I confirm that all the information
-          provided is accurate and I agree to
-          the{" "}
-          <a href="#">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="#">
-            P2P Policy
-          </a>
-          .
-        </span>
+          <span>
+            I confirm that all the information
+            provided is accurate and I agree to
+            the{" "}
+            <a href="#">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#">
+              P2P Policy
+            </a>
+            .
+          </span>
 
-      </label>
+        </label>
+
+        <div className="secure-submit">
+
+          <div>
+            <i className="fa-solid fa-shield-halved" />
+          </div>
+
+          <span>
+            <strong>
+              Your data is 100% secure
+            </strong>
+
+            <small>
+              We never share your information
+            </small>
+          </span>
+
+        </div>
+      </div>
 
       <FieldError message={agreedError} />
-
-      <div className="secure-submit">
-
-        <div>
-          <i className="fa-solid fa-shield-halved" />
-        </div>
-
-        <span>
-          <strong>
-            Your data is 100% secure
-          </strong>
-
-          <small>
-            We never share your information
-          </small>
-        </span>
-
-      </div>
 
     </div>
   );

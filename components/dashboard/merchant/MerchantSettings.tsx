@@ -98,7 +98,7 @@ export default function MerchantSettings() {
   const [orderType, setOrderType] = useState("Buy");
   const [expiry, setExpiry] = useState("30 Minutes (Recommended)");
   const [maxAds, setMaxAds] = useState("20 Ads");
-  const [currency, setCurrency] = useState("USDT");
+  const [currency, setCurrency] = useState("USD");
 
   const [saved, setSaved] = useState(false);
 
@@ -328,7 +328,7 @@ export default function MerchantSettings() {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >
-              <option>USDT</option>
+              <option>USD</option>
               <option>USDC</option>
               <option>BTC</option>
               <option>ETH</option>

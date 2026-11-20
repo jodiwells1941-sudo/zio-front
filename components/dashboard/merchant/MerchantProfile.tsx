@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   allCountries,
   type CountryTelephoneData,
@@ -78,6 +79,19 @@ type MerchantProfileProps = {
   onAvatarUpload?: (file: File) => Promise<void>;
 };
 
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === 'string' && response.data.message) {
+      return response.data.message;
+    }
+  }
+
+  return fallback;
+}
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -117,11 +131,11 @@ function statusBadgeClass(status: MerchantApplicationStatus): string {
 }
 
 const quickActions = [
-  { icon: 'fa-solid fa-paper-plane', title: 'Create Advertisement' },
-  { icon: 'fa-solid fa-rectangle-ad', title: 'My Advertisements' },
-  { icon: 'fa-solid fa-bag-shopping', title: 'My Orders' },
-  { icon: 'fa-solid fa-sliders', title: 'Earnings & Commission' },
-  { icon: 'fa-solid fa-shield-halved', title: 'Security Deposit' },
+  { icon: 'fa-solid fa-paper-plane', title: 'Create Advertisement', href: '/dashboard/merchant/ads/' },
+  { icon: 'fa-solid fa-rectangle-ad', title: 'My Advertisements', href: '/dashboard/merchant/ads/p2p/' },
+  { icon: 'fa-solid fa-bag-shopping', title: 'My Orders', href: '/dashboard/merchant/orders/' },
+  { icon: 'fa-solid fa-sliders', title: 'Earnings & Commission', href: '/dashboard/merchant/commission-earnings/' },
+  { icon: 'fa-solid fa-shield-halved', title: 'Security Deposit', href: '/dashboard/merchant/settings/' },
 ];
 
 /* =========================================================
@@ -137,9 +151,7 @@ export default function MerchantProfile({
   onUpdate,
   onAvatarUpload,
 }: MerchantProfileProps) {
-  const handleAction = (action: string) => {
-    console.log(`Navigate to: ${action}`);
-  };
+  const router = useRouter();
 
   const [editingSection, setEditingSection] =
     useState<null | 'profile'>(null);
@@ -168,7 +180,6 @@ export default function MerchantProfile({
 
   const startEdit = (section: 'profile') => {
     if (!onUpdate) {
-      handleAction('Edit Profile');
       return;
     }
 
@@ -196,12 +207,8 @@ export default function MerchantProfile({
 
     try {
       await onAvatarUpload(file);
-    } catch (err: any) {
-      setAvatarError(
-        err?.response?.data?.message ||
-          err?.message ||
-          'Unable to upload avatar. Please try again.'
-      );
+    } catch (err: unknown) {
+      setAvatarError(errorMessage(err, 'Unable to upload avatar. Please try again.'));
     } finally {
       setAvatarUploading(false);
     }
@@ -216,12 +223,8 @@ export default function MerchantProfile({
     try {
       await onUpdate(section, profileDraft);
       setEditingSection(null);
-    } catch (err: any) {
-      setSaveError(
-        err?.response?.data?.message ||
-          err?.message ||
-          'Unable to save changes. Please try again.'
-      );
+    } catch (err: unknown) {
+      setSaveError(errorMessage(err, 'Unable to save changes. Please try again.'));
     } finally {
       setSaving(false);
     }
@@ -294,7 +297,7 @@ export default function MerchantProfile({
     {
       icon: 'fa-solid fa-building-shield',
       title: 'Security Deposit',
-      value: `${formatMoney(application.deposit_amount)} USDT`,
+      value: `${formatMoney(application.deposit_amount)} USD`,
       subtitle: application.deposit_paid ? 'Paid & Refundable' : 'Not Paid',
       status: application.deposit_paid ? 'verified' : 'normal',
     },
@@ -678,7 +681,7 @@ export default function MerchantProfile({
 
               <button
                 className="sidebar-purple-btn"
-                onClick={() => handleAction('View Public Profile')}
+                onClick={() => router.push('/dashboard/merchant/')}
               >
                 View Public Profile
                 <i className="fa-solid fa-arrow-up-right-from-square" />
@@ -746,7 +749,7 @@ export default function MerchantProfile({
                   <button
                     key={action.title}
                     className="quick-action"
-                    onClick={() => handleAction(action.title)}
+                    onClick={() => router.push(action.href)}
                   >
                     <span className="quick-action-icon">
                       <i className={action.icon} />

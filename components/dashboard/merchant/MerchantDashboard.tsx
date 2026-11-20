@@ -13,15 +13,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo } from "react";
 
 const quickActions = [
-  { title: "Create New Ad", text: "Start new advertisement", icon: "fa-solid fa-rectangle-ad" },
-  { title: "My Advertisements", text: "Manage all your ads", icon: "fa-solid fa-gift" },
-  { title: "Security Deposit", text: "Manage deposit", icon: "fa-solid fa-shield-halved" },
-  { title: "Earnings & Commission", text: "View earnings", icon: "fa-solid fa-chart-line" },
-  { title: "Payout", text: "Withdraw earnings", icon: "fa-solid fa-wallet" },
-  { title: "Verification / KYC", text: "Manage verification", icon: "fa-solid fa-user-shield" },
+  { title: "Create New Ad", text: "Start new advertisement", icon: "fa-solid fa-rectangle-ad", href: "/dashboard/merchant/ads/" },
+  { title: "My Advertisements", text: "Manage all your ads", icon: "fa-solid fa-gift", href: "/dashboard/merchant/ads/p2p/" },
+  { title: "Security Deposit", text: "View deposit status", icon: "fa-solid fa-shield-halved", href: "/dashboard/merchant/profile/" },
+  { title: "Earnings & Commission", text: "View earnings", icon: "fa-solid fa-chart-line", href: "/dashboard/merchant/commission-earnings/" },
+  { title: "Payout", text: "Open your wallet", icon: "fa-solid fa-wallet", href: "/dashboard/wallet/" },
+  { title: "Verification / KYC", text: "Manage verification", icon: "fa-solid fa-user-shield", href: "/dashboard/merchant/profile/" },
 ];
 
 const MAX_BAR_HEIGHT = 150; // px — must match the chart's plotting-area height in CSS
+
+const displayUsd = (value: string | number) => String(value).replace(/\bUSDT\b/gi, "USD");
 
 export default function MerchantDashboard() {
   const router = useRouter();
@@ -98,14 +100,14 @@ export default function MerchantDashboard() {
     ? [
         {
           title: "Total Balance",
-          value: `${stats.total_balance.usdt.toLocaleString()} USDT`,
+          value: `${stats.total_balance.usdt.toLocaleString()} USD`,
           sub: `≈ ${stats.total_balance.bdt.toLocaleString()} BDT`,
           icon: "fa-solid fa-wallet",
           type: "purple",
         },
         {
           title: "Total Earnings (2%)",
-          value: `${stats.total_earnings.usdt.toLocaleString()} USDT`,
+          value: `${stats.total_earnings.usdt.toLocaleString()} USD`,
           sub: `≈ ${stats.total_earnings.bdt.toLocaleString()} BDT`,
           icon: "fa-solid fa-chart-line",
           type: "green",
@@ -124,7 +126,7 @@ export default function MerchantDashboard() {
         },
         {
           title: "Security Deposit",
-          value: `${stats.security_deposit.toLocaleString()} USDT`,
+          value: `${stats.security_deposit.toLocaleString()} USD`,
           sub: "Locked",
           icon: "fa-solid fa-shield-halved",
           type: "purple",
@@ -198,6 +200,9 @@ export default function MerchantDashboard() {
           : statCards.map((stat) => (
               <div className="col-12 col-sm-6 col-lg" key={stat.title}>
                 <div className={`stat-card ${stat.type}`}>
+                  <span className="stat-card-icon" aria-hidden="true">
+                    <i className={stat.icon} />
+                  </span>
                   <div className="stat-title">
                     {stat.title}
                     {stat.title.includes("Earnings") && (
@@ -246,7 +251,7 @@ export default function MerchantDashboard() {
 
               <span>
                 <b className="legend-yellow" />
-                Order Volume (USDT)
+                Order Volume (USD)
               </span>
             </div>
 
@@ -374,7 +379,7 @@ export default function MerchantDashboard() {
               </span>
             </div>
 
-            <button className="manage-ads">Manage Ads</button>
+            <button className="manage-ads" type="button" onClick={() => router.push("/dashboard/merchant/ads/p2p/")}>Manage Ads</button>
           </div>
         </div>
       </div>
@@ -388,7 +393,7 @@ export default function MerchantDashboard() {
         <div className="row g-2">
           {quickActions.map((action) => (
             <div className="col-6 col-md-4 col-xl-2" key={action.title}>
-              <button className="quick-action">
+              <button className="quick-action" type="button" onClick={() => router.push(action.href)}>
                 <span>
                   <i className={action.icon} />
                 </span>
@@ -444,8 +449,8 @@ export default function MerchantDashboard() {
                       <td>{order.id}</td>
 
                       <td>
-                        <span className="usdt-icon">₮</span>
-                        {order.type}
+                        <span className="usd-icon">$</span>
+                        {displayUsd(order.type)}
                       </td>
 
                       <td>
@@ -454,7 +459,7 @@ export default function MerchantDashboard() {
                         </span>
                       </td>
 
-                      <td>{order.amount}</td>
+                      <td>{displayUsd(order.amount)}</td>
 
                       <td>{order.price}</td>
 
