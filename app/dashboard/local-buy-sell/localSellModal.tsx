@@ -21,6 +21,15 @@ type Props = {
   ad: P2pAdsData;
 };
 
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const message = (error as { response?: { data?: { message?: unknown } } }).response?.data?.message;
+    if (typeof message === "string" && message) return message;
+  }
+
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LocalSellModal({ onClose, ad }: Props) {
@@ -47,8 +56,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
     try {
       const res = await getUserPaymentMethods();
       setMethods(res?.data ?? []);
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed to load payment methods.');
+    } catch (error: unknown) {
+      toast.error(apiErrorMessage(error, 'Failed to load payment methods.'));
     } finally {
       setLoadingMethods(false);
       setMethodsLoaded(true);
@@ -131,6 +140,10 @@ export default function LocalSellModal({ onClose, ad }: Props) {
   const grossReceive = Number(receiveAmt) || 0;
   const sellValue     = Number(sellAmount || 0);
   const feeUsdt = (sellValue * feePercent) / 100;
+  // The seller's wallet is charged the sale amount plus its configured fee.
+  const totalUSD = sellValue + feeUsdt;
+  const assetLabel = ad.asset?.toUpperCase() === "USDT" ? "USD" : ad.asset;
+
   const money = (amount: number) => amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -282,8 +295,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
       // router.push(`/dashboard/wallet/sell?trade_id=${tradeId}`);
       router.push(`/dashboard/local-buy-sell/my-orders/sell-view?trade_id=${tradeId}`);
 
-    } catch (e: any) {
-      const message = e?.response?.data?.message ?? e?.message ?? "Failed to create trade.";
+    } catch (error: unknown) {
+      const message = apiErrorMessage(error, "Failed to create trade.");
       toast.error(
         paymentDetailsSaved
           ? `Payment details were saved, but the sell request failed: ${message}`
@@ -308,35 +321,41 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           </span>
           <div className="local-trade-head-copy">
             <h2>Create Sell Request</h2>
-            <p>Sell your {ad.asset} and receive local currency.</p>
+            <p>Sell your {assetLabel} and receive local currency.</p>
           </div>
           <button type="button" className="local-trade-close" onClick={onClose} aria-label="Close">×</button>
         </header>
 
         <div className="local-trade-steps" aria-label="Request progress">
-          <span className="local-trade-step is-done"><b>1</b> <small>Request Details</small></span>
+          <span className="local-trade-step is-done"><b>1</b> <small>Request</small></span>
           <i className="local-trade-step-line" />
           <span className="local-trade-step is-active" aria-current="step"><b>2</b> <small>Confirm</small></span>
           <i className="local-trade-step-line" />
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
-        <div className="local-trade-total-banner local-trade-total-banner--received mx-3">
-          <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-          <span className="local-trade-total-label">Received Amount</span>
-          <strong className="d-flex gap-1"><span className="fw-bold">{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
+        <div className="mx-2">
+          <div className="local-trade-total-banner local-trade-total-banner--received mx-3 mb-0">
+            <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
+            <span className="local-trade-total-label text-white">Received</span>
+            <strong className="d-flex gap-1"><span className="fw-bold">{money(grossReceive)}</span><span>{ad.with_fiat}</span></strong>
+          </div>
+          <div className="d-flex justify-content-end">
+            <small className="local-trade-sell-usd mx-4">Sell USD = <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
+          </div>
         </div>
 
-        <div className="local-trade-content">
+
+        <div className="local-trade-content mx-2">
           <details className="local-trade-summary local-trade-summary--collapsible">
             <summary className="local-trade-summary-toggle">
-              <h4 className="local-trade-summary-title">Order Summary</h4>
+              <h4 className="local-trade-summary-title"><i className="fa-solid fa-clipboard-list" aria-hidden="true" /> Order Summary</h4>
               <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </summary>
             <div className="local-trade-summary-rows">
               {localOrderSummaryRows({ side: "sell", fiat: ad.with_fiat, asset: ad.asset, fiatAmount: grossReceive, assetAmount: sellValue, price: marketPrice, feeAmount: feeUsdt, feePercent }).map(row => (
                 <div className={`local-trade-row ${row.total ? "local-trade-row--total local-trade-row--received" : ""}`} key={row.label}>
-                  <span>{row.label}</span><b className={row.tone === "negative" ? "local-trade-negative" : row.tone === "received" ? "local-trade-positive" : undefined}>{row.value}</b>
+                  <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span><b className={row.tone === "negative" ? "local-trade-negative" : row.tone === "received" ? "local-trade-positive" : undefined}>{row.value}</b>
                 </div>
               ))}
             </div>
@@ -361,7 +380,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             </div>
           </div> */}
 
-          <div className="local-trade-info">
+          <div className="local-trade-info mb-2">
             <div className="local-trade-field">
               <span className="local-trade-label"><i className="fa-solid fa-hourglass-half" /> Order Time Limit</span>
               <b>{ad.payment_time_limit} min</b>
@@ -374,8 +393,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
             }
           </div>
 
-          <div className="local-trade-field local-trade-method">
-            <label className="local-trade-label" htmlFor="local-sell-payment-method">Payment Method</label>
+          {/* <div className="local-trade-field local-trade-method">
+            <label className="local-trade-label" htmlFor="local-sell-payment-method">Payment Method ss</label>
             <select
               id="local-sell-payment-method"
               className={errors.paymentMethodId ? "is-invalid d-none" : "d-none"}
@@ -395,7 +414,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               ))}
             </select>
             {errors.paymentMethodId && <span className="local-trade-error">{errors.paymentMethodId}</span>}
-          </div>
+          </div> */}
           {selectedPaymentMethod && (
             <div className="local-trade-payment-details" aria-live="polite">
               <div className="local-trade-payment-head">
@@ -420,7 +439,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
                 <div className="local-sell-payment-fields">
                   {paymentMethodFields.map(field => (
                     <label className="local-sell-payment-field" key={field.key}>
-                      <span>
+                      <span className="fs-10">
                         {field.label}
                         {field.required && <b aria-hidden="true"> *</b>}
                       </span>
@@ -454,7 +473,7 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           <div className="local-trade-actions">
             <button type="button" onClick={onClose} className="btn--secondary d-flex justify-content-center">Cancel</button>
             <button type="button" className="local-trade-sell-button d-flex justify-content-center" onClick={handleSell} disabled={submitting}>
-              {submitting ? 'Processing...' : 'Accept request'}
+              {submitting ? 'Processing...' : <><i className="fa-solid fa-circle-check" /> Accept Request</>}
             </button>
           </div>
         </div>
