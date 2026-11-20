@@ -2030,3 +2030,16 @@
   .local-trade-modal .local-trade-step small { font-size: 11px; }
   .local-trade-modal .local-trade-step-line { min-width: 5px; }
 }
+
+/* Smaller Request / Confirm / Submitted step bar. */
+.local-trade-modal .local-trade-steps { min-height: 29px; margin-bottom: 8px; }
+.local-trade-modal .local-trade-step { min-height: 27px; gap: 5px; padding-inline: 9px; }
+.local-trade-modal .local-trade-step b { width: 18px; height: 18px; flex-basis: 18px; font-size: 9px; }
+.local-trade-modal .local-trade-step small { font-size: 10px; }
+.local-trade-modal .local-trade-step-line { min-width: 6px; height: 1px; }
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-steps { min-height: 25px; margin-bottom: 7px; }
+  .local-trade-modal .local-trade-step { min-height: 23px; gap: 4px; padding-inline: 6px; }
+  .local-trade-modal .local-trade-step b { width: 15px; height: 15px; flex-basis: 15px; font-size: 8px; }
+  .local-trade-modal .local-trade-step small { font-size: 9px; }
+}

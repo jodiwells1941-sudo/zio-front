@@ -185,7 +185,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
-        <div className="mx-2">
+        <div className="mx-1">
           <div className="local-trade-total-banner local-trade-total-banner--pay mx-3 mb-0">
             <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
             <span className="local-trade-total-label">Pay Now</span>
@@ -194,7 +194,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           <small className="local-trade-pay-receive px-2 pt-1">Received USD = <span className="fs-10 fw-bold">${money(totalUSD)}</span></small>
         </div>
 
-        <div className="local-trade-content mx-2">
+        <div className="local-trade-content px-3 mx-0">
           <details className="local-trade-summary local-trade-summary--collapsible">
             <summary className="local-trade-summary-toggle">
               <h4 className="local-trade-summary-title"><i className="fa-solid fa-clipboard-list" aria-hidden="true" /> Order Summary</h4>
