@@ -1,6 +1,6 @@
 import apiClient from "@/utils/apiClient";
 
-export const submitMerchantApplicationApi = async (data: any) => {
+export const submitMerchantApplicationApi = async (data: object) => {
   const response = await apiClient.post('/user/merchant/application', data);
   return response?.data;
 }
@@ -15,7 +15,7 @@ export const getMerchantAccount = async () => {
   return response?.data;
 };
 
-export const updateMerchantApplicationApi = async (data: any) => {
+export const updateMerchantApplicationApi = async (data: object) => {
   const response = await apiClient.put('/user/merchant/account-update', data);
   return response?.data;
 }
@@ -43,6 +43,11 @@ export interface MerchantAccountResponse {
     completed_orders: number;
     success_rate: number;
     security_deposit: number;
+  };
+  merchant_level: {
+    active_tier_id: string | null;
+    tier_security_deposit_amount: number;
+    active_tier_activated_at: string | null;
   };
   order_summary: { active: number; completed: number; cancelled: number; disputes: number };
   ads_overview: { total: number; buying: number; selling: number };

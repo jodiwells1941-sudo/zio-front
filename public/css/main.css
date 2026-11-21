@@ -29958,3 +29958,435 @@ span {
 .merchant-route-shell .action-arrow { color: #fbd66f; }
 @media (max-width: 991px) { .merchant-route-shell .merchant-profile-grid { grid-template-columns: 1fr; } .merchant-route-shell .merchant-profile-sidebar { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; } }
 @media (max-width: 767px) { .merchant-route-shell .merchant-profile-container { padding: 12px 9px 26px; } .merchant-route-shell .merchant-page-header { align-items: flex-start; flex-direction: column; gap: 12px; } .merchant-route-shell .merchant-page-header .merchant-outline-btn { width: 100%; } .merchant-route-shell .merchant-profile-card,.merchant-route-shell .business-info-card,.merchant-route-shell .verification-card,.merchant-route-shell .performance-card { padding: 16px; } .merchant-route-shell .merchant-profile-sidebar { display: flex; } .merchant-route-shell .merchant-profile-top { align-items: flex-start; flex-direction: column; } .merchant-route-shell .merchant-avatar-wrapper { align-items: flex-start; } }
+
+/* Merchant tiers are selectable and reflect their admin-configured badge color. */
+.merchant-route-shell .merchant-level-page .level-card {
+  width: 100%;
+  appearance: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.merchant-route-shell .merchant-level-page .level-card.selected {
+  border-width: 2px;
+  border-color: var(--tier-accent, #fbbf24);
+  box-shadow: 0 0 0 1px color-mix(in srgb,var(--tier-accent,#fbbf24) 24%,transparent), 0 12px 28px color-mix(in srgb,var(--tier-accent,#fbbf24) 12%,transparent);
+}
+.merchant-route-shell .merchant-level-page .level-card.selected .level-badge { border-color: var(--tier-accent,#fbbf24); color: var(--tier-accent,#fbbf24); }
+.merchant-route-shell .merchant-level-page .level-card.bronze { --tier-accent:#cd895b; }
+.merchant-route-shell .merchant-level-page .level-card.silver { --tier-accent:#b5c3d8; }
+.merchant-route-shell .merchant-level-page .level-card.gold { --tier-accent:#f5bd22; }
+.merchant-route-shell .merchant-level-page .level-card.platinum { --tier-accent:#b65bfa; }
+.merchant-route-shell .merchant-level-page .level-card.diamond { --tier-accent:#39b9f2; }
+.merchant-route-shell .merchant-level-page .level-card.emerald { --tier-accent:#34d399; }
+.merchant-route-shell .merchant-level-page .level-card.ruby { --tier-accent:#fb5369; }
+.merchant-route-shell .merchant-level-page .level-card.sapphire { --tier-accent:#528bff; }
+.merchant-route-shell .merchant-level-page .level-card.amethyst { --tier-accent:#bf71ff; }
+.merchant-route-shell .merchant-level-page .level-card.teal { --tier-accent:#2dd4bf; }
+.merchant-route-shell .merchant-level-page .level-card.cyan { --tier-accent:#31c6e8; }
+.merchant-route-shell .merchant-level-page .level-card.orange { --tier-accent:#fb923c; }
+.merchant-route-shell .merchant-level-page .level-card.rose { --tier-accent:#f472b6; }
+.merchant-route-shell .merchant-level-page .level-card.indigo { --tier-accent:#818cf8; }
+.merchant-route-shell .merchant-level-page .level-card.selected .requirement-item i { color:var(--tier-accent,#fbbf24); }
+.merchant-route-shell .merchant-level-page .level-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.merchant-route-shell .merchant-level-page .level-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px !important;
+  overflow: hidden;
+  white-space: normal;
+  line-height: 1.4;
+  border-width: 1px;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--tier-accent, #fbbf24) 34%, transparent) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(150deg, #2a2d34, #22252c) !important;
+  color: #f5f0e7;
+  text-align: left;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.merchant-route-shell .merchant-level-page .level-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--tier-accent, #fbbf24) 70%, transparent) !important;
+}
+.merchant-route-shell .merchant-level-page .level-card.selected {
+  border-width: 2px;
+  padding: 15px !important;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--tier-accent, #fbbf24) 12%, #2a2d34), #22252c) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tier-accent, #fbbf24) 10%, transparent), 0 12px 28px rgba(0,0,0,.2);
+}
+.merchant-route-shell .merchant-level-page .level-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--tier-accent, #fbbf24) 58%, white);
+  outline-offset: 3px;
+}
+.merchant-route-shell .merchant-level-page .level-card-top {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+  margin: 0 0 17px;
+}
+.merchant-route-shell .merchant-level-page .level-badge { flex: 0 0 48px; width: 48px; height: 48px; }
+.merchant-route-shell .merchant-level-page .level-name-area { flex: 1; min-width: 0; }
+.merchant-route-shell .merchant-level-page .level-name-area h3 { overflow-wrap: anywhere; }
+.merchant-route-shell .merchant-level-page .requirements-title {
+  display: block;
+  width: 100%;
+  margin: 0 0 9px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  color: #c5b9a8;
+  font-size: 12px;
+  font-weight: 700;
+}
+.merchant-route-shell .merchant-level-page .requirements-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  gap: 9px;
+}
+.merchant-route-shell .merchant-level-page .requirement-item {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: #d0c8bd;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.merchant-route-shell .merchant-level-page .requirement-item span { flex: 1; min-width: 0; }
+.merchant-route-shell .merchant-level-page .requirement-item i { flex: 0 0 auto; color: var(--tier-accent, #fbbf24); }
+.merchant-route-shell .merchant-level-page .tier-select-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 13px;
+  color: var(--tier-accent, #fbbf24);
+  font-size: 11px;
+  font-weight: 700;
+}
+.merchant-route-shell .merchant-level-page .level-card-arrow { display: none; }
+.merchant-route-shell .merchant-level-page .level-header-actions { align-items: center; }
+.merchant-route-shell .merchant-level-page .merchant-tier-managed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(251,191,36,.24);
+  border-radius: 9px;
+  background: rgba(251,191,36,.07);
+  color: #f6d67d;
+  font-size: 12px;
+  font-weight: 650;
+}
+.merchant-route-shell .merchant-level-page .merchant-tier-managed-badge i { color: #fbbf24; }
+.merchant-route-shell .merchant-level-page .tier-benefits-note { margin: 12px 0 0; color: #b7aa99; font-size: 11px; line-height: 1.5; }
+.merchant-tier-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 92px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px dashed rgba(251,191,36,.28);
+  border-radius: 12px;
+  background: rgba(33,37,41,.62);
+  color: #c5b9a8;
+  font-size: 13px;
+  text-align: center;
+}
+.merchant-tier-empty > i { color: #fbbf24; font-size: 18px; }
+.merchant-tier-spinner { width: 17px; height: 17px; border: 2px solid rgba(251,191,36,.25); border-top-color: #fbbf24; border-radius: 50%; animation: merchant-tier-spin .75s linear infinite; }
+@keyframes merchant-tier-spin { to { transform: rotate(360deg); } }
+.merchant-tier-note {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-left: 3px solid #fbbf24;
+  border-radius: 0 8px 8px 0;
+  background: rgba(251,191,36,.07);
+  color: #bfb3a3;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.merchant-route-shell .merchant-level-page .selected-tier-detail {
+  border-color: rgba(251,191,36,.2);
+  background: rgba(33,37,41,.74);
+}
+.merchant-route-shell .merchant-level-page .benefit-row {
+  min-height: 43px;
+  border-bottom-color: rgba(255,255,255,.07);
+}
+.merchant-route-shell .merchant-level-page .primary-level-btn {
+  min-height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(120deg, #ffe38a, #fbbf24);
+  color: #211704;
+  font-weight: 750;
+}
+@media (max-width: 1199px) {
+  .merchant-route-shell .merchant-level-page .level-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 991px) {
+  .merchant-route-shell .merchant-level-page .level-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 575px) {
+  .merchant-route-shell .merchant-level-page .level-cards { grid-template-columns: 1fr; gap: 10px; }
+  .merchant-route-shell .merchant-level-page .level-card { padding: 14px !important; }
+  .merchant-route-shell .merchant-level-page .level-card.selected { padding: 13px !important; }
+  .merchant-route-shell .merchant-level-page .selected-tier-details { grid-template-columns: 1fr; }
+  .merchant-route-shell .merchant-level-page .selected-tier-refund { grid-column: auto; }
+}
+.merchant-route-shell .level-selected-label { display:inline-flex; align-items:center; gap:7px; padding:6px 10px; border:1px solid color-mix(in srgb,var(--tier-accent,#fbbf24) 35%,transparent); border-radius:999px; background:color-mix(in srgb,var(--tier-accent,#fbbf24) 10%,transparent); color:var(--tier-accent,#fbbf24); font-size:12px; font-weight:700; }
+.merchant-route-shell .selected-tier-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px; }
+.merchant-route-shell .selected-tier-detail { display:flex; align-items:center; gap:11px; min-height:70px; padding:13px; border:1px solid rgba(251,191,36,.16); border-radius:9px; background:rgba(255,255,255,.025); }
+.merchant-route-shell .selected-tier-detail > i { color:var(--tier-accent,#fbbf24); font-size:18px; }
+.merchant-route-shell .selected-tier-detail > span { flex:1; color:#b8ac9b; font-size:12px; }
+.merchant-route-shell .selected-tier-detail > strong { color:#fff0d2; font-size:14px; text-align:right; }
+.merchant-route-shell .selected-tier-refund { grid-column:1/-1; display:flex; align-items:center; gap:7px; color:#34d399; font-size:12px; }
+@media(max-width:575px) { .merchant-route-shell .selected-tier-details { grid-template-columns:1fr; } }
+.merchant-route-shell .merchant-level-page .level-card.selected {
+  border: 3px solid #fbbf24 !important;
+  padding: 14px !important;
+  background: linear-gradient(150deg, rgba(251,191,36,.16), #25272d 72%) !important;
+  box-shadow: 0 0 0 2px rgba(251,191,36,.15), 0 0 22px rgba(251,191,36,.2), inset 0 0 18px rgba(251,191,36,.06) !important;
+}
+.merchant-route-shell .merchant-level-page .level-card.selected .level-badge {
+  border: 2px solid #fbbf24 !important;
+  color: #ffd86a !important;
+  background: rgba(251,191,36,.18) !important;
+  box-shadow: 0 0 14px rgba(251,191,36,.18);
+}
+.merchant-route-shell .merchant-level-page .level-card.selected .requirement-item i,
+.merchant-route-shell .merchant-level-page .level-card.selected .tier-select-hint,
+.merchant-route-shell .merchant-level-page .level-selected-label { color: #fbbf24 !important; }
+.merchant-route-shell .merchant-level-page .level-selected-label {
+  border-color: rgba(251,191,36,.58) !important;
+  background: rgba(251,191,36,.12) !important;
+}
+.merchant-route-shell .merchant-level-page .level-card.selected:focus-visible {
+  outline: 3px solid #ffe38a;
+  outline-offset: 3px;
+}
+.merchant-route-shell .merchant-level-page .level-card .level-badge {
+  color: var(--tier-accent, #fbbf24);
+  border-color: color-mix(in srgb, var(--tier-accent, #fbbf24) 48%, transparent);
+  background: color-mix(in srgb, var(--tier-accent, #fbbf24) 12%, #212529);
+}
+.merchant-route-shell .merchant-level-page .level-cards { gap: 14px; margin-bottom: 18px; }
+.merchant-route-shell .merchant-level-page .level-card { min-height: 210px; padding: 16px !important; }
+.merchant-route-shell .merchant-level-page .level-card-top { align-items: flex-start; margin-bottom: 15px; }
+.merchant-route-shell .merchant-level-page .requirements-title { padding-top: 10px; }
+.merchant-route-shell .merchant-level-page .requirements-list { gap: 8px; }
+.merchant-route-shell .merchant-level-page .tier-select-hint {
+  justify-content: flex-start;
+  gap: 7px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.merchant-route-shell .merchant-level-page .merchant-level-main { margin-bottom: 14px; }
+.merchant-route-shell .merchant-level-page .tier-progress-panel,
+.merchant-route-shell .merchant-level-page .tier-benefits-panel,
+.merchant-route-shell .merchant-level-page .tier-snapshot-panel,
+.merchant-route-shell .merchant-level-page .tier-guidance-panel {
+  height: 100%;
+  padding: 20px;
+  border: 1px solid rgba(251,191,36,.19);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #222832, #1b2028) !important;
+}
+.merchant-route-shell .merchant-level-page .panel-title-row,
+.merchant-route-shell .merchant-level-page .tier-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.merchant-route-shell .merchant-level-page .panel-title-row h2,
+.merchant-route-shell .merchant-level-page .tier-section-heading h2,
+.merchant-route-shell .merchant-level-page .tier-benefits-panel h2 {
+  margin: 3px 0 0;
+  color: #fff4dd;
+  font-size: 17px;
+  font-weight: 750;
+}
+.merchant-route-shell .merchant-level-page .tier-panel-eyebrow {
+  color: #eabf50;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+.merchant-route-shell .merchant-level-page .tier-progress-value {
+  color: #fbbf24;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1;
+}
+.merchant-route-shell .merchant-level-page .tier-progress-track {
+  height: 9px;
+  margin: 18px 0 16px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #15191f;
+}
+.merchant-route-shell .merchant-level-page .tier-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d9920b, #fbbf24, #ffe18a);
+  box-shadow: 0 0 14px rgba(251,191,36,.35);
+  transition: width .3s ease;
+}
+.merchant-route-shell .merchant-level-page .tier-requirements-intro { margin: 10px 0 0; color: #b5b8bd; font-size: 12px; line-height: 1.5; }
+.merchant-route-shell .merchant-level-page .tier-progress-track { margin: 12px 0 16px; }
+.merchant-route-shell .merchant-level-page .tier-requirements-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 11px; }
+.merchant-route-shell .merchant-level-page .tier-requirement-card { min-width: 0; padding: 14px; border: 1px solid rgba(251,191,36,.2); border-radius: 10px; background: linear-gradient(145deg,#20252d,#1a1e25); }
+.merchant-route-shell .merchant-level-page .tier-requirement-card-heading { display: flex; align-items: center; gap: 10px; min-width: 0; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.merchant-route-shell .merchant-level-page .tier-requirement-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border: 1px solid rgba(251,191,36,.32); border-radius: 9px; background: rgba(251,191,36,.1); color: #fbbf24; }
+.merchant-route-shell .merchant-level-page .tier-requirement-card-heading > span:last-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.merchant-route-shell .merchant-level-page .tier-requirement-card-heading small { color: #d7ad48; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.merchant-route-shell .merchant-level-page .tier-requirement-card-heading strong { color: #f4ead8; font-size: 12px; overflow-wrap: anywhere; }
+.merchant-route-shell .merchant-level-page .tier-requirement-values { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; padding: 12px 0 9px; }
+.merchant-route-shell .merchant-level-page .tier-requirement-values > span { display: flex; flex-direction: column; gap: 5px; color: #aeb4bc; font-size: 10px; }
+.merchant-route-shell .merchant-level-page .tier-requirement-values strong { color: #fff1d1; font-size: 13px; font-weight: 750; overflow-wrap: anywhere; }
+.merchant-route-shell .merchant-level-page .tier-requirement-status { display: flex; align-items: flex-start; gap: 7px; min-height: 30px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); color: #f0c35c; font-size: 10px; font-weight: 650; line-height: 1.45; }
+.merchant-route-shell .merchant-level-page .tier-requirement-status i { margin-top: 1px; flex: 0 0 auto; }
+.merchant-route-shell .merchant-level-page .tier-requirement-status.is-met { color: #48d49a; }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite { margin-top: 13px; padding: 11px 12px; border: 1px solid rgba(251,191,36,.2); border-radius: 9px; background: rgba(251,191,36,.055); }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite.is-met { border-color: rgba(52,211,153,.28); background: rgba(6,95,70,.09); }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #e9c45f; font-size: 10px; font-weight: 700; }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite.is-met .tier-current-prerequisite-heading { color: #63dda8; }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite-heading > span { display: flex; align-items: center; gap: 7px; }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite-heading > strong { font-size: 13px; }
+.merchant-route-shell .merchant-level-page .tier-prerequisite-track { height: 5px; margin: 8px 0 6px; overflow: hidden; border-radius: 99px; background: #15191f; }
+.merchant-route-shell .merchant-level-page .tier-prerequisite-track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#d9920b,#fbbf24); transition: width .25s ease; }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite.is-met .tier-prerequisite-track span { background: linear-gradient(90deg,#059669,#34d399); }
+.merchant-route-shell .merchant-level-page .tier-current-prerequisite > small { color: #aaa99f; font-size: 9px; line-height: 1.4; }
+.merchant-route-shell .merchant-level-page .tier-activation-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.merchant-route-shell .merchant-level-page .tier-activation-footer p { margin: 0; color: #b8b2a8; font-size: 11px; line-height: 1.5; }
+.merchant-route-shell .merchant-level-page .tier-activate-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #fbbf24;
+  border-radius: 9px;
+  background: linear-gradient(135deg,#ffe38a,#fbbf24);
+  color: #211704;
+  font-size: 12px;
+  font-weight: 800;
+  transition: filter .18s ease, transform .18s ease, opacity .18s ease;
+}
+.merchant-route-shell .merchant-level-page .tier-activate-button:not(:disabled):hover { filter: brightness(1.07); transform: translateY(-1px); }
+.merchant-route-shell .merchant-level-page .tier-activate-button:disabled { cursor: not-allowed; opacity: .52; filter: saturate(.65); }
+.merchant-route-shell .merchant-level-page .tier-activation-alert { margin-top: 12px; padding: 10px 12px; border: 1px solid; border-radius: 8px; font-size: 11px; line-height: 1.5; }
+.merchant-route-shell .merchant-level-page .tier-activation-alert.is-error { border-color: rgba(248,113,113,.4); background: rgba(127,29,29,.18); color: #ffaaaa; }
+.merchant-route-shell .merchant-level-page .tier-activation-alert.is-success { border-color: rgba(52,211,153,.36); background: rgba(6,95,70,.16); color: #7ce7b4; }
+.merchant-route-shell .merchant-level-page .selected-tier-details { margin-top: 0; gap: 10px; }
+.merchant-route-shell .merchant-level-page .selected-tier-detail {
+  min-width: 0;
+  min-height: 74px;
+  padding: 12px;
+  gap: 10px;
+  border-color: rgba(255,255,255,.09);
+  background: #1d222a;
+}
+.merchant-route-shell .merchant-level-page .selected-tier-detail > span { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.merchant-route-shell .merchant-level-page .selected-tier-detail > span strong { color: #eee5d8; font-size: 12px; }
+.merchant-route-shell .merchant-level-page .selected-tier-detail > span small { color: #a9aead; font-size: 10px; line-height: 1.4; }
+.merchant-route-shell .merchant-level-page .selected-tier-detail > b { color: #f4c45a; font-size: 12px; }
+.merchant-route-shell .merchant-level-page .selected-tier-detail > b.is-met { color: #45d69a; }
+.merchant-route-shell .merchant-level-page .selected-tier-refund { margin-top: 12px; }
+.merchant-route-shell .merchant-level-page .tier-data-note { margin: 12px 0 0; color: #b8aa98; font-size: 11px; }
+.merchant-route-shell .merchant-level-page .tier-benefits-panel .panel-title-row { margin-bottom: 12px; }
+.merchant-route-shell .merchant-level-page .tier-benefits-panel .level-selected-label { flex-shrink: 0; }
+.merchant-route-shell .merchant-level-page .tier-benefits-panel .benefit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.merchant-route-shell .merchant-level-page .tier-benefits-panel .benefit-title { display: flex; align-items: center; gap: 9px; color: #d4d0c8; font-size: 12px; }
+.merchant-route-shell .merchant-level-page .tier-benefits-panel .benefit-title i { width: 16px; color: #f1bd45; text-align: center; }
+.merchant-route-shell .merchant-level-page .tier-benefits-panel .benefit-row > strong { color: #fff1ce; font-size: 13px; white-space: nowrap; }
+.merchant-route-shell .merchant-level-page .tier-benefits-note { margin: 11px 0 0; color: #a9aead; font-size: 10px; }
+.merchant-route-shell .merchant-level-page .tier-snapshot-panel,
+.merchant-route-shell .merchant-level-page .tier-guidance-panel { height: auto; margin-top: 14px; }
+.merchant-route-shell .merchant-level-page .tier-section-heading { margin-bottom: 16px; }
+.merchant-route-shell .merchant-level-page .tier-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #aab5b0;
+  font-size: 10px;
+}
+.merchant-route-shell .merchant-level-page .tier-live-indicator i { width: 7px; height: 7px; border-radius: 50%; background: #35d399; box-shadow: 0 0 9px rgba(53,211,153,.55); }
+.merchant-route-shell .merchant-level-page .tier-snapshot-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); }
+.merchant-route-shell .merchant-level-page .tier-snapshot-item { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 8px 16px; border-right: 1px solid rgba(255,255,255,.08); }
+.merchant-route-shell .merchant-level-page .tier-snapshot-item:first-child { padding-left: 0; }
+.merchant-route-shell .merchant-level-page .tier-snapshot-item:last-child { padding-right: 0; border-right: 0; }
+.merchant-route-shell .merchant-level-page .tier-snapshot-icon,
+.merchant-route-shell .merchant-level-page .tier-guidance-icon { display: grid; flex: 0 0 40px; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(251,191,36,.35); border-radius: 50%; background: rgba(251,191,36,.08); color: #fbbf24; }
+.merchant-route-shell .merchant-level-page .tier-snapshot-icon.green { color: #35d399; border-color: rgba(53,211,153,.45); background: rgba(53,211,153,.08); }
+.merchant-route-shell .merchant-level-page .tier-snapshot-icon.blue { color: #53c6f2; border-color: rgba(83,198,242,.45); background: rgba(83,198,242,.08); }
+.merchant-route-shell .merchant-level-page .tier-snapshot-icon.purple { color: #c17af3; border-color: rgba(193,122,243,.45); background: rgba(193,122,243,.08); }
+.merchant-route-shell .merchant-level-page .tier-snapshot-copy { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.merchant-route-shell .merchant-level-page .tier-snapshot-copy small { color: #a9b2bd; font-size: 11px; }
+.merchant-route-shell .merchant-level-page .tier-snapshot-copy strong { color: #fff2d9; font-size: 17px; overflow-wrap: anywhere; }
+.merchant-route-shell .merchant-level-page .tier-guidance-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.merchant-route-shell .merchant-level-page .tier-guidance-item { display: flex; align-items: flex-start; gap: 11px; min-width: 0; padding: 14px; border: 1px solid rgba(255,255,255,.08); border-radius: 9px; background: #1d222a; }
+.merchant-route-shell .merchant-level-page .tier-guidance-icon { flex-basis: 34px; width: 34px; height: 34px; }
+.merchant-route-shell .merchant-level-page .tier-guidance-item h3 { margin: 1px 0 6px; color: #f4ead8; font-size: 12px; font-weight: 750; }
+.merchant-route-shell .merchant-level-page .tier-guidance-item p { margin: 0; color: #aeb4bb; font-size: 11px; line-height: 1.5; }
+@media(max-width: 767px) {
+  .merchant-route-shell .merchant-level-page .tier-snapshot-grid { grid-template-columns: repeat(2, minmax(0,1fr)); row-gap: 14px; }
+  .merchant-route-shell .merchant-level-page .tier-snapshot-item:nth-child(2) { border-right: 0; }
+  .merchant-route-shell .merchant-level-page .tier-snapshot-item:nth-child(3) { padding-left: 0; }
+  .merchant-route-shell .merchant-level-page .tier-guidance-grid { grid-template-columns: 1fr; }
+}
+@media(max-width: 575px) {
+  .merchant-route-shell .merchant-level-page .tier-progress-panel,
+  .merchant-route-shell .merchant-level-page .tier-benefits-panel,
+  .merchant-route-shell .merchant-level-page .tier-snapshot-panel,
+  .merchant-route-shell .merchant-level-page .tier-guidance-panel { padding: 15px; }
+  .merchant-route-shell .merchant-level-page .selected-tier-details { grid-template-columns: 1fr; }
+  .merchant-route-shell .merchant-level-page .tier-requirements-grid { grid-template-columns: 1fr; }
+  .merchant-route-shell .merchant-level-page .tier-snapshot-item { padding-inline: 8px; }
+  .merchant-route-shell .merchant-level-page .tier-snapshot-copy strong { font-size: 15px; }
+  .merchant-route-shell .merchant-level-page .tier-activation-footer { align-items: stretch; flex-direction: column; }
+  .merchant-route-shell .merchant-level-page .tier-activate-button { width: 100%; }
+}

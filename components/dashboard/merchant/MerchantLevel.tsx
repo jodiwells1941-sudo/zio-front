@@ -1,170 +1,192 @@
 "use client";
 
-import React from "react";
+import { useEffect, useMemo, useState } from "react";
+import apiClient from "@/utils/apiClient";
+import { getMerchantAccountData, type MerchantAccountResponse } from "@/app/api/merchant";
 
 type Level = {
+  id: string;
   name: string;
   level: string;
   icon: string;
   className: string;
   requirements: string[];
   current?: boolean;
+  minOrdersCompleted?: number;
+  platformCharge?: number;
+  bonusPercent?: number;
+  securityDepositAmount?: number;
+  securityDepositRefundable?: boolean;
+  securityDepositRequired?: boolean;
+  maxAds?: number;
+  orderLimit?: number;
+  prioritySupport?: string;
+  payoutHours?: number;
+  disputeHandling?: string;
 };
 
-const levels: Level[] = [
-  {
-    name: "Bronze",
-    level: "Entry Level",
-    icon: "fa-solid fa-medal",
-    className: "bronze",
-    requirements: [
-      "Complete Verification",
-      "Security Deposit",
-    ],
-  },
-  {
-    name: "Silver",
-    level: "Level 1",
-    icon: "fa-solid fa-medal",
-    className: "silver",
-    requirements: [
-      "≥ 10,000 USD Monthly Volume",
-      "Completion Rate ≥ 90%",
-    ],
-  },
-  {
-    name: "Gold",
-    level: "Current Level",
-    icon: "fa-solid fa-star",
-    className: "gold current",
-    current: true,
-    requirements: [
-      "≥ 50,000 USD Monthly Volume",
-      "Completion Rate ≥ 96%",
-      "Positive Feedback ≥ 95%",
-    ],
-  },
-  {
-    name: "Platinum",
-    level: "Level 3",
-    icon: "fa-solid fa-gem",
-    className: "platinum",
-    requirements: [
-      "≥ 150,000 USD Monthly Volume",
-      "Completion Rate ≥ 97%",
-      "Positive Feedback ≥ 97%",
-    ],
-  },
-  {
-    name: "Diamond",
-    level: "Top Level",
-    icon: "fa-solid fa-gem",
-    className: "diamond",
-    requirements: [
-      "≥ 500,000 USD Monthly Volume",
-      "Completion Rate ≥ 98%",
-      "Positive Feedback ≥ 98%",
-    ],
-  },
-];
-
-const benefits = [
-  {
-    icon: "fa-solid fa-percent",
-    title: "Trading Fee (Taker)",
-    value: "0.20%",
-  },
-  {
-    icon: "fa-solid fa-percent",
-    title: "Trading Fee (Maker)",
-    value: "0.10%",
-  },
-  {
-    icon: "fa-solid fa-rectangle-ad",
-    title: "Max Active Ads",
-    value: "20",
-  },
-  {
-    icon: "fa-solid fa-wallet",
-    title: "Order Limit per Ad",
-    value: "500,000 USD",
-  },
-  {
-    icon: "fa-solid fa-headset",
-    title: "Priority Support",
-    value: "Medium",
-  },
-  {
-    icon: "fa-solid fa-clock",
-    title: "Payout Time",
-    value: "24 Hours",
-  },
-  {
-    icon: "fa-solid fa-shield-halved",
-    title: "Dispute Handling",
-    value: "Standard",
-  },
-];
-
-const performance = [
-  {
-    icon: "fa-solid fa-dollar-sign",
-    title: "Trading Volume",
-    value: "102,450.50 USD",
-    growth: "18.6%",
-    type: "yellow",
-  },
-  {
-    icon: "fa-solid fa-circle-check",
-    title: "Completed Orders",
-    value: "965",
-    growth: "14.2%",
-    type: "green",
-  },
-  {
-    icon: "fa-solid fa-clock",
-    title: "Completion Rate",
-    value: "96.2%",
-    growth: "1.8%",
-    type: "blue",
-  },
-  {
-    icon: "fa-regular fa-thumbs-up",
-    title: "Positive Feedback",
-    value: "97.6%",
-    growth: "1.2%",
-    type: "purple",
-  },
-];
-
-const upgradeSteps = [
-  {
-    icon: "fa-solid fa-chart-line",
-    title: "Increase Trading Volume",
-    description:
-      "Trade more to meet the volume requirement for higher levels.",
-  },
-  {
-    icon: "fa-solid fa-circle-check",
-    title: "Maintain High Completion",
-    description:
-      "Keep your completion rate high by completing orders on time.",
-  },
-  {
-    icon: "fa-solid fa-shield-halved",
-    title: "Positive Feedback",
-    description:
-      "Provide excellent service to get more positive feedback.",
-  },
-  {
-    icon: "fa-solid fa-thumbs-up",
-    title: "Unlock Higher Benefits",
-    description:
-      "Enjoy lower fees, higher limits and priority support.",
-  },
-];
-
 export default function MerchantLevel() {
+  const [visibleLevels, setVisibleLevels] = useState<Level[]>([]);
+  const [selectedLevelId, setSelectedLevelId] = useState("");
+  const [tiersLoading, setTiersLoading] = useState(true);
+  const [tiersError, setTiersError] = useState(false);
+  const [merchantData, setMerchantData] = useState<MerchantAccountResponse | null>(null);
+  const [activationLoading, setActivationLoading] = useState(false);
+  const [activationMessage, setActivationMessage] = useState("");
+  const [activationError, setActivationError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    apiClient.get("/user/merchant-level-tiers")
+      .then(response => response.data)
+      .then(result => {
+        if (cancelled) return;
+        if (!Array.isArray(result?.data)) {
+          setVisibleLevels([]);
+          setTiersError(true);
+          setTiersLoading(false);
+          return;
+        }
+        const mapped: Level[] = result.data.map((tier: Record<string, unknown>) => {
+          const name = String(tier.name ?? "Merchant");
+          const color = String(tier.color ?? "bronze").toLowerCase();
+          const minOrders = Number(tier.min_orders_completed ?? 0);
+          const depositAmount = Number(tier.security_deposit_amount ?? 0);
+          const depositRequired = tier.security_deposit_required === true || tier.security_deposit_required === 1 || tier.security_deposit_required === "1";
+          const depositRefundable = tier.security_deposit_refundable === true || tier.security_deposit_refundable === 1 || tier.security_deposit_refundable === "1";
+          const requirements = [`${minOrders.toLocaleString()} completed orders`];
+          if (depositRequired) requirements.push(depositAmount > 0 ? `Security deposit: $${depositAmount.toLocaleString()} USD` : "Security deposit required");
+          return {
+            id: String(tier.id ?? name.toLowerCase()),
+            name,
+            level: String(tier.level_label ?? "Merchant Level"),
+            icon: String(tier.icon ?? "fa-solid fa-medal"),
+            className: color,
+            requirements,
+            current: false,
+            minOrdersCompleted: minOrders,
+            platformCharge: Number(tier.platform_charge_percent ?? 0),
+            bonusPercent: Number(tier.bonus_percent ?? 0),
+            securityDepositAmount: depositAmount,
+            securityDepositRefundable: depositRefundable,
+            securityDepositRequired: depositRequired,
+            maxAds: Number(tier.max_active_ads ?? 0),
+          };
+        });
+        setVisibleLevels(mapped);
+        setSelectedLevelId(currentId => mapped.some(level => level.id === currentId) ? currentId : (mapped[0]?.id ?? ""));
+        setTiersLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setVisibleLevels([]);
+          setTiersError(true);
+          setTiersLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getMerchantAccountData()
+      .then(data => {
+        if (!cancelled) {
+          setMerchantData(data);
+          if (data.merchant_level?.active_tier_id) setSelectedLevelId(data.merchant_level.active_tier_id);
+        }
+      })
+      .catch(() => { if (!cancelled) setMerchantData(null); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const selectedLevel = useMemo(() => visibleLevels.find(level => level.id === selectedLevelId) ?? visibleLevels[0], [visibleLevels, selectedLevelId]);
+  const benefits = useMemo(() => selectedLevel ? [
+    { icon: "fa-solid fa-percent", title: "Platform Charge", value: `${selectedLevel.platformCharge ?? 0}%` },
+    { icon: "fa-solid fa-gift", title: "Bonus", value: `${selectedLevel.bonusPercent ?? 0}%` },
+    { icon: "fa-solid fa-rectangle-ad", title: "Maximum Active Ads", value: String(selectedLevel.maxAds ?? 0) },
+  ] : [], [selectedLevel]);
+  const completedOrders = Number(merchantData?.stats.completed_orders ?? 0);
+  const orderTarget = Number(selectedLevel?.minOrdersCompleted ?? 0);
+  const currentDeposit = Number(merchantData?.merchant_level.tier_security_deposit_amount ?? 0);
+  const depositTarget = selectedLevel?.securityDepositRequired ? Number(selectedLevel.securityDepositAmount ?? 0) : 0;
+  const walletBalance = Number(merchantData?.stats.total_balance.usdt ?? 0);
+  const activeTierId = merchantData?.merchant_level.active_tier_id ?? null;
+  const activeTierIndex = visibleLevels.findIndex(level => level.id === activeTierId);
+  const activeTierConfigMissing = Boolean(activeTierId && activeTierIndex < 0);
+  const activeTier = activeTierIndex >= 0 ? visibleLevels[activeTierIndex] : undefined;
+  const nextTier = visibleLevels[activeTierIndex + 1] ?? (activeTierIndex === -1 ? visibleLevels[0] : undefined);
+  const activeTierDepositTarget = activeTier?.securityDepositRequired ? Number(activeTier.securityDepositAmount ?? 0) : 0;
+  const activeOrderProgress = activeTier && Number(activeTier.minOrdersCompleted ?? 0) > 0
+    ? Math.min(100, completedOrders / Number(activeTier.minOrdersCompleted) * 100)
+    : 100;
+  const activeDepositProgress = activeTierDepositTarget > 0
+    ? Math.min(100, currentDeposit / activeTierDepositTarget * 100)
+    : 100;
+  const activeTierProgress = Math.round((activeOrderProgress + activeDepositProgress) / 2);
+  const activeTierRequirementsMet = !activeTier || (
+    completedOrders >= Number(activeTier.minOrdersCompleted ?? 0) && currentDeposit >= activeTierDepositTarget
+  );
+  const selectedIsNextTier = Boolean(selectedLevel && nextTier && selectedLevel.id === nextTier.id);
+  const selectedOrdersMet = completedOrders >= orderTarget;
+  const depositToCharge = Math.max(0, depositTarget - currentDeposit);
+  const depositCanBeFunded = walletBalance >= depositToCharge;
+  const orderProgress = orderTarget > 0 ? Math.min(100, completedOrders / orderTarget * 100) : 100;
+  const depositProgress = depositTarget <= 0 || currentDeposit >= depositTarget
+    ? 100
+    : depositCanBeFunded
+      ? 100
+      : Math.min(100, currentDeposit / depositTarget * 100);
+  const requirementProgress = Math.round((orderProgress + depositProgress) / 2);
+  const canActivateSelectedTier = Boolean(
+    merchantData && selectedLevel && !activeTierConfigMissing && selectedIsNextTier && selectedOrdersMet && activeTierRequirementsMet && depositCanBeFunded
+  );
+  const activationHint = !merchantData
+    ? "An approved merchant account is required to activate a tier."
+    : !selectedLevel
+      ? "Select a tier to continue."
+      : activeTierId === selectedLevel.id
+        ? "This tier is already active on your account."
+        : activeTierConfigMissing
+          ? "Your active tier is no longer available. Contact support before changing tiers."
+          : !nextTier
+          ? "You have reached the highest active tier."
+          : !selectedIsNextTier
+            ? `Activate tiers in order. The next tier is ${nextTier.name}.`
+            : !activeTierRequirementsMet
+              ? "Meet all requirements for your active tier before advancing."
+              : !selectedOrdersMet
+                ? `Complete ${Math.max(0, orderTarget - completedOrders).toLocaleString()} more orders to qualify.`
+                : !depositCanBeFunded
+                  ? `Add ${(depositToCharge - walletBalance).toLocaleString()} USD to your wallet for the refundable deposit.`
+                  : `Ready to activate ${selectedLevel.name}. The refundable deposit will be reserved during activation.`;
+
+  const activateSelectedTier = async () => {
+    if (!selectedLevel || !canActivateSelectedTier || activationLoading) return;
+    setActivationLoading(true);
+    setActivationMessage("");
+    setActivationError("");
+    try {
+      await apiClient.post("/user/merchant/level/activate", { tier_id: selectedLevel.id });
+      const refreshedAccount = await getMerchantAccountData();
+      setMerchantData(refreshedAccount);
+      setSelectedLevelId(refreshedAccount.merchant_level.active_tier_id ?? selectedLevel.id);
+      setActivationMessage(`${selectedLevel.name} is now active. Its refundable security deposit is held in the admin security reserve.`);
+    } catch (error: unknown) {
+      const responseData = (error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
+      const firstValidationMessage = responseData?.errors ? Object.values(responseData.errors).flat()[0] : undefined;
+      setActivationError(firstValidationMessage || responseData?.message || "Could not activate this tier. Please review the requirements and try again.");
+    } finally {
+      setActivationLoading(false);
+    }
+  };
+  const snapshot = [
+    { icon: "fa-solid fa-circle-check", label: "Completed orders", value: merchantData ? completedOrders.toLocaleString() : "—", accent: "green" },
+    { icon: "fa-solid fa-arrows-rotate", label: "Active orders", value: merchantData ? Number(merchantData.order_summary.active).toLocaleString() : "—", accent: "blue" },
+    { icon: "fa-solid fa-chart-pie", label: "Success rate", value: merchantData ? `${Number(merchantData.stats.success_rate).toFixed(1)}%` : "—", accent: "purple" },
+    { icon: "fa-solid fa-rectangle-ad", label: "Active ads", value: merchantData ? Number(merchantData.ads_overview.total).toLocaleString() : "—", accent: "gold" },
+  ];
+
   return (
     <section className="merchant-level-page">
 
@@ -173,33 +195,29 @@ export default function MerchantLevel() {
         <div>
           <h1>Merchant Level / Tier</h1>
           <p>
-            Your level is based on your trading volume, completion rate and
-            account performance.
+            Review the requirements and configured benefits for each merchant tier.
           </p>
         </div>
 
         <div className="level-header-actions">
-          <button className="level-date-btn">
-            <span>01 May 2025 - 31 May 2025</span>
-            <i className="fa-regular fa-calendar" />
-          </button>
-
-          <button className="level-history-btn">
-            <i className="fa-solid fa-download" />
-            Level History
-          </button>
+          <span className="merchant-tier-managed-badge">
+            <i className="fa-solid fa-shield-halved" aria-hidden="true" />
+            Platform configured tiers
+          </span>
         </div>
       </div>
 
       {/* Level Cards */}
       <div className="level-cards">
-        {levels.map((level, index) => (
-          <div
+        {visibleLevels.map((level) => (
+          <button
+            type="button"
             key={level.name}
-            className={`level-card ${level.className}`}
+            className={`level-card ${level.className} ${selectedLevel?.id === level.id ? "selected" : ""}`}
+            onClick={() => setSelectedLevelId(level.id)}
+            aria-pressed={selectedLevel?.id === level.id}
+            aria-label={`Show ${level.name} tier details`}
           >
-            {level.current && null}
-
             <div className="level-card-top">
               <div className="level-badge">
                 <i className={level.icon} />
@@ -208,9 +226,9 @@ export default function MerchantLevel() {
               <div className="level-name-area">
                 <h3>{level.name}</h3>
 
-                {level.name === "Gold" ? (
+                {activeTierId === level.id ? (
                   <span className="current-level-badge">
-                    Current Level
+                    Active Tier
                   </span>
                 ) : (
                   <span>{level.level}</span>
@@ -234,218 +252,153 @@ export default function MerchantLevel() {
               ))}
             </div>
 
-            {index < levels.length - 1 && (
-              <div className="level-card-arrow">
-                <i className="fa-solid fa-chevron-right" />
-              </div>
-            )}
-          </div>
+            <span className="tier-select-hint" aria-hidden="true">
+              {selectedLevel?.id === level.id ? "Selected" : "View tier details"}
+              <i className={`fa-solid ${selectedLevel?.id === level.id ? "fa-check" : "fa-arrow-right"}`} />
+            </span>
+          </button>
         ))}
       </div>
+      {!tiersLoading && visibleLevels.length === 0 && (
+        <div className="merchant-tier-empty" role="status">
+          <i className="fa-solid fa-layer-group" aria-hidden="true" />
+          <span>{tiersError ? "We could not load merchant tiers. Please refresh the page to try again." : "No merchant tiers are available right now. Please check back later."}</span>
+        </div>
+      )}
+      {tiersLoading && (
+        <div className="merchant-tier-empty" role="status">
+          <span className="merchant-tier-spinner" aria-hidden="true" />
+          <span>Loading merchant tiers…</span>
+        </div>
+      )}
 
-      {/* Progress + Benefits */}
+      {/* Selected tier progress and admin-configured benefits */}
       <div className="row g-3 merchant-level-main">
-
-        {/* Progress */}
-        <div className="col-12 col-xl-8">
-          <div className="merchant-panel progress-panel">
-
+        <div className="col-12 col-xl-7">
+          <div className="merchant-panel progress-panel tier-progress-panel">
             <div className="panel-title-row">
               <div>
-                <h2>Your Progress to Next Level</h2>
+                <span className="tier-panel-eyebrow">SELECTED TIER REQUIREMENTS</span>
+                <h2>{selectedLevel ? `${selectedLevel.name} requirements` : "Tier requirements"}</h2>
               </div>
-
-              <div className="progress-target">
-                <span>Progress to</span>
-                <strong>Platinum</strong>
-                <b>68%</b>
-              </div>
+              <span className="level-selected-label"><i className="fa-solid fa-circle-check" aria-hidden="true" /> {selectedLevel?.name ?? "Select a tier"}</span>
             </div>
-
-            <div className="current-level-info">
-              <div className="current-level-medal">
-                <i className="fa-solid fa-star" />
-              </div>
-
-              <div>
-                <h3>Gold</h3>
-                <span>Current Level</span>
-              </div>
+            <p className="tier-requirements-intro">Review the required minimums and compare them with your current account.</p>
+            <div className="tier-progress-track" role="progressbar" aria-label="Selected tier requirements progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={merchantData && selectedLevel ? requirementProgress : 0}>
+              <span style={{ width: `${merchantData && selectedLevel ? requirementProgress : 0}%` }} />
             </div>
-
-            <div className="level-progress">
-              <div
-                className="level-progress-fill"
-                style={{ width: "68%" }}
-              />
+            <div className="tier-requirements-grid">
+              <article className="tier-requirement-card">
+                <div className="tier-requirement-card-heading">
+                  <span className="tier-requirement-icon"><i className="fa-solid fa-list-check" aria-hidden="true" /></span>
+                  <span><small>ORDER REQUIREMENT</small><strong>Minimum completed orders</strong></span>
+                </div>
+                <div className="tier-requirement-values">
+                  <span>Required<strong>{selectedLevel ? (orderTarget > 0 ? orderTarget.toLocaleString() : "No minimum") : "—"}</strong></span>
+                  <span>Your total<strong>{merchantData ? completedOrders.toLocaleString() : "—"}</strong></span>
+                </div>
+                <div className={`tier-requirement-status ${merchantData && orderProgress >= 100 ? "is-met" : ""}`}>
+                  <i className={`fa-solid ${merchantData && orderProgress >= 100 ? "fa-circle-check" : "fa-circle-info"}`} aria-hidden="true" />
+                  {!selectedLevel ? "Select a tier to see its requirement" : !merchantData ? "Your current progress is unavailable" : orderTarget === 0 ? "No order minimum for this tier" : orderProgress >= 100 ? "Order requirement met" : `${Math.max(0, orderTarget - completedOrders).toLocaleString()} more orders needed`}
+                </div>
+              </article>
+              <article className="tier-requirement-card">
+                <div className="tier-requirement-card-heading">
+                  <span className="tier-requirement-icon"><i className="fa-solid fa-shield-halved" aria-hidden="true" /></span>
+                  <span><small>SECURITY REQUIREMENT</small><strong>Security deposit</strong></span>
+                </div>
+                <div className="tier-requirement-values">
+                  <span>Required<strong>{selectedLevel ? (selectedLevel.securityDepositRequired ? `${depositTarget.toLocaleString()} USD` : "Not required") : "—"}</strong></span>
+                  <span>Your deposit<strong>{merchantData ? `${currentDeposit.toLocaleString()} USD` : "—"}</strong></span>
+                </div>
+                <div className={`tier-requirement-status ${merchantData && depositProgress >= 100 ? "is-met" : ""}`}>
+                  <i className={`fa-solid ${merchantData && depositProgress >= 100 ? "fa-circle-check" : "fa-circle-info"}`} aria-hidden="true" />
+                  {!selectedLevel ? "Select a tier to see its requirement" : !selectedLevel.securityDepositRequired ? "No deposit required for this tier" : !merchantData ? "Your current deposit is unavailable" : currentDeposit >= depositTarget ? "Deposit requirement met" : depositCanBeFunded ? `Funds available; ${(depositToCharge).toLocaleString()} USD will be reserved on activation` : `Add ${(depositToCharge - walletBalance).toLocaleString()} USD to your wallet`}
+                </div>
+              </article>
             </div>
-
-            <div className="progress-stats">
-
-              <div className="progress-stat">
-                <div className="progress-stat-icon yellow">
-                  <i className="fa-solid fa-chart-column" />
+            {selectedLevel?.securityDepositRequired && selectedLevel.securityDepositRefundable && (
+              <div className="selected-tier-refund"><i className="fa-solid fa-rotate-left" aria-hidden="true" /> The security deposit is refundable.</div>
+            )}
+            {activeTier && selectedLevel && activeTier.id !== selectedLevel.id && (
+              <div className={`tier-current-prerequisite ${activeTierRequirementsMet ? "is-met" : ""}`}>
+                <div className="tier-current-prerequisite-heading">
+                  <span><i className={`fa-solid ${activeTierRequirementsMet ? "fa-circle-check" : "fa-lock"}`} aria-hidden="true" /> Next level unlocks after {activeTier.name} requirements</span>
+                  <strong>{activeTierProgress}%</strong>
                 </div>
-
-                <div>
-                  <span>Monthly Volume</span>
-                  <strong>102,450 / 150,000 USD</strong>
-                </div>
+                <div className="tier-prerequisite-track"><span style={{ width: `${activeTierProgress}%` }} /></div>
+                <small>Orders: {completedOrders.toLocaleString()} / {Number(activeTier.minOrdersCompleted ?? 0).toLocaleString()} · Deposit: {currentDeposit.toLocaleString()} / {activeTierDepositTarget.toLocaleString()} USD</small>
               </div>
-
-              <div className="progress-stat">
-                <div className="progress-stat-icon blue">
-                  <i className="fa-solid fa-circle-check" />
-                </div>
-
-                <div>
-                  <span>Completion Rate</span>
-                  <strong>96.2% / 97%</strong>
-                </div>
-              </div>
-
-              <div className="progress-stat">
-                <div className="progress-stat-icon purple">
-                  <i className="fa-solid fa-thumbs-up" />
-                </div>
-
-                <div>
-                  <span>Positive Feedback</span>
-                  <strong>97.6% / 97%</strong>
-                </div>
-              </div>
-
+            )}
+            {!merchantData && <p className="tier-data-note">Your live merchant progress is temporarily unavailable.</p>}
+            {activationError && <div className="tier-activation-alert is-error" role="alert">{activationError}</div>}
+            {activationMessage && <div className="tier-activation-alert is-success" role="status">{activationMessage}</div>}
+            <div className="tier-activation-footer">
+              <p>{activationHint}</p>
+              <button type="button" className="tier-activate-button" onClick={activateSelectedTier} disabled={!canActivateSelectedTier || activationLoading}>
+                <i className={`fa-solid ${activationLoading ? "fa-spinner fa-spin" : activeTierId === selectedLevel?.id ? "fa-check" : "fa-arrow-up"}`} aria-hidden="true" />
+                {activationLoading ? "Activating…" : activeTierId === selectedLevel?.id ? "Active Tier" : "Activate Tier"}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Benefits */}
-        <div className="col-12 col-xl-4">
-          <div className="merchant-panel benefits-panel">
-
-            <h2>
-              Your Level Benefits{" "}
-              <span>(Gold)</span>
-            </h2>
-
+        <div className="col-12 col-xl-5">
+          <div className="merchant-panel benefits-panel tier-benefits-panel">
+            <div className="panel-title-row">
+              <div>
+                <span className="tier-panel-eyebrow">TIER BENEFITS</span>
+                <h2>{selectedLevel?.name ?? "Selected tier"}</h2>
+              </div>
+              <span className="level-selected-label"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Selected</span>
+            </div>
             <div className="benefits-list">
-              {benefits.map((benefit) => (
-                <div
-                  className="benefit-row"
-                  key={benefit.title}
-                >
-                  <div className="benefit-title">
-                    <i className={benefit.icon} />
-                    <span>{benefit.title}</span>
-                  </div>
-
+              {benefits.map(benefit => (
+                <div className="benefit-row" key={benefit.title}>
+                  <div className="benefit-title"><i className={benefit.icon} aria-hidden="true" /><span>{benefit.title}</span></div>
                   <strong>{benefit.value}</strong>
                 </div>
               ))}
             </div>
-
-            <button className="primary-level-btn">
-              View All Benefits
-              <i className="fa-solid fa-arrow-right" />
-            </button>
-
+            <p className="tier-benefits-note">These values come from the current tier settings.</p>
           </div>
         </div>
       </div>
 
-      {/* Performance */}
-      <div className="merchant-panel performance-panel">
-
-        <div className="panel-section-title">
-          <h2>
-            Performance Overview{" "}
-            <span>(This Month)</span>
-          </h2>
+      <section className="merchant-panel tier-snapshot-panel">
+        <div className="tier-section-heading">
+          <div><span className="tier-panel-eyebrow">ACCOUNT ACTIVITY</span><h2>Merchant Snapshot</h2></div>
+          <span className="tier-live-indicator"><i /> Live account data</span>
         </div>
-
-        <div className="performance-grid">
-          {performance.map((item) => (
-            <div
-              className="performance-item"
-              key={item.title}
-            >
-              <div
-                className={`performance-icon ${item.type}`}
-              >
-                <i className={item.icon} />
-              </div>
-
-              <div className="performance-content">
-                <span>{item.title}</span>
-                <strong>{item.value}</strong>
-
-                <small>
-                  <i className="fa-solid fa-arrow-up" />
-                  {item.growth}{" "}
-                  <em>vs Apr 2025</em>
-                </small>
-              </div>
+        <div className="tier-snapshot-grid">
+          {snapshot.map(item => (
+            <div className="tier-snapshot-item" key={item.label}>
+              <span className={`tier-snapshot-icon ${item.accent}`}><i className={item.icon} aria-hidden="true" /></span>
+              <span className="tier-snapshot-copy"><small>{item.label}</small><strong>{item.value}</strong></span>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Upgrade */}
-      <div className="row g-3 mt-4">
-
-        <div className="col-12 col-xl-9">
-          <div className="merchant-panel upgrade-panel">
-
-            <h2>How to Upgrade Your Level</h2>
-
-            <div className="upgrade-steps">
-              {upgradeSteps.map((step, index) => (
-                <React.Fragment key={step.title}>
-
-                  <div className="upgrade-step">
-                    <div className="upgrade-icon">
-                      <i className={step.icon} />
-                    </div>
-
-                    <div>
-                      <h3>{step.title}</h3>
-                      <p>{step.description}</p>
-                    </div>
-                  </div>
-
-                  {index < upgradeSteps.length - 1 && (
-                    <div className="upgrade-arrow">
-                      <i className="fa-solid fa-arrow-right" />
-                    </div>
-                  )}
-
-                </React.Fragment>
-              ))}
-            </div>
-
-          </div>
+      <section className="merchant-panel tier-guidance-panel">
+        <div className="tier-section-heading">
+          <div><span className="tier-panel-eyebrow">NEXT STEPS</span><h2>How to qualify for {selectedLevel?.name ?? "a tier"}</h2></div>
         </div>
-
-        {/* Help */}
-        <div className="col-12 col-xl-3">
-          <div className="merchant-panel help-panel">
-
-            <h2>Need Help?</h2>
-
-            <p>
-              Contact our support team for more information about
-              merchant levels.
-            </p>
-
-            <button className="support-btn">
-              <i className="fa-solid fa-headset" />
-              Contact Support
-            </button>
-
-          </div>
+        <div className="tier-guidance-grid">
+          <article className="tier-guidance-item">
+            <span className="tier-guidance-icon"><i className="fa-solid fa-list-check" aria-hidden="true" /></span>
+            <div><h3>Complete orders</h3><p>{orderTarget > 0 ? `${Math.max(0, orderTarget - completedOrders).toLocaleString()} more completed ${Math.max(0, orderTarget - completedOrders) === 1 ? "order" : "orders"} to meet this tier's requirement.` : "There is no minimum completed-order requirement for this tier."}</p></div>
+          </article>
+          <article className="tier-guidance-item">
+            <span className="tier-guidance-icon"><i className="fa-solid fa-shield-halved" aria-hidden="true" /></span>
+            <div><h3>Security deposit</h3><p>{!selectedLevel?.securityDepositRequired ? "No security deposit is required for this tier." : currentDeposit >= depositTarget ? "The required security deposit is met." : `Add ${(depositTarget - currentDeposit).toLocaleString()} USD to meet this tier's refundable deposit requirement.`}</p></div>
+          </article>
+          <article className="tier-guidance-item">
+            <span className="tier-guidance-icon"><i className="fa-solid fa-rectangle-ad" aria-hidden="true" /></span>
+            <div><h3>Ad allowance</h3><p>{selectedLevel ? `This tier allows up to ${Number(selectedLevel.maxAds ?? 0).toLocaleString()} active ads.` : "Select a tier to view its ad allowance."}</p></div>
+          </article>
         </div>
-
-      </div>
+      </section>
     </section>
   );
 }
