@@ -1,6 +1,7 @@
 export type LocalOrderSummaryRow = {
   label: string;
   value: string;
+  icon: string;
   tone?: "positive" | "negative" | "received";
   total?: boolean;
 };
@@ -38,25 +39,25 @@ export function localOrderSummaryRows({
 }: LocalOrderSummaryInput): LocalOrderSummaryRow[] {
   const assetName = asset.toUpperCase() === "USDT" ? "USD" : asset;
   const common: LocalOrderSummaryRow[] = [
-    { label: "Currency", value: fiat || "—" },
-    { label: `Market Price (1 ${assetName})`, value: `${money(price)} ${fiat}` },
+    { label: "Currency", value: fiat || "—", icon: "fa-coins" },
+    { label: `Market Price (1 ${assetName})`, value: `${money(price)} ${fiat}`, icon: "fa-arrow-trend-up" },
   ];
 
   if (side === "sell") {
     return [
       ...common,
-      { label: "Sell Amount", value: `- ${money(assetAmount)} ${assetName}`, tone: "negative" },
-      { label: feeLabel ?? `Fee (${money(feePercent)}%)`, value: `- ${money(feeAmount)} ${assetName}`, tone: "negative" },
-      { label: "Total Amount", value: `- ${money(assetAmount + feeAmount)} ${assetName}`, tone: "negative" },
-      { label: `Received Amount (${fiat})`, value: `${money(fiatAmount)} ${fiat}`, tone: "received", total: true },
+      { label: "Sell Amount", value: `- ${money(assetAmount)} ${assetName}`, icon: "fa-layer-group", tone: "negative" },
+      { label: feeLabel ?? `Fee (${money(feePercent)}%)`, value: `- ${money(feeAmount)} ${assetName}`, icon: "fa-percent", tone: "negative" },
+      { label: "Total Amount", value: `- ${money(assetAmount + feeAmount)} ${assetName}`, icon: "fa-wallet", tone: "negative" },
+      { label: `Received Amount (${fiat})`, value: `${money(fiatAmount)} ${fiat}`, icon: "fa-hand-holding-dollar", tone: "received", total: true },
     ];
   }
 
   return [
     ...common,
-    { label: "Amount", value: `${money(fiatAmount)} ${fiat}` },
-    { label: `${assetName} Amount`, value: `+ ${money(assetAmount)} ${assetName}`, tone: "positive" },
-    { label: "Bonus", value: `+ ${money(bonusAmount)} ${assetName}`, tone: "positive" },
-    { label: "Total You Will Receive", value: `+ ${money(assetAmount + bonusAmount)} ${assetName}`, tone: "positive", total: true },
+    { label: "Amount", value: `${money(fiatAmount)} ${fiat}`, icon: "fa-layer-group" },
+    { label: `${assetName} Amount`, value: `+ ${money(assetAmount)} ${assetName}`, icon: "fa-wallet", tone: "positive" },
+    { label: "Bonus", value: `+ ${money(bonusAmount)} ${assetName}`, icon: "fa-gift", tone: "positive" },
+    { label: "Total You Will Receive", value: `+ ${money(assetAmount + bonusAmount)} ${assetName}`, icon: "fa-coins", tone: "positive", total: true },
   ];
 }

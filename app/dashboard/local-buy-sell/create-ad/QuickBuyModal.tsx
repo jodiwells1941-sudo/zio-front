@@ -530,7 +530,7 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div>
               <div className="qbm-entry-meta">
                 <small className="qbm-amount-limits">
-                  {limitsLoading || !tradeLimits ? 'Loading limits…' : `Min ${money(minimumFiatAmount)} ${fiat} · Max ${money(maximumFiatAmount)} ${fiat} - (${money(minimumUsd)}–${money(maximumUsd)} ${DISPLAY_ASSET_CODE})`}
+                  {limitsLoading || !tradeLimits ? 'Loading limits…' : `Min ${money(minimumFiatAmount)} ${fiat} · Max ${money(maximumFiatAmount)} ${fiat}`}
                 </small>
                 <small className="qbm-entry-rate">
                   1 {DISPLAY_ASSET_CODE} = {rateLoading ? '…' : `${rateMoney(rate)} ${fiat}`}
@@ -634,25 +634,25 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <summary className="qbm-summary-title">Order Summary</summary>
 
                 <div className="qbm-summary-row">
-                  <span>Currency</span><b>{fiat}</b>
+                  <span><i className="fa-solid fa-coins" aria-hidden="true" />Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <span><i className="fa-solid fa-arrow-trend-up" aria-hidden="true" />Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{rateMoney(rate)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Buy Amount</span><b className='text-md'>{money(amountBdtNum)} {fiat}</b>
+                  <span><i className="fa-solid fa-layer-group" aria-hidden="true" />Buy Amount</span><b className='text-md'>{money(amountBdtNum)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>{DISPLAY_ASSET_CODE} Amount</span>
+                  <span><i className="fa-solid fa-wallet" aria-hidden="true" />{DISPLAY_ASSET_CODE} Amount</span>
                   <b className="qbm-green">+ {money(baseUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Bonus</span>
+                  <span><i className="fa-solid fa-gift" aria-hidden="true" />Bonus</span>
                   <b className="qbm-green">+ {money(bonusUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qbm-summary-row qbm-summary-row--total">
-                  <span>Total You Will Receive</span>
+                  <span><i className="fa-solid fa-coins" aria-hidden="true" />Total You Will Receive</span>
                   <b>+ {money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
               </details>
@@ -738,25 +738,25 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
                 <h4 className="qbm-summary-title qbm-summary-title--static">Order Summary</h4>
 
                 <div className="qbm-summary-row">
-                  <span>Currency</span><b>{fiat}</b>
+                  <span><i className="fa-solid fa-coins" aria-hidden="true" />Currency</span><b>{fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Market Price (1 {DISPLAY_ASSET_CODE})</span>
+                  <span><i className="fa-solid fa-arrow-trend-up" aria-hidden="true" />Market Price (1 {DISPLAY_ASSET_CODE})</span>
                   <b>{rateMoney(rate)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Buy Amount</span><b className='text-md'>{money(amountBdtNum)} {fiat}</b>
+                  <span><i className="fa-solid fa-layer-group" aria-hidden="true" />Buy Amount</span><b className='text-md'>{money(amountBdtNum)} {fiat}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>{DISPLAY_ASSET_CODE} Amount</span>
+                  <span><i className="fa-solid fa-wallet" aria-hidden="true" />{DISPLAY_ASSET_CODE} Amount</span>
                   <b className="qbm-green">+ {money(baseUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qbm-summary-row">
-                  <span>Bonus</span>
+                  <span><i className="fa-solid fa-gift" aria-hidden="true" />Bonus</span>
                   <b className="qbm-green">+ {money(bonusUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
                 <div className="qbm-summary-row qbm-summary-row--total">
-                  <span>Total You Will Receive</span>
+                  <span><i className="fa-solid fa-coins" aria-hidden="true" />Total You Will Receive</span>
                   <b>+ {money(totalUsdt)} {DISPLAY_ASSET_CODE}</b>
                 </div>
               </div>

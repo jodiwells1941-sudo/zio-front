@@ -103,8 +103,8 @@ const reviews = [
     comment:
       "Very fast payment and great communication. Highly recommended!",
     order: "#ORD250531000125",
-    side: "Buy USDT",
-    amount: "500.00 USDT",
+    side: "Buy USD",
+    amount: "500.00 USD",
     type: "buy",
   },
   {
@@ -115,8 +115,8 @@ const reviews = [
     comment:
       "Trusted merchant. Smooth transaction. Will trade again.",
     order: "#ORD250531000124",
-    side: "Sell USDT",
-    amount: "300.00 USDT",
+    side: "Sell USD",
+    amount: "300.00 USD",
     type: "sell",
   },
   {
@@ -127,8 +127,8 @@ const reviews = [
     comment:
       "Good service and quick response. Keep it up!",
     order: "#ORD250531000123",
-    side: "Buy USDT",
-    amount: "450.00 USDT",
+    side: "Buy USD",
+    amount: "450.00 USD",
     type: "buy",
   },
 ];

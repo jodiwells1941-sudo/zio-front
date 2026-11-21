@@ -64,6 +64,47 @@
   text-transform: uppercase;
 }
 
+.local-trade-summary--collapsible {
+  padding: 0;
+}
+
+.local-trade-summary-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 24px;
+  padding: 0 6px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.local-trade-summary-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.local-trade-summary-toggle .local-trade-summary-title {
+  margin: 0;
+}
+
+.local-trade-summary-toggle > i {
+  color: var(--trade-accent);
+  font-size: 11px;
+  transition: transform .18s ease;
+}
+
+.local-trade-summary--collapsible[open] .local-trade-summary-toggle {
+  border-bottom: 1px solid var(--trade-accent-border);
+}
+
+.local-trade-summary--collapsible[open] .local-trade-summary-toggle > i {
+  transform: rotate(180deg);
+}
+
+.local-trade-summary-rows {
+  padding: 5px 13px 10px;
+}
+
 .local-trade-row,
 .local-trade-field {
   display: flex;
@@ -426,6 +467,10 @@
   font-weight: 700;
 }
 
+.fs-14 {
+  font-size: 14px !important;
+}
+
 .local-trade-step.is-active b {
   border-color: var(--trade-accent-bright);
   background: var(--trade-accent);
@@ -465,7 +510,7 @@
 
 .local-trade-summary {
   margin: 0 0 12px;
-  padding: 11px 13px 10px;
+  padding: 8px 8px 8px;
   border: 1px solid var(--trade-border);
   border-radius: 12px;
   background: linear-gradient(180deg, var(--trade-surface-soft), rgba(8, 13, 11, .68));
@@ -536,14 +581,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  /* min-height: 72px; */
   margin: 0 0 12px;
-  padding: 11px 13px;
+  padding: 6px 8px;
   border: 1.5px solid var(--trade-accent);
   border-radius: 13px;
-  /* background:
-    radial-gradient(120% 140% at 0% 50%, var(--trade-glow), transparent 65%),
-    linear-gradient(100deg, var(--trade-surface-soft), var(--trade-surface)); */
   box-shadow: 0 9px 25px var(--trade-glow), 0 1px 0 rgba(255,255,255,.08) inset;
 }
 
@@ -562,7 +603,7 @@
 
 .local-trade-total-label {
   flex: 1 1 auto;
-  min-width: 120px;
+  width: 120px;
   color: #f3faf7;
   font-size: 16px;
   font-weight: 700;
@@ -572,7 +613,7 @@
 .local-trade-total-banner > strong {
   flex: 0 0 auto;
   color: #fff;
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 850;
   letter-spacing: -.45px;
   line-height: 1.05;
@@ -644,7 +685,7 @@
 
 .local-trade-payment-details {
   margin: 0 0 10px;
-  padding: 10px 11px;
+  padding: 6px 8px;
   border: 1px solid var(--trade-border);
   border-radius: 11px;
   background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,.18));
@@ -730,7 +771,7 @@
   display: grid;
   gap: 5px;
   color: var(--trade-muted);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -740,11 +781,12 @@
 
 .local-sell-payment-field input {
   width: 100%;
-  min-height: 36px;
-  padding: 7px 10px;
+  min-height: 30px;
+  padding: 3px 10px;
   border: 1px solid rgba(255, 255, 255, .16);
   border-radius: 8px;
-  background: #20232b;
+  /* background: #20232b; */
+  background: transparent;
   color: #fff;
   font: inherit;
 }
@@ -923,7 +965,7 @@
   }
 
   .local-trade-summary {
-    padding: 10px 11px 9px;
+    padding: 8px 8px 8px;
   }
 
   .local-trade-row {
@@ -986,6 +1028,70 @@
   text-shadow: 0 0 18px rgba(244, 63, 94, .42);
 }
 
+/* Buy confirmation: keep the pay amount centred in its own right-hand area. */
+.local-trade-modal .local-trade-total-banner--pay {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 40px;
+  padding: 7px 12px;
+}
+
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 27px;
+  padding-right: 12px;
+  border-right: 2px solid rgba(255, 171, 185, .72);
+  color: #fff5f6;
+  font-size: 16px;
+}
+
+.local-trade-modal .local-trade-total-banner--pay > strong {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 138px;
+  color: #ffd3d8;
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.local-trade-pay-receive {
+  display: block;
+  margin: 0 17px 9px;
+  color: #d8c8ca;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.local-trade-pay-receive > span {
+  color: #fbbf24;
+  font-weight: 800;
+}
+
+@media (max-width: 480px) {
+  .local-trade-modal .local-trade-total-banner--pay {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 9px;
+  }
+
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label {
+    justify-content: flex-start;
+    padding-right: 8px;
+    font-size: 14px;
+  }
+
+  .local-trade-modal .local-trade-total-banner--pay > strong {
+    min-width: 0;
+    font-size: 18px;
+  }
+}
+
 .local-trade-modal .local-trade-total-banner--received {
   border-color: rgba(251, 191, 36, .76);
   background:
@@ -1005,4 +1111,1144 @@
 .local-trade-modal .local-trade-total-banner--received > strong {
   color: #ffe185;
   text-shadow: 0 0 18px rgba(251, 191, 36, .38);
+}
+
+/* Sell confirmation follows the same balanced two-part total layout. */
+.local-trade-modal .local-trade-total-banner--received {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 50px;
+  padding: 7px 12px;
+}
+
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 27px;
+  padding-right: 12px;
+  border-right: 2px solid rgba(253, 230, 138, .64);
+  color: #fff3bd;
+  font-size: 16px;
+}
+
+.local-trade-modal .local-trade-total-banner--received > strong {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 138px;
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.local-trade-sell-usd {
+  display: block;
+  margin: 0 17px 9px;
+  color: #dfc9cd;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.local-trade-sell-usd > span {
+  color: #ff9ba6;
+  font-weight: 800;
+}
+
+@media (max-width: 480px) {
+  .local-trade-modal .local-trade-total-banner--received {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 9px;
+  }
+
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label {
+    justify-content: flex-start;
+    padding-right: 8px;
+    font-size: 14px;
+  }
+
+  .local-trade-modal .local-trade-total-banner--received > strong {
+    min-width: 0;
+    font-size: 18px;
+  }
+}
+
+/* Shared request-confirmation composition for Buy and Sell. */
+.local-trade-modal {
+  width: min(100%, 560px);
+  max-height: min(calc(100dvh - 32px), 820px);
+  border-radius: 22px;
+}
+
+.local-trade-modal--green {
+  border-color: rgba(251, 191, 36, .56);
+  background:
+    radial-gradient(90% 46% at 50% 0%, rgba(251,191,36,.20), transparent 72%),
+    linear-gradient(180deg,#261b08 0%,#11120e 50%,#0b0d0b 100%);
+}
+
+.local-trade-modal--red {
+  border-color: rgba(246, 107, 120, .56);
+  background:
+    radial-gradient(90% 46% at 50% 0%, rgba(246,107,120,.17), transparent 72%),
+    linear-gradient(180deg,#290e12 0%,#151012 52%,#0d0d0e 100%);
+}
+
+.local-trade-modal .local-trade-head {
+  gap: 16px;
+  padding: 20px 28px 17px;
+}
+
+.local-trade-modal .local-trade-head-icon {
+  flex-basis: 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  font-size: 28px;
+}
+
+.local-trade-modal--green .local-trade-head-icon {
+  border-color: rgba(251,191,36,.72);
+  background: linear-gradient(145deg,rgba(251,191,36,.42),rgba(91,61,5,.54));
+  box-shadow: 0 9px 24px rgba(251,191,36,.25),inset 0 1px rgba(255,255,255,.16);
+}
+
+.local-trade-modal--red .local-trade-head-icon {
+  border-color: rgba(251,113,133,.70);
+  background: linear-gradient(145deg,rgba(251,113,133,.38),rgba(107,19,38,.52));
+}
+
+.local-trade-modal .local-trade-head-copy h2 { font-size: 25px; font-weight: 800; letter-spacing: -.5px; }
+.local-trade-modal .local-trade-head-copy p { margin-top: 5px; font-size: 13px; }
+.local-trade-modal .local-trade-close { width: 40px; height: 40px; border-color: rgba(255,255,255,.20); border-radius: 50%; background: rgba(255,255,255,.07); font-size: 28px; }
+
+.local-trade-modal .local-trade-steps {
+  gap: 0;
+  margin: 0 28px 18px;
+  padding: 0;
+  border-color: rgba(251,191,36,.36);
+  border-radius: 999px;
+  background: rgba(0,0,0,.28);
+  overflow: hidden;
+}
+
+.local-trade-modal .local-trade-step { flex: 1 1 0; justify-content: center; gap: 9px; min-height: 47px; padding: 0 10px; }
+.local-trade-modal .local-trade-step b { flex-basis: 28px; width: 28px; height: 28px; font-size: 13px; }
+.local-trade-modal .local-trade-step small { font-size: 14px; font-weight: 700; }
+.local-trade-modal .local-trade-step-line { display: none; }
+.local-trade-modal .local-trade-step.is-active { color: #1d1303; background: linear-gradient(135deg,#ffe48a,#fbbf24); box-shadow: inset 0 1px rgba(255,255,255,.34); }
+.local-trade-modal .local-trade-step.is-active b { color: #261903; border-color: rgba(82,53,4,.40); background: #fff0b7; box-shadow: none; }
+.local-trade-modal .local-trade-step.is-done { color: #f9eac6; }
+.local-trade-modal .local-trade-step.is-done b { color: #261903; }
+
+.local-trade-modal .local-trade-total-banner--pay,
+.local-trade-modal .local-trade-total-banner--received { margin-right: 28px !important; margin-left: 28px !important; min-height: 82px; padding: 12px 18px; border-radius: 18px; }
+.local-trade-modal .local-trade-total-banner--pay { grid-template-columns: 56px minmax(0,1fr) auto; background: radial-gradient(100% 180% at 0% 50%,rgba(251,113,133,.64),transparent 67%),linear-gradient(105deg,#8d1831 0%,#550d20 52%,#31051a 100%); }
+.local-trade-modal .local-trade-total-banner--received { grid-template-columns: 56px minmax(0,1fr) auto; background: radial-gradient(100% 180% at 0% 50%,rgba(251,191,36,.46),transparent 67%),linear-gradient(105deg,#64460c 0%,#382704 52%,#211806 100%); }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 52px; height: 52px; flex-basis: 52px; font-size: 21px; }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { justify-content: center; min-height: 44px; padding-right: 18px; font-size: 26px; }
+.local-trade-modal .local-trade-total-banner--pay > strong,
+.local-trade-modal .local-trade-total-banner--received > strong { min-width: 205px; font-size: 31px; }
+.local-trade-modal .local-trade-pay-receive,
+.local-trade-modal .local-trade-sell-usd { position: relative; z-index: 2; width: max-content; max-width: calc(100% - 72px); margin: -3px 38px 22px auto; padding: 7px 13px 8px 25px; border: 1px solid rgba(251,191,36,.34); border-radius: 0 0 13px 13px; font-size: 14px; }
+.local-trade-modal .local-trade-sell-usd { border-color: rgba(251,113,133,.34); }
+
+.local-trade-modal .local-trade-content { padding: 0 28px 20px; }
+.local-trade-modal .local-trade-summary { margin-bottom: 16px; border-radius: 18px; background: linear-gradient(135deg,rgba(251,191,36,.18),rgba(32,27,18,.92) 44%,rgba(12,14,13,.95)); }
+.local-trade-modal--red .local-trade-summary { background: linear-gradient(135deg,rgba(246,107,120,.16),rgba(43,18,21,.92) 44%,rgba(14,13,14,.95)); }
+.local-trade-modal .local-trade-summary-toggle { min-height: 54px; padding: 0 18px; }
+.local-trade-modal .local-trade-summary-title { display: inline-flex; align-items: center; gap: 11px; color: #fff4d8; font-size: 22px; font-weight: 800; letter-spacing: -.25px; text-transform: none; }
+.local-trade-modal .local-trade-summary-title > i { color: var(--trade-accent-bright); font-size: 21px; }
+.local-trade-modal .local-trade-summary-toggle > i { font-size: 16px; }
+.local-trade-modal .local-trade-summary-rows { padding: 6px 18px 13px; }
+.local-trade-modal .local-trade-row { min-height: 38px; padding: 7px 0; font-size: 17px; }
+.local-trade-modal .local-trade-row > span { display: inline-flex; align-items: center; gap: 13px; }
+.local-trade-modal .local-trade-row > span > i { width: 24px; color: var(--trade-accent-bright); font-size: 18px; text-align: center; }
+.local-trade-modal .local-trade-row b { font-size: 15px; }
+.local-trade-modal .local-trade-row--total { align-items: center; min-height: 58px; margin: 8px -7px -5px; padding: 10px 13px; border: 1px solid var(--trade-border); border-radius: 14px; background: linear-gradient(90deg,var(--trade-glow),rgba(0,0,0,.15)); }
+.local-trade-modal .local-trade-row--total > span { font-size: 20px; font-weight: 800; }
+.local-trade-modal .local-trade-row--total b { padding: 9px 17px; border-radius: 999px; background: var(--trade-accent); color: #271903 !important; font-size: 21px; }
+
+.local-trade-modal .local-trade-payment-details { min-height: 92px; margin-bottom: 14px; padding: 16px 18px; border-color: rgba(255,255,255,.22); border-radius: 17px; background: linear-gradient(135deg,#24262a,#121416); }
+.local-trade-modal .local-trade-payment-head { align-items: center; }
+.local-trade-modal .local-trade-payment-head > span > strong { color: #fff0d5; font-size: 19px; }
+.local-trade-modal .local-trade-payment-head > span > small { color: #c9baa7; font-size: 12px; }
+.local-trade-modal .local-trade-info { margin-bottom: 0; }
+.local-trade-modal .local-trade-field { min-height: 56px; align-items: center; padding: 11px 15px; border: 1px solid rgba(255,255,255,.18); border-radius: 15px; background: #161819; }
+.local-trade-modal .local-trade-label { color: #f0e3d1; font-size: 16px; font-weight: 750; }
+.local-trade-modal .local-trade-label i { margin-right: 9px; color: var(--trade-accent-bright); }
+.local-trade-modal .local-trade-field b { padding: 6px 14px; border: 1px solid var(--trade-border); border-radius: 999px; color: var(--trade-accent-bright); font-size: 17px; }
+.local-trade-modal .local-trade-actions { gap: 16px; margin-top: 18px; padding-top: 0; border-top: 0; }
+.local-trade-modal .local-trade-actions button { min-height: 58px; border-radius: 15px; font-size: 19px; font-weight: 800; }
+.local-trade-modal .local-trade-actions .btn--secondary { flex-basis: 31%; color: #f2eadf; border-color: rgba(255,255,255,.22); background: linear-gradient(135deg,#3b3f48,#1d2028); }
+.local-trade-modal .local-trade-actions .btn--primary,
+.local-trade-modal .local-trade-actions .local-trade-sell-button { gap: 10px; align-items: center; }
+
+@media (max-width: 600px) {
+  .local-trade-modal { width: min(100%,470px); border-radius: 17px; }
+  .local-trade-modal .local-trade-head,.local-trade-modal .local-trade-content { padding-right: 18px; padding-left: 18px; }
+  .local-trade-modal .local-trade-steps { margin-right: 18px; margin-left: 18px; }
+  .local-trade-modal .local-trade-total-banner--pay,.local-trade-modal .local-trade-total-banner--received { margin-right: 18px !important; margin-left: 18px !important; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 20px; }
+  .local-trade-modal .local-trade-head-icon { flex-basis: 53px; width: 53px; height: 53px; font-size: 23px; }
+  .local-trade-modal .local-trade-step small { font-size: 12px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { font-size: 18px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,.local-trade-modal .local-trade-total-banner--received > strong { min-width: 145px; font-size: 23px; }
+  .local-trade-modal .local-trade-summary-title { font-size: 18px; }
+  .local-trade-modal .local-trade-row { font-size: 14px; }
+  .local-trade-modal .local-trade-row--total > span { font-size: 16px; }
+  .local-trade-modal .local-trade-row--total b { font-size: 17px; }
+}
+
+@media (max-width: 420px) {
+  .local-trade-modal .local-trade-head { gap: 10px; padding: 15px 14px 12px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 18px; }
+  .local-trade-modal .local-trade-head-copy p { font-size: 11px; }
+  .local-trade-modal .local-trade-steps { margin-right: 14px; margin-left: 14px; }
+  .local-trade-modal .local-trade-step { gap: 5px; padding: 0 6px; }
+  .local-trade-modal .local-trade-step b { flex-basis: 23px; width: 23px; height: 23px; font-size: 11px; }
+  .local-trade-modal .local-trade-step small { font-size: 10px; }
+  .local-trade-modal .local-trade-total-banner--pay,.local-trade-modal .local-trade-total-banner--received { grid-template-columns: 42px minmax(0,1fr) auto; min-height: 62px; margin-right: 14px !important; margin-left: 14px !important; padding: 8px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 40px; height: 40px; flex-basis: 40px; font-size: 16px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { padding-right: 7px; font-size: 15px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,.local-trade-modal .local-trade-total-banner--received > strong { min-width: 0; font-size: 18px; }
+  .local-trade-modal .local-trade-content { padding-right: 14px; padding-left: 14px; }
+  .local-trade-modal .local-trade-row { min-height: 32px; font-size: 12px; }
+  .local-trade-modal .local-trade-row > span { gap: 8px; }
+  .local-trade-modal .local-trade-row > span > i { width: 16px; font-size: 13px; }
+  .local-trade-modal .local-trade-row b { font-size: 11px; }
+  .local-trade-modal .local-trade-actions { gap: 10px; }
+  .local-trade-modal .local-trade-actions button { min-height: 49px; font-size: 15px; }
+}
+
+/* Compact request modal proportions — matches the buy/sell confirmation cards. */
+.local-trade-modal { width: min(100%, 560px); max-height: min(calc(100dvh - 28px), 760px); border-radius: 20px; }
+.local-trade-modal .local-trade-head { gap: 14px; padding: 18px 28px 15px; }
+.local-trade-modal .local-trade-head-icon { flex-basis: 58px; width: 58px; height: 58px; border-radius: 16px; font-size: 25px; }
+.local-trade-modal .local-trade-head-copy h2 { font-size: 24px; }
+.local-trade-modal .local-trade-head-copy p { font-size: 12px; }
+.local-trade-modal .local-trade-close { width: 38px; height: 38px; font-size: 25px; }
+.local-trade-modal .local-trade-steps { margin: 0 28px 17px; }
+.local-trade-modal .local-trade-step { min-height: 46px; }
+.local-trade-modal .local-trade-total-banner--pay,
+.local-trade-modal .local-trade-total-banner--received { min-height: 78px; padding: 10px 16px; }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 48px; height: 48px; flex-basis: 48px; font-size: 19px; }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 39px; padding-right: 15px; font-size: 23px; }
+.local-trade-modal .local-trade-total-banner--pay > strong,
+.local-trade-modal .local-trade-total-banner--received > strong { min-width: 192px; font-size: 28px; }
+.local-trade-modal .local-trade-pay-receive,
+.local-trade-modal .local-trade-sell-usd { margin-bottom: 16px; padding: 6px 12px 7px 22px; font-size: 12px; }
+.local-trade-modal .local-trade-summary { margin-bottom: 16px; border-radius: 17px; }
+.local-trade-modal .local-trade-summary-toggle { min-height: 68px; padding: 0 21px; }
+.local-trade-modal .local-trade-summary-title { font-size: 22px; }
+.local-trade-modal .local-trade-summary-rows { padding: 5px 18px 12px; }
+.local-trade-modal .local-trade-payment-details { min-height: 90px; margin-bottom: 14px; padding: 15px 18px; }
+.local-trade-modal .local-trade-payment-head > span > strong { font-size: 18px; }
+.local-trade-modal .local-trade-field { min-height: 60px; padding: 10px 17px; border-radius: 16px; }
+.local-trade-modal .local-trade-actions { margin-top: 18px; }
+.local-trade-modal .local-trade-actions button { min-height: 58px; border-radius: 15px; font-size: 18px; }
+.local-trade-overlay--green .local-trade-actions .btn--primary {
+  border-color: rgba(110, 220, 238, .74);
+  background: linear-gradient(135deg,#a6edf6,#62cfe1);
+  color: #102126;
+  box-shadow: 0 8px 20px rgba(89,205,224,.24);
+}
+.local-trade-overlay--green .local-trade-actions .btn--primary:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(89,205,224,.34); }
+
+@media (max-width: 600px) {
+  .local-trade-modal { width: min(100%, 470px); }
+  .local-trade-modal .local-trade-head { padding: 16px 18px 13px; }
+  .local-trade-modal .local-trade-content { padding-right: 18px; padding-left: 18px; }
+  .local-trade-modal .local-trade-steps { margin-right: 18px; margin-left: 18px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { margin-right: 18px !important; margin-left: 18px !important; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 20px; }
+  .local-trade-modal .local-trade-head-icon { flex-basis: 52px; width: 52px; height: 52px; font-size: 22px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { font-size: 19px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { min-width: 145px; font-size: 23px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 62px; }
+  .local-trade-modal .local-trade-summary-title { font-size: 19px; }
+}
+
+/* Final reference proportions: match the attached confirmation modal. */
+.local-trade-modal { width: min(100%, 1010px); max-height: calc(100dvh - 32px); border-radius: 38px; }
+.local-trade-modal .local-trade-head { padding: 32px 48px 20px; gap: 28px; }
+.local-trade-modal .local-trade-head-icon { width: 106px; height: 106px; flex-basis: 106px; border-radius: 25px; font-size: 49px; }
+.local-trade-modal .local-trade-head-copy h2 { font-size: 39px; }
+.local-trade-modal .local-trade-head-copy p { margin-top: 8px; font-size: 22px; }
+.local-trade-modal .local-trade-close { width: 50px; height: 50px; font-size: 34px; }
+.local-trade-modal .local-trade-steps { margin: 0 70px 26px; min-height: 61px; }
+.local-trade-modal .local-trade-step { min-height: 59px; gap: 13px; }
+.local-trade-modal .local-trade-step b { width: 40px; height: 40px; flex-basis: 40px; font-size: 21px; }
+.local-trade-modal .local-trade-step small { font-size: 23px; }
+.local-trade-modal .local-trade-total-banner--pay,
+.local-trade-modal .local-trade-total-banner--received { min-height: 142px; margin-left: 30px !important; margin-right: 30px !important; padding: 20px 44px; border-radius: 30px; }
+.local-trade-modal .local-trade-total-banner--pay { grid-template-columns: 90px minmax(0,1fr) auto; }
+.local-trade-modal .local-trade-total-banner--received { grid-template-columns: 90px minmax(0,1fr) auto; }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 78px; height: 78px; flex-basis: 78px; font-size: 33px; }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 70px; padding-right: 35px; font-size: 35px; }
+.local-trade-modal .local-trade-total-banner--pay > strong,
+.local-trade-modal .local-trade-total-banner--received > strong { min-width: 370px; font-size: 44px; }
+.local-trade-modal .local-trade-pay-receive,
+.local-trade-modal .local-trade-sell-usd { margin: -2px 54px 26px auto; padding: 9px 18px 10px 30px; font-size: 21px; }
+.local-trade-modal .local-trade-content { padding: 0 30px 28px; }
+.local-trade-modal .local-trade-summary { margin-bottom: 20px; border-radius: 30px; }
+.local-trade-modal .local-trade-summary-toggle { min-height: 76px; padding: 0 34px; }
+.local-trade-modal .local-trade-summary-title { gap: 18px; font-size: 31px; }
+.local-trade-modal .local-trade-summary-title > i { font-size: 29px; }
+.local-trade-modal .local-trade-summary-toggle > i { font-size: 22px; }
+.local-trade-modal .local-trade-summary-rows { padding: 8px 40px 22px; }
+.local-trade-modal .local-trade-row { min-height: 49px; padding: 8px 0; font-size: 25px; }
+.local-trade-modal .local-trade-row > span { gap: 20px; }
+.local-trade-modal .local-trade-row > span > i { width: 31px; font-size: 25px; }
+.local-trade-modal .local-trade-row b { font-size: 21px; }
+.local-trade-modal .local-trade-row--total { min-height: 74px; margin: 10px -16px -8px; padding: 12px 20px; border-radius: 22px; }
+.local-trade-modal .local-trade-row--total > span { font-size: 27px; }
+.local-trade-modal .local-trade-row--total b { padding: 11px 22px; font-size: 27px; }
+.local-trade-modal .local-trade-payment-details { min-height: 104px; margin-bottom: 15px; padding: 18px 30px; border-radius: 27px; }
+.local-trade-modal .local-trade-payment-icon { width: 72px !important; height: 72px !important; }
+.local-trade-modal .local-trade-payment-head > span > strong { font-size: 27px; }
+.local-trade-modal .local-trade-payment-head > span > small { font-size: 18px; }
+.local-trade-modal .local-trade-field { min-height: 77px; padding: 12px 32px; border-radius: 25px; }
+.local-trade-modal .local-trade-label { font-size: 25px; }
+.local-trade-modal .local-trade-label i { font-size: 23px; }
+.local-trade-modal .local-trade-field b { padding: 8px 22px; font-size: 25px; }
+.local-trade-modal .local-trade-actions { gap: 16px; margin-top: 28px; }
+.local-trade-modal .local-trade-actions button { min-height: 91px; border-radius: 25px; font-size: 31px; }
+.local-trade-modal .local-trade-actions .btn--secondary { flex-basis: 29%; }
+
+@media (max-width: 700px) {
+  .local-trade-modal { width: min(100%, 560px); border-radius: 22px; }
+  .local-trade-modal .local-trade-head { padding: 18px 24px 15px; gap: 14px; }
+  .local-trade-modal .local-trade-head-icon { width: 58px; height: 58px; flex-basis: 58px; border-radius: 16px; font-size: 25px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 23px; }
+  .local-trade-modal .local-trade-head-copy p { font-size: 12px; }
+  .local-trade-modal .local-trade-close { width: 38px; height: 38px; font-size: 25px; }
+  .local-trade-modal .local-trade-steps { margin: 0 24px 18px; min-height: 46px; }
+  .local-trade-modal .local-trade-step { min-height: 44px; gap: 7px; }
+  .local-trade-modal .local-trade-step b { width: 26px; height: 26px; flex-basis: 26px; font-size: 13px; }
+  .local-trade-modal .local-trade-step small { font-size: 14px; }
+  .local-trade-modal .local-trade-total-banner--pay,.local-trade-modal .local-trade-total-banner--received { min-height: 82px; margin-inline: 24px !important; padding: 10px 14px; border-radius: 17px; }
+  .local-trade-modal .local-trade-total-banner--pay,.local-trade-modal .local-trade-total-banner--received { grid-template-columns: 48px minmax(0,1fr) auto; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 43px; height: 43px; flex-basis: 43px; font-size: 18px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 37px; padding-right: 10px; font-size: 18px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,.local-trade-modal .local-trade-total-banner--received > strong { min-width: 0; font-size: 21px; }
+  .local-trade-modal .local-trade-pay-receive,.local-trade-modal .local-trade-sell-usd { margin: -2px 30px 16px auto; padding: 5px 10px 6px 17px; font-size: 11px; }
+  .local-trade-modal .local-trade-content { padding: 0 24px 18px; }
+  .local-trade-modal .local-trade-summary { border-radius: 16px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 54px; padding-inline: 16px; }
+  .local-trade-modal .local-trade-summary-title { gap: 10px; font-size: 18px; }
+  .local-trade-modal .local-trade-summary-title > i { font-size: 17px; }
+  .local-trade-modal .local-trade-summary-rows { padding: 5px 15px 12px; }
+  .local-trade-modal .local-trade-row { min-height: 32px; font-size: 14px; }
+  .local-trade-modal .local-trade-row > span { gap: 8px; }
+  .local-trade-modal .local-trade-row > span > i { width: 17px; font-size: 14px; }
+  .local-trade-modal .local-trade-row b { font-size: 12px; }
+  .local-trade-modal .local-trade-row--total { min-height: 48px; margin: 7px -5px -4px; padding: 7px 9px; border-radius: 12px; }
+  .local-trade-modal .local-trade-row--total > span { font-size: 14px; }
+  .local-trade-modal .local-trade-row--total b { padding: 6px 9px; font-size: 13px; }
+  .local-trade-modal .local-trade-payment-details { min-height: 68px; padding: 10px 14px; border-radius: 15px; }
+  .local-trade-modal .local-trade-payment-icon { width: 42px !important; height: 42px !important; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 17px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 11px; }
+  .local-trade-modal .local-trade-field { min-height: 52px; padding: 8px 13px; border-radius: 14px; }
+  .local-trade-modal .local-trade-label { font-size: 14px; }
+  .local-trade-modal .local-trade-field b { padding: 5px 10px; font-size: 14px; }
+  .local-trade-modal .local-trade-actions { gap: 10px; margin-top: 17px; }
+  .local-trade-modal .local-trade-actions button { min-height: 50px; border-radius: 13px; font-size: 16px; }
+}
+
+/* Reduce modal and interior typography while preserving the reference layout. */
+@media (min-width: 701px) {
+  .local-trade-modal { width: min(100%, 900px); border-radius: 30px; }
+  .local-trade-modal .local-trade-head { padding: 24px 38px 16px; gap: 21px; }
+  .local-trade-modal .local-trade-head-icon { width: 82px; height: 82px; flex-basis: 82px; border-radius: 21px; font-size: 38px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 32px; }
+  .local-trade-modal .local-trade-head-copy p { font-size: 17px; }
+  .local-trade-modal .local-trade-close { width: 44px; height: 44px; font-size: 29px; }
+  .local-trade-modal .local-trade-steps { min-height: 53px; margin: 0 60px 21px; }
+  .local-trade-modal .local-trade-step { min-height: 51px; gap: 10px; }
+  .local-trade-modal .local-trade-step b { width: 34px; height: 34px; flex-basis: 34px; font-size: 17px; }
+  .local-trade-modal .local-trade-step small { font-size: 19px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { min-height: 116px; padding: 16px 34px; border-radius: 25px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { grid-template-columns: 72px minmax(0,1fr) auto; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 64px; height: 64px; flex-basis: 64px; font-size: 27px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 58px; padding-right: 27px; font-size: 29px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { min-width: 300px; font-size: 36px; }
+  .local-trade-modal .local-trade-pay-receive,
+  .local-trade-modal .local-trade-sell-usd { margin: -2px 47px 21px auto; padding: 7px 15px 8px 24px; font-size: 16px; }
+  .local-trade-modal .local-trade-content { padding: 0 26px 23px; }
+  .local-trade-modal .local-trade-summary { margin-bottom: 17px; border-radius: 24px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 65px; padding-inline: 28px; }
+  .local-trade-modal .local-trade-summary-title { gap: 14px; font-size: 26px; }
+  .local-trade-modal .local-trade-summary-title > i { font-size: 23px; }
+  .local-trade-modal .local-trade-summary-toggle > i { font-size: 19px; }
+  .local-trade-modal .local-trade-summary-rows { padding: 7px 31px 17px; }
+  .local-trade-modal .local-trade-row { min-height: 42px; font-size: 20px; }
+  .local-trade-modal .local-trade-row > span { gap: 15px; }
+  .local-trade-modal .local-trade-row > span > i { width: 25px; font-size: 20px; }
+  .local-trade-modal .local-trade-row b { font-size: 17px; }
+  .local-trade-modal .local-trade-row--total { min-height: 63px; border-radius: 18px; }
+  .local-trade-modal .local-trade-row--total > span { font-size: 22px; }
+  .local-trade-modal .local-trade-row--total b { padding: 9px 17px; font-size: 22px; }
+  .local-trade-modal .local-trade-payment-details { min-height: 86px; padding: 14px 24px; border-radius: 21px; }
+  .local-trade-modal .local-trade-payment-icon { width: 58px !important; height: 58px !important; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 22px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 15px; }
+  .local-trade-modal .local-trade-field { min-height: 65px; padding-inline: 24px; border-radius: 20px; }
+  .local-trade-modal .local-trade-label { font-size: 20px; }
+  .local-trade-modal .local-trade-field b { font-size: 20px; }
+  .local-trade-modal .local-trade-actions { margin-top: 22px; }
+  .local-trade-modal .local-trade-actions button { min-height: 73px; border-radius: 20px; font-size: 25px; }
+}
+
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 19px; }
+  .local-trade-modal .local-trade-head-copy p { font-size: 11px; }
+  .local-trade-modal .local-trade-step small { font-size: 12px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { font-size: 16px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { font-size: 19px; }
+  .local-trade-modal .local-trade-summary-title { font-size: 16px; }
+  .local-trade-modal .local-trade-row { font-size: 13px; }
+  .local-trade-modal .local-trade-row b { font-size: 11px; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 15px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 10px; }
+  .local-trade-modal .local-trade-label { font-size: 13px; }
+  .local-trade-modal .local-trade-field b { font-size: 13px; }
+  .local-trade-modal .local-trade-actions button { font-size: 15px; }
+}
+
+/* Smaller desktop footprint for the full-page confirmation view. */
+@media (min-width: 701px) {
+  .local-trade-modal { width: min(100%, 760px); max-height: calc(100dvh - 36px); border-radius: 25px; }
+  .local-trade-modal .local-trade-head { padding: 19px 30px 13px; gap: 17px; }
+  .local-trade-modal .local-trade-head-icon { width: 66px; height: 66px; flex-basis: 66px; border-radius: 18px; font-size: 30px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 26px; }
+  .local-trade-modal .local-trade-head-copy p { margin-top: 5px; font-size: 14px; }
+  .local-trade-modal .local-trade-close { width: 38px; height: 38px; font-size: 25px; }
+  .local-trade-modal .local-trade-steps { min-height: 45px; margin: 0 44px 16px; }
+  .local-trade-modal .local-trade-step { min-height: 43px; gap: 8px; }
+  .local-trade-modal .local-trade-step b { width: 28px; height: 28px; flex-basis: 28px; font-size: 14px; }
+  .local-trade-modal .local-trade-step small { font-size: 16px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { min-height: 94px; margin-inline: 22px !important; padding: 12px 24px; border-radius: 20px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { grid-template-columns: 55px minmax(0,1fr) auto; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 48px; height: 48px; flex-basis: 48px; font-size: 21px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 42px; padding-right: 18px; font-size: 21px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { min-width: 220px; font-size: 27px; }
+  .local-trade-modal .local-trade-pay-receive,
+  .local-trade-modal .local-trade-sell-usd { margin: -2px 37px 16px auto; padding: 5px 11px 6px 18px; font-size: 13px; }
+  .local-trade-modal .local-trade-content { padding: 0 22px 19px; }
+  .local-trade-modal .local-trade-summary { margin-bottom: 13px; border-radius: 19px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 54px; padding-inline: 22px; }
+  .local-trade-modal .local-trade-summary-title { gap: 11px; font-size: 21px; }
+  .local-trade-modal .local-trade-summary-title > i { font-size: 19px; }
+  .local-trade-modal .local-trade-summary-toggle > i { font-size: 16px; }
+  .local-trade-modal .local-trade-summary-rows { padding: 5px 24px 13px; }
+  .local-trade-modal .local-trade-row { min-height: 34px; font-size: 16px; }
+  .local-trade-modal .local-trade-row > span { gap: 11px; }
+  .local-trade-modal .local-trade-row > span > i { width: 21px; font-size: 16px; }
+  .local-trade-modal .local-trade-row b { font-size: 14px; }
+  .local-trade-modal .local-trade-row--total { min-height: 51px; margin: 7px -10px -5px; padding: 8px 13px; border-radius: 14px; }
+  .local-trade-modal .local-trade-row--total > span { font-size: 17px; }
+  .local-trade-modal .local-trade-row--total b { padding: 7px 12px; font-size: 17px; }
+  .local-trade-modal .local-trade-payment-details { min-height: 70px; margin-bottom: 11px; padding: 10px 18px; border-radius: 17px; }
+  .local-trade-modal .local-trade-payment-icon { width: 48px !important; height: 48px !important; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 18px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 12px; }
+  .local-trade-modal .local-trade-field { min-height: 52px; padding: 8px 19px; border-radius: 16px; }
+  .local-trade-modal .local-trade-label { font-size: 16px; }
+  .local-trade-modal .local-trade-label i { font-size: 15px; }
+  .local-trade-modal .local-trade-field b { padding: 5px 12px; font-size: 16px; }
+  .local-trade-modal .local-trade-actions { gap: 12px; margin-top: 16px; }
+  .local-trade-modal .local-trade-actions button { min-height: 58px; border-radius: 16px; font-size: 20px; }
+}
+
+/* Extra compact desktop modal, matching the latest full-page screenshot. */
+@media (min-width: 701px) {
+  .local-trade-modal { width: min(100%, 640px); max-height: calc(100dvh - 44px); border-radius: 22px; }
+  .local-trade-modal .local-trade-head { padding: 15px 25px 11px; gap: 14px; }
+  .local-trade-modal .local-trade-head-icon { width: 54px; height: 54px; flex-basis: 54px; border-radius: 15px; font-size: 24px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 21px; }
+  .local-trade-modal .local-trade-head-copy p { margin-top: 3px; font-size: 11px; }
+  .local-trade-modal .local-trade-close { width: 32px; height: 32px; font-size: 21px; }
+  .local-trade-modal .local-trade-steps { min-height: 38px; margin: 0 32px 12px; }
+  .local-trade-modal .local-trade-step { min-height: 36px; gap: 6px; }
+  .local-trade-modal .local-trade-step b { width: 23px; height: 23px; flex-basis: 23px; font-size: 12px; }
+  .local-trade-modal .local-trade-step small { font-size: 13px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { min-height: 72px; margin-inline: 15px !important; padding: 8px 17px; border-radius: 16px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { grid-template-columns: 43px minmax(0,1fr) auto; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 38px; height: 38px; flex-basis: 38px; font-size: 16px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 33px; padding-right: 12px; font-size: 17px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { min-width: 155px; font-size: 21px; }
+  .local-trade-modal .local-trade-pay-receive,
+  .local-trade-modal .local-trade-sell-usd { margin: -1px 26px 12px auto; padding: 4px 8px 5px 13px; font-size: 10px; }
+  .local-trade-modal .local-trade-content { padding: 0 15px 14px; }
+  .local-trade-modal .local-trade-summary { margin-bottom: 10px; border-radius: 15px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 44px; padding-inline: 17px; }
+  .local-trade-modal .local-trade-summary-title { gap: 8px; font-size: 17px; }
+  .local-trade-modal .local-trade-summary-title > i { font-size: 15px; }
+  .local-trade-modal .local-trade-summary-toggle > i { font-size: 13px; }
+  .local-trade-modal .local-trade-summary-rows { padding: 4px 18px 9px; }
+  .local-trade-modal .local-trade-row { min-height: 28px; font-size: 13px; }
+  .local-trade-modal .local-trade-row > span { gap: 8px; }
+  .local-trade-modal .local-trade-row > span > i { width: 17px; font-size: 13px; }
+  .local-trade-modal .local-trade-row b { font-size: 11px; }
+  .local-trade-modal .local-trade-row--total { min-height: 42px; margin: 5px -7px -3px; padding: 6px 9px; border-radius: 11px; }
+  .local-trade-modal .local-trade-row--total > span { font-size: 14px; }
+  .local-trade-modal .local-trade-row--total b { padding: 5px 9px; font-size: 13px; }
+  .local-trade-modal .local-trade-payment-details { min-height: 58px; margin-bottom: 8px; padding: 8px 13px; border-radius: 14px; }
+  .local-trade-modal .local-trade-payment-icon { width: 38px !important; height: 38px !important; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 15px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 10px; }
+  .local-trade-modal .local-trade-field { min-height: 43px; padding: 6px 14px; border-radius: 13px; }
+  .local-trade-modal .local-trade-label { font-size: 13px; }
+  .local-trade-modal .local-trade-label i { font-size: 12px; }
+  .local-trade-modal .local-trade-field b { padding: 4px 9px; font-size: 13px; }
+  .local-trade-modal .local-trade-actions { gap: 10px; margin-top: 12px; }
+  .local-trade-modal .local-trade-actions button { min-height: 46px; border-radius: 12px; font-size: 15px; }
+}
+
+@media (min-width: 701px) {
+  .local-trade-modal { width: min(100%, 440px); max-height: calc(100dvh - 52px); border-radius: 18px; }
+  .local-trade-modal .local-trade-head { padding: 12px 19px 9px; gap: 10px; }
+  .local-trade-modal .local-trade-head-icon { width: 43px; height: 43px; flex-basis: 43px; border-radius: 12px; font-size: 19px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 17px; }
+  .local-trade-modal .local-trade-head-copy p { margin-top: 2px; font-size: 9px; }
+  .local-trade-modal .local-trade-close { width: 28px; height: 28px; font-size: 18px; }
+  .local-trade-modal .local-trade-steps { min-height: 31px; margin: 0 24px 9px; }
+  .local-trade-modal .local-trade-step { min-height: 29px; gap: 5px; }
+  .local-trade-modal .local-trade-step b { width: 19px; height: 19px; flex-basis: 19px; font-size: 10px; }
+  .local-trade-modal .local-trade-step small { font-size: 10px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { min-height: 58px; margin-inline: 11px !important; padding: 6px 12px; border-radius: 13px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { grid-template-columns: 34px minmax(0,1fr) auto; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 30px; height: 30px; flex-basis: 30px; font-size: 13px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 26px; padding-right: 8px; font-size: 13px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { min-width: 120px; font-size: 16px; }
+  .local-trade-modal .local-trade-pay-receive,
+  .local-trade-modal .local-trade-sell-usd { margin: -1px 19px 9px auto; padding: 3px 6px 4px 10px; font-size: 8px; }
+  .local-trade-modal .local-trade-content { padding: 0 11px 10px; }
+  .local-trade-modal .local-trade-summary { margin-bottom: 7px; border-radius: 12px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 36px; padding-inline: 12px; }
+  .local-trade-modal .local-trade-summary-title { gap: 6px; font-size: 13px; }
+  .local-trade-modal .local-trade-summary-title > i { font-size: 12px; }
+  .local-trade-modal .local-trade-summary-toggle > i { font-size: 10px; }
+  .local-trade-modal .local-trade-summary-rows { padding: 3px 12px 7px; }
+  .local-trade-modal .local-trade-row { min-height: 23px; font-size: 10px; }
+  .local-trade-modal .local-trade-row > span { gap: 6px; }
+  .local-trade-modal .local-trade-row > span > i { width: 13px; font-size: 10px; }
+  .local-trade-modal .local-trade-row b { font-size: 9px; }
+  .local-trade-modal .local-trade-row--total { min-height: 34px; margin: 4px -5px -2px; padding: 4px 7px; border-radius: 9px; }
+  .local-trade-modal .local-trade-row--total > span { font-size: 11px; }
+  .local-trade-modal .local-trade-row--total b { padding: 4px 7px; font-size: 10px; }
+  .local-trade-modal .local-trade-payment-details { min-height: 47px; margin-bottom: 6px; padding: 6px 10px; border-radius: 11px; }
+  .local-trade-modal .local-trade-payment-icon { width: 30px !important; height: 30px !important; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 12px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 8px; }
+  .local-trade-modal .local-trade-field { min-height: 35px; padding: 4px 10px; border-radius: 10px; }
+  .local-trade-modal .local-trade-label { font-size: 10px; }
+  .local-trade-modal .local-trade-label i { font-size: 9px; }
+  .local-trade-modal .local-trade-field b { padding: 3px 7px; font-size: 10px; }
+  .local-trade-modal .local-trade-actions { gap: 8px; margin-top: 9px; }
+  .local-trade-modal .local-trade-actions button { min-height: 38px; border-radius: 10px; font-size: 12px; }
+}
+
+/* Final Buy/Sell confirmation proportions and amount banner from the reference. */
+@media (min-width: 701px) {
+  .local-trade-modal { width: min(100%, 500px); max-height: min(calc(100dvh - 36px), 760px); border-radius: 22px; }
+  .local-trade-modal .local-trade-head { padding: 17px 25px 13px; gap: 13px; }
+  .local-trade-modal .local-trade-head-icon { width: 54px; height: 54px; flex-basis: 54px; font-size: 23px; }
+  .local-trade-modal .local-trade-head-copy h2 { font-size: 21px; }
+  .local-trade-modal .local-trade-head-copy p { font-size: 11px; }
+  .local-trade-modal .local-trade-steps { margin: 0 24px 13px; min-height: 38px; }
+  .local-trade-modal .local-trade-step { min-height: 36px; }
+  .local-trade-modal .local-trade-step b { width: 22px; height: 22px; flex-basis: 22px; font-size: 11px; }
+  .local-trade-modal .local-trade-step small { font-size: 12px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received {
+    grid-template-columns: 48px minmax(105px, 1fr) minmax(0, auto);
+    min-height: 76px;
+    margin-inline: 13px !important;
+    padding: 8px 15px;
+    border-radius: 16px;
+  }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 42px; height: 42px; flex-basis: 42px; font-size: 17px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label {
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 12px 0 0;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong {
+    min-width: 0;
+    padding-left: 12px;
+    font-size: 21px;
+    white-space: nowrap;
+  }
+  .local-trade-modal .local-trade-pay-receive,
+  .local-trade-modal .local-trade-sell-usd { margin: -1px 24px 12px auto; padding: 4px 8px 5px 12px; font-size: 9px; }
+  .local-trade-modal .local-trade-content { padding: 0 13px 13px; }
+  .local-trade-modal .local-trade-summary { margin-bottom: 9px; }
+  .local-trade-modal .local-trade-summary-toggle { min-height: 41px; padding-inline: 13px; }
+  .local-trade-modal .local-trade-summary-title { font-size: 15px; }
+  .local-trade-modal .local-trade-summary-rows { padding: 3px 13px 8px; }
+  .local-trade-modal .local-trade-row { min-height: 26px; font-size: 11px; }
+  .local-trade-modal .local-trade-row b { font-size: 10px; }
+  .local-trade-modal .local-trade-row--total > span,
+  .local-trade-modal .local-trade-row--total b { font-size: 12px; }
+  .local-trade-modal .local-trade-payment-details { min-height: 44px; padding: 5px 11px; margin-bottom: 10px;}
+  .local-trade-modal .local-trade-payment-icon { width: 34px !important; height: 34px !important; }
+  .local-trade-modal .local-trade-payment-head > span > strong { font-size: 13px; }
+  .local-trade-modal .local-trade-payment-head > span > small { font-size: 9px; }
+  .local-trade-modal .local-trade-field { min-height: 38px; padding: 5px 11px; }
+  .local-trade-modal .local-trade-label,
+  .local-trade-modal .local-trade-field b { font-size: 11px; }
+  .local-trade-modal .local-trade-actions { margin-top: 10px; }
+  .local-trade-modal .local-trade-actions button { min-height: 42px; font-size: 13px; }
+}
+
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received {
+    grid-template-columns: 38px minmax(75px,1fr) auto;
+  }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { white-space: nowrap; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { padding-left: 7px; white-space: nowrap; }
+}
+
+/* Reference-matched progress pills and Pay/Received amount block. */
+.local-trade-modal .local-trade-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  padding: 0;
+  border: 1px solid rgba(251,191,36,.54);
+  border-radius: 999px;
+  background: rgba(5,7,8,.78);
+  overflow: hidden;
+}
+.local-trade-modal .local-trade-step {
+  display: flex;
+  min-width: 0;
+  min-height: 40px;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 9px;
+  color: #f7f0e8;
+}
+.local-trade-modal .local-trade-step b {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.13);
+  color: #fff;
+  font-size: 12px;
+}
+.local-trade-modal .local-trade-step small { font-size: 13px; font-weight: 650; }
+.local-trade-modal .local-trade-step.is-done { color: #fff; }
+.local-trade-modal .local-trade-step.is-done b { border-color: #fbbf24; background: #fbbf24; color: #241805; }
+.local-trade-modal .local-trade-step.is-active { color: #170f03; background: linear-gradient(100deg,#ffe779,#ffbf16); }
+.local-trade-modal .local-trade-step.is-active b { border-color: rgba(75,48,4,.45); background: #fff0ae; color: #241805; box-shadow: none; }
+.local-trade-modal .local-trade-step-line { display: none; }
+
+.local-trade-modal .local-trade-total-banner--pay,
+.local-trade-modal .local-trade-total-banner--received {
+  display: grid;
+  grid-template-columns: var(--trade-total-icon-column) minmax(0, 1fr) 40%;
+  column-gap: 0;
+  align-items: center;
+  min-height: 81px;
+  margin: 0 13px !important;
+  padding: 9px 16px;
+  border-radius: 19px;
+}
+.local-trade-modal .local-trade-total-banner--pay {
+  border-color: #f25492;
+  background: linear-gradient(105deg,#a9224b 0%,#5e0d34 58%,#31051d 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.19),0 10px 28px rgba(230,25,108,.25);
+}
+.local-trade-modal .local-trade-total-banner--received {
+  border-color: rgba(251,191,36,.9);
+  background: linear-gradient(105deg,#a87308 0%,#553b08 48%,#241b06 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.17),0 10px 27px rgba(233,164,12,.23);
+}
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon {
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+  border-radius: 50%;
+  font-size: 19px;
+}
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon { border-color: rgba(255,202,224,.8); background: linear-gradient(145deg,#ff73ad,#d31162); }
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { border-color: rgba(255,230,151,.75); background: linear-gradient(145deg,#ffd75d,#d17b00); }
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 13px 0 0;
+  border-right: 2px solid rgba(255,231,239,.75);
+  color: #fff4f7;
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label { border-right-color: rgba(255,225,127,.78); color: #fff5d3; }
+.local-trade-modal .local-trade-total-banner--pay > strong,
+.local-trade-modal .local-trade-total-banner--received > strong {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding-left: 13px;
+  color: #ffb3d5;
+  font-size: 23px;
+  font-weight: 850;
+  letter-spacing: -.3px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-shadow: 0 0 14px rgba(255,80,164,.35);
+}
+.local-trade-modal .local-trade-total-banner--received > strong { color: #ffe08a; text-shadow: 0 0 13px rgba(255,190,35,.28); }
+.local-trade-modal .local-trade-pay-receive,
+.local-trade-modal .local-trade-sell-usd {
+  position: relative;
+  display: block;
+  width: max-content;
+  max-width: calc(100% - 42px);
+  margin: -1px 24px 13px auto;
+  padding: 4px 9px 5px 15px;
+  border: 1px solid rgba(242, 84, 147, 0.657);
+  border-radius: 12px 0px 10px 0px;
+  color: #e6d9df;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: right;
+}
+.local-trade-modal .local-trade-pay-receive > span { color: #ffd300; font-size: 12px; font-weight: 850; }
+.local-trade-modal .local-trade-sell-usd { border-color: rgba(251,191,36,.4); }
+.local-trade-modal .local-trade-sell-usd > span { color: #ff9ba6; font-size: 12px; font-weight: 850; }
+
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-step { min-height: 35px; gap: 5px; padding-inline: 5px; }
+  .local-trade-modal .local-trade-step b { width: 21px; height: 21px; flex-basis: 21px; font-size: 10px; }
+  .local-trade-modal .local-trade-step small { font-size: 11px; }
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received { grid-template-columns: var(--trade-total-icon-column) minmax(0, 1fr) 50%; min-height: 66px; margin-inline: 11px !important; padding: 7px 10px; border-radius: 15px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { width: 36px; height: 36px; flex-basis: 36px; font-size: 15px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 30px; padding-right: 8px; font-size: 14px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { padding-left: 8px; font-size: 22px; }
+  .local-trade-modal .local-trade-pay-receive,
+  .local-trade-modal .local-trade-sell-usd { margin-right: 18px; margin-bottom: 10px; font-size: 9px; }
+}
+
+/* Compact amount bars and collapsed summary at first open. */
+.local-trade-modal .local-trade-total-banner--pay,
+.local-trade-modal .local-trade-total-banner--received {
+  --trade-total-icon-column: 90px;
+  --trade-total-icon-size: 34px;
+  min-height: 50px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-icon {
+  width: var(--trade-total-icon-size);
+  height: var(--trade-total-icon-size);
+  flex-basis: var(--trade-total-icon-size);
+  font-size: 14px;
+}
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label {
+  min-height: 28px;
+  padding-right: 9px;
+  font-size: 22px;
+}
+.local-trade-modal .local-trade-total-banner--pay > strong,
+.local-trade-modal .local-trade-total-banner--received > strong {
+  padding-left: 9px;
+  font-size: 25px;
+}
+.local-trade-modal .local-trade-pay-receive,
+.local-trade-modal .local-trade-sell-usd {
+  margin-bottom: -10px;
+  padding: 3px 8px 4px 12px;
+  font-size: 9px;
+  right: -11px;
+  top: -24px;
+}
+.local-trade-modal .local-trade-summary { margin-bottom: 9px; }
+.local-trade-modal .local-trade-summary-toggle { min-height: 28px; padding-inline: 13px; }
+.local-trade-modal .local-trade-summary-title { gap: 7px; font-size: 14px; }
+.local-trade-modal .local-trade-summary-title > i { font-size: 12px; }
+.local-trade-modal .local-trade-summary-toggle > i { font-size: 11px; }
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-total-banner--pay,
+  .local-trade-modal .local-trade-total-banner--received {
+    --trade-total-icon-column: 42px;
+    --trade-total-icon-size: 30px;
+    min-height: 54px;
+    padding: 5px 8px;
+  }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-icon,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-icon { font-size: 12px; }
+  .local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+  .local-trade-modal .local-trade-total-banner--received .local-trade-total-label { min-height: 25px; font-size: 13px; }
+  .local-trade-modal .local-trade-total-banner--pay > strong,
+  .local-trade-modal .local-trade-total-banner--received > strong { font-size: 22px; }
+}
+
+/* Compact progress bar: Request → Confirm → Submitted. */
+.local-trade-modal .local-trade-steps {
+  min-height: 30px;
+  margin: 0 24px 10px;
+  border-radius: 999px;
+}
+.local-trade-modal .local-trade-step {
+  min-height: 28px;
+  gap: 5px;
+  padding: 0 6px;
+}
+.local-trade-modal .local-trade-step b {
+  width: 19px;
+  height: 19px;
+  flex-basis: 19px;
+  font-size: 10px;
+}
+.local-trade-modal .local-trade-step small {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+}
+.local-trade-modal .local-trade-step.is-active {
+  box-shadow: inset 0 1px rgba(255,255,255,.28);
+}
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-steps { min-height: 27px; margin: 0 18px 8px; }
+  .local-trade-modal .local-trade-step { min-height: 25px; gap: 4px; padding-inline: 4px; }
+  .local-trade-modal .local-trade-step b { width: 17px; height: 17px; flex-basis: 17px; font-size: 9px; }
+  .local-trade-modal .local-trade-step small { font-size: 9px; }
+}
+
+/* Keep the label and its divider aligned through the center of the amount banner. */
+.local-trade-modal .local-trade-total-banner--pay .local-trade-total-label,
+.local-trade-modal .local-trade-total-banner--received .local-trade-total-label {
+  justify-content: flex-start;
+  justify-self: stretch;
+  margin-inline-end: -1px;
+  min-height: 28px;
+  text-align: left;
+  padding-left: 0;
+}
+
+.local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) .local-trade-total-label > span {
+  font-size: 1.1em;
+  font-weight: 800;
+  transform: translateX(calc(var(--trade-total-icon-size) + 6px - var(--trade-total-icon-column)));
+}
+
+@media (min-width: 440px) and (max-width: 700px) {
+  .local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) {
+    --trade-total-icon-column: 58px;
+    --trade-total-icon-size: 34px;
+    min-height: 68px;
+    padding-inline: 10px;
+  }
+  .local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) .local-trade-total-label {
+    font-size: 22px;
+  }
+  .local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) > strong {
+    font-size: 25px;
+  }
+}
+
+/* Smaller explanatory labels inside the order summary rows. */
+.local-trade-modal .local-trade-summary-rows .local-trade-row > span {
+  font-size: 10px;
+  line-height: 1.2;
+}
+.local-trade-modal .local-trade-summary-rows .local-trade-row > span > i {
+  font-size: 10px;
+}
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-summary-rows .local-trade-row > span { font-size: 9px; }
+  .local-trade-modal .local-trade-summary-rows .local-trade-row > span > i { font-size: 9px; }
+}
+
+/* Three separate outlined steps with accent connector, matching the supplied reference. */
+.local-trade-modal .local-trade-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 39px;
+  margin: 0 24px 11px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.local-trade-modal .local-trade-step {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: max-content;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid rgba(231,216,178,.48);
+  border-radius: 999px;
+  background: linear-gradient(180deg,rgba(42,38,29,.96),rgba(16,16,15,.98));
+  color: #f7f3ea;
+}
+.local-trade-modal .local-trade-step b {
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  border: 1px solid rgba(255,255,255,.32);
+  border-radius: 50%;
+  background: #68696b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+.local-trade-modal .local-trade-step small { color: inherit; font-size: 14px; font-weight: 700; }
+.local-trade-modal .local-trade-step.is-done { border-color: rgba(231,216,178,.48); color: #f7f3ea; background: linear-gradient(180deg,#302b21,#141412); }
+.local-trade-modal .local-trade-step.is-done b { border-color: transparent; background: #fbbf24; color: #211704; }
+.local-trade-modal .local-trade-step.is-active { border-color: #ffd02e; color: #141006; background: linear-gradient(105deg,#ffe477,#ffbf0b); box-shadow: 0 0 15px rgba(255,191,11,.18),inset 0 1px rgba(255,255,255,.44); }
+.local-trade-modal .local-trade-step.is-active b { border-color: rgba(65,48,7,.45); background: #fff2bd; color: #171204; box-shadow: none; }
+.local-trade-modal .local-trade-step-line {
+  position: relative;
+  z-index: 0;
+  display: block;
+  flex: 1 1 14px;
+  min-width: 8px;
+  height: 2px;
+  margin-inline: -1px;
+  background: linear-gradient(90deg,#fbbf24,#d99c08);
+}
+.local-trade-modal .local-trade-step-line:nth-of-type(2) { background: linear-gradient(90deg,#d99c08,rgba(217,156,8,.28)); }
+.local-trade-overlay--red .local-trade-modal .local-trade-step.is-done b { background: #f66b78; color: #26070a; }
+.local-trade-overlay--red .local-trade-modal .local-trade-step.is-active { border-color: #fb7185; background: linear-gradient(105deg,#ff9aa5,#f05268); box-shadow: 0 0 15px rgba(240,82,104,.19),inset 0 1px rgba(255,255,255,.4); }
+.local-trade-overlay--red .local-trade-modal .local-trade-step.is-active b { background: #ffe1e4; color: #3b0910; }
+.local-trade-overlay--red .local-trade-modal .local-trade-step-line { background: linear-gradient(90deg,#f66b78,#c84a58); }
+.local-trade-overlay--red .local-trade-modal .local-trade-step-line:nth-of-type(2) { background: linear-gradient(90deg,#c84a58,rgba(200,74,88,.3)); }
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-steps { min-height: 34px; margin-inline: 18px; }
+  .local-trade-modal .local-trade-step { gap: 5px; min-height: 31px; padding-inline: 9px; }
+  .local-trade-modal .local-trade-step b { width: 20px; height: 20px; flex-basis: 20px; font-size: 10px; }
+  .local-trade-modal .local-trade-step small { font-size: 11px; }
+  .local-trade-modal .local-trade-step-line { min-width: 5px; }
+}
+
+/* Smaller Request / Confirm / Submitted step bar. */
+.local-trade-modal .local-trade-steps { min-height: 29px; margin-bottom: 8px; }
+.local-trade-modal .local-trade-step { min-height: 27px; gap: 5px; padding-inline: 9px; }
+.local-trade-modal .local-trade-step b { width: 18px; height: 18px; flex-basis: 18px; font-size: 9px; }
+.local-trade-modal .local-trade-step small { font-size: 10px; }
+.local-trade-modal .local-trade-step-line { min-width: 6px; height: 1px; }
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-steps { min-height: 25px; margin-bottom: 7px; }
+  .local-trade-modal .local-trade-step { min-height: 23px; gap: 4px; padding-inline: 6px; }
+  .local-trade-modal .local-trade-step b { width: 15px; height: 15px; flex-basis: 15px; font-size: 8px; }
+  .local-trade-modal .local-trade-step small { font-size: 9px; }
+}
+
+/* Compact payment method + order deadline row, shared by local buy/sell modals. */
+.local-trade-modal .local-trade-payment-time-card {
+  --payment-time-accent: #fbbf24;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .9fr) 14px;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 10px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--payment-time-accent) 48%, transparent);
+  border-radius: 14px;
+  background: linear-gradient(105deg, color-mix(in srgb, var(--payment-time-accent) 13%, #191a1d), #17181b 72%);
+  box-shadow: inset 0 1px rgba(255,255,255,.05), 0 7px 20px rgba(0,0,0,.14);
+}
+.local-trade-overlay--red .local-trade-modal .local-trade-payment-time-card { --payment-time-accent: #fb7185; }
+.local-trade-modal .local-trade-method-details,
+.local-trade-modal .local-trade-payment-time-head,
+.local-trade-modal .local-trade-payment-head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.local-trade-modal .local-trade-payment-time-card .local-trade-payment-head { width: 100%; }
+.local-trade-modal .local-trade-payment-time-card .local-trade-payment-head { padding: 0; border: 0; }
+.local-trade-modal .local-trade-payment-time-card .local-trade-payment-icon {
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 38px;
+  border-radius: 10px;
+}
+.local-trade-modal .local-trade-payment-time-card .local-trade-method-details > span,
+.local-trade-modal .local-trade-payment-time-card .local-trade-payment-head > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.local-trade-modal .local-trade-payment-time-card .local-trade-method-details strong,
+.local-trade-modal .local-trade-payment-time-card .local-trade-payment-head strong {
+  overflow: hidden;
+  color: #fff8e8;
+  font-size: 14px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.local-trade-modal .local-trade-payment-time-card .local-trade-method-details small,
+.local-trade-modal .local-trade-payment-time-card .local-trade-payment-head small {
+  overflow: hidden;
+  color: #b9b5aa;
+  font-size: 10px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.local-trade-modal .local-trade-time-details {
+  --order-time-accent: #facc15;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding-left: 13px;
+  border-left: 1px solid color-mix(in srgb, var(--payment-time-accent) 52%, transparent);
+}
+.local-trade-modal .local-trade-time-details > i {
+  flex: 0 0 auto;
+  color: var(--order-time-accent);
+  font-size: 20px;
+}
+.local-trade-modal .local-trade-time-details > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: #f5f0e4;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.local-trade-modal .local-trade-time-details strong {
+  color: var(--order-time-accent);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.local-trade-modal .local-trade-method-arrow { justify-self: end; color: #f3e4bd; font-size: 14px; }
+.local-trade-modal .local-trade-payment-time-card--editable {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.local-trade-modal .local-trade-payment-time-card--editable .local-trade-payment-time-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr) 14px;
+  gap: 12px;
+}
+.local-trade-modal .local-trade-payment-time-card--editable .local-trade-time-details { padding-left: 12px; }
+.local-trade-modal .local-trade-payment-time-card--editable .local-trade-payment-details {
+  min-height: 0;
+  margin: 0;
+  padding: 9px 0 0;
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,.1);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+@media (max-width: 480px) {
+  .local-trade-modal .local-trade-payment-time-card { grid-template-columns: minmax(0, 1fr) minmax(0, .95fr) 10px; gap: 7px; padding: 8px; }
+  .local-trade-modal .local-trade-payment-time-card .local-trade-payment-icon { width: 32px !important; height: 32px !important; flex-basis: 32px; }
+  .local-trade-modal .local-trade-payment-time-card .local-trade-method-details,
+  .local-trade-modal .local-trade-payment-time-card .local-trade-payment-head { gap: 7px; }
+  .local-trade-modal .local-trade-payment-time-card .local-trade-method-details strong,
+  .local-trade-modal .local-trade-payment-time-card .local-trade-payment-head strong { font-size: 12px; }
+  .local-trade-modal .local-trade-payment-time-card .local-trade-method-details small,
+  .local-trade-modal .local-trade-payment-time-card .local-trade-payment-head small { font-size: 9px; }
+  .local-trade-modal .local-trade-time-details { gap: 5px; padding-left: 7px; }
+  .local-trade-modal .local-trade-time-details > span { font-size: 10px; }
+  .local-trade-modal .local-trade-time-details > i { font-size: 14px; }
+  .local-trade-modal .local-trade-time-details strong { font-size: 14px; }
+}
+
+/* Keep the combined row readable on narrow phones; stack the sell-only form fields. */
+@media (max-width: 480px) {
+  .local-trade-modal .local-trade-payment-time-card:not(.local-trade-payment-time-card--editable) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, .95fr);
+    gap: 6px;
+    padding: 8px 9px;
+  }
+  .local-trade-modal .local-trade-payment-time-card:not(.local-trade-payment-time-card--editable) .local-trade-method-arrow { display: none; }
+  .local-trade-modal .local-trade-payment-time-card--editable { padding: 9px; }
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-payment-time-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-method-arrow { display: none; }
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-payment-head > span { flex: 1 1 auto; }
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-payment-details { padding-top: 8px; }
+}
+
+@media (max-width: 700px) {
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-payment-time-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-time-details {
+    padding: 7px 0 0;
+    border-top: 1px solid color-mix(in srgb, var(--payment-time-accent) 36%, transparent);
+    border-left: 0;
+  }
+  .local-trade-modal .local-trade-payment-time-card--editable .local-trade-method-arrow { display: none; }
 }

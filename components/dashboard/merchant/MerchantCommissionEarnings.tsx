@@ -14,7 +14,7 @@ const summaryCards = [
   {
     title: "Total Commission Earned",
     value: "245.80",
-    suffix: "USDT",
+    suffix: "USD",
     icon: "fa-solid fa-dollar-sign",
     type: "purple",
     footer: "↗ 18.6% vs Apr 2025",
@@ -23,7 +23,7 @@ const summaryCards = [
   {
     title: "Pending Earnings",
     value: "32.40",
-    suffix: "USDT",
+    suffix: "USD",
     icon: "fa-regular fa-clock",
     type: "purple",
     footer: "Will be released on next settlement",
@@ -32,7 +32,7 @@ const summaryCards = [
   {
     title: "This Month Payout",
     value: "213.40",
-    suffix: "USDT",
+    suffix: "USD",
     icon: "fa-solid fa-wallet",
     type: "purple",
     footer: "↗ 15.2% vs Apr 2025",
@@ -41,7 +41,7 @@ const summaryCards = [
   {
     title: "Total Payout",
     value: "1,245.60",
-    suffix: "USDT",
+    suffix: "USD",
     icon: "fa-solid fa-building-columns",
     type: "purple",
     footer: "All time total payout",
@@ -50,7 +50,7 @@ const summaryCards = [
   {
     title: "Available Balance",
     value: "213.40",
-    suffix: "USDT",
+    suffix: "USD",
     icon: "fa-solid fa-money-check-dollar",
     type: "purple",
     footer: "Ready to withdraw",
@@ -244,12 +244,12 @@ export default function MerchantCommissionEarnings() {
                 <div className="chart-legends">
                   <span>
                     <i className="legend-box commission" />
-                    Total Commission (USDT)
+                    Total Commission (USD)
                   </span>
 
                   <span>
                     <i className="legend-box payout" />
-                    Payout (USDT)
+                    Payout (USD)
                   </span>
                 </div>
 
@@ -352,7 +352,7 @@ export default function MerchantCommissionEarnings() {
                   <div className="commission-donut">
                     <div className="commission-donut-inner">
                       <strong>245.80</strong>
-                      <span>USDT</span>
+                      <span>USD</span>
                       <small>Total</small>
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export default function MerchantCommissionEarnings() {
                       <div>
                         <span>Buy Ads Commission</span>
                         <strong>
-                          122.90 USDT
+                          122.90 USD
                           <small>(50.0%)</small>
                         </strong>
                       </div>
@@ -377,7 +377,7 @@ export default function MerchantCommissionEarnings() {
                       <div>
                         <span>Sell Ads Commission</span>
                         <strong>
-                          122.90 USDT
+                          122.90 USD
                           <small>(50.0%)</small>
                         </strong>
                       </div>
@@ -411,7 +411,7 @@ export default function MerchantCommissionEarnings() {
                         <th>Date</th>
                         <th>Type</th>
                         <th>Related To</th>
-                        <th>Amount (USDT)</th>
+                        <th>Amount (USD)</th>
                         <th>Status</th>
                       </tr>
                     </thead>
@@ -480,17 +480,17 @@ export default function MerchantCommissionEarnings() {
 
                   <div>
                     <span>Buy Ads Commission</span>
-                    <strong>122.90 USDT</strong>
+                    <strong>122.90 USD</strong>
                   </div>
 
                   <div>
                     <span>Sell Ads Commission</span>
-                    <strong>122.90 USDT</strong>
+                    <strong>122.90 USD</strong>
                   </div>
 
                   <div className="summary-total">
                     <span>Total Commission</span>
-                    <strong>245.80 USDT</strong>
+                    <strong>245.80 USD</strong>
                   </div>
 
                 </div>
@@ -515,7 +515,7 @@ export default function MerchantCommissionEarnings() {
                 </button>
 
                 <div className="available-balance">
-                  Available Balance: <strong>213.40 USDT</strong>
+                  Available Balance: <strong>213.40 USD</strong>
                 </div>
 
               </div>
