@@ -848,7 +848,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
           amount={trade.payable_amount}
           currency={withFiat}
           details={[
-            { label: 'Order ID', value: String(orderId) },
+            { label: 'Order ID', value: String(orderId), icon: 'fa-hashtag' },
             ...localOrderSummaryRows({ side: 'sell', fiat: withFiat, asset, fiatAmount, assetAmount: cryptoAmount, price: Number(trade.user_price), feeAmount: feeCryptoAmount, feePercent: displayedFeePercent, feeLabel }),
           ]}
         />
