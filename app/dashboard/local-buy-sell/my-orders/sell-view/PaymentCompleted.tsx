@@ -5,7 +5,7 @@ import FeedbackBox from "./FeedbackBox";
 import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
-import { localOrderSummaryRows } from "../../localOrderSummary";
+import { localOrderSummaryRows, type LocalOrderSummaryRow } from "../../localOrderSummary";
 import {
   getViewerOrderAmountDisplay,
   getCompletedOrderAmounts,
@@ -86,8 +86,8 @@ export default function PaymentCompleted({ trade, from }: Props) {
   const isPrepaidAdFee = isSeller && trade.type === "buy";
   const fee = Number(isPrepaidAdFee ? trade.ad_fee_amount ?? 0 : trade.charge_amount ?? 0);
   const bonus = Number(trade.bonus_amount ?? 0);
-  const summaryRows = [
-    { label: "Order ID", value: trade.order_id || `#${trade.id}` },
+  const summaryRows: LocalOrderSummaryRow[] = [
+    { label: "Order ID", value: trade.order_id || `#${trade.id}`, icon: "fa-hashtag" },
     ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0), feeLabel: isPrepaidAdFee && fee > 0 ? "Ad Fee (Already Paid)" : undefined }),
   ];
     
