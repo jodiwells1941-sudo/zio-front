@@ -52,7 +52,7 @@ export default function SellPage() {
           </div>
           {showChatPanel && (
             <div className="col-lg-5 col-12 d-none d-md-block">
-              <P2PChatPanel />
+              <P2PChatPanel isLocalTrade />
             </div>
           )}
         </div>

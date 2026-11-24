@@ -24,7 +24,7 @@
 .local-trade-modal {
   position: relative;
   z-index: 1;
-  width: min(100%, 470px);
+  width: min(100%, 400px);
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
   border: 1px solid var(--trade-accent-border);
@@ -1687,7 +1687,7 @@
 
 /* Final Buy/Sell confirmation proportions and amount banner from the reference. */
 @media (min-width: 701px) {
-  .local-trade-modal { width: min(100%, 500px); max-height: min(calc(100dvh - 36px), 760px); border-radius: 22px; }
+  .local-trade-modal { width: min(100%, 400px); max-height: min(calc(100dvh - 36px), 760px); border-radius: 22px; }
   .local-trade-modal .local-trade-head { padding: 17px 25px 13px; gap: 13px; }
   .local-trade-modal .local-trade-head-icon { width: 54px; height: 54px; flex-basis: 54px; font-size: 23px; }
   .local-trade-modal .local-trade-head-copy h2 { font-size: 21px; }
@@ -2251,4 +2251,81 @@
     border-left: 0;
   }
   .local-trade-modal .local-trade-payment-time-card--editable .local-trade-method-arrow { display: none; }
+}
+
+/* Compact Pay Now / Received amount banner, matching the supplied narrow reference. */
+.local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) {
+  --trade-total-icon-column: 42px;
+  --trade-total-icon-size: 32px;
+  grid-template-columns: var(--trade-total-icon-column) minmax(0, 1fr) minmax(112px, 42%);
+  gap: 5px;
+  min-height: 66px;
+  padding: 6px 9px;
+  border-radius: 11px;
+}
+
+.local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) .local-trade-total-icon {
+  width: var(--trade-total-icon-size);
+  height: var(--trade-total-icon-size);
+  flex-basis: var(--trade-total-icon-size);
+  font-size: 13px;
+}
+
+.height-88 {
+  height: 88px;
+}
+
+.local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) .local-trade-total-label {
+  min-width: 0;
+  min-height: 32px;
+  padding-right: 7px;
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) > strong {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding-left: 7px;
+  font-size: 18px;
+  line-height: 1.05;
+  letter-spacing: -.25px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.local-trade-modal .local-trade-pay-receive,
+.local-trade-modal .local-trade-sell-usd {
+  margin-top: -1px;
+  margin-bottom: 9px;
+  padding: 3px 7px 4px 10px;
+  font-size: 9px;
+}
+
+.local-trade-modal .local-trade-pay-receive > span,
+.local-trade-modal .local-trade-sell-usd > span { font-size: 10px; }
+
+@media (max-width: 480px) {
+  .local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) {
+    --trade-total-icon-column: 38px;
+    --trade-total-icon-size: 30px;
+    grid-template-columns: var(--trade-total-icon-column) minmax(0, 1fr) minmax(104px, 42%);
+    min-height: 60px;
+    gap: 4px;
+    padding: 5px 7px;
+  }
+
+  .local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) .local-trade-total-label {
+    min-height: 29px;
+    padding-right: 5px;
+    font-size: 14px;
+  }
+
+  .local-trade-modal :is(.local-trade-total-banner--pay, .local-trade-total-banner--received) > strong {
+    padding-left: 5px;
+    font-size: 18px;
+  }
 }

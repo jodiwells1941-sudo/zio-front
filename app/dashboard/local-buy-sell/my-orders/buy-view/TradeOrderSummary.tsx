@@ -25,6 +25,7 @@ type Props = {
   bonusPercent?: number;
   feeAmount?: number;
   feePercent?: number;
+  remainingSeconds?: number | null;
 };
 
 const formatAmount = (amount: number, digits = 2) =>
@@ -34,6 +35,11 @@ const formatAmount = (amount: number, digits = 2) =>
         maximumFractionDigits: digits,
       })
     : (0).toFixed(digits);
+
+const formatCountdown = (seconds: number) => {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(safeSeconds / 60)).padStart(2, "0")}:${String(safeSeconds % 60).padStart(2, "0")}`;
+};
 
 export default function TradeOrderSummary({
   orderId,
@@ -52,9 +58,12 @@ export default function TradeOrderSummary({
   bonusAmount = 0,
   feeAmount = 0,
   feePercent = 0,
+  remainingSeconds = null,
 }: Props) {
   const isBuy = kind === "buy";
+  const secondaryUsdAmount = Math.max(0, cryptoAmount + (isBuy ? bonusAmount : feeAmount));
   const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent });
+
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();
@@ -71,53 +80,62 @@ export default function TradeOrderSummary({
 
   return (
     <section className={`${styles.card} bg-dark ${isBuy ? styles.buy : styles.sell}`}>
+
+      <div className="position-relative mb-2 pb-2">
+        <div className={styles.receiveBanner}>
+          <span className={styles.receiveIcon}>
+            <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
+          </span>
+          <span className="fw-bold fs-20">{isBuy ? "Pay Now" : "Received"}</span>
+          <div className={styles.receiveValueGroup}>
+            <b className="mb-2 pb-2 fs-5">{formatAmount(fiatAmount)} {currency}</b>
+            <small className="py-1">{isBuy ? "You Will Receive: " : "Sell USD = "}<strong>${formatAmount(secondaryUsdAmount)} USD</strong></small>
+          </div>
+        </div>
+      </div>
+
       <button
         type="button"
-        className={styles.summaryToggle}
+        className={`${styles.summaryToggle} mb-0 pb-0`}
         aria-expanded={isExpanded}
         aria-controls={contentId}
         onClick={() => setIsExpanded(expanded => !expanded)}
       >
-        <span className={styles.subtitle}>Order Summary</span>
+        <span className={styles.summaryToggleTitle}>
+          <i className="fa-solid fa-clipboard-list" aria-hidden="true" />
+          Order Summary
+        </span>
         <i
           className={`fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}`}
           aria-hidden="true"
         />
       </button>
       <div id={contentId} hidden={!isExpanded}>
-      <div className={styles.summary}>
-        <div className={styles.row}>
-          <span>Order ID</span>
-          <span className={styles.orderIdValue}>
-            <b>{orderId}</b>
-            <button
-              type="button"
-              className={styles.copyButton}
-              onClick={copyOrderId}
-              aria-label={copiedOrderId ? "Order ID copied" : "Copy order ID"}
-              title={copiedOrderId ? "Copied" : "Copy order ID"}
-            >
-              <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
-            </button>
-          </span>
-        </div>
-        {summaryRows.map(row => (
-          <div className={`${styles.row} ${row.total ? styles.total : ""}`} key={row.label}>
-            <span>{row.label}</span>
-            <b className={row.tone === "positive" ? styles.positive : row.tone === "negative" ? styles.negative : row.tone === "received" ? styles.received : undefined}>{row.value}</b>
+        <div className={styles.summary}>
+          <div className={styles.row}>
+            <span><i className="fa-solid fa-hashtag" aria-hidden="true" />Order ID</span>
+            <span className={styles.orderIdValue}>
+              <b>{orderId}</b>
+              <button
+                type="button"
+                className={styles.copyButton}
+                onClick={copyOrderId}
+                aria-label={copiedOrderId ? "Order ID copied" : "Copy order ID"}
+                title={copiedOrderId ? "Copied" : "Copy order ID"}
+              >
+                <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
+              </button>
+            </span>
           </div>
-        ))}
+          {summaryRows.map((row, index) => (
+            <div className={`${styles.row} ${row.total ? styles.total : ""} ${index === summaryRows.length - 1 ? styles.summaryFinalTotal : ""} ${row.label === "Pay Amount" ? styles.payAmountRow : row.label.startsWith("Received Amount") ? styles.receivedAmountRow : ""}`} key={row.label}>
+              <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span>
+              <b className={row.tone === "positive" ? styles.positive : row.tone === "negative" ? styles.negative : row.tone === "received" ? styles.received : undefined}>{row.value}</b>
+            </div>
+          ))}
+        </div>
       </div>
-      </div>
-      <div className={styles.receiveBanner}>
-        <span className={styles.receiveIcon}>
-          <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
-        </span>
-        <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
-        <b>{formatAmount(fiatAmount)} {currency}</b>
-        
-      </div>
-      {(paymentMethod || paymentDetails.length > 0) && (
+      {(paymentMethod || paymentDetails.length > 0 || paymentTimeLimit > 0) && (
         <div className={`${styles.paymentCard} ${'bg-navy-blue'}`}>
           <div className={styles.paymentHead}>
             <PaymentMethodIcon
@@ -127,10 +145,17 @@ export default function TradeOrderSummary({
               size={36}
               fallbackMode="brand"
             />
-            <span>
+            <span className={styles.paymentMethodText}>
               <b>{paymentMethod || "Payment Method"}</b>
               <small>{currency} Payment Details</small>
             </span>
+            <div className={styles.paymentTime} aria-label={`Order time limit: ${remainingSeconds === null ? `${paymentTimeLimit} minutes` : formatCountdown(remainingSeconds)}`}>
+              <i className="fa-solid fa-hourglass-half" aria-hidden="true" />
+              <span>
+                <small>Order Time Limit</small>
+                <b>{remainingSeconds === null ? `${paymentTimeLimit} Min` : formatCountdown(remainingSeconds)}</b>
+              </span>
+            </div>
           </div>
           {showPaymentDetails && paymentDetails.length > 0 ? paymentDetails.map(detail => (
             <div className={styles.paymentRow} key={detail.label}>
@@ -145,14 +170,18 @@ export default function TradeOrderSummary({
           ) : null}
         </div>
       )}
-      <div className={styles.detail}>
-        <span>Order Time Limit</span>
-        <b>{paymentTimeLimit || "—"}{paymentTimeLimit ? " min" : ""}</b>
-      </div>
-      <div className={`${styles.detail} ${styles.note}`}>
-        <span>Additional Note</span>
-        <p>{note?.trim() || "No additional note provided."}</p>
-      </div>
+      {note?.trim() && (
+        <div className={styles.note}>
+          <div className={styles.noteHeader}>
+            <span className={styles.noteIcon}><i className="fa-regular fa-comment-dots" aria-hidden="true" /></span>
+            <span>
+              <b>Additional Note</b>
+              <small>Order message</small>
+            </span>
+          </div>
+          <p className={styles.noteText}>{note.trim()}</p>
+        </div>
+      )}
     </section>
   );
 }

@@ -7,6 +7,7 @@ import {
   getTradeMessages,
   markTradeMessagesRead,
   sendTradeMessage,
+  type TradeData,
   type TradeMessageRow,
 } from "@/app/api/trade";
 import { getUserInfo } from "@/utils/auth";
@@ -29,7 +30,7 @@ function withSenderFlag(row: TradeMessageRow, meId: number | undefined): TradeMe
 
 export function useTradeChat(tradeId: number | null) {
   const [counterpartyName, setCounterpartyName] = useState("Counterparty");
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [trade, setTrade] = useState<TradeData | null>(null);
   const [messages, setMessages] = useState<TradeMessageRow[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -52,7 +53,7 @@ export function useTradeChat(tradeId: number | null) {
     if (tradeId == null || tradeId < 1 || !Number.isFinite(tradeId)) {
       setLoading(false);
       setMessages([]);
-      setOrderId(null);
+      setTrade(null);
       setCounterpartyName("Counterparty");
       return;
     }
@@ -63,6 +64,7 @@ export function useTradeChat(tradeId: number | null) {
       // console.log('trade ===', trade);
       
       if (trade) {
+        setTrade(trade);
 
         if (trade.type === 'sell') {
           // const cp = meId === trade.client_id ? trade.customer?.name : trade.client?.name;
@@ -75,7 +77,6 @@ export function useTradeChat(tradeId: number | null) {
           setCounterpartyName(cp || "Counterparty");
         }
 
-        setOrderId(trade.order_id ?? null);
       }
       const rows: TradeMessageRow[] = msgRes?.data ?? [];
       const scope = `${meId}:${tradeId}`;
@@ -201,7 +202,7 @@ export function useTradeChat(tradeId: number | null) {
 
   return {
     counterpartyName,
-    orderId,
+    trade,
     messages,
     loading,
     sending,

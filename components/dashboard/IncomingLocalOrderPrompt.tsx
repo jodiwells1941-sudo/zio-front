@@ -344,7 +344,6 @@ export default function IncomingLocalOrderPrompt() {
   const bonusAmount = Number(order.bonus_amount ?? 0);
   const feeAmount = Number(order.type === "buy" ? order.ad_fee_amount ?? 0 : order.charge_amount ?? 0);
   const adjustmentAmount = order.type === "buy" ? feeAmount : bonusAmount;
-  const totalAssetLabel = order.type === "buy" ? "Sell USD" : "Received USD";
   const summaryRows = localOrderSummaryRows({
     side: order.type === "buy" ? "sell" : "buy",
     fiat,
@@ -386,21 +385,25 @@ export default function IncomingLocalOrderPrompt() {
             <span className={styles.iconPulse} />
           </div>
           <div className={styles.headerCopy}>
-            <h2 id="incoming-local-order-title">Accept {action} Request </h2>
+            <h2 id="incoming-local-order-title">{action} Request . . . </h2>
             <p className={styles.subtitle}>
               {creator?.name || "A user"} placed an order on your local ad.
             </p>
           </div>
         </header>
 
-        <div className={`${styles.totalBanner} ${order.type === "buy" ? styles.buyTotalBanner : styles.sellTotalBanner}`}>
+        <div className={`${styles.totalBanner} ${styles.amountBanner} ${order.type === "buy" ? styles.buyTotalBanner : styles.sellTotalBanner}`}>
           <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
-          <span className={`fs-5 fw-bold ${order.type === "buy" ? 'text-warning' : 'text-danger'}`}>
-            {order.type === "buy" ? "Received Amount" : "Pay Amount"}
+          <span className={`${styles.amountLabel} py-2`}>
+            {order.type === "buy" ? "Received" : "Pay Amount"}
           </span>
-          <strong className={`fs-4 fw-bold ${order.type === "buy" ? 'text-warning' : 'text-danger'}`}>
-            {formatAmount(order.payable_amount, fiat)}
-          </strong>
+          <div className={styles.amountValueGroup}>
+            <strong className="pb-3">{formatAmount(order.payable_amount, fiat)}</strong>
+            <small>
+              {order.type === "buy" ? "Sell USD = " : "You Will Receive: "}
+              <b>${formatAmount(baseAssetAmount + adjustmentAmount, "USD")}</b>
+            </small>
+          </div>
         </div>
 
         <details key={order.id} className={styles.orderSummary} aria-label="Order summary">
@@ -410,7 +413,7 @@ export default function IncomingLocalOrderPrompt() {
           </summary>
           <div className={styles.summaryRows}>
             <div className={styles.summaryRow}>
-              <span>Order ID</span>
+              <span><i className="fa-solid fa-hashtag" aria-hidden="true" />Order ID</span>
               <strong className={styles.orderIdValue}>
                 {orderNumber}
                 <button
@@ -426,19 +429,18 @@ export default function IncomingLocalOrderPrompt() {
             </div>
             {summaryRows.map(row => (
               <div className={`${styles.summaryRow} ${row.total ? styles.summaryTotal : ""}`} key={row.label}>
-                <span>{row.label}</span>
+                <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span>
                 <strong className={row.tone === "negative" ? styles.feeValue : row.tone === "positive" ? styles.bonusValue : row.tone === "received" ? styles.receivedValue : undefined}>{row.value}</strong>
               </div>
             ))}
-            
           </div>
         </details>
         
-        <div className={styles.totalBanner}>
+        {/* <div className={styles.totalBanner}>
           <span className={styles.totalIcon}><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" /></span>
           <span className="fw-bold">{totalAssetLabel}</span>
           <strong>{order.type === "buy" ? "- " : "+"} {formatAmount(baseAssetAmount+adjustmentAmount, asset)}</strong>
-        </div>
+        </div> */}
 
         <div className={styles.paymentCard}>
           <span className={styles.paymentIcon}><i className="fa-solid fa-building-columns" aria-hidden="true" /></span>

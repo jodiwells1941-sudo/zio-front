@@ -21,6 +21,7 @@ export interface TradeData {
   payable_amount: number;
   receivable_amount: number;
   status: number; // 1=pending,2=approved,3=rejected,4=rejected_for_balance,5=dispatched,6=dispatch_approved,7=dispatch_rejected,8=dispatch_timeout,9=completed
+  status_list?: number[];
   created_by: number;
   notes: string | null;
   type: 'buy' | 'sell';           // appended

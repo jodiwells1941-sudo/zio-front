@@ -194,7 +194,6 @@ export default function P2POrderPage() {
 
   return (
     <div className="p2pPage mt-5">
-      {/* <P2PTopNav /> */}
 
       <div className="container p2pContainer">
         <div className="row g-4">
@@ -210,7 +209,7 @@ export default function P2POrderPage() {
 
           {showChatPanel && (
             <div className="col-lg-5 d-none d-md-block">
-              <P2PChatPanel />
+              <P2PChatPanel isLocalTrade />
             </div>
           )}
         </div>

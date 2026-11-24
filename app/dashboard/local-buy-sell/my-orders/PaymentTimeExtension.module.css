@@ -1,7 +1,7 @@
 .extension {
-  --extension-accent: #19d39a;
-  --extension-border: rgba(25, 211, 154, .28);
-  --extension-glow: rgba(25, 211, 154, .1);
+  --extension-accent: #fbbf24;
+  --extension-border: rgba(251, 191, 36, .32);
+  --extension-glow: rgba(251, 191, 36, .1);
   margin-bottom: 16px;
   padding: 12px;
   border: 1px solid var(--extension-border);
@@ -15,17 +15,32 @@
   --extension-glow: rgba(255, 101, 119, .1);
 }
 
+.buy {
+  --extension-accent: #fbbf24;
+  --extension-border: rgba(251, 191, 36, .34);
+  --extension-glow: rgba(251, 191, 36, .1);
+}
+
 .trigger {
   display: flex;
   width: 100%;
   align-items: center;
   gap: 11px;
-  padding: 4px;
-  border: 0;
+  min-height: 58px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: transparent;
   color: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: var(--extension-border);
+  background: var(--extension-glow);
+  transform: translateY(-1px);
 }
 
 .icon {
@@ -198,10 +213,123 @@
   opacity: .58;
 }
 
+.openExtension {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border: 1px solid var(--extension-border);
+  border-radius: 10px;
+  background: linear-gradient(120deg, var(--extension-glow), rgba(12, 17, 24, .84));
+  color: var(--extension-accent);
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.openExtension:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--extension-accent);
+  box-shadow: 0 5px 18px var(--extension-glow);
+}
+
+.openExtension:disabled { opacity: .58; cursor: wait; }
+
+.modalOverlay {
+  position: fixed;
+  z-index: 12000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(3, 6, 12, .78);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  position: relative;
+  width: min(100%, 410px);
+  padding: 25px;
+  border: 1px solid var(--extension-border);
+  border-radius: 18px;
+  background: radial-gradient(120% 70% at 50% 0, var(--extension-glow), transparent 68%), linear-gradient(155deg, #1c2029, #10131a 75%);
+  color: #f8fafc;
+  text-align: center;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .55), inset 0 1px rgba(255, 255, 255, .05);
+}
+
+.modalClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .04);
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.modalIcon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 13px;
+  place-items: center;
+  border: 1px solid var(--extension-border);
+  border-radius: 15px;
+  background: var(--extension-glow);
+  color: var(--extension-accent);
+  font-size: 21px;
+}
+
+.modal h2 { margin: 0; font-size: 19px; font-weight: 800; }
+.modal p { margin: 8px 0 20px; color: #aab6c8; font-size: 13px; line-height: 1.5; }
+
+.modalChoices {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.modalChoices .duration {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 4px 3px;
+  border-color: rgba(255, 255, 255, .12);
+}
+
+.modalChoices .duration b { font-size: 14px; }
+.modalChoices .duration small { font-size: 9px; color: #aab6c8; }
+.modalChoices .durationSelected small { color: var(--extension-accent); }
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.modalActions .cancel,
+.modalActions .submit { min-height: 40px; padding-inline: 15px; }
+.modalActions .submit { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
 @media (max-width: 480px) {
   .extension {
     padding: 10px;
   }
+
+  .modal { padding: 23px 18px 18px; }
+  .modalActions { flex-direction: column-reverse; }
+  .modalActions .cancel,
+  .modalActions .submit { width: 100%; }
 
   .options {
     gap: 7px;

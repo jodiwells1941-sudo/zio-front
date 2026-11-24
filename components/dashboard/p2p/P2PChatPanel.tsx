@@ -4,7 +4,11 @@ import { useTradeChat } from "@/hooks/useTradeChat";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
-export default function P2PChatPanel() {
+type P2PChatPanelProps = {
+  isLocalTrade?: boolean;
+};
+
+export default function P2PChatPanel({ isLocalTrade = false }: P2PChatPanelProps) {
   const searchParams = useSearchParams();
   const tradeIdParam = searchParams.get("trade_id");
 
@@ -16,7 +20,7 @@ export default function P2PChatPanel() {
 
   const {
     counterpartyName,
-    orderId,
+    trade,
     messages,
     loading,
     sending,
@@ -35,6 +39,8 @@ export default function P2PChatPanel() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const initials = counterpartyName.slice(0, 2).toUpperCase();
+  const canSubmitPaymentProof = isLocalTrade && trade?.status === 2 && trade.status_list?.includes(5);
+  const canConfirmPaymentReceived = isLocalTrade && trade?.status === 5 && trade.status_list?.includes(6);
 
   if (!tradeId) {
     return (
@@ -56,11 +62,27 @@ export default function P2PChatPanel() {
           <div className="p2pChatHeadText">
             <div className="p2pChatNameRow">
               <span className="p2pChatName">{counterpartyName}</span>
-              <span className="p2pChatMeta">P2P trade chat</span>
             </div>
             <div className="p2pChatSub">
               <span className="dotOnline" /> Encrypted channel
             </div>
+          </div>
+          <div className="p2pChatHeaderAside">
+            <span className="p2pChatMeta">{isLocalTrade ? "Local Trade Chat" : "P2P Trade Chat"}</span>
+            {(canSubmitPaymentProof || canConfirmPaymentReceived) && (
+              <div className="p2pChatHeaderActions">
+              {canSubmitPaymentProof && (
+                <button type="button" className="p2pChatAction p2pChatActionProof" onClick={() => window.dispatchEvent(new Event("local-trade-open-payment-proof"))}>
+                  <i className="fa-solid fa-receipt" aria-hidden="true" /> Payment Proof
+                </button>
+              )}
+              {canConfirmPaymentReceived && (
+                <button type="button" className="p2pChatAction px-1 p2pChatActionReceived" onClick={() => window.dispatchEvent(new Event("local-trade-confirm-payment-received"))}>
+                  Release Order
+                </button>
+              )}
+              </div>
+            )}
           </div>
         </div>
 

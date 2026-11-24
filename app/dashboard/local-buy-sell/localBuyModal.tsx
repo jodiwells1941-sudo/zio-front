@@ -146,7 +146,6 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
 
       toast.success("Trade created successfully!");
       onClose();
-      // router.push(`/dashboard/wallet/p2p/?trade_id=${tradeId}`);
       router.push(`/dashboard/local-buy-sell/my-orders/buy-view?trade_id=${tradeId}`);
 
     } catch (error: unknown) {
@@ -185,15 +184,15 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
-        <div className="mx-1 mt-2">
+        <div className="mx-1 mt-2 pt-1 height-88">
           <div className="local-trade-total-banner local-trade-total-banner--pay mx-3 mb-0">
             <span className="local-trade-total-icon"><i className="fa-solid fa-sack-dollar" /></span>
             <span className="local-trade-total-label">
               <span>Pay Now</span>
             </span>
-            <strong className="d-flex gap-1 fw-bold mb-4">{money(fiatAmount)} {ad.with_fiat}</strong>
+            <strong className="fw-bold pb-3">{money(fiatAmount)} {ad.with_fiat}</strong>
           </div>
-          <small className="local-trade-pay-receive px-2 pt-1">You Will Receive: <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
+          <small className="local-trade-pay-receive mb-0 px-2 pt-1">You Will Receive: <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
         </div>
 
         <div className="local-trade-content px-3 mx-0">
@@ -211,7 +210,7 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             </div>
           </details>
 
-          <div className="local-trade-payment-time-card">
+          <div className="local-trade-payment-time-card my-3">
             <div className="local-trade-method-details">
               <PaymentMethodIcon
                 className="local-trade-payment-icon"
@@ -237,14 +236,14 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
             </div>
             <i className="fa-solid fa-chevron-right local-trade-method-arrow" aria-hidden="true" />
           </div>
-          <div className="local-trade-info">
-            {ad.remarks && 
+          {ad.remarks && 
+            <div className="local-trade-info mb-3 mt-2 pb-1">
               <div className="local-trade-field local-trade-field--note">
                 <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
                 <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
               </div>
-            }
-          </div>
+            </div>
+          }
           <div className="local-trade-actions">
             <button type="button" onClick={onClose} className="btn--secondary fs-6 d-flex justify-content-center">Cancel</button>
             <button type="button" className="bg-warning w-100 d-flex justify-content-center text-dark" onClick={handleBuy} disabled={submitting}>
