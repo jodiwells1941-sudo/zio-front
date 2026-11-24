@@ -334,21 +334,21 @@ export default function LocalSellModal({ onClose, ad }: Props) {
           <span className="local-trade-step"><b>3</b> <small>Submitted</small></span>
         </div>
 
-        <div className="mx-1 mt-2">
+        <div className="mx-1 mt-2 pt-1 height-88">
           <div className="local-trade-total-banner local-trade-total-banner--received mx-3 mb-0">
             <span className="local-trade-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
             <span className="local-trade-total-label text-white">
               <span>Received</span>
             </span>
-            <strong className="d-flex gap-1 mb-4 fw-bold text-white">{money(grossReceive)} {ad.with_fiat} </strong>
+            <strong className="fw-bold text-white pb-3">{money(grossReceive)} {ad.with_fiat}</strong>
           </div>
           <div className="d-flex justify-content-end">
-            <small className="local-trade-sell-usd px-2 pt-1">Sell USD = <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
+            <small className="local-trade-sell-usd px-2 pt-1 mb-0">Sell USD = <span className="fs-10 fw-bold">${money(totalUSD)} USD</span></small>
           </div>
         </div>
 
         <div className="local-trade-content px-3 mx-0">
-          <details className="local-trade-summary local-trade-summary--collapsible">
+          <details className="local-trade-summary local-trade-summary--collapsible mb-3">
             <summary className="local-trade-summary-toggle">
               <h4 className="local-trade-summary-title"><i className="fa-solid fa-clipboard-list" aria-hidden="true" /> Order Summary</h4>
               <i className="fa-solid fa-chevron-down" aria-hidden="true" />
@@ -361,59 +361,8 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               ))}
             </div>
           </details>
-
-          {/* <div className="local-trade-payment-details">
-            <div className="local-trade-payment-head border-0 pb-0">
-              <PaymentMethodIcon
-                className="local-trade-payment-icon"
-                methodName={ad.payment_method?.sell_method?.name}
-                iconImage={
-                  ad.payment_method?.sell_method?.icon_url ??
-                  ad.payment_method?.sell_method?.icon_image
-                }
-                size={36}
-                fallbackMode="card"
-              />
-              <span>
-                <strong>{ad.payment_method?.sell_method?.name ?? "Payment Method"}</strong>
-                <small>{ad.with_fiat} Payment Details</small>
-              </span>
-            </div>
-          </div> */}
-
-          <div className="local-trade-info mb-2">
-            {ad.remarks && 
-              <div className="local-trade-field local-trade-field--note">
-                <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
-                <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
-              </div>
-            }
-          </div>
-
-          {/* <div className="local-trade-field local-trade-method">
-            <label className="local-trade-label" htmlFor="local-sell-payment-method">Payment Method ss</label>
-            <select
-              id="local-sell-payment-method"
-              className={errors.paymentMethodId ? "is-invalid d-none" : "d-none"}
-              value={paymentMethodId}
-              onChange={event => {
-                setPaymentMethodId(Number(event.target.value));
-                setErrors(previous => ({ ...previous, paymentMethodId: undefined }));
-                setPaymentFieldErrors({});
-              }}
-              disabled={loadingMethods}
-            >
-              <option value={0}>{loadingMethods ? "Loading..." : "Select Payment Method"}</option>
-              {methods.map(method => (
-                <option key={method.id} value={method.id}>
-                  {method.method_name} - {method.walletNumber} {method.bankName}
-                </option>
-              ))}
-            </select>
-            {errors.paymentMethodId && <span className="local-trade-error">{errors.paymentMethodId}</span>}
-          </div> */}
           {selectedPaymentMethod && (
-            <div className="local-trade-payment-time-card local-trade-payment-time-card--editable" aria-live="polite">
+            <div className="local-trade-payment-time-card local-trade-payment-time-card--editable mt-3 mb-3" aria-live="polite">
               <div className="local-trade-payment-time-head">
                 <div className="local-trade-payment-head">
                   <PaymentMethodIcon
@@ -479,7 +428,17 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               </div>
             </div>
           )}
-          <div className="local-trade-actions">
+
+          {ad.remarks && 
+            <div className="local-trade-info mb-2 mt-2 pt-3">
+                <div className="local-trade-field local-trade-field--note">
+                  <span className="local-trade-label"><i className="fa-solid fa-note-sticky" /> Additional Note (Optional)</span>
+                  <p className="px-3 pt-1">{ad.remarks || "No additional note provided."}</p>
+                </div>
+            </div>
+          }
+
+          <div className="local-trade-actions mt-3">
             <button type="button" onClick={onClose} className="btn--secondary d-flex justify-content-center">Cancel</button>
             <button type="button" className="local-trade-sell-button d-flex justify-content-center" onClick={handleSell} disabled={submitting}>
               {submitting ? 'Processing...' : <><i className="fa-solid fa-circle-check" /> Accept Request</>}

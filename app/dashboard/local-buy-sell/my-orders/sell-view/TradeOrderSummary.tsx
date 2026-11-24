@@ -56,7 +56,15 @@ export default function TradeOrderSummary({
   feeLabel,
 }: Props) {
   const isBuy = kind === "buy";
-  const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent, feeLabel });
+  const secondaryUsdAmount = Math.max(0, cryptoAmount + (isBuy ? bonusAmount : feeAmount));
+  const allSummaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent, feeLabel });
+  const highlightedAmountRow = isBuy
+    ? { label: "Pay Amount", value: `${formatAmount(fiatAmount)} ${currency}`, icon: "fa-sack-dollar", tone: "negative" as const, total: true }
+    : allSummaryRows.find(row => row.label.startsWith("Received Amount"));
+  const summaryRows = [
+    ...(highlightedAmountRow ? [highlightedAmountRow] : []),
+    ...allSummaryRows.filter(row => row !== highlightedAmountRow),
+  ];
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();
@@ -73,6 +81,19 @@ export default function TradeOrderSummary({
 
   return (
     <section className={`${styles.card} bg-dark ${isBuy ? styles.buy : styles.sell}`}>
+      <div className="position-relative mb-2 pb-2">
+        <div className={`${styles.receiveBanner}`}>
+          <span className={styles.receiveIcon}>
+            <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
+          </span>
+          <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
+          <div className={styles.receiveValueGroup}>
+            <b className="mb-2">{formatAmount(fiatAmount)} {currency}</b>
+            <small className="py-1">{isBuy ? "You Will Receive: " : "Sell USD = "}<strong className={`${isBuy ? '' : 'text-danger'}`}>${formatAmount(secondaryUsdAmount)} USD</strong></small>
+          </div>
+        </div>
+      </div>
+
       <button
         type="button"
         className={styles.summaryToggle}
@@ -80,44 +101,52 @@ export default function TradeOrderSummary({
         aria-controls={contentId}
         onClick={() => setIsExpanded(expanded => !expanded)}
       >
-        <span className={styles.subtitle}>Order Summary</span>
+        <span className={styles.summaryToggleTitle}>
+          <i className="fa-solid fa-clipboard-list" aria-hidden="true" />
+          Order Summary
+        </span>
         <i
           className={`fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}`}
           aria-hidden="true"
         />
       </button>
       <div id={contentId} hidden={!isExpanded}>
-      <div className={`${styles.summary}`}>
-        <div className={styles.row}>
-          <span>Order ID</span>
-          <span className={styles.orderIdValue}>
-            <b>{orderId}</b>
-            <button
-              type="button"
-              className={styles.copyButton}
-              onClick={copyOrderId}
-              aria-label={copiedOrderId ? "Order ID copied" : "Copy order ID"}
-              title={copiedOrderId ? "Copied" : "Copy order ID"}
-            >
-              <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
-            </button>
-          </span>
-        </div>
-        {summaryRows.map(row => (
-          <div className={`${styles.row} ${row.total ? styles.total : ""}`} key={row.label}>
-            <span>{row.label}</span>
-            <b className={row.tone === "positive" ? styles.positive : row.tone === "negative" ? styles.negative : row.tone === "received" ? styles.received : undefined}>{row.value}</b>
+        <div className={`${styles.summary}`}>
+          <div className={styles.row}>
+            <span><i className="fa-solid fa-hashtag" aria-hidden="true" />Order ID</span>
+            <span className={styles.orderIdValue}>
+              <b>{orderId}</b>
+              <button
+                type="button"
+                className={styles.copyButton}
+                onClick={copyOrderId}
+                aria-label={copiedOrderId ? "Order ID copied" : "Copy order ID"}
+                title={copiedOrderId ? "Copied" : "Copy order ID"}
+              >
+                <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
+              </button>
+            </span>
           </div>
-        ))}
+          {summaryRows.map((row, index) => (
+            <div className={`${styles.row} ${row.total ? styles.total : ""} ${index === summaryRows.length - 1 ? styles.summaryFinalTotal : ""} ${row.label === "Pay Amount" ? styles.payAmountRow : row.label.startsWith("Received Amount") ? styles.receivedAmountRow : ""}`} key={row.label}>
+              <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span>
+              <b className={row.tone === "positive" ? styles.positive : row.tone === "negative" ? styles.negative : row.tone === "received" ? styles.received : undefined}>{row.value}</b>
+            </div>
+          ))}
+        </div>
       </div>
-      </div>
-      <div className={styles.receiveBanner}>
-        <span className={styles.receiveIcon}>
-          <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
-        </span>
-        <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
-        <b>{formatAmount(fiatAmount)} {currency}</b>
-      </div>
+      {/* <div className="position-relative">
+        <div className={`${styles.receiveBanner}`}>
+          <span className={styles.receiveIcon}>
+            <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
+          </span>
+          <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
+          <div className={styles.receiveValueGroup}>
+            <b className="mb-2">{formatAmount(fiatAmount)} {currency}</b>
+            <small className="py-1">{isBuy ? "You Will Receive: " : "Sell USD = "}<strong className={`${isBuy ? '' : 'text-danger'}`}>${formatAmount(secondaryUsdAmount)} USD</strong></small>
+          </div>
+        </div>
+      </div> */}
       {(paymentMethod || paymentDetails.length > 0) && (
         <div className={`${styles.paymentCard} ${'bg-navy-blue'}`}>
           <div className={styles.paymentHead}>
