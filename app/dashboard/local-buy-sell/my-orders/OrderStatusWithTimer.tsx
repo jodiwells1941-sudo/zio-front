@@ -33,7 +33,7 @@ export function OrderNextStep({ trade, nowMs }: { trade: Order; nowMs: number })
   return (
     <div
       className={`local-order-next-step${proofGiven ? ' is-proof' : ''}${countdown?.expired ? ' is-expired' : ''}`}
-      title={countdown?.label ?? (proofGiven ? 'Payment proof submitted' : 'Payment proof required')}
+      title={countdown?.label ?? (proofGiven ? 'Payment proof' : 'Payment proof required')}
     >
       <span className="local-order-next-step-icon" aria-hidden="true">
         <i className={`fa-solid ${proofGiven ? 'fa-check' : canAppeal ? 'fa-triangle-exclamation' : awaitingProof ? 'fa-receipt' : 'fa-clock'}`} />

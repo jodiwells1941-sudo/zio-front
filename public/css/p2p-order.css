@@ -530,8 +530,8 @@
 .p2pChatHeader{
   display:flex;
   align-items:center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 12px 14px;
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .p2pChatAvatar{
@@ -542,13 +542,12 @@
   display:grid;
   place-items:center;
 }
-.p2pChatHeadText{ flex:1; min-width: 0; }
+.p2pChatHeadText{ flex:1 1 auto; min-width: 0; }
 
 .p2pChatNameRow{
   display:flex;
-  gap: 10px;
   align-items:center;
-  justify-content:space-between;
+  min-width:0;
 }
 .p2pChatName{
   font-weight: 900;
@@ -556,12 +555,63 @@
   color: rgba(255,255,255,.9);
 }
 .p2pChatMeta{
-  font-size: 11px;
+  font-size: 9px;
   color: rgba(255,255,255,.55);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 210px;
+  max-width: 160px;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+.p2pChatHeaderAside{
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:5px;
+}
+.p2pChatHeaderActions{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+}
+.p2pChatAction{
+  display:inline-flex;
+  min-height:27px;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:4px 8px;
+  border:1px solid rgba(251,191,36,.42);
+  border-radius:7px;
+  background:rgba(251,191,36,.1);
+  color:#fbbf24;
+  font-size:10px;
+  font-weight:800;
+  line-height:1.1;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease;
+}
+.p2pChatActionProof{min-width:100px;}
+.p2pChatActionReceived{min-width:100px;}
+.p2pChatAction:hover{
+  transform:translateY(-1px);
+  border-color:#fbbf24;
+  background:rgba(251,191,36,.18);
+}
+.p2pChatActionReceived{
+  border-color:rgba(251,191,36,.48);
+  background:rgba(251,191,36,.12);
+  color:#fbbf24;
+}
+.p2pChatActionReceived:hover{
+  border-color:#fbbf24;
+  background:rgba(251,191,36,.2);
 }
 .p2pChatSub{
   font-size: 11px;

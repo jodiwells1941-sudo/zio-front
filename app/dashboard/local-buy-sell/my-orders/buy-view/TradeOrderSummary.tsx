@@ -25,6 +25,7 @@ type Props = {
   bonusPercent?: number;
   feeAmount?: number;
   feePercent?: number;
+  remainingSeconds?: number | null;
 };
 
 const formatAmount = (amount: number, digits = 2) =>
@@ -34,6 +35,11 @@ const formatAmount = (amount: number, digits = 2) =>
         maximumFractionDigits: digits,
       })
     : (0).toFixed(digits);
+
+const formatCountdown = (seconds: number) => {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(safeSeconds / 60)).padStart(2, "0")}:${String(safeSeconds % 60).padStart(2, "0")}`;
+};
 
 export default function TradeOrderSummary({
   orderId,
@@ -52,6 +58,7 @@ export default function TradeOrderSummary({
   bonusAmount = 0,
   feeAmount = 0,
   feePercent = 0,
+  remainingSeconds = null,
 }: Props) {
   const isBuy = kind === "buy";
   const secondaryUsdAmount = Math.max(0, cryptoAmount + (isBuy ? bonusAmount : feeAmount));
@@ -79,9 +86,9 @@ export default function TradeOrderSummary({
           <span className={styles.receiveIcon}>
             <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
           </span>
-          <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
+          <span className="fw-bold fs-20">{isBuy ? "Pay Now" : "Received"}</span>
           <div className={styles.receiveValueGroup}>
-            <b className="mb-2">{formatAmount(fiatAmount)} {currency}</b>
+            <b className="mb-2 pb-2 fs-5">{formatAmount(fiatAmount)} {currency}</b>
             <small className="py-1">{isBuy ? "You Will Receive: " : "Sell USD = "}<strong>${formatAmount(secondaryUsdAmount)} USD</strong></small>
           </div>
         </div>
@@ -89,7 +96,7 @@ export default function TradeOrderSummary({
 
       <button
         type="button"
-        className={styles.summaryToggle}
+        className={`${styles.summaryToggle} mb-0 pb-0`}
         aria-expanded={isExpanded}
         aria-controls={contentId}
         onClick={() => setIsExpanded(expanded => !expanded)}
@@ -128,19 +135,7 @@ export default function TradeOrderSummary({
           ))}
         </div>
       </div>
-      {/* <div className="position-relative">
-        <div className={styles.receiveBanner}>
-          <span className={styles.receiveIcon}>
-            <i className={`fa-solid ${isBuy ? "fa-sack-dollar" : "fa-hand-holding-dollar"}`} />
-          </span>
-          <span>{isBuy ? "Pay Amount" : "Received Amount"}</span>
-          <div className={styles.receiveValueGroup}>
-            <b className="mb-2">{formatAmount(fiatAmount)} {currency}</b>
-            <small className="py-1">{isBuy ? "You Will Receive: " : "Sell USD = "}<strong>${formatAmount(secondaryUsdAmount)} USD</strong></small>
-          </div>
-        </div>
-      </div> */}
-      {(paymentMethod || paymentDetails.length > 0) && (
+      {(paymentMethod || paymentDetails.length > 0 || paymentTimeLimit > 0) && (
         <div className={`${styles.paymentCard} ${'bg-navy-blue'}`}>
           <div className={styles.paymentHead}>
             <PaymentMethodIcon
@@ -150,10 +145,17 @@ export default function TradeOrderSummary({
               size={36}
               fallbackMode="brand"
             />
-            <span>
+            <span className={styles.paymentMethodText}>
               <b>{paymentMethod || "Payment Method"}</b>
               <small>{currency} Payment Details</small>
             </span>
+            <div className={styles.paymentTime} aria-label={`Order time limit: ${remainingSeconds === null ? `${paymentTimeLimit} minutes` : formatCountdown(remainingSeconds)}`}>
+              <i className="fa-solid fa-hourglass-half" aria-hidden="true" />
+              <span>
+                <small>Order Time Limit</small>
+                <b>{remainingSeconds === null ? `${paymentTimeLimit} Min` : formatCountdown(remainingSeconds)}</b>
+              </span>
+            </div>
           </div>
           {showPaymentDetails && paymentDetails.length > 0 ? paymentDetails.map(detail => (
             <div className={styles.paymentRow} key={detail.label}>
@@ -168,14 +170,18 @@ export default function TradeOrderSummary({
           ) : null}
         </div>
       )}
-      <div className={styles.detail}>
-        <span>Order Time Limit</span>
-        <b>{paymentTimeLimit || "—"}{paymentTimeLimit ? " min" : ""}</b>
-      </div>
-      <div className={`${styles.detail} ${styles.note}`}>
-        <span>Additional Note</span>
-        <p>{note?.trim() || "No additional note provided."}</p>
-      </div>
+      {note?.trim() && (
+        <div className={styles.note}>
+          <div className={styles.noteHeader}>
+            <span className={styles.noteIcon}><i className="fa-regular fa-comment-dots" aria-hidden="true" /></span>
+            <span>
+              <b>Additional Note</b>
+              <small>Order message</small>
+            </span>
+          </div>
+          <p className={styles.noteText}>{note.trim()}</p>
+        </div>
+      )}
     </section>
   );
 }

@@ -947,7 +947,7 @@ export default function BuyDetailsCard({
   };
 
   const handleExtendPaymentTime = async (requestedMinutes = extensionMinutes) => {
-    if (!trade || ![5, 10, 15, 30].includes(requestedMinutes)) return;
+    if (!trade || ![5, 10, 15, 20, 30, 40].includes(requestedMinutes)) return;
 
     setExtendingTime(true);
     try {
@@ -978,6 +978,12 @@ export default function BuyDetailsCard({
   };
 
   useEffect(() => {
+    const openPaymentProof = () => setShowProofModal(true);
+    window.addEventListener("local-trade-open-payment-proof", openPaymentProof);
+    return () => window.removeEventListener("local-trade-open-payment-proof", openPaymentProof);
+  }, []);
+
+  useEffect(() => {
     if (
       trade?.status !== 2 ||
       !trade.payment_expires_at ||
@@ -999,7 +1005,9 @@ export default function BuyDetailsCard({
           5: "5 more minutes",
           10: "10 more minutes",
           15: "15 more minutes",
+          20: "20 more minutes",
           30: "30 more minutes",
+          40: "40 more minutes",
         },
         inputValue: "5",
         inputPlaceholder: "Choose extra time",
@@ -1010,7 +1018,7 @@ export default function BuyDetailsCard({
         cancelButtonColor: "#6c757d",
         allowOutsideClick: false,
         inputValidator: value =>
-          [5, 10, 15, 30].includes(Number(value)) ? undefined : "Choose a valid extension time.",
+          [5, 10, 15, 20, 30, 40].includes(Number(value)) ? undefined : "Choose a valid extension time.",
       });
 
       if (result.isConfirmed) {
@@ -1092,7 +1100,7 @@ export default function BuyDetailsCard({
   const canClaim = statusList.includes(10);
   const canCancelOrder = trade.status === 1 || trade.status === 2;
   const isBuyFlow = trade.type === "buy";
-  const notifyTransferredLabel = isBuyFlow ? "Payment Proof Submit" : "Payment Proof";
+  const notifyTransferredLabel = isBuyFlow ? "Payment Proof" : "Payment Proof";
 
   // Pending countdown (status === 1) — derived values
   const isPending = trade.status === 1;
@@ -1117,7 +1125,7 @@ export default function BuyDetailsCard({
       : sellFeePercent;
   const note = trade.p2p_ad?.remarks ?? trade.p2p_ad?.payment_method?.remarks;
 
-  const hasTopActions = (canReject && !canCancelOrder) || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired));
+  const hasTopActions = (canReject && !canCancelOrder) || canApprove || canDispatch || canRelease || canDispute || (canClaim && (uiStatus === "pending" || timerExpired)) || trade.status === 2;
   const renderTopActions = () => !hasTopActions ? null : (
     <div className="p2pTopActions" role="group" aria-label="Order actions">
       <div className="p2pActions">
@@ -1131,6 +1139,20 @@ export default function BuyDetailsCard({
             {submitting === 2 ? "Approving…" : "Approve Order"}
           </button>
         )}
+        {trade.status === 2 && (
+          <button
+            className={`${paymentTimeStyles.openExtension} ${paymentTimeStyles.buy}`}
+            type="button"
+            onClick={() => setShowTimeExtension(true)}
+            disabled={extendingTime || submitting !== null}
+            aria-haspopup="dialog"
+            aria-expanded={showTimeExtension}
+          >
+            <i className="fa-regular fa-clock" aria-hidden="true" />
+            Need more time
+            <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+          </button>
+        )}
         {canDispatch && (
           <button className="p2pPrimaryBtn" type="button" onClick={() => setShowProofModal(true)} disabled={submitting !== null}>
             {submitting === 5 ? "Notifying…" : notifyTransferredLabel}
@@ -1138,7 +1160,7 @@ export default function BuyDetailsCard({
         )}
         {canRelease && (
           <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
-            {submitting === 6 ? "Processing…" : "Payment Received"}
+            {submitting === 6 ? "Processing…" : "Release Payment"}
           </button>
         )}
         {canDispute && (
@@ -1286,6 +1308,7 @@ export default function BuyDetailsCard({
         price={price}
         cryptoAmount={cryptoAmount}
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
+        remainingSeconds={isPending ? pendingTimeLeft : trade.status === 2 ? secondsLeft : null}
         note={note}
         paymentMethod={methodName}
         paymentMethodIconImage={
@@ -1337,61 +1360,6 @@ export default function BuyDetailsCard({
 
             <div className="p2pStep2">
               <div className="p2pStep2Body">
-                {trade.status === 2 && (
-                  <div className={`${paymentTimeStyles.extension} ${paymentTimeStyles.buy}`}>
-                    {!showTimeExtension ? (
-                      <button
-                        className={paymentTimeStyles.trigger}
-                        type="button"
-                        onClick={() => setShowTimeExtension(true)}
-                        disabled={extendingTime || submitting !== null}
-                        aria-expanded="false"
-                      >
-                        <span className={paymentTimeStyles.icon} aria-hidden="true">
-                          <i className="fa-regular fa-clock" />
-                        </span>
-                        <span className={paymentTimeStyles.copy}>
-                          <span className={paymentTimeStyles.title}>Need more time to pay?</span>
-                          <span className={paymentTimeStyles.hint}>Request an extension to complete your payment.</span>
-                        </span>
-                        <i className={`fa-solid fa-chevron-down ${paymentTimeStyles.triggerChevron}`} aria-hidden="true" />
-                      </button>
-                    ) : (
-                      <div className={paymentTimeStyles.options} role="group" aria-label="Choose additional payment time">
-                        {[5, 10, 15, 30].map(minutes => (
-                          <button
-                            key={minutes}
-                            className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`}
-                            type="button"
-                            onClick={() => setExtensionMinutes(minutes)}
-                            disabled={extendingTime}
-                            aria-pressed={extensionMinutes === minutes}
-                          >
-                            {minutes} min
-                          </button>
-                        ))}
-                        <div className={paymentTimeStyles.actions}>
-                          <button
-                            className={paymentTimeStyles.cancel}
-                            type="button"
-                            onClick={() => setShowTimeExtension(false)}
-                            disabled={extendingTime}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            className={paymentTimeStyles.submit}
-                            type="button"
-                            onClick={() => void handleExtendPaymentTime()}
-                            disabled={extendingTime || submitting !== null}
-                          >
-                            {extendingTime ? "Extending…" : "Request Time"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
                 <div className="p2pActions">
                   {canDispatch && (
                     <button
@@ -1514,6 +1482,31 @@ export default function BuyDetailsCard({
           void fetchTrade();
         }}
       />
+      {showTimeExtension && (
+        <div className={`${paymentTimeStyles.modalOverlay} ${paymentTimeStyles.buy}`} onClick={() => !extendingTime && setShowTimeExtension(false)}>
+          <section className={paymentTimeStyles.modal} role="dialog" aria-modal="true" aria-labelledby="buy-time-extension-title" onClick={event => event.stopPropagation()}>
+            <button className={paymentTimeStyles.modalClose} type="button" aria-label="Close" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>
+              <i className="fa-solid fa-xmark" aria-hidden="true" />
+            </button>
+            <span className={paymentTimeStyles.modalIcon}><i className="fa-regular fa-clock" aria-hidden="true" /></span>
+            <h2 id="buy-time-extension-title">Need more time to pay?</h2>
+            <p>Choose how many extra minutes you need to complete this payment.</p>
+            <div className={paymentTimeStyles.modalChoices} role="group" aria-label="Additional payment time">
+              {[5, 10, 15, 20, 30, 40].map(minutes => (
+                <button key={minutes} className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`} type="button" onClick={() => setExtensionMinutes(minutes)} disabled={extendingTime} aria-pressed={extensionMinutes === minutes}>
+                  <b>{minutes}</b><small>minutes</small>
+                </button>
+              ))}
+            </div>
+            <div className={paymentTimeStyles.modalActions}>
+              <button className={paymentTimeStyles.cancel} type="button" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>Cancel</button>
+              <button className={paymentTimeStyles.submit} type="button" onClick={() => void handleExtendPaymentTime()} disabled={extendingTime}>
+                {extendingTime ? <><span className="spinner-border spinner-border-sm" aria-hidden="true" /> Extending…</> : <>Request More Time <i className="fa-solid fa-arrow-right" aria-hidden="true" /></>}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
