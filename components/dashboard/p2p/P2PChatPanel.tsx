@@ -78,7 +78,7 @@ export default function P2PChatPanel({ isLocalTrade = false }: P2PChatPanelProps
               )}
               {canConfirmPaymentReceived && (
                 <button type="button" className="p2pChatAction px-1 p2pChatActionReceived" onClick={() => window.dispatchEvent(new Event("local-trade-confirm-payment-received"))}>
-                  Release Payment
+                  Release Order
                 </button>
               )}
               </div>

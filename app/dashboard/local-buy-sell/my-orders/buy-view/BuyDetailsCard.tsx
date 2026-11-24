@@ -1160,7 +1160,7 @@ export default function BuyDetailsCard({
         )}
         {canRelease && (
           <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
-            {submitting === 6 ? "Processing…" : "Release Payment"}
+            {submitting === 6 ? "Processing…" : "Release Order"}
           </button>
         )}
         {canDispute && (

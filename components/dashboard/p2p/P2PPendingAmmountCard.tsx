@@ -95,7 +95,7 @@ export default function P2PPendingAmmountCard({
                       onClick={() => onStatusUpdate(6)}
                       disabled={submitting !== null}
                     >
-                      {submitting === 6 ? "Processing..." : "Release Payment"}
+                      {submitting === 6 ? "Processing..." : "Release Order"}
                     </button>
                   )}
                   {canDispute && (
