@@ -30,6 +30,7 @@ function withSenderFlag(row: TradeMessageRow, meId: number | undefined): TradeMe
 
 export function useTradeChat(tradeId: number | null) {
   const [counterpartyName, setCounterpartyName] = useState("Counterparty");
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [trade, setTrade] = useState<TradeData | null>(null);
   const [messages, setMessages] = useState<TradeMessageRow[]>([]);
   const [input, setInput] = useState("");
@@ -53,6 +54,7 @@ export function useTradeChat(tradeId: number | null) {
     if (tradeId == null || tradeId < 1 || !Number.isFinite(tradeId)) {
       setLoading(false);
       setMessages([]);
+      setOrderId(null);
       setTrade(null);
       setCounterpartyName("Counterparty");
       return;
@@ -65,6 +67,7 @@ export function useTradeChat(tradeId: number | null) {
       
       if (trade) {
         setTrade(trade);
+        setOrderId(trade.order_id ?? null);
 
         if (trade.type === 'sell') {
           // const cp = meId === trade.client_id ? trade.customer?.name : trade.client?.name;
@@ -202,6 +205,7 @@ export function useTradeChat(tradeId: number | null) {
 
   return {
     counterpartyName,
+    orderId,
     trade,
     messages,
     loading,
