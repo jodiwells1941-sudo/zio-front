@@ -29840,6 +29840,10 @@ span {
 .merchant-route-shell .merchant-application-route-loading i { color: #fbbf24; font-size: 28px; }
 .merchant-route-shell .merchant-application-route-loading strong { color: #fff0d2; }
 .merchant-route-shell .merchant-application-route-loading span { color: #b8ac9c; font-size: 13px; }
+.merchant-route-shell .merchant-application-guard-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.merchant-route-shell .merchant-application-guard-actions .merchant-primary-btn { min-width: 140px; }
+.merchant-route-shell .merchant-application-verify-link { min-height: 36px; padding: 0 14px; border: 1px solid rgba(251,191,36,.42); border-radius: 8px; color: #ffe6a0; background: rgba(251,191,36,.07); font-size: 12px; font-weight: 700; transition: background .18s ease, border-color .18s ease; }
+.merchant-route-shell .merchant-application-verify-link:hover { border-color: rgba(251,191,36,.72); background: rgba(251,191,36,.14); }
 
 /* Merchant dashboard — Local Buy & Sell navy/dark surface with gold accents. */
 .merchant-route-shell .merchant-dashboard { width: min(100%, 1440px); margin: 0 auto; padding: 18px 16px 30px; color: #f4ecdf; }
