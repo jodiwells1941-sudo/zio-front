@@ -1506,7 +1506,11 @@
   letter-spacing: .08em;
   list-style: none;
   cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
 }
+.qsm-modal .qsm-summary-title > span { display: inline-flex; align-items: center; gap: 8px; }
+.qsm-modal .qsm-summary-title > span > i { color: #fb7185; font-size: 12px; }
 .qsm-modal .qsm-summary[open] > .qsm-summary-title {
   margin-bottom: 6px;
 }

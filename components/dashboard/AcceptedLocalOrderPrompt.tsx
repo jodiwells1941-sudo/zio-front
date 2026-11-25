@@ -4,6 +4,7 @@ import { getNotifications } from "@/app/api/notifications";
 import { getTrade } from "@/app/api/trade";
 import { getUserInfo } from "@/utils/auth";
 import { getTradeEcho } from "@/utils/tradeEcho";
+import { localOrderSummaryRows } from "@/app/dashboard/local-buy-sell/localOrderSummary";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import styles from "./AcceptedLocalOrderPrompt.module.css";
@@ -16,8 +17,16 @@ type AcceptedOrder = {
   created_by: number;
   payable_amount?: number;
   receivable_amount?: number;
-  payment_expires_at?: string | null;
-  p2p_ad?: { asset?: string; with_fiat?: string } | null;
+  user_price?: number | string;
+  bonus_amount?: number | string | null;
+  charge_amount?: number | string | null;
+  ad_fee_amount?: number | string | null;
+  charge_percent?: number | string | null;
+  p2p_ad?: {
+    asset?: string;
+    with_fiat?: string;
+    payment_method?: { method_name?: string; sell_method?: { name?: string } } | null;
+  } | null;
 };
 
 const formatAmount = (value: number | undefined, currency: string) =>
@@ -121,9 +130,24 @@ export default function AcceptedLocalOrderPrompt() {
   if (!order) return null;
 
   const isBuy = order.type === "buy";
-  const asset = order.p2p_ad?.asset || "USD";
   const fiat = order.p2p_ad?.with_fiat || "BDT";
-  const deadline = order.payment_expires_at ? new Date(order.payment_expires_at) : null;
+  const paymentMethod = order.p2p_ad?.payment_method?.method_name || order.p2p_ad?.payment_method?.sell_method?.name;
+  const asset = (order.p2p_ad?.asset || "USD").toUpperCase().replace("USDT", "USD");
+  const baseAmount = Number(order.receivable_amount ?? 0);
+  const bonusAmount = Number(order.bonus_amount ?? 0);
+  const feeAmount = Number(isBuy ? order.ad_fee_amount ?? order.charge_amount ?? 0 : order.charge_amount ?? 0);
+  const summaryRows = localOrderSummaryRows({
+    side: order.type,
+    fiat,
+    asset,
+    fiatAmount: Number(order.payable_amount ?? 0),
+    assetAmount: baseAmount,
+    price: Number(order.user_price ?? 0),
+    bonusAmount,
+    feeAmount,
+    feePercent: Number(order.charge_percent ?? 0),
+    feeLabel: isBuy ? "Ad Fee (Already Paid)" : undefined,
+  });
 
   const viewOrder = () => {
     viewedIds.current.add(order.id);
@@ -140,23 +164,26 @@ export default function AcceptedLocalOrderPrompt() {
         role="dialog" aria-modal="true" aria-labelledby="accepted-local-order-title">
         <div className={styles.icon} aria-hidden="true"><i className="fa-solid fa-circle-check" /></div>
         <p className={styles.eyebrow}>LOCAL BUY &amp; SELL</p>
-        <h2 id="accepted-local-order-title">Your Order Accepted</h2>
+        <h2 id="accepted-local-order-title">Your Request Accepted</h2>
         <p className={styles.subtitle}>Your {isBuy ? "buy" : "sell"} request has been accepted. Open the order to continue.</p>
 
-        <div className={`${styles.amountCard} ${isBuy ? styles.receivedCard : styles.payCard}`}>
-          <span>{isBuy ? "Received" : "Pay"} Amount</span>
-          <strong>{formatAmount(order.receivable_amount, asset)}</strong>
-        </div>
-        <div className={`${styles.amountCard} ${isBuy ? styles.payCard : styles.receivedCard}`}>
-          <span>{isBuy ? "Pay" : "Received"} Amount</span>
+        <div className={`${styles.amountCard} ${styles.payCard}`}>
+          <span>Pay Amount</span>
           <strong>{formatAmount(order.payable_amount, fiat)}</strong>
         </div>
-        <div className={styles.details}>
-          <div><span>Order ID</span><strong>{order.order_id || `#${order.id}`}</strong></div>
-          {deadline && !Number.isNaN(deadline.getTime()) && (
-            <div><span>Payment deadline</span><strong>{deadline.toLocaleString()}</strong></div>
-          )}
-        </div>
+        <details className={styles.orderSummary}>
+          <summary><span><i className="fa-solid fa-clipboard-list" aria-hidden="true" /> Order Summary</span><i className="fa-solid fa-chevron-down" aria-hidden="true" /></summary>
+          <div className={styles.details}>
+            <div><span><i className="fa-solid fa-hashtag" aria-hidden="true" />Order ID</span><strong className={styles.orderIdValue}>{order.order_id || `#${order.id}`}<button type="button" aria-label="Copy order ID" onClick={() => { void navigator.clipboard?.writeText(order.order_id || `#${order.id}`); }}><i className="fa-regular fa-copy" aria-hidden="true" /></button></strong></div>
+            {paymentMethod && <div><span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span><strong>{paymentMethod}</strong></div>}
+            {summaryRows.map((row, index) => (
+              <div className={`${styles.summaryRow} ${row.total ? styles.summaryTotal : ""} ${row.tone === "negative" ? styles.summaryNegative : ""} ${row.tone === "positive" || row.tone === "received" ? styles.summaryPositive : ""}`} key={`${row.label}-${index}`}>
+                <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span>
+                <strong>{row.value}</strong>
+              </div>
+            ))}
+          </div>
+        </details>
 
         {orders.length > 1 && <p className={styles.queueNote}>{orders.length - 1} more accepted order{orders.length > 2 ? "s" : ""}</p>}
         <button type="button" className={styles.viewButton} onClick={viewOrder} autoFocus>

@@ -19,7 +19,9 @@
   padding: 15px 16px;
   border: 1px solid var(--summary-border);
   border-radius: 12px;
-  background: linear-gradient(145deg, #2a2110, #151209);
+  /* background: linear-gradient(145deg, #2a2110, #151209); */
+  background: linear-gradient(110deg, #f7b91d5b, #1d170ae6);
+  border-color: #906d1549;
 }
 
 .sell .summary {

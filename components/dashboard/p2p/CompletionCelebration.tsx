@@ -65,7 +65,7 @@ export default function CompletionCelebration({
             </summary>
             <dl className="completionSummaryRows">
               {summaryRows.map((row, index) => <div className={`completionSummaryRow ${row.total ? "completionSummaryRow--total" : ""} ${row.tone ? `completionSummaryRow--${row.tone}` : ""}`} key={`${row.label}-${index}`}>
-                <dt>{displayCurrency(row.label)}</dt><dd>{displayCurrency(row.value)}</dd>
+                <dt><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{displayCurrency(row.label)}</dt><dd>{displayCurrency(row.value)}</dd>
               </div>)}
             </dl>
           </details>}

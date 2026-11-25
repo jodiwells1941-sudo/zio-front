@@ -127,6 +127,10 @@ export default function TradeOrderSummary({
               </button>
             </span>
           </div>
+          <div className={styles.row}>
+            <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span>
+            <b>{paymentMethod || "—"}</b>
+          </div>
           {summaryRows.map((row, index) => (
             <div className={`${styles.row} ${row.total ? styles.total : ""} ${index === summaryRows.length - 1 ? styles.summaryFinalTotal : ""} ${row.label === "Pay Amount" ? styles.payAmountRow : row.label.startsWith("Received Amount") ? styles.receivedAmountRow : ""}`} key={row.label}>
               <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span>

@@ -202,6 +202,9 @@ export default function LocalBuyModal({ onClose, ad }: Props) {
               <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </summary>
             <div className="local-trade-summary-rows">
+              <div className="local-trade-row">
+                <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span><b>{methodName || "—"}</b>
+              </div>
               {localOrderSummaryRows({ side: "buy", fiat: ad.with_fiat, asset: ad.asset, fiatAmount, assetAmount: baseReceive, price: marketPrice, bonusAmount }).map(row => (
                 <div className={`local-trade-row ${row.total ? "local-trade-row--total mx-0" : ""}`} key={row.label}>
                   <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span><b className={row.tone === "positive" ? "local-trade-positive" : undefined}>{row.value}</b>

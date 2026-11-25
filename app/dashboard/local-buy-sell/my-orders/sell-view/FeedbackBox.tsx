@@ -141,19 +141,6 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
     }
   };
 
-  // ── Shared active styles ─────────────────────────────────────────────────────
-  const activeStyle: React.CSSProperties = {
-    backgroundColor: "#f0a500",
-    borderColor: "#f0a500",
-    color: "#000",
-  };
-
-  const activeTagStyle: React.CSSProperties = {
-    backgroundColor: "#f0a500",
-    borderColor: "#f0a500",
-    color: "#000",
-  };
-
   if (!isOpen) {
     return (
       <button
@@ -191,13 +178,12 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
         <div className={styles.body}>
 
       {/* ── Positive / Negative ── */}
-      <div className="pt-5 d-flex gap-3">
+      <div className={styles.ratingChoices}>
         <button
           type="button"
           onClick={() => handleTypeSelect("positive")}
-          className={`border rounded-pill fs-6 py-2 px-3 d-flex align-items-center justify-content-center ${type === "positive" ? 'active' : ''}`}
+          className={`${styles.ratingButton} ${type === "positive" ? styles.ratingPositive : ""}`}
           aria-pressed={type === "positive"}
-          style={type === "positive" ? activeStyle : {}}
         >
           <i className="fa-regular fa-thumbs-up pe-2" /> Positive
         </button>
@@ -205,9 +191,8 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
         <button
           type="button"
           onClick={() => handleTypeSelect("negative")}
-          className={`border rounded-pill fs-6 py-2 px-3 d-flex align-items-center justify-content-center ${type === "negative" ? 'active' : ''}`}
+          className={`${styles.ratingButton} ${type === "negative" ? styles.ratingNegative : ""}`}
           aria-pressed={type === "negative"}
-          style={type === "negative" ? activeStyle : {}}
         >
           <i className="fa-regular fa-thumbs-down pe-2" /> Negative
         </button>
@@ -218,15 +203,14 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
       )}
 
       {/* ── Tags ── */}
-      <div className="pt-4">
+      <div className={styles.tagList}>
         {TAGS.map((tag) => (
           <button
             key={tag}
             type="button"
             onClick={() => handleTagClick(tag)}
-            className={`btn--secondary py-lg-2 py-1 px-3 rounded-2 m-2 ${selectedTags.includes(tag) ? 'active' : ''}`}
+            className={`${styles.tagButton} ${selectedTags.includes(tag) ? styles.tagSelected : ""}`}
             aria-pressed={selectedTags.includes(tag)}
-            style={selectedTags.includes(tag) ? activeTagStyle : {}}
           >
             {tag}
           </button>
@@ -234,14 +218,14 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
       </div>
 
       {/* ── Comment ── */}
-      <div className="mt-3">
+      <div className={styles.commentSection}>
         <textarea
           value={comment}
           onChange={(e) => {
             setComment(e.target.value);
             setErrors((prev) => ({ ...prev, comment: undefined }));
           }}
-          className="copy-input px-3 form-control rounded-3 textarea-custom"
+          className={styles.commentField}
           placeholder={
             type === "negative"
               ? "Let other users know about the negative experience."
@@ -255,12 +239,12 @@ export default function FeedbackBox({ tradeId, buyerId, clientId, from, initialO
       </div>
 
       {/* ── Submit ── */}
-      <div className="d-flex justify-content-center mt-3">
+      <div className={styles.submitRow}>
         <button
           type="button"
           onClick={handleSubmit}
           disabled={loading}
-          className="btn--primary text-sm d-flex align-items-center justify-content-center"
+          className={styles.submitButton}
         >
           {loading ? (
             <>

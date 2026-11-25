@@ -620,7 +620,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
               {/* Breakdown */}
               <details className="qsm-summary mt-4">
-                <summary className="qsm-summary-title">Order Summary</summary>
+                <summary className="qsm-summary-title"><span><i className="fa-solid fa-clipboard-list" aria-hidden="true" />Order Summary</span></summary>
+
+                <div className="qsm-summary-row">
+                  <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span>
+                  <b>{selectedMethod?.method_name || "—"}</b>
+                </div>
 
                 <div className="qsm-summary-row">
                   <span><i className="fa-solid fa-coins text-danger" aria-hidden="true" />Currency</span><b>{fiat}</b>
@@ -813,7 +818,12 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
 
               {/* Summary */}
               <div className="qsm-summary">
-                <h4 className="qsm-summary-title qsm-summary-title--static">Order Summary</h4>
+                <h4 className="qsm-summary-title qsm-summary-title--static"><span><i className="fa-solid fa-clipboard-list" aria-hidden="true" />Order Summary</span></h4>
+
+                <div className="qsm-summary-row">
+                  <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span>
+                  <b>{selectedMethod?.method_name || "—"}</b>
+                </div>
 
                 <div className="qsm-summary-row">
                   <span><i className="fa-solid fa-coins" aria-hidden="true" />Currency</span><b>{fiat}</b>
