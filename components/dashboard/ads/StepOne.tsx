@@ -34,6 +34,9 @@ type CurrencyLimit = {
   currency_code: string;
   min_amount: string | number | null;
   max_amount: string | number | null;
+  base_rate: number;
+  minimum_price: number;
+  maximum_price: number | null;
   is_active: boolean;
 };
 
@@ -41,37 +44,17 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
   const [limit, setLimit] = useState<CurrencyLimit | null>(null);
   const [limitLoading, setLimitLoading] = useState(false);
   const [priceRangeError, setPriceRangeError] = useState<string | null>(null);
+  const [limitError, setLimitError] = useState(false);
 
-  const handleTypeChange = async (nextType: 'buy' | 'sell') => {
-    const previousCurrency = formData.withFlat;
-
+  const handleTypeChange = (nextType: 'buy' | 'sell') => {
+    if (nextType === formData.type) return;
     setLimit(null);
     setPriceRangeError(null);
-    setLimitLoading(false);
-
+    setLimitError(false);
     onFormChange({
       type: nextType,
-      asset: '',
-      withFlat: '',
-      priceType: 'fixed',
       fixedPrice: 0,
     });
-
-    if (!previousCurrency) return;
-
-    setLimitLoading(true);
-
-    try {
-      const res = await GetCurrencyLimitApi({
-        currency: previousCurrency,
-        order_type: nextType,
-      });
-      setLimit(res?.data ?? null);
-    } catch {
-      setLimit(null);
-    } finally {
-      setLimitLoading(false);
-    }
   };
 
   // ── Fetch min/max whenever the selected currency changes ──
@@ -79,10 +62,13 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
     if (!formData.withFlat) {
       setLimit(null);
       setPriceRangeError(null);
+      setLimitError(false);
       return;
     }
 
     let cancelled = false;
+    setLimit(null);
+    setLimitError(false);
     setLimitLoading(true);
 
     (async () => {
@@ -97,9 +83,13 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
           setLimit(res.data);
         } else {
           setLimit(null);
+          setLimitError(true);
         }
       } catch {
-        if (!cancelled) setLimit(null);
+        if (!cancelled) {
+          setLimit(null);
+          setLimitError(true);
+        }
       } finally {
         if (!cancelled) setLimitLoading(false);
       }
@@ -108,17 +98,17 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
     return () => {
       cancelled = true;
     };
-  }, [formData.withFlat]);
+  }, [formData.withFlat, formData.type]);
 
   // ── Validate price against fetched min/max as it changes ──
   useEffect(() => {
-    if (!limit || limit.min_amount === null) {
+    if (!limit || formData.fixedPrice <= 0) {
       setPriceRangeError(null);
       return;
     }
 
-    const min = Number(limit.min_amount);
-    const max = limit.max_amount === null ? null : Number(limit.max_amount);
+    const min = Number(limit.minimum_price);
+    const max = limit.maximum_price === null ? null : Number(limit.maximum_price);
     const price = formData.fixedPrice;
 
     if (price < min) {
@@ -187,7 +177,7 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
               <select
                 className={`select-custom form-control-custom ${errors.withFlat ? 'is-invalid' : ''}`}
                 value={formData.withFlat}
-                onChange={e => onFormChange({ withFlat: e.target.value })}
+                onChange={e => onFormChange({ withFlat: e.target.value, fixedPrice: 0 })}
               >
                 <option value="">Select Currency</option>
                 {CURRENCIES.map(c => (
@@ -206,7 +196,7 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
             <div className={`number-input-group ${(errors.fixedPrice || priceRangeError) ? 'border border-danger rounded' : ''}`}>
               <button
                 className="number-input-btn"
-                onClick={() => onFormChange({ fixedPrice: Math.max(97.75, formData.fixedPrice - 1) })}
+                onClick={() => onFormChange({ fixedPrice: Math.max(limit?.minimum_price ?? 0.01, Math.round((formData.fixedPrice - 0.01) * 100) / 100) })}
                 type="button"
               >
                 <i className="fa-solid fa-minus" />
@@ -219,7 +209,9 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
               />
               <button
                 className="number-input-btn"
-                onClick={() => onFormChange({ fixedPrice: formData.fixedPrice + 1 })}
+                onClick={() => onFormChange({ fixedPrice: formData.fixedPrice <= 0 && limit
+                  ? limit.minimum_price
+                  : Math.min(limit?.maximum_price ?? Number.MAX_SAFE_INTEGER, Math.round((formData.fixedPrice + 0.01) * 100) / 100) })}
                 type="button"
               >
                 <i className="fa-solid fa-plus" />
@@ -228,6 +220,7 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
             {priceRangeError && (
               <div className="invalid-feedback d-block">{priceRangeError}</div>
             )}
+            {limitError && <div className="invalid-feedback d-block">The live price range is unavailable for this currency and side.</div>}
           </div>
         )}
 
@@ -240,14 +233,16 @@ export default function StepOne({ formData, onFormChange, errors = {} }: StepOne
           <div className="price-display-item">
             <div className="price-label">Minimum Currency Price</div>
             <div className="price-value">
-              {limitLoading ? '...' : formatLimit(limit?.min_amount ?? null)}
+              {limitLoading ? '...' : `${formatLimit(limit?.minimum_price ?? null)} ${formData.withFlat}`}
             </div>
+            {limit && <small>API {formatLimit(limit.base_rate)} + {formatLimit(limit.min_amount)}</small>}
           </div>
           <div className="price-display-item">
             <div className="price-label">Maximum Currency Price</div>
             <div className="price-value">
-              {limitLoading ? '...' : formatLimit(limit?.max_amount ?? null)}
+              {limitLoading ? '...' : `${formatLimit(limit?.maximum_price ?? null)} ${formData.withFlat}`}
             </div>
+            {limit && limit.maximum_price !== null && <small>API {formatLimit(limit.base_rate)} + {formatLimit(limit.max_amount)}</small>}
           </div>
         </div>
 

@@ -2,10 +2,11 @@
 
 import { getNotifications, type UserNotification } from "@/app/api/notifications";
 import { getTrade } from "@/app/api/trade";
+import { localOrderSummaryRows } from "@/app/dashboard/local-buy-sell/localOrderSummary";
 import { getUserInfo } from "@/utils/auth";
 import { getTradeEcho } from "@/utils/tradeEcho";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import styles from "./PaymentProofSubmittedPrompt.module.css";
 
 type ProofOrder = {
@@ -15,6 +16,13 @@ type ProofOrder = {
   type: "buy" | "sell";
   fiatAmount: number;
   fiat: string;
+  asset: string;
+  price: number;
+  assetAmount: number;
+  bonusAmount: number;
+  feeAmount: number;
+  feePercent: number;
+  paymentMethod: string;
 };
 
 type TradeResponse = {
@@ -25,7 +33,17 @@ type TradeResponse = {
   created_by: number;
   is_ad_owner?: boolean;
   payable_amount?: number;
-  p2p_ad?: { with_fiat?: string } | null;
+  receivable_amount?: number;
+  user_price?: number | string;
+  bonus_amount?: number | string | null;
+  charge_amount?: number | string | null;
+  charge_percent?: number | string | null;
+  ad_fee_amount?: number | string | null;
+  p2p_ad?: {
+    with_fiat?: string;
+    asset?: string;
+    payment_method?: { method_name?: string; sell_method?: { name?: string } } | null;
+  } | null;
 };
 
 const isLocalProofNotice = (item: UserNotification) =>
@@ -38,6 +56,8 @@ export default function PaymentProofSubmittedPrompt() {
   const router = useRouter();
   const [userId, setUserId] = useState<number | null>(null);
   const [orders, setOrders] = useState<ProofOrder[]>([]);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const summaryId = useId();
   const activeUserId = useRef<number | null>(null);
   const seenIds = useRef<Set<number>>(new Set());
   const dismissedIds = useRef<Set<number>>(new Set());
@@ -107,6 +127,13 @@ export default function PaymentProofSubmittedPrompt() {
             type: trade.type,
             fiatAmount: Number(trade.payable_amount ?? 0),
             fiat: trade.p2p_ad?.with_fiat || "BDT",
+            asset: (trade.p2p_ad?.asset || "USD").toUpperCase().replace("USDT", "USD"),
+            price: Number(trade.user_price ?? 0),
+            assetAmount: Number(trade.receivable_amount ?? 0),
+            bonusAmount: Number(trade.bonus_amount ?? 0),
+            feeAmount: Number(trade.type === "sell" ? trade.charge_amount ?? 0 : trade.ad_fee_amount ?? trade.charge_amount ?? 0),
+            feePercent: Number(trade.charge_percent ?? 0),
+            paymentMethod: trade.p2p_ad?.payment_method?.method_name || trade.p2p_ad?.payment_method?.sell_method?.name || "—",
           },
         ]);
       } catch {
@@ -162,6 +189,19 @@ export default function PaymentProofSubmittedPrompt() {
     router.push(`/dashboard/local-buy-sell/my-orders/${order.type === "buy" ? "sell-view" : "buy-view"}/?trade_id=${order.id}`);
   };
 
+  const summarySide = order.type === "buy" ? "sell" : "buy";
+  const summaryRows = localOrderSummaryRows({
+    side: summarySide,
+    fiat: order.fiat,
+    asset: order.asset,
+    fiatAmount: order.fiatAmount,
+    assetAmount: order.assetAmount,
+    price: order.price,
+    bonusAmount: order.bonusAmount,
+    feeAmount: order.feeAmount,
+    feePercent: order.feePercent,
+  });
+
   return (
     <div className={styles.overlay}>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="local-proof-prompt-title">
@@ -169,14 +209,23 @@ export default function PaymentProofSubmittedPrompt() {
         <span className={styles.icon} aria-hidden="true"><i className="fa-solid fa-receipt" /></span>
         <p className={styles.eyebrow}>LOCAL BUY &amp; SELL</p>
         <h2 id="local-proof-prompt-title">Payment Proof Submitted</h2>
-        <p className={styles.subtitle}>The other user submitted payment proof. Review it before confirming the payment.</p>
-        <div className={styles.details}>
-          <div><span>Order ID</span><strong>{order.orderId}</strong></div>
-          <div><span>Payment amount</span><strong>{order.fiatAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {order.fiat}</strong></div>
-        </div>
+        <p className={styles.subtitle}>Payment proof was submitted. Review the order and proof before releasing the order.</p>
+        <section className={styles.orderSummary}>
+          <button type="button" className={styles.summaryToggle} aria-expanded={summaryOpen} aria-controls={summaryId} onClick={() => setSummaryOpen(open => !open)}>
+            <span><i className="fa-solid fa-clipboard-list" aria-hidden="true" /> Order Summary</span>
+            <i className={`fa-solid ${summaryOpen ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true" />
+          </button>
+          {summaryOpen && <div className={styles.summaryRows} id={summaryId}>
+            <div className={styles.summaryRow}><span><i className="fa-solid fa-hashtag" aria-hidden="true" />Order ID</span><strong>{order.orderId}</strong></div>
+            <div className={styles.summaryRow}><span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span><strong>{order.paymentMethod}</strong></div>
+            {summaryRows.map((row, index) => <div key={`${row.label}-${index}`} className={`${styles.summaryRow} ${row.total ? styles.summaryTotal : ""} ${row.tone === "negative" ? styles.summaryNegative : ""} ${row.tone === "positive" || row.tone === "received" ? styles.summaryPositive : ""}`}>
+              <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span><strong>{row.value}</strong>
+            </div>)}
+          </div>}
+        </section>
         {orders.length > 1 && <p className={styles.queueNote}>{orders.length - 1} more payment proof{orders.length > 2 ? "s" : ""}</p>}
         <button type="button" className={styles.viewButton} onClick={viewOrder} autoFocus>
-          View Order <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+          Release Order <i className="fa-solid fa-arrow-right" aria-hidden="true" />
         </button>
       </section>
     </div>

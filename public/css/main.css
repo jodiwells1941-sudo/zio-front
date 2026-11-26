@@ -29840,6 +29840,10 @@ span {
 .merchant-route-shell .merchant-application-route-loading i { color: #fbbf24; font-size: 28px; }
 .merchant-route-shell .merchant-application-route-loading strong { color: #fff0d2; }
 .merchant-route-shell .merchant-application-route-loading span { color: #b8ac9c; font-size: 13px; }
+.merchant-route-shell .merchant-application-guard-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.merchant-route-shell .merchant-application-guard-actions .merchant-primary-btn { min-width: 140px; }
+.merchant-route-shell .merchant-application-verify-link { min-height: 36px; padding: 0 14px; border: 1px solid rgba(251,191,36,.42); border-radius: 8px; color: #ffe6a0; background: rgba(251,191,36,.07); font-size: 12px; font-weight: 700; transition: background .18s ease, border-color .18s ease; }
+.merchant-route-shell .merchant-application-verify-link:hover { border-color: rgba(251,191,36,.72); background: rgba(251,191,36,.14); }
 
 /* Merchant dashboard — Local Buy & Sell navy/dark surface with gold accents. */
 .merchant-route-shell .merchant-dashboard { width: min(100%, 1440px); margin: 0 auto; padding: 18px 16px 30px; color: #f4ecdf; }
@@ -29956,6 +29960,31 @@ span {
 .merchant-route-shell .quick-actions-card .quick-action:hover { padding-left: 12px; color: #fff0cb; border-color: rgba(251,191,36,.5); transform: none; }
 .merchant-route-shell .quick-action-icon { border-radius: 8px; background: linear-gradient(135deg,#ffe8a1,#fbbf24); color: #261a03; }
 .merchant-route-shell .action-arrow { color: #fbd66f; }
+.merchant-route-shell .merchant-active-tier { --tier-color:#fbbf24; padding:20px; overflow:hidden; background:radial-gradient(circle at 90% 0%,color-mix(in srgb,var(--tier-color) 18%,transparent),transparent 55%),linear-gradient(145deg,#292b32,#1b1e24)!important; border-color:color-mix(in srgb,var(--tier-color) 46%,transparent)!important; }
+.merchant-route-shell .merchant-active-tier--bronze { --tier-color:#d99462; }
+.merchant-route-shell .merchant-active-tier--silver { --tier-color:#bbc9df; }
+.merchant-route-shell .merchant-active-tier--gold { --tier-color:#fbbf24; }
+.merchant-route-shell .merchant-active-tier--platinum { --tier-color:#bf83f6; }
+.merchant-route-shell .merchant-active-tier--diamond { --tier-color:#67d7fa; }
+.merchant-route-shell .merchant-active-tier--emerald { --tier-color:#58e1a2; }
+.merchant-route-shell .merchant-active-tier--ruby,.merchant-route-shell .merchant-active-tier--rose { --tier-color:#fb7185; }
+.merchant-route-shell .merchant-active-tier--sapphire,.merchant-route-shell .merchant-active-tier--indigo { --tier-color:#8299ff; }
+.merchant-route-shell .merchant-active-tier--amethyst { --tier-color:#d29afd; }
+.merchant-route-shell .merchant-active-tier--teal,.merchant-route-shell .merchant-active-tier--cyan { --tier-color:#5edbd5; }
+.merchant-route-shell .merchant-active-tier--orange { --tier-color:#ffa85c; }
+.merchant-route-shell .merchant-tier-heading,.merchant-route-shell .merchant-tier-identity,.merchant-route-shell .merchant-tier-benefits > div,.merchant-route-shell .merchant-tier-change { display:flex; align-items:center; justify-content:space-between; }
+.merchant-route-shell .merchant-tier-heading { gap:8px; color:#dfd5c5; font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.08em; }
+.merchant-route-shell .merchant-tier-heading small { display:inline-flex; align-items:center; gap:5px; color:#71eaa9; font-size:10px; letter-spacing:0; text-transform:none; }
+.merchant-route-shell .merchant-tier-identity { justify-content:flex-start; gap:12px; padding:18px 0; }
+.merchant-route-shell .merchant-tier-icon { display:grid; place-items:center; flex:none; width:52px; height:52px; border:1px solid color-mix(in srgb,var(--tier-color) 65%,transparent); border-radius:14px; background:color-mix(in srgb,var(--tier-color) 17%,#17191e); color:var(--tier-color); font-size:25px; box-shadow:0 0 22px color-mix(in srgb,var(--tier-color) 15%,transparent); }
+.merchant-route-shell .merchant-tier-identity strong { display:block; color:var(--tier-color); font-size:21px; line-height:1.2; }
+.merchant-route-shell .merchant-tier-identity p { margin:4px 0 0; color:#b9aa97; font-size:12px; }
+.merchant-route-shell .merchant-tier-benefits { padding:4px 0 12px; border-top:1px solid rgba(255,255,255,.09); }
+.merchant-route-shell .merchant-tier-benefits > div { gap:10px; padding:9px 0; border-bottom:1px dashed rgba(255,255,255,.08); font-size:12px; }
+.merchant-route-shell .merchant-tier-benefits span { color:#bdb2a4; }
+.merchant-route-shell .merchant-tier-benefits strong { color:#f5eee2; font-size:12px; text-align:right; }
+.merchant-route-shell .merchant-tier-change { width:100%; min-height:39px; padding:0 13px; border:1px solid color-mix(in srgb,var(--tier-color) 55%,transparent); border-radius:8px; background:color-mix(in srgb,var(--tier-color) 14%,#16191d); color:var(--tier-color); font-size:12px; font-weight:750; transition:background .18s,border-color .18s; }
+.merchant-route-shell .merchant-tier-change:hover { background:color-mix(in srgb,var(--tier-color) 24%,#16191d); border-color:var(--tier-color); }
 @media (max-width: 991px) { .merchant-route-shell .merchant-profile-grid { grid-template-columns: 1fr; } .merchant-route-shell .merchant-profile-sidebar { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; } }
 @media (max-width: 767px) { .merchant-route-shell .merchant-profile-container { padding: 12px 9px 26px; } .merchant-route-shell .merchant-page-header { align-items: flex-start; flex-direction: column; gap: 12px; } .merchant-route-shell .merchant-page-header .merchant-outline-btn { width: 100%; } .merchant-route-shell .merchant-profile-card,.merchant-route-shell .business-info-card,.merchant-route-shell .verification-card,.merchant-route-shell .performance-card { padding: 16px; } .merchant-route-shell .merchant-profile-sidebar { display: flex; } .merchant-route-shell .merchant-profile-top { align-items: flex-start; flex-direction: column; } .merchant-route-shell .merchant-avatar-wrapper { align-items: flex-start; } }
 
@@ -30390,3 +30419,59 @@ span {
   .merchant-route-shell .merchant-level-page .tier-activation-footer { align-items: stretch; flex-direction: column; }
   .merchant-route-shell .merchant-level-page .tier-activate-button { width: 100%; }
 }
+
+/* Merchant orders */
+.merchant-route-shell .merchant-orders-page { color: #f3eadb; }
+.merchant-route-shell .merchant-orders-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 17px; border-bottom: 1px solid rgba(251,191,36,.18); }
+.merchant-route-shell .merchant-orders-heading-icon { display: grid; flex: 0 0 46px; width: 46px; height: 46px; place-items: center; border: 1px solid rgba(251,191,36,.45); border-radius: 12px; color: #fbbf24; background: rgba(251,191,36,.11); font-size: 19px; }
+.merchant-route-shell .merchant-orders-heading h1 { margin: 0 0 3px; color: #fff3d5; font-size: clamp(21px, 2vw, 27px); font-weight: 750; }
+.merchant-route-shell .merchant-orders-heading p { margin: 0; color: #b8b2a8; font-size: 13px; }
+.merchant-route-shell .merchant-orders-page .trades-section { padding: 18px; border: 1px solid rgba(251,191,36,.20); border-radius: 14px; background: #2a2d34; overflow-x: visible; }
+.merchant-route-shell .merchant-orders-overview { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding: 14px 16px; border: 1px solid rgba(251,191,36,.22); border-radius: 10px; background: linear-gradient(110deg,rgba(251,191,36,.13),rgba(251,191,36,.025) 65%); }
+.merchant-route-shell .merchant-orders-overview > div { display: flex; align-items: center; gap: 12px; }
+.merchant-route-shell .merchant-orders-overview-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 8px; color: #fbbf24; background: rgba(251,191,36,.14); }
+.merchant-route-shell .merchant-orders-overview strong { display: block; color: #fff0cd; font-size: 14px; }
+.merchant-route-shell .merchant-orders-overview small { display: block; margin-top: 2px; color: #b9afa0; font-size: 12px; }
+.merchant-route-shell .merchant-orders-count { flex: 0 0 auto; padding: 6px 10px; border: 1px solid rgba(251,191,36,.33); border-radius: 20px; color: #fbd66f; background: #201e19; font-size: 12px; font-weight: 750; }
+.merchant-route-shell .merchant-orders-page .trades-filter-tabs { flex-wrap: wrap; gap: 8px; }
+.merchant-route-shell .merchant-orders-page .filter-tab-btn { border-color: rgba(251,191,36,.22); border-radius: 8px; color: #d3c7b4; background: #1e2229; }
+.merchant-route-shell .merchant-orders-page .filter-tab-btn.active { border-color: #fbbf24; color: #241905; background: #fbbf24; font-weight: 750; }
+.merchant-route-shell .merchant-orders-page .trades-filter-bar { gap: 10px; padding: 12px; border: 1px solid rgba(251,191,36,.13); border-radius: 10px; background: #20242b; }
+.merchant-route-shell .merchant-orders-page .trades-filter-bar .btn-primary { border-color: #fbbf24; color: #271b04; background: #fbbf24; font-weight: 750; }
+.merchant-route-shell .merchant-orders-page .trades-actions .btn-warning { border-color: #fbbf24; color: #241903; background: #fbbf24; font-weight: 750; }
+.merchant-route-shell .merchant-orders-page .trades-actions .btn-outline-secondary { border-color: rgba(251,191,36,.27); color: #e8d7b5; background: #1b1f25 !important; }
+.merchant-route-shell .merchant-orders-page .btn-reset { border-color: rgba(251,191,36,.25); border-radius: 7px; color: #fbd66f; }
+.merchant-route-shell .merchant-orders-table-wrap { overflow-x: auto; border: 1px solid rgba(251,191,36,.13); border-radius: 10px; }
+.merchant-route-shell .merchant-orders-page .trades-table { min-width: 880px; }
+.merchant-route-shell .merchant-orders-page .trades-table th { padding: 12px 10px; color: #fbd66f; background: #171b21; }
+.merchant-route-shell .merchant-orders-page .trades-table td { padding: 13px 10px; border-color: rgba(251,191,36,.10); }
+.merchant-route-shell .merchant-orders-page .trades-table tbody tr:nth-child(even) { background: rgba(17,20,26,.22); }
+.merchant-route-shell .merchant-orders-page .trades-table tbody tr:hover { background: rgba(251,191,36,.055); }
+.merchant-route-shell .merchant-orders-page .trade-link { color: #ffe39a; }
+.merchant-route-shell .merchant-orders-order-cell { display: grid; gap: 5px; }
+.merchant-route-shell .merchant-orders-order-cell small,
+.merchant-route-shell .merchant-orders-fiat { display: block; color: #aaa8a6; font-size: 11px; }
+.merchant-route-shell .merchant-orders-amount { display: block; color: #f6f1e7; font-size: 13px; }
+.merchant-route-shell .merchant-orders-side { display: inline-block; padding: 5px 8px; border-radius: 6px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.merchant-route-shell .merchant-orders-side--sell { color: #62e3aa; background: rgba(43,208,115,.12); }
+.merchant-route-shell .merchant-orders-side--buy { color: #ff929b; background: rgba(247,100,113,.12); }
+.merchant-route-shell .merchant-orders-page .trade-status-cell > span { display: inline-block; padding: 5px 8px; border-radius: 6px; font-size: 11px; font-weight: 750; white-space: nowrap; }
+.merchant-route-shell .merchant-orders-page .trade-status-pending { border: 1px solid rgba(251,191,36,.35); color: #ffcf55; background: rgba(251,191,36,.12); }
+.merchant-route-shell .merchant-orders-page .trade-status-approved { border: 1px solid rgba(99,197,232,.32); color: #8bdcf3; background: rgba(99,197,232,.10); }
+.merchant-route-shell .merchant-orders-page .trade-status-progress { border: 1px solid rgba(167,126,239,.32); color: #ccb1ff; background: rgba(167,126,239,.10); }
+.merchant-route-shell .merchant-orders-page .trade-status-completed { border: 1px solid rgba(78,215,143,.32); color: #7ce4ab; background: rgba(78,215,143,.10); }
+.merchant-route-shell .merchant-orders-page .trade-status-cancelled { border: 1px solid rgba(247,100,113,.32); color: #ff9da5; background: rgba(247,100,113,.10); }
+.merchant-route-shell .merchant-orders-page .merchant-orders-actions .btn { min-height: 31px; padding: 5px 9px; font-size: 12px; font-weight: 700; }
+.merchant-route-shell .merchant-orders-empty { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 145px; margin: 0; color: #bdb6aa; font-size: 13px; }
+.merchant-route-shell .merchant-orders-empty i { color: #fbbf24; }
+.merchant-route-shell .merchant-orders-error { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; padding: 10px 12px; border: 1px solid rgba(249,105,116,.35); border-radius: 8px; color: #ffb4b8; background: rgba(249,105,116,.09); font-size: 12px; }
+.merchant-route-shell .merchant-orders-error button { border: 0; color: #ffd978; background: transparent; font-weight: 750; }
+.merchant-route-shell .merchant-orders-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.merchant-route-shell .merchant-order-view { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 31px; padding: 5px 10px; border: 1px solid rgba(251,191,36,.52); border-radius: 7px; color: #ffe08b; background: rgba(251,191,36,.10); font-size: 12px; font-weight: 750; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.merchant-route-shell .merchant-order-view:hover { color: #231906; background: #fbbf24; }
+.merchant-route-shell .merchant-order-status--pending { color: #fbd66f; border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.10); }
+.merchant-route-shell .merchant-order-status--approved { color: #8edcf3; border-color: rgba(110,211,247,.35); background: rgba(110,211,247,.10); }
+.merchant-route-shell .merchant-order-status--cancelled,
+.merchant-route-shell .merchant-order-status--rejected { color: #ff9299; border-color: rgba(255,107,120,.35); background: rgba(255,107,120,.10); }
+.merchant-route-shell .merchant-order-mobile-card { padding: 16px; border: 1px solid rgba(251,191,36,.22); border-radius: 11px; color: #eee4d3; background: #20242b; }
+@media (max-width: 767px) { .merchant-route-shell .merchant-orders-page .trades-section { padding: 12px; } .merchant-route-shell .merchant-orders-heading p { line-height: 1.45; } .merchant-route-shell .merchant-orders-overview { align-items: flex-start; } .merchant-route-shell .merchant-orders-overview small { line-height: 1.4; } }

@@ -33,21 +33,18 @@ type ActiveTab = 'all' | 'completed' | 'cancelled' | 'buy' | 'sell';
 // ─── Status badge helper ──────────────────────────────────────────────────────
 
 const getStatusUI = (trade: Trade): { text: string; className: string } => {
-  const { status, type } = trade;
+  const { status } = trade;
   switch (status) {
-    case 1:  return {
-      text: type === "Sell" ? "Waiting for Approved" : "Pending",
-      className: "trade-status-pending",
-    };
+    case 1:  return { text: "Awaiting review", className: "trade-status-pending" };
     case 2:  return { text: "Approved",           className: "trade-status-approved"  };
-    case 3:  return { text: "Cancelled",          className: "trade-status-cancelled" };
-    case 4:  return { text: "Rej. Balance",       className: "trade-status-cancelled" };
-    case 5:  return { text: "Paid",               className: "trade-status-progress"  };
-    case 6:  return { text: "Approved",  className: "trade-status-progress"  };
+    case 3:  return { text: "Rejected",           className: "trade-status-cancelled" };
+    case 4:  return { text: "Refunded",           className: "trade-status-cancelled" };
+    case 5:  return { text: "Payment sent",       className: "trade-status-progress"  };
+    case 6:  return { text: "Payment received",   className: "trade-status-progress"  };
     case 7:  return { text: "Rejected",  className: "trade-status-cancelled" };
-    case 8:  return { text: "Timeout",   className: "trade-status-cancelled" };
+    case 8:  return { text: "Cancelled",          className: "trade-status-cancelled" };
     case 9:  return { text: "Completed",          className: "trade-status-completed" };
-    case 10: return { text: "Claimed",            className: "trade-status-completed" };
+    case 10: return { text: "Appealed",           className: "trade-status-progress" };
     default: return { text: "Unknown",            className: ""                       };
   }
 };
@@ -58,12 +55,15 @@ export default function MerchantOrderTable() {
   const [trades,    setTrades]    = useState<Trade[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [syncing,   setSyncing]   = useState(false);
+  const [error,     setError]     = useState("");
+  const [total,     setTotal]     = useState(0);
   const [activeTab, setActiveTab] = useState<ActiveTab>('all');
 
   // Filters
   const [search,   setSearch]   = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate,   setToDate]   = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({ search: "", fromDate: "", toDate: "" });
 
   // Pagination
   const [page,     setPage]     = useState(1);
@@ -74,12 +74,14 @@ export default function MerchantOrderTable() {
   const fetchTrades = useCallback(async (silent = false) => {
     try {
       silent ? setSyncing(true) : setLoading(true);
+      setError("");
 
       const params = {
         page,
-        ...(search   ? { search }    : {}),
-        ...(fromDate ? { from_date: fromDate } : {}),
-        ...(toDate   ? { to_date: toDate }     : {}),
+        ...(activeTab !== 'all' ? { tab: activeTab } : {}),
+        ...(appliedFilters.search ? { search: appliedFilters.search } : {}),
+        ...(appliedFilters.fromDate ? { from_date: appliedFilters.fromDate } : {}),
+        ...(appliedFilters.toDate ? { to_date: appliedFilters.toDate } : {}),
       };
 
       const res = await (getMerchantOrders as (args?: Record<string, string | number>) => Promise<unknown>)(params);
@@ -87,13 +89,15 @@ export default function MerchantOrderTable() {
       const paginated = (res as any)?.data;
       setTrades(paginated?.data ?? paginated ?? []);
       setLastPage(paginated?.last_page ?? 1);
+      setTotal(paginated?.total ?? 0);
     } catch (e) {
       console.error(e);
+      setError("Could not load merchant orders. Please try again.");
     } finally {
       setLoading(false);
       setSyncing(false);
     }
-  }, [page, search, fromDate, toDate]);
+  }, [page, activeTab, appliedFilters]);
 
   useEffect(() => {
     void fetchTrades();
@@ -123,16 +127,16 @@ export default function MerchantOrderTable() {
   // ─── Filter / Reset ──────────────────────────────────────────────────────────
 
   const handleFilter = () => {
+    setAppliedFilters({ search: search.trim(), fromDate, toDate });
     setPage(1);
-    fetchTrades();
   };
 
   const resetFilter = () => {
     setSearch("");
     setFromDate("");
     setToDate("");
+    setAppliedFilters({ search: "", fromDate: "", toDate: "" });
     setPage(1);
-    fetchTrades();
   };
 
   // ─── Sync button ─────────────────────────────────────────────────────────────
@@ -173,17 +177,7 @@ export default function MerchantOrderTable() {
 
   // ─── Client-side tab filter ───────────────────────────────────────────────────
 
-  const filteredTrades = trades.filter(t => {
-    if (activeTab === 'completed') return t.status === 9 || t.status === 10;
-    if (activeTab === 'cancelled') return t.status === 3 || t.status === 4 || t.status === 7 || t.status === 8;
-    if (activeTab === 'buy') {
-      return t.order_side === 'buy' || (!t.order_side && t.type === 'Buy');
-    }
-    if (activeTab === 'sell') {
-      return t.order_side === 'sell' || (!t.order_side && t.type === 'Sell');
-    }
-    return true;
-  });
+  const filteredTrades = trades;
 
   // ─── Action buttons per status ────────────────────────────────────────────────
 
@@ -238,7 +232,7 @@ export default function MerchantOrderTable() {
       );
     }
 
-    return <span className="text-muted text-reset">—</span>;
+    return null;
   };
 
   /**
@@ -247,13 +241,8 @@ export default function MerchantOrderTable() {
    */
   const getTradeDetailsPath = (trade: Trade) => {
     const side = trade.order_side;
-    if (side === 'buy' || side === 'sell') {
-      const useP2p =
-        (side === 'buy' && !trade.isCustomer) || (side === 'sell' && trade.isCustomer);
-      return useP2p
-        ? `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`
-        : `/dashboard/merchant/ads/sell?trade_id=${trade.id}`;
-    }
+    if (side === 'buy') return `/dashboard/merchant/ads/sell?trade_id=${trade.id}`;
+    if (side === 'sell') return `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`;
     if (trade?.isCustomer && trade.type === 'Sell') return `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`;
     if (trade?.isCustomer && trade.type === 'Buy') return `/dashboard/merchant/ads/sell?trade_id=${trade.id}`;
     if (!trade?.isCustomer && trade.type === 'Buy') return `/dashboard/merchant/ads/p2p?trade_id=${trade.id}`;
@@ -269,7 +258,8 @@ export default function MerchantOrderTable() {
   // ─── Render ───────────────────────────────────────────────────────────────────  
 
   return (
-    <div>
+    <div className="merchant-orders-list">
+      <div className="merchant-orders-overview"><div><span className="merchant-orders-overview-icon"><i className="fa-solid fa-layer-group" aria-hidden="true" /></span><div><strong>Orders on your merchant ads</strong><small>Review requests, track payments, and open order details.</small></div></div><span className="merchant-orders-count">{total} {total === 1 ? "order" : "orders"}</span></div>
 
       {/* ── Toolbar ── */}
       <div className="trades-toolbar">
@@ -279,7 +269,7 @@ export default function MerchantOrderTable() {
               key={tab}
               className={`filter-tab-btn ${activeTab === tab ? 'active' : ''}`}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => { setActiveTab(tab); setPage(1); }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
@@ -349,20 +339,21 @@ export default function MerchantOrderTable() {
       </div>
 
       {/* ── Desktop Table ── */}
+      {error && <div className="merchant-orders-error" role="alert">{error} <button type="button" onClick={() => void fetchTrades()}>Retry</button></div>}
       {loading ? (
-        <p className="text-center py-5">Loading...</p>
+        <p className="merchant-orders-empty"><i className="fa-solid fa-spinner fa-spin" aria-hidden="true" /> Loading merchant orders…</p>
       ) : filteredTrades.length === 0 ? (
-        <p className="text-center py-5 text-muted">No trades found.</p>
+        <p className="merchant-orders-empty"><i className="fa-solid fa-box-open" aria-hidden="true" /> {error ? "Orders are temporarily unavailable." : "No merchant orders found for this view."}</p>
       ) : (
         <>
-          <div className="d-none d-md-block">
+          <div className="d-none d-lg-block merchant-orders-table-wrap">
             <table className="trades-table">
               <thead>
                 <tr>
-                  <th>Type / Date</th>
-                  <th>Order Number</th>
+                  <th>Order</th>
+                  <th>Side</th>
+                  <th>Amount</th>
                   <th>Price</th>
-                  <th>Fiat / Crypto Amount</th>
                   <th>Counterparty</th>
                   <th>Status</th>
                   <th>Action</th>
@@ -375,21 +366,9 @@ export default function MerchantOrderTable() {
                     <tr key={trade.id}>
 
                       {/* Type / Date */}
-                      <td className="trade-type-date">
-                        <span className={trade.type === 'Buy' ? 'trade-type-buy' : 'trade-type-sell'}>
-                          {trade.type} {trade.asset}
-                        </span>
-                        <div className="trade-date">{trade.date}</div>
-                      </td>
-
-                      {/* Order Number */}
-                      <td>
-                        <div className="trade-order-cell">
-
-                          <Link href={getTradeDetailsPath(trade)} className="trade-link ms-2">
+                      <td><div className="merchant-orders-order-cell"><div className="trade-order-cell"><Link href={getTradeDetailsPath(trade)} className="trade-link">
                             {trade.orderNumber}
                           </Link>
-
                           <button
                             className="trade-copy-icon"
                             type="button"
@@ -398,17 +377,10 @@ export default function MerchantOrderTable() {
                           >
                             <i className="fa-regular fa-copy" />
                           </button>
-                        </div>
-                      </td>
-                      
-                      {/* Price */}
+                        </div><small>{trade.date}</small></div></td>
+                      <td><span className={`merchant-orders-side merchant-orders-side--${trade.order_side ?? "buy"}`}>{trade.order_side === "sell" ? "Buy" : "Sell"} USD</span></td>
+                      <td><strong className="merchant-orders-amount">{trade.cryptoValue.replace(/\bUSDT\b/g, "USD")}</strong><small className="merchant-orders-fiat">{trade.cryptoAmount}</small></td>
                       <td>{trade.price}</td>
-
-                      {/* Fiat / Crypto */}
-                      <td>
-                        <div>{trade.cryptoAmount}</div>
-                        <div className="trade-crypto-sub">{trade.cryptoValue}</div>
-                      </td>
 
                       {/* Counterparty */}
                       <td>
@@ -425,11 +397,10 @@ export default function MerchantOrderTable() {
                       {/* Status */}
                       <td className="trade-status-cell">
                         <span className={statusUI.className}>{statusUI.text}</span>
-                        <div className="trade-receipt">Receipt</div>
                       </td>
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
-                      <td>{renderActions(trade)}</td>
+                      <td><div className="merchant-orders-actions"><Link href={getTradeDetailsPath(trade)} className="merchant-order-view">View <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" /></Link>{renderActions(trade)}</div></td>
                     </tr>
                   );
                 })}
@@ -438,22 +409,22 @@ export default function MerchantOrderTable() {
           </div>
 
           {/* ── Mobile Cards ── */}
-          <div className="d-md-none">
+          <div className="d-lg-none">
             {filteredTrades.map(trade => {
               const statusUI = getStatusUI(trade);
               return (
-                <div className="card mb-4" key={trade.id}>
+                <div className="card merchant-order-mobile-card mb-3" key={trade.id}>
 
                   <div className="d-flex justify-content-between align-items-center">
-                    <span className={trade.type === 'Sell' ? 'trade-type-sell' : 'trade-type-buy'}>
-                      {trade.type}{' '}
-                      <span className="text-white fw-7 text-xs">{trade.asset}</span>
+                    <span className={trade.order_side === 'sell' ? 'trade-type-buy' : 'trade-type-sell'}>
+                      {trade.order_side === "sell" ? "Buy" : "Sell"}{' '}
+                      <span className="text-white fw-7 text-xs">USD</span>
                     </span>
                     <span className={statusUI.className}>{statusUI.text}</span>
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
-                    <span className="text-white-50">Amount</span>
+                    <span className="text-white-50">Fiat amount</span>
                     <span>{trade.cryptoAmount}</span>
                   </div>
 
@@ -463,8 +434,8 @@ export default function MerchantOrderTable() {
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
-                    <span className="text-white-50">Total Quantity</span>
-                    <span>{trade.cryptoValue}</span>
+                    <span className="text-white-50">USD amount</span>
+                    <span>{trade.cryptoValue.replace(/\bUSDT\b/g, "USD")}</span>
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
@@ -488,16 +459,13 @@ export default function MerchantOrderTable() {
                       <Link href={`/dashboard/chat?trade_id=${trade.id}`} className="text-xs text-white-50">
                         {trade.counterparty}
                       </Link>
-                      <span className="trade-chat-icon">
-                        <i className="fa-solid fa-message text-white" />
-                        <small className="text-black bg-warning px-1 rounded-pill top-0">2</small>
-                      </span>
+                      <span className="trade-chat-icon"><i className="fa-solid fa-message text-white" /></span>
                     </div>
                     <div className="trade-date">{trade.date}</div>
                   </div>
 
                   {/* Mobile action buttons */}
-                  <div className="mt-3">{renderActions(trade)}</div>
+                  <div className="merchant-orders-actions mt-3"><Link href={getTradeDetailsPath(trade)} className="merchant-order-view">View order <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" /></Link>{renderActions(trade)}</div>
 
                 </div>
               );

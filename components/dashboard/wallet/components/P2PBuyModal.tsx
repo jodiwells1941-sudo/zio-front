@@ -23,6 +23,7 @@ type FieldErrors = {
 
 export default function P2PBuyModal({ onClose, ad }: Props) {
   const router = useRouter();
+  const marketPrice = Number(ad.market_price ?? ad.fixed_price);
 
   const [payAmount,   setPayAmount]   = useState('');
   const [receiveAmt,  setReceiveAmt]  = useState('');
@@ -72,7 +73,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
   const handleAll = () => {
     const maxCrypto = ad.order_limit_max;
     setReceiveAmt(String(maxCrypto));
-    setPayAmount((maxCrypto * ad.fixed_price).toFixed(2));
+    setPayAmount((maxCrypto * marketPrice).toFixed(2));
     setFieldErrors({});
   };
 
@@ -104,7 +105,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
     const recvCrypto = parseAmount(receiveAmt);
     let assetQty = Number.NaN;
     if (payFiat > 0) {
-      assetQty = payFiat / ad.fixed_price;
+      assetQty = payFiat / marketPrice;
     } else if (recvCrypto > 0) {
       assetQty = recvCrypto;
     }
@@ -197,18 +198,18 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Price</span>
-                  <span className="val">{ad.fixed_price.toFixed(2)} <b className="text-warning">{ad.with_fiat}</b></span>
+                  <span className="val">{marketPrice.toFixed(2)} <b className="text-warning">{ad.with_fiat}</b></span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Order Limit</span>
                   <span className="val">
                     {/* {ad.order_limit_min.toLocaleString()} – {ad.order_limit_max.toLocaleString()} {ad.asset} */}
-                    {(ad.order_limit_min * ad.fixed_price).toLocaleString(undefined, {
+                    {(ad.order_limit_min * marketPrice).toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
                     –{" "}
-                    {(ad.order_limit_max * ad.fixed_price).toLocaleString(undefined, {
+                    {(ad.order_limit_max * marketPrice).toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
@@ -258,7 +259,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
             <div className="right order-1 order-md-2">
               <div className="priceLine">
                 <span className="priceLabel">Price</span>
-                <span className="priceValue">{ad.fixed_price.toFixed(2)} {ad.with_fiat}</span>
+                <span className="priceValue">{marketPrice.toFixed(2)} {ad.with_fiat}</span>
                 <button className="refreshBtn text-center px-1" type="button" aria-label="refresh">↻</button>
               </div>
 
@@ -268,12 +269,12 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                 <div className={`inputWrap ${fieldErrors.payAmount ? 'border border-danger' : ''}`}>
                   <input
                     className="input text-light placeholder-texr-color"
-                    placeholder={`${(ad.order_limit_min * ad.fixed_price).toFixed(2)} - ${(ad.order_limit_max * ad.fixed_price).toFixed(2)}`}
+                    placeholder={`${(ad.order_limit_min * marketPrice).toFixed(2)} - ${(ad.order_limit_max * marketPrice).toFixed(2)}`}
                     type="number"
                     value={payAmount}
                     onChange={e => {
                       setPayAmount(e.target.value);
-                      setReceiveAmt((Number(e.target.value) / ad.fixed_price).toFixed(2));
+                      setReceiveAmt((Number(e.target.value) / marketPrice).toFixed(2));
                       if (fieldErrors.payAmount || fieldErrors.receiveAmt) setFieldErrors({});
                     }}
                     aria-label="you pay"
@@ -300,7 +301,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     aria-label="you receive"
                     onChange={e => {
                       setReceiveAmt(e.target.value);
-                      setPayAmount((Number(e.target.value) * ad.fixed_price).toFixed(2));
+                      setPayAmount((Number(e.target.value) * marketPrice).toFixed(2));
                       if (fieldErrors.payAmount || fieldErrors.receiveAmt) setFieldErrors({});
                     }}
                     placeholder={`${ad.order_limit_min} - ${ad.order_limit_max}`}

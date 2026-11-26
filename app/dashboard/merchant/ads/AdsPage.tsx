@@ -7,8 +7,7 @@ import StepTwo from '@/components/dashboard/ads/StepTwo';
 import StepThree from '@/components/dashboard/ads/StepThree';
 import { toast } from 'react-toastify';
 import { createAd, updateAd, P2pAdPayload } from '@/app/api/p2padsapi';
-import AddSecurityMoneyModal from './AddSecurityMonyModal';
-import { useAuth } from '@/hooks/useAuth';
+import { GetCurrencyLimitApi } from '@/app/api/p2p';
 import MyAds from '../../p2p-profile/MyAds';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -140,12 +139,25 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
   const [submitting,  setSubmitting]  = useState(false);
   const [formData,    setFormData]    = useState<FormData>({ ...DEFAULT_FORM, ...defaultValues });
   const [createdAd, setCreatedAd] = useState(false);
-  const [isOpenDepositModel, setisOpenDepositModel] = useState(false);
-  const [securityDepositRequired, setSecurityDepositRequired] = useState(0);
-  const { user } = useAuth();
 
   const handleFormChange = (data: Partial<FormData>) => {
-    setFormData(prev => ({ ...prev, ...data }));
+    setFormData(prev => {
+      if ((data.type && data.type !== prev.type) || (data.withFlat !== undefined && data.withFlat !== prev.withFlat)) {
+        return { ...prev, ...data, totalAmount: '', orderLimitMin: 0, orderLimitMax: 0 };
+      }
+      if (data.fixedPrice !== undefined && data.fixedPrice > 0 && prev.fixedPrice > 0 &&
+        data.fixedPrice !== prev.fixedPrice) {
+        const factor = prev.fixedPrice / data.fixedPrice;
+        return {
+          ...prev,
+          ...data,
+          totalAmount: prev.type === 'buy' && prev.totalAmount ? String(Number(prev.totalAmount) * factor) : prev.totalAmount,
+          orderLimitMin: prev.orderLimitMin ? prev.orderLimitMin * factor : 0,
+          orderLimitMax: prev.orderLimitMax ? prev.orderLimitMax * factor : 0,
+        };
+      }
+      return { ...prev, ...data };
+    });
     // Clear errors for touched fields immediately
     setErrors(prev => {
       const next = { ...prev };
@@ -154,10 +166,24 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const stepErrors = currentStep === 1 ? validateStep1(formData)
                      : currentStep === 2 ? validateStep2(formData)
                      : {};
+    if (currentStep === 1 && Object.keys(stepErrors).length === 0) {
+      try {
+        const response = await GetCurrencyLimitApi({ currency: formData.withFlat, order_type: formData.type });
+        const range = response?.data;
+        if (!range || response?.error) {
+          stepErrors.fixedPrice = 'The current price range is unavailable. Please try again.';
+        } else if (formData.fixedPrice < Number(range.minimum_price) ||
+          (range.maximum_price !== null && formData.fixedPrice > Number(range.maximum_price))) {
+          stepErrors.fixedPrice = `Price must be within the current ${formData.withFlat} range (${Number(range.minimum_price).toFixed(2)}–${range.maximum_price === null ? 'unlimited' : Number(range.maximum_price).toFixed(2)}).`;
+        }
+      } catch {
+        stepErrors.fixedPrice = 'Could not load the live price range. Please try again.';
+      }
+    }
     if (Object.keys(stepErrors).length) { setErrors(stepErrors); return; }
     setErrors({});
     setCurrentStep(s => s + 1);
@@ -176,12 +202,6 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     setCurrentStep(1);
   };
 
-  const openSecurityDepositModal = () => {
-    const requiredAmount = formData.type === 'sell' ? Number(formData.totalAmount || 0) : 0;
-    setSecurityDepositRequired(requiredAmount);
-    setisOpenDepositModel(true);
-  };
-
   const handleSubmit = async () => {
     const stepErrors = validateStep3(formData);
     if (Object.keys(stepErrors).length) { setErrors(stepErrors); return; }
@@ -196,17 +216,9 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
         router.push('/dashboard/merchant/ads/');
       } else {
         await createAd(payload);
-        const requiredAmount = payload.type === 'sell' ? Number(payload.total_amount || 0) : 0;
         resetForm();
         setCreatedAd(false);
         toast.success('Ad posted successfully!');
-
-        if (requiredAmount > 0) {
-          setSecurityDepositRequired(requiredAmount);
-          setisOpenDepositModel(true);
-          return;
-        }
-
         router.push('/dashboard/merchant/ads/');
       }
     } catch (e: unknown) {
@@ -277,7 +289,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
       {/* <P2PTopNav /> */}
 
       <div className="p-4 d-flex gap-3 justify-content-between">
-        <button className='btn btn-black bg-black text-white' onClick={()=>{ resetForm(); setCreatedAd(false); setisOpenDepositModel(false); setSecurityDepositRequired(0); }}> All Ads</button>
+        <button className='btn btn-black bg-black text-white' onClick={()=>{ resetForm(); setCreatedAd(false); }}> All Ads</button>
         <div className="d-flex gap-2">
           {/* <button className='btn btn-warning' onClick={()=>setisOpenDepositModel(true)}>Add Security Money</button> */}
           <button className='btn btn-warning' onClick={()=>setAd()}>Create Ads</button>
@@ -350,23 +362,6 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
             </div>
           </div>
         </div>
-      )}
-
-      {isOpenDepositModel && (
-        <AddSecurityMoneyModal 
-          walletBalance={user.wallet.amount}
-          currentSecurityDeposit={user.wallet.security_amount_for_ads}
-          requiredSecurityAmount={securityDepositRequired}
-          onClose={() => {
-            setisOpenDepositModel(false);
-            setSecurityDepositRequired(0);
-            router.push('/dashboard/merchant/ads/');
-          }}
-          onSuccess={(newDeposit) => {
-            // update your local state / refetch wallet
-          }}
-
-        />
       )}
 
     </div>

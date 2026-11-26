@@ -53,6 +53,10 @@ export default function TradeOrderSummary({
           <span>Currency</span>
           <b>{currency || "—"}</b>
         </div>
+        <div className={styles.row}>
+          <span>Payment Method</span>
+          <b>{paymentMethod || "—"}</b>
+        </div>
         {isBuy ? (
           <>
             <div className={styles.row}>
@@ -93,10 +97,6 @@ export default function TradeOrderSummary({
             <div className={styles.row}>
               <span>Fee ({formatAmount(feePercent)}%)</span>
               <b className={styles.negative}>- {formatAmount(feeAmount)} {currency}</b>
-            </div>
-            <div className={styles.row}>
-              <span>Payment Method</span>
-              <b>{paymentMethod || "N/A"}</b>
             </div>
             <div className={`${styles.row} ${styles.total}`}>
               <span>Total You Will Receive</span>

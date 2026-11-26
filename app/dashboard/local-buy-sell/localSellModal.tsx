@@ -354,6 +354,9 @@ export default function LocalSellModal({ onClose, ad }: Props) {
               <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </summary>
             <div className="local-trade-summary-rows">
+              <div className="local-trade-row">
+                <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span><b>{selectedPaymentMethod?.method_name || "—"}</b>
+              </div>
               {localOrderSummaryRows({ side: "sell", fiat: ad.with_fiat, asset: ad.asset, fiatAmount: grossReceive, assetAmount: sellValue, price: marketPrice, feeAmount: feeUsdt, feePercent }).map(row => (
                 <div className={`local-trade-row ${row.total ? "local-trade-row--total mx-0 local-trade-row--received" : ""}`} key={row.label}>
                   <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span><b className={row.tone === "negative" ? "local-trade-negative" : row.tone === "received" ? "local-trade-positive" : undefined}>{row.value}</b>

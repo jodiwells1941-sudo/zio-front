@@ -1374,7 +1374,11 @@
   letter-spacing: .08em;
   list-style: none;
   cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
 }
+.qbm-modal .qbm-summary-title > span { display: inline-flex; align-items: center; gap: 8px; }
+.qbm-modal .qbm-summary-title > span > i { color: #facc15; font-size: 12px; }
 .qbm-modal .qbm-summary[open] > .qbm-summary-title {
   margin-bottom: 6px;
 }

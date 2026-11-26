@@ -49,7 +49,7 @@ export function localOrderSummaryRows({
       { label: "Sell Amount", value: `- ${money(assetAmount)} ${assetName}`, icon: "fa-layer-group", tone: "negative" },
       { label: feeLabel ?? `Fee (${money(feePercent)}%)`, value: `- ${money(feeAmount)} ${assetName}`, icon: "fa-percent", tone: "negative" },
       // { label: "Total Amount", value: `- ${money(assetAmount + feeAmount)} ${assetName}`, icon: "fa-wallet", tone: "negative" },
-      { label: `Total Amount (${assetName})`, value: `${money(assetAmount + feeAmount)} ${assetName}`, icon: "fa-hand-holding-dollar", tone: "received", total: true },
+      { label: `Total Amount (${assetName})`, value: `- ${money(assetAmount + feeAmount)} ${assetName}`, icon: "fa-hand-holding-dollar", tone: "received", total: true },
       // { label: `Received Amount (${fiat})`, value: `${money(fiatAmount)} ${fiat}`, icon: "fa-hand-holding-dollar", tone: "received", total: true },
     ];
   }

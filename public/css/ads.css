@@ -634,6 +634,10 @@
   overflow-x: auto;
 }
 
+.trade-list-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.trade-list-view { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 31px; padding: 5px 10px; border: 1px solid rgba(251,191,36,.48); border-radius: 7px; color: #fbd66f; background: rgba(251,191,36,.1); font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.trade-list-view:hover { color: #241904; background: #fbbf24; }
+
 .trades-toolbar {
   display: flex;
   justify-content: space-between;

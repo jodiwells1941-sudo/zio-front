@@ -49,7 +49,7 @@ type Props = {
 };
 
 export default function PaymentCompleted({ trade, from }: Props) {
-  const [showCelebration, setShowCelebration] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [openFeedback, setOpenFeedback] = useState(false);
   const withFiat     = trade.current_status?.with_fiat ?? trade.p2p_ad?.with_fiat ?? '';
   const asset        = normalizeCryptoAsset(trade.p2p_ad?.asset);
@@ -63,6 +63,18 @@ export default function PaymentCompleted({ trade, from }: Props) {
     ? new Date(trade.created_at).toLocaleString()
     : '—';
   const { user } = useAuth();
+  React.useEffect(() => {
+    if (user?.id == null || !trade) return;
+    const reviews: any[] = Array.isArray(trade.trade_review)
+      ? trade.trade_review
+      : trade.trade_review
+        ? [trade.trade_review]
+        : [];
+    const alreadyReviewed = reviews.some(review =>
+      String(review.reviewer_id ?? review.user_id ?? "") === String(user.id)
+    );
+    setShowCelebration(!alreadyReviewed);
+  }, [trade, trade.trade_review, user?.id]);
   const isSeller = Boolean(trade.is_client ?? Number(user?.id) === Number(trade.client_id));
   const amountDisplay = getViewerOrderAmountDisplay({
     payable_amount: trade.payable_amount,
@@ -88,6 +100,7 @@ export default function PaymentCompleted({ trade, from }: Props) {
   const bonus = Number(trade.bonus_amount ?? 0);
   const summaryRows: LocalOrderSummaryRow[] = [
     { label: "Order ID", value: trade.order_id || `#${trade.id}`, icon: "fa-hashtag" },
+    { label: "Payment Method", value: methodName, icon: "fa-credit-card" },
     ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0), feeLabel: isPrepaidAdFee && fee > 0 ? "Ad Fee (Already Paid)" : undefined }),
   ];
     

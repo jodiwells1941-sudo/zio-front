@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import PaymentCompleted from "./PaymentCompleted";
 import { PaymentReceivedModel } from "./PaymentReceivedModel";
 import OrderDetailsCard from "./OrderDetailsCard";
+import PendingTradeReview from "../../p2p/PendingTradeReview";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -352,7 +353,7 @@ export default function BuyerPaymentCard() {
 
   return (
      <>
-      <div className="p2pOrderHeader">
+      {trade.status !== 1 && <div className="p2pOrderHeader">
 
         {/* Status toasts */}
         {trade.status === 1 && (
@@ -431,7 +432,7 @@ export default function BuyerPaymentCard() {
             <CopyBtn text={orderId} />
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* ── STEPS (shown while not yet completed; not when appealed status 10) ── */}
       {!confirmPayment && trade.status !== 10 && showExpiredPendingState ? (
@@ -451,22 +452,26 @@ export default function BuyerPaymentCard() {
           </div>
         </div>
       ) : !confirmPayment && trade.status !== 10 && (
-        isPendingReview ? (
-          <div className="p2pStepWrap">
-            <div className="p2pStepRow">
-              <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">1</div>
-              <div className="p2pStep2 flex-grow-1">
-                <div className="p2pStep2Body">
-                  <div className="p2pStepTitle">Review trade request</div>
-                  <div className="p2pMuted p2pSmall">
-                    <strong>{buyerName}</strong> wants to buy{" "}
-                    {cryptoAmountStr} {trade.p2p_ad?.asset ?? "USDT"} at your price. Approve to lock your crypto and start
-                    the trade, or reject to decline.
-                  </div>
-                  <div className="p2pActions">
+        trade.status === 1 ? (
+          <PendingTradeReview
+            orderId={orderId}
+            isSeller={true}
+            counterpartyName={buyerName}
+            sellerName={sellerName}
+            buyerName={buyerName}
+            fiatAmount={Number(trade.payable_amount)}
+            assetAmount={Number(trade.receivable_amount)}
+            price={Number(trade.user_price)}
+            fiat={withFiat || "BDT"}
+            asset={trade.p2p_ad?.asset ?? "USD"}
+            paymentMethod={methodName}
+            fee={fee}
+            bonus={bonus}
+            secondsLeft={pendingApprovalMm * 60 + pendingApprovalSs}
+            actions={isPendingReview ? <>
                     {canApprove && (
                       <button
-                        className="p2pPrimaryBtn"
+                        data-decision="approve"
                         type="button"
                         onClick={() => void handleApproveTrade()}
                         disabled={submitting || approvalWindowExpired}
@@ -485,7 +490,7 @@ export default function BuyerPaymentCard() {
                     )}
                     {canReject && (
                       <button
-                        className="p2pLinkBtn"
+                        data-decision="reject"
                         type="button"
                         onClick={() => void handleRejectTrade()}
                         disabled={submitting}
@@ -493,11 +498,8 @@ export default function BuyerPaymentCard() {
                         Reject Trade
                       </button>
                     )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            </> : undefined}
+          />
         ) : (
         <div className="p2pStepWrap">
 

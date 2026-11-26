@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FeedbackBox from "./FeedbackBox";
 import CompletionCelebration from "@/components/dashboard/p2p/CompletionCelebration";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,7 +26,7 @@ function CopyBtn({ text, id }: { text: string; id: string }) {
 }
 
 export default function OrderCompleted({ trade, from }: { trade?: any; from?: string }) {
-  const [showCelebration, setShowCelebration] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [openFeedback, setOpenFeedback] = useState(false);
   const [feedback,   setFeedback]   = useState<"positive" | "negative" | null>(null);
   const [tags,       setTags]       = useState<string[]>([]);
@@ -39,6 +39,18 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
     ? new Date(trade.created_at).toLocaleString()
     : "—";
   const { user } = useAuth();
+  useEffect(() => {
+    if (user?.id == null || !trade) return;
+    const reviews: any[] = Array.isArray(trade.trade_review)
+      ? trade.trade_review
+      : trade.trade_review
+        ? [trade.trade_review]
+        : [];
+    const alreadyReviewed = reviews.some(review =>
+      String(review.reviewer_id ?? review.user_id ?? "") === String(user.id)
+    );
+    setShowCelebration(!alreadyReviewed);
+  }, [trade, trade?.trade_review, user?.id]);
 
   const vd = trade
     ? getViewerOrderAmountDisplay({
@@ -69,6 +81,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
   const bonus = Number(trade?.bonus_amount ?? 0);
   const summaryRows: LocalOrderSummaryRow[] = trade && vd ? [
     { label: "Order ID", value: trade.order_id || `#${trade.id}`, icon: "fa-hashtag" },
+    { label: "Payment Method", value: methodName, icon: "fa-credit-card" },
     ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: vd.fiat, asset, fiatAmount: vd.fiatAmount, assetAmount: vd.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0) }),
   ] : [];
 

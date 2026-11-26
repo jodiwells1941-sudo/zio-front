@@ -1,7 +1,7 @@
 "use client";
 
 import { getAllAds, P2pAdsData } from '@/app/api/p2padsapi';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { P2PTabKey } from '../types';
 import P2PBuyModal from './P2PBuyModal';
 import P2PHeaderButton from './P2PHeaderButton';
@@ -171,6 +171,7 @@ export default function P2PLayout({
   const [meta,    setMeta]    = useState<PaginationMeta | null>(null);
   const [page,    setPage]    = useState(1);
   const [debouncedAmount, setDebouncedAmount] = useState('');
+  const latestAdsRequest = useRef(0);
 
   // ── Filters ──────────────────────────────────────────────────────────────────
   const [filterFiat,   setFilterFiat]   = useState('');
@@ -207,6 +208,7 @@ export default function P2PLayout({
 
   // ── Clear all filters ─────────────────────────────────────────────────────────
   const clearFilters = () => {
+    latestAdsRequest.current += 1;
     setFilterFiat('');
     setFilterAmount('');
     setDebouncedAmount('');
@@ -228,9 +230,9 @@ export default function P2PLayout({
     name:       ad.merchant?.full_name                        || 'Unknown',
     platform:   `${ad.asset}/${ad.with_fiat}`,
     methodName: ad.payment_method?.sell_method?.name || 'N/A',
-    rate:       ad.fixed_price,
+    rate:       Number(ad.market_price ?? ad.fixed_price),
     // limit:      `${ad.order_limit_min} - ${ad.order_limit_max} ${ad.asset}`,
-    limit: `${formatMoney(ad.order_limit_min * ad.fixed_price)} - ${formatMoney(ad.order_limit_max * ad.fixed_price)} ${ad.with_fiat}`,
+    limit: `${formatMoney(ad.order_limit_min * Number(ad.market_price ?? ad.fixed_price))} - ${formatMoney(ad.order_limit_max * Number(ad.market_price ?? ad.fixed_price))} ${ad.with_fiat}`,
     available:  `${ad.total_amount} ${ad.asset}`,
     timeText:   `${ad.payment_time_limit} min`,
     type:       ad.type,
@@ -242,8 +244,10 @@ export default function P2PLayout({
   // ── Fetch ─────────────────────────────────────────────────────────────────────
   const fetchAllAds = async (targetPage = 1) => {
     if (!allFiltersSet) return;
+    const requestId = ++latestAdsRequest.current;
     try {
       setLoading(true);
+      // A BUY list is populated by merchants' SELL ads, and vice versa.
       const type = activeP2PTab === 'wallet-balance' ? 'buy' : 'sell';
       const res = await getAllAds({
         type,
@@ -252,6 +256,7 @@ export default function P2PLayout({
         payment_method: filterMethod || undefined,
         amount_range: debouncedAmount || undefined,
       });
+      if (requestId !== latestAdsRequest.current) return;
 
       const responseData = res?.data;
       setAds(responseData?.data ?? responseData ?? []);
@@ -269,9 +274,9 @@ export default function P2PLayout({
         setMeta(null);
       }
     } catch (err) {
-      console.error(err);
+      if (requestId === latestAdsRequest.current) console.error(err);
     } finally {
-      setLoading(false);
+      if (requestId === latestAdsRequest.current) setLoading(false);
     }
   };
 
@@ -281,8 +286,10 @@ export default function P2PLayout({
     if (allFiltersSet) {
       fetchAllAds(1);
     } else {
+      latestAdsRequest.current += 1;
       setAds([]);
       setMeta(null);
+      setLoading(false);
     }
   }, [activeP2PTab, filterFiat, filterMethod, debouncedAmount]);
 
@@ -311,7 +318,7 @@ export default function P2PLayout({
   }, []);
 
   // ── Shared card renderer ──────────────────────────────────────────────────────
-  const renderCard = (c: P2PCard, idx: number, isBuy: boolean) => (
+  const renderCard = (c: P2PCard, idx: number, isSell: boolean) => (
     <div key={`${c.id}-${idx}`} className="col-lg-6">
       <div className="payment-card p-3 p-md-4">
         <div className="card-header">
@@ -321,7 +328,7 @@ export default function P2PLayout({
                 <img src={c.userImage} width={30} height={30} alt="avatar" />
               </div>
             ) : (
-              <AvatarSvg showDot={isBuy} />
+              <AvatarSvg showDot={isSell} />
             )}
             <div className="details">
               <span className="name">{c.name}</span>
@@ -351,7 +358,7 @@ export default function P2PLayout({
             <small><strong>Limit:</strong> {c.limit}</small>
             <p><strong>Available:</strong> {c.available}</p>
           </div>
-          {isBuy ? (
+          {isSell ? (
             <button type="button" className="buy-btn bg-danger text-white" onClick={() => { setSelectedAd(c.ad); setIsModalOpen(true); }}>
               Sell
             </button>
@@ -365,10 +372,10 @@ export default function P2PLayout({
     </div>
   );
 
-  const isBuyTab = activeP2PTab === 'wallet-balance';
+  const isSellTab = activeP2PTab === 'wallet-balance';
 
   // ── Shared content block ──────────────────────────────────────────────────────
-  const AdsContent = ({ isBuy }: { isBuy: boolean }) => (
+  const AdsContent = ({ isSell }: { isSell: boolean }) => (
     <div className="wallet-wrap-area">
 
       {/* ── Filters ── */}
@@ -466,10 +473,10 @@ export default function P2PLayout({
       ) : loading ? (
         <p>Loading...</p>
       ) : p2pCards.length === 0 ? (
-        <p className="py-5 text-center">No {isBuy ? 'buy' : 'sell'} ads found for the selected filters</p>
+        <p className="py-5 text-center">No {isSell ? 'sell' : 'buy'} ads found for the selected filters</p>
       ) : (
         <div className="row g-4">
-          {p2pCards.map((c, idx) => renderCard(c, idx, isBuy))}
+          {p2pCards.map((c, idx) => renderCard(c, idx, isSell))}
         </div>
       )}
 
@@ -501,11 +508,11 @@ export default function P2PLayout({
           </div>
 
           <div className="wallet-tab-contents">
-            <div className={`wallet-tab-content ${isBuyTab ? 'active' : ''}`} id="wallet-balance">
-              <AdsContent isBuy={true} />
+            <div className={`wallet-tab-content ${isSellTab ? 'active' : ''}`} id="wallet-balance">
+              <AdsContent isSell={true} />
             </div>
-            <div className={`wallet-tab-content ${!isBuyTab ? 'active' : ''}`} id="wallet-add">
-              <AdsContent isBuy={false} />
+            <div className={`wallet-tab-content ${!isSellTab ? 'active' : ''}`} id="wallet-add">
+              <AdsContent isSell={false} />
             </div>
           </div>
 

@@ -17,6 +17,7 @@ interface Party {
 interface IncomingLocalOrder {
   id: number;
   order_id?: string;
+  ad_create_type?: string | null;
   type: "buy" | "sell";
   status: number;
   status_list?: number[];
@@ -33,6 +34,7 @@ interface IncomingLocalOrder {
   client?: Party | null;
   customer?: Party | null;
   p2p_ad?: {
+    ad_create_type?: string | null;
     asset?: string;
     with_fiat?: string;
     payment_time_limit?: number;
@@ -184,6 +186,11 @@ export default function IncomingLocalOrderPrompt() {
         const response = await getTrade(id);
         const order = response?.data as IncomingLocalOrder | undefined;
         if (!active || !order || Number(order.id) !== id || Number(order.status) !== 1) return;
+        // This root component also hears generic P2P list updates. Only a
+        // pending order on the signed-in user's local ad belongs in this modal.
+        if ((order.ad_create_type ?? order.p2p_ad?.ad_create_type) !== "local"
+          || order.is_ad_owner !== true
+          || Number(order.created_by) === userId) return;
 
         const isNewOrder = !seenOrderIds.current.has(id);
         seenOrderIds.current.add(id);
@@ -408,7 +415,7 @@ export default function IncomingLocalOrderPrompt() {
 
         <details key={order.id} className={styles.orderSummary} aria-label="Order summary">
           <summary className={styles.summaryHeading}>
-            <strong>Order Summary</strong>
+            <strong><i className="fa-solid fa-clipboard-list" aria-hidden="true" />Order Summary</strong>
             <i className="fa-solid fa-chevron-down" aria-hidden="true" />
           </summary>
           <div className={styles.summaryRows}>
@@ -426,6 +433,10 @@ export default function IncomingLocalOrderPrompt() {
                   <i className={`fa-regular ${copiedOrderId ? "fa-circle-check" : "fa-copy"}`} aria-hidden="true" />
                 </button>
               </strong>
+            </div>
+            <div className={styles.summaryRow}>
+              <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span>
+              <strong>{paymentMethod || "—"}</strong>
             </div>
             {summaryRows.map(row => (
               <div className={`${styles.summaryRow} ${row.total ? styles.summaryTotal : ""}`} key={row.label}>

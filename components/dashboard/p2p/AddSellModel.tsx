@@ -21,6 +21,7 @@ type Props = {
 
 export default function AddSellModel({ onClose, ad }: Props) {
   const router = useRouter();
+  const marketPrice = Number(ad.market_price ?? ad.fixed_price);
 
   const [sellAmount,   setSellAmount]   = useState('');
   const [receiveAmt,   setReceiveAmt]   = useState('');
@@ -207,7 +208,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="text-white-50 text-lg">Order Limit</span>
                   <span className="val">
-                    {(ad.order_limit_min * ad.fixed_price).toLocaleString()} – {(ad.order_limit_max * ad.fixed_price).toLocaleString()} {ad.with_fiat}
+                    {(ad.order_limit_min * marketPrice).toLocaleString()} – {(ad.order_limit_max * marketPrice).toLocaleString()} {ad.with_fiat}
                   </span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
@@ -253,7 +254,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
             <div className="right order-1 order-md-2">
               <div className="priceLine">
                 <span className="priceLabel">Price</span>
-                <span className="priceValue text-danger">{ad.fixed_price.toFixed(2)} {ad.with_fiat}</span>
+                <span className="priceValue text-danger">{marketPrice.toFixed(2)} {ad.with_fiat}</span>
                 <button className="refreshBtn text-center px-1" type="button" aria-label="refresh">↻</button>
               </div>
 
@@ -273,7 +274,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     value={sellAmount}
                     onChange={e => {
                       setSellAmount(e.target.value);
-                      setReceiveAmt((Number(e.target.value) * ad.fixed_price).toFixed(2));
+                      setReceiveAmt((Number(e.target.value) * marketPrice).toFixed(2));
                     }}
                     aria-label="You Sell"
                   />
@@ -284,7 +285,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                   </div>
                 </div>
                 <div className="text-sm fw-6 text-danger">
-                  Order Limits: {ad.with_fiat} {(ad.order_limit_min * ad.fixed_price).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * ad.fixed_price).toFixed(2)}
+                  Order Limits: {ad.with_fiat} {(ad.order_limit_min * marketPrice).toFixed(2)} – {ad.with_fiat} {(ad.order_limit_max * marketPrice).toFixed(2)}
                 </div>
                 {charge > 0 && (
                   <div className="text-sm fw-6 text-warning pt-2">
@@ -303,7 +304,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     value={receiveAmt}
                     onChange={e => {
                       setReceiveAmt(e.target.value);
-                      setSellAmount((Number(e.target.value) / ad.fixed_price).toFixed(2));
+                      setSellAmount((Number(e.target.value) / marketPrice).toFixed(2));
                     }}
                     placeholder="0.00"
                     aria-label="You Receive"

@@ -46,18 +46,60 @@
   font-variant-numeric: tabular-nums;
 }
 
-.summaryRow {
-  border-bottom: 1px dashed rgba(255, 101, 119, .2);
+.orderSummary{
+  margin:0 0 16px;
+  overflow:hidden;
+  border:1px solid rgba(255,101,119,.36);
+  border-radius:12px;
+  background:rgba(10,12,17,.38);
 }
-
-.summaryRow strong { color: #f8fafc; }
-.summaryRow .negative { color: #ff6577; }
-.summaryRow .received { color: #fbbf24; }
-.summaryTotal {
-  border-top: 1px solid rgba(255, 101, 119, .5);
-  border-bottom: 0;
-  font-weight: 800;
+.summaryToggle{
+  display:flex;
+  min-height:40px;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 12px;
+  border-bottom:1px solid rgba(255,101,119,.22);
+  background:linear-gradient(100deg,rgba(239,68,68,.13),rgba(239,68,68,.035));
+  color:#ff6577;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+  list-style:none;
 }
+.summaryToggle::-webkit-details-marker{ display:none; }
+.summaryToggle > span{ display:inline-flex; align-items:center; gap:8px; }
+.summaryToggle > i{ color:#ff6577; transition:transform .18s ease; }
+.orderSummary:not([open]) .summaryToggle{ border-bottom:0; }
+.orderSummary:not([open]) .summaryToggle > i{ transform:rotate(-90deg); }
+.summaryRow{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 12px;
+  padding:8px 0;
+  border-bottom:1px dashed rgba(255,101,119,.2);
+  color:#f1f5f9;
+  font-size:12px;
+}
+.summaryRow > span{ display:flex; min-width:0; align-items:center; color:#c0c8d4; }
+.summaryRow > span > i{ width:15px; flex:0 0 15px; margin-right:7px; color:#ff6577; font-size:10px; text-align:center; }
+.summaryRow > strong{ color:#f8fafc; font-size:12px; font-weight:700; text-align:right; overflow-wrap:anywhere; }
+.summaryRow.negative > strong{ color:#ff6577; }
+.summaryRow.received > strong{ color:#fbbf24; }
+.summaryTotal{
+  margin:5px 8px 8px;
+  padding:6px 8px;
+  border:1px solid rgba(255,101,119,.42);
+  border-radius:10px;
+  background:linear-gradient(100deg,rgba(239,68,68,.16),rgba(239,68,68,.045));
+}
+.summaryTotal > span{ color:#ff6577; font-weight:750; }
+.summaryTotal > strong{ padding:5px 10px; border-radius:999px; background:#fb7185; color:#2b0710; font-size:12px; font-weight:850; white-space:nowrap; }
+.summaryRow.summaryTotal > strong{ color:#2b0710; }
 
 @media (max-width: 480px) {
   .receivedAmount {

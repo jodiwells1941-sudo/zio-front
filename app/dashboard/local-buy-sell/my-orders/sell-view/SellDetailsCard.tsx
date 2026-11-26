@@ -240,6 +240,19 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
     trade?.payment_expires_at ?? null,
     !!trade && trade.status === 2 && !confirmPayment
   );
+  useEffect(() => {
+    const expiresAt = trade?.payment_expires_at;
+    if (
+      trade?.status !== 2 ||
+      !expiresAt ||
+      paymentTimer.secondsLeft <= 0 ||
+      paymentTimer.secondsLeft > 5 * 60 ||
+      autoExtensionPromptedFor.current === expiresAt
+    ) return;
+
+    autoExtensionPromptedFor.current = expiresAt;
+    setShowTimeExtension(true);
+  }, [trade?.status, trade?.payment_expires_at, paymentTimer.secondsLeft]);
   const releaseAppealTimer = useExpiryTimer(
     trade?.payment_expires_at ?? null,
     releasePhaseActive
@@ -310,12 +323,21 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
     const result = await Swal.fire({
       title: "Cancel Order?",
       html: "Are you sure you want to <strong>cancel this order</strong>? This action cannot be undone.",
-      icon: "warning",
+      icon: "question",
       showCloseButton: true,
       showCancelButton: true,
+      buttonsStyling: false,
       confirmButtonText: "Yes, Cancel!",
       cancelButtonText: "No, Go Back!",
-      confirmButtonColor: "#dc3545",
+      customClass: {
+        popup: "local-cancel-confirm",
+        title: "local-cancel-confirm-title",
+        htmlContainer: "local-cancel-confirm-message",
+        icon: "local-cancel-confirm-icon",
+        confirmButton: "local-cancel-confirm-yes",
+        cancelButton: "local-cancel-confirm-no",
+        closeButton: "local-cancel-confirm-close",
+      },
     });
 
     if (!result.isConfirmed) return;
@@ -344,51 +366,6 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
       setExtendingTime(false);
     }
   };
-
-  useEffect(() => {
-    const expiresAt = trade?.payment_expires_at;
-    if (
-      trade?.status !== 2 ||
-      !expiresAt ||
-      paymentTimer.secondsLeft <= 0 ||
-      paymentTimer.secondsLeft > 5 * 60 ||
-      autoExtensionPromptedFor.current === expiresAt
-    ) {
-      return;
-    }
-
-    autoExtensionPromptedFor.current = expiresAt;
-    void (async () => {
-      const result = await Swal.fire({
-        title: "Need more time to pay?",
-        text: "Your payment window has 5 minutes or less remaining. You can request extra time to complete the payment.",
-        icon: "warning",
-        input: "select",
-        inputOptions: {
-          5: "5 more minutes",
-          10: "10 more minutes",
-          15: "15 more minutes",
-          20: "20 more minutes",
-          30: "30 more minutes",
-          40: "40 more minutes",
-        },
-        inputValue: "5",
-        inputPlaceholder: "Choose extra time",
-        showCancelButton: true,
-        confirmButtonText: "Request More Time",
-        cancelButtonText: "Continue Payment",
-        confirmButtonColor: "#19a979",
-        cancelButtonColor: "#6c757d",
-        allowOutsideClick: false,
-        inputValidator: value =>
-          [5, 10, 15, 20, 30, 40].includes(Number(value)) ? undefined : "Choose a valid extension time.",
-      });
-
-      if (result.isConfirmed) {
-        await handleExtendPaymentTime(Number(result.value));
-      }
-    })();
-  }, [trade?.status, trade?.payment_expires_at, paymentTimer.secondsLeft, handleExtendPaymentTime]);
 
   // ─── Guards ──────────────────────────────────────────────────────────────────
 
@@ -477,7 +454,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
             {submitting ? "Approving…" : approvalWindowExpired ? "Time Expired" : "Approve Order"}
           </button>
         )}
-        {trade.status === 2 && (
+        {trade.status === 2 && paymentTimer.secondsLeft > 0 && paymentTimer.secondsLeft <= 5 * 60 && (
           <button className={`${paymentTimeStyles.openExtension} ${paymentTimeStyles.sell}`} type="button" onClick={() => setShowTimeExtension(true)} disabled={extendingTime || submitting}>
             <i className="fa-regular fa-clock" aria-hidden="true" />
             Need more time
@@ -644,6 +621,20 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         feePercent={displayedFeePercent}
         feeLabel={feeLabel}
       />
+
+      {trade.status === 1 && !isPendingReview && (
+        <div className="p2pApprovalWait" role="status" aria-live="polite">
+          <span className="p2pApprovalWaitIcon" aria-hidden="true">
+            <i className="fa-solid fa-hourglass-half" />
+          </span>
+          <div className="p2pApprovalWaitCopy">
+            <span>Request submitted</span>
+            <strong>Waiting for seller approval</strong>
+            <small>Your request is being reviewed. This panel will update when the seller responds.</small>
+          </div>
+          <span className="p2pApprovalWaitDots" aria-hidden="true"><i /><i /><i /></span>
+        </div>
+      )}
 
       {canCancelOrder && (
         <div className={`${paymentTimeStyles.cancelOrderRow} p2pBottomCancel`}>
@@ -819,18 +810,26 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
             <button className={paymentTimeStyles.modalClose} type="button" aria-label="Close" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
-            <span className={paymentTimeStyles.modalIcon}><i className="fa-regular fa-clock" aria-hidden="true" /></span>
+            <span className={paymentTimeStyles.modalIcon}><i className="fa-solid fa-exclamation" aria-hidden="true" /></span>
             <h2 id="sell-time-extension-title">Need more time to pay?</h2>
-            <p>Choose how many extra minutes you need to complete this payment.</p>
+            <p>Your payment window has 5 minutes or less remaining. You can request extra time to complete the payment.</p>
             <div className={paymentTimeStyles.modalChoices} role="group" aria-label="Additional payment time">
               {[5, 10, 15, 20, 30, 40].map(minutes => (
-                <button key={minutes} className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`} type="button" onClick={() => setExtensionMinutes(minutes)} disabled={extendingTime} aria-pressed={extensionMinutes === minutes}>
-                  <b>{minutes}</b><small>minutes</small>
+                <button
+                  key={minutes}
+                  type="button"
+                  className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`}
+                  onClick={() => setExtensionMinutes(minutes)}
+                  disabled={extendingTime}
+                  aria-pressed={extensionMinutes === minutes}
+                >
+                  <b>{minutes}</b>
+                  <small>minutes</small>
                 </button>
               ))}
             </div>
             <div className={paymentTimeStyles.modalActions}>
-              <button className={paymentTimeStyles.cancel} type="button" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>Cancel</button>
+              <button className={paymentTimeStyles.cancel} type="button" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>Continue Payment</button>
               <button className={paymentTimeStyles.submit} type="button" onClick={() => void handleExtendPaymentTime()} disabled={extendingTime}>
                 {extendingTime ? <><span className="spinner-border spinner-border-sm" aria-hidden="true" /> Extending…</> : <>Request More Time <i className="fa-solid fa-arrow-right" aria-hidden="true" /></>}
               </button>

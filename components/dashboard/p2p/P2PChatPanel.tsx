@@ -68,7 +68,7 @@ export default function P2PChatPanel({ isLocalTrade = false }: P2PChatPanelProps
             </div>
           </div>
           <div className="p2pChatHeaderAside">
-            <span className="p2pChatMeta">{isLocalTrade ? "Local Trade Chat" : "P2P Trade Chat"}</span>
+            <span className="p2pChatMeta">{isLocalTrade ? "Local Order Chat" : "P2P Trade Chat"}</span>
             {(canSubmitPaymentProof || canConfirmPaymentReceived) && (
               <div className="p2pChatHeaderActions">
               {canSubmitPaymentProof && (

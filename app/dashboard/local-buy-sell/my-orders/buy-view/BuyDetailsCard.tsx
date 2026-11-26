@@ -4,7 +4,9 @@ import { getLocalBonusFeesSettings as getBonusFeesSettings } from "@/app/api/loc
 import { extendTradePaymentTime, getTrade, sendTradeMessage, updateTradeStatus } from "@/app/api/trade";
 import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay, normalizeCryptoAsset } from "@/components/dashboard/p2p/p2pOrderDisplay";
+import { localOrderSummaryRows } from "../../localOrderSummary";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
+import { PaymentReceivedModel } from "../sell-view/PaymentReceivedModel";
 import TradeOrderSummary from "./TradeOrderSummary";
 import TradeProgressSteps from "../TradeProgressSteps";
 import paymentTimeStyles from "../PaymentTimeExtension.module.css";
@@ -263,6 +265,23 @@ function PaymentProofModal({
   const uploadInputId = useId();
   const receiptInputRef = useRef<HTMLInputElement>(null);
   const orderView = trade ? getViewerOrderAmountDisplay(trade) : null;
+  const summaryAsset = (trade?.p2p_ad?.asset || "USD").toUpperCase().replace("USDT", "USD");
+  const summaryFiat = trade?.p2p_ad?.with_fiat || orderView?.fiat || "BDT";
+  const summaryBonus = Number(trade?.bonus_amount ?? 0);
+  const paymentMethodName = trade?.p2p_ad?.payment_method?.sell_method?.name || "—";
+  const orderSummaryRows = trade && orderView ? [
+    { label: "Order ID", value: trade.order_id || `#${trade.id}`, icon: "fa-hashtag" },
+    { label: "Payment Method", value: paymentMethodName, icon: "fa-credit-card" },
+    ...localOrderSummaryRows({
+      side: "buy",
+      fiat: summaryFiat,
+      asset: summaryAsset,
+      fiatAmount: orderView.fiatAmount,
+      assetAmount: orderView.cryptoAmount,
+      price: Number(trade.user_price),
+      bonusAmount: summaryBonus,
+    }),
+  ] : [];
 
   useEffect(() => {
     const urls = proofFiles.map(file => URL.createObjectURL(file));
@@ -312,20 +331,6 @@ function PaymentProofModal({
     if (uploadedProofCount > 0) return;
     setProofFiles(current => current.filter((_, index) => index !== indexToRemove));
   };
-
-  const baseCryptoAmount = Number(trade.receivable_amount || 0);
-  const bonusAmount = trade.type === "buy"
-    ? Number(trade.bonus_amount ?? 0)
-    : 0;
-  const displayedBonusPercent = trade.bonus_percent != null
-    ? Number(trade.bonus_percent)
-    : 0;
-  const adjustedTotalAmount = trade.type === "buy"
-    ? baseCryptoAmount + bonusAmount
-    : Number(trade.payable_amount || 0);
-  const totalAmountCurrency = trade?.type === "buy"
-    ? normalizeCryptoAsset(trade?.p2p_ad?.asset)
-    : trade?.p2p_ad?.with_fiat ?? orderView?.fiat ?? "BDT";
 
   const handleSubmit = async () => {
     if (proofFiles.length === 0) {
@@ -414,38 +419,22 @@ function PaymentProofModal({
             <section className={`${proofModalStyles.orderDetails} p2pCard px-3 mb-3`}>
               <button
                 type="button"
-                className={`${proofModalStyles.orderDetailsToggle}, d-flex justify-content-between w-100 py-2`}
+                className={proofModalStyles.orderDetailsToggle}
                 aria-expanded={orderDetailsExpanded}
                 aria-controls={orderDetailsId}
                 onClick={() => setOrderDetailsExpanded(expanded => !expanded)}
               >
-                <span>Order details</span>
+                <span><i className="fa-solid fa-clipboard-list" aria-hidden="true" /> Order Summary</span>
                 <i className={`fa-solid ${orderDetailsExpanded ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true" />
               </button>
               {orderView && (
                 <div id={orderDetailsId} className={proofModalStyles.orderDetailsContent} hidden={!orderDetailsExpanded}>
-                  {orderView.detailRows.map((row, index) => (
-                    <div key={`${row.label}-${index}`} className="p2pDetailRow">
-                      <span className="p2pMuted">{row.label}</span>
-                      <span className="p2pDetailVal text-white">
-                        {row.value}
-                      </span>
+                  {orderSummaryRows.map((row, index) => (
+                    <div key={`${row.label}-${index}`} className={`${proofModalStyles.summaryRow} ${row.total ? proofModalStyles.summaryTotal : ""} ${row.tone === "negative" ? proofModalStyles.summaryNegative : ""} ${row.tone === "positive" || row.tone === "received" ? proofModalStyles.summaryPositive : ""}`}>
+                      <span><i className={`fa-solid ${row.icon}`} aria-hidden="true" />{row.label}</span>
+                      <strong>{row.value}</strong>
                     </div>
                   ))}
-
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">{displayedBonusPercent > 0 ? `Bonus (${displayedBonusPercent.toFixed(2)}%)` : "Bonus"}</span>
-                    <span className="p2pDetailVal text-warning">
-                      +{bonusAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} {orderView.asset}
-                    </span>
-                  </div>
-
-                  <div className="p2pDetailRow">
-                    <span className="p2pMuted">Total Amount</span>
-                    <span className="p2pDetailVal text-success">
-                      {totalAmountCurrency} {adjustedTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                    </span>
-                  </div>
                 </div>
               )}
             </section>
@@ -695,6 +684,7 @@ export default function BuyDetailsCard({
   const [submitting, setSubmitting] = useState<number | null>(null);
   const [timerExpired, setTimerExpired] = useState(false);
   const [showProofModal, setShowProofModal] = useState(false);
+  const [showPaymentReceivedModal, setShowPaymentReceivedModal] = useState(false);
   const [showTimeExtension, setShowTimeExtension] = useState(false);
   const [extensionMinutes, setExtensionMinutes] = useState(5);
   const [extendingTime, setExtendingTime] = useState(false);
@@ -832,7 +822,6 @@ export default function BuyDetailsCard({
     }
 
     const v = getViewerOrderAmountDisplay(trade);
-    const releaseAsset = v.asset.toUpperCase() === "USDT" ? "USD" : v.asset;
 
     const confirmMap: Record<
       number,
@@ -853,24 +842,13 @@ export default function BuyDetailsCard({
         title: "Cancel Order?",
         html: `Are you sure you want to <strong>cancel this order</strong>?<br/>This action cannot be undone.`,
         confirmText: "Yes, Cancel!",
-        icon: "warning",
+        icon: "question",
       },
       5: {
         title: "Confirm Payment Sent?",
         html: `Please confirm you have transferred <strong>${v.fiat} ${v.fiatStr}</strong> to the seller.<br/>Only click if you have <strong>already sent the payment</strong>.`,
         confirmText: "Yes, I Transferred!",
         icon: "info",
-      },
-      6: {
-        title: "Release Amount?",
-        html: `<p class="local-release-intro">Confirm the buyer's payment before releasing the order amount.</p>
-          <div class="local-release-amounts">
-            <div class="local-release-amount-row"><span>Payment received</span><strong>${v.fiat} ${v.fiatStr}</strong></div>
-            <div class="local-release-amount-row"><span>Release to buyer</span><strong>${v.cryptoStr} ${releaseAsset}</strong></div>
-          </div>
-          <p class="local-release-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Only continue after the payment is in your account.</p>`,
-        confirmText: "Release Amount",
-        icon: "question",
       },
       7: {
         title: "Submit Dispute?",
@@ -897,17 +875,27 @@ export default function BuyDetailsCard({
         showCancelButton: true,
         confirmButtonText: confirm.confirmText,
         cancelButtonText: newStatus === 6 ? "Go Back" : "No, Go Back!",
-        ...(newStatus === 6 ? {
+        ...(newStatus === 2 ? {
           buttonsStyling: false,
-          iconHtml: '<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>',
           customClass: {
-            popup: "local-release-confirm",
-            title: "local-release-confirm-title",
-            htmlContainer: "local-release-confirm-message",
-            icon: "local-release-confirm-icon",
-            confirmButton: "local-release-confirm-yes",
-            cancelButton: "local-release-confirm-no",
-            closeButton: "local-release-confirm-close",
+            popup: "local-approve-confirm",
+            title: "local-approve-confirm-title",
+            htmlContainer: "local-approve-confirm-message",
+            icon: "local-approve-confirm-icon",
+            confirmButton: "local-approve-confirm-yes",
+            cancelButton: "local-approve-confirm-no",
+            closeButton: "local-approve-confirm-close",
+          },
+        } : newStatus === 3 ? {
+          buttonsStyling: false,
+          customClass: {
+            popup: "local-cancel-confirm",
+            title: "local-cancel-confirm-title",
+            htmlContainer: "local-cancel-confirm-message",
+            icon: "local-cancel-confirm-icon",
+            confirmButton: "local-cancel-confirm-yes",
+            cancelButton: "local-cancel-confirm-no",
+            closeButton: "local-cancel-confirm-close",
           },
         } : {}),
         confirmButtonColor: [3, 7, 10].includes(newStatus)
@@ -984,48 +972,18 @@ export default function BuyDetailsCard({
   }, []);
 
   useEffect(() => {
+    const expiresAt = trade?.payment_expires_at;
     if (
       trade?.status !== 2 ||
-      !trade.payment_expires_at ||
+      !expiresAt ||
       secondsLeft <= 0 ||
       secondsLeft > 5 * 60 ||
-      autoExtensionPromptedFor.current === trade.payment_expires_at
-    ) {
-      return;
-    }
+      autoExtensionPromptedFor.current === expiresAt
+    ) return;
 
-    autoExtensionPromptedFor.current = trade.payment_expires_at;
-    void (async () => {
-      const result = await Swal.fire({
-        title: "Need more time to pay?",
-        text: "Your payment window has 5 minutes or less remaining. You can request extra time to complete the payment.",
-        icon: "warning",
-        input: "select",
-        inputOptions: {
-          5: "5 more minutes",
-          10: "10 more minutes",
-          15: "15 more minutes",
-          20: "20 more minutes",
-          30: "30 more minutes",
-          40: "40 more minutes",
-        },
-        inputValue: "5",
-        inputPlaceholder: "Choose extra time",
-        showCancelButton: true,
-        confirmButtonText: "Request More Time",
-        cancelButtonText: "Continue Payment",
-        confirmButtonColor: "#19a979",
-        cancelButtonColor: "#6c757d",
-        allowOutsideClick: false,
-        inputValidator: value =>
-          [5, 10, 15, 20, 30, 40].includes(Number(value)) ? undefined : "Choose a valid extension time.",
-      });
-
-      if (result.isConfirmed) {
-        await handleExtendPaymentTime(Number(result.value));
-      }
-    })();
-  }, [trade?.status, trade?.payment_expires_at, secondsLeft, handleExtendPaymentTime]);
+    autoExtensionPromptedFor.current = expiresAt;
+    setShowTimeExtension(true);
+  }, [trade?.status, trade?.payment_expires_at, secondsLeft]);
 
   const [sellFeePercent, setSellFeePercent] = useState(0);
 
@@ -1139,7 +1097,7 @@ export default function BuyDetailsCard({
             {submitting === 2 ? "Approving…" : "Approve Order"}
           </button>
         )}
-        {trade.status === 2 && (
+        {trade.status === 2 && secondsLeft > 0 && secondsLeft <= 5 * 60 && (
           <button
             className={`${paymentTimeStyles.openExtension} ${paymentTimeStyles.buy}`}
             type="button"
@@ -1159,8 +1117,8 @@ export default function BuyDetailsCard({
           </button>
         )}
         {canRelease && (
-          <button className="p2pPrimaryBtn" type="button" onClick={() => void handleStatusUpdate(6)} disabled={submitting !== null}>
-            {submitting === 6 ? "Processing…" : "Release Order"}
+          <button className="p2pPrimaryBtn" type="button" onClick={() => setShowPaymentReceivedModal(true)} disabled={submitting !== null}>
+            Release Order
           </button>
         )}
         {canDispute && (
@@ -1325,6 +1283,20 @@ export default function BuyDetailsCard({
         bonusPercent={displayedBonusPercent}
       />
 
+      {isPending && !canApprove && !canReject && (
+        <div className="p2pApprovalWait" role="status" aria-live="polite">
+          <span className="p2pApprovalWaitIcon" aria-hidden="true">
+            <i className="fa-solid fa-hourglass-half" />
+          </span>
+          <div className="p2pApprovalWaitCopy">
+            <span>Request submitted</span>
+            <strong>Waiting for seller approval</strong>
+            <small>Your request is being reviewed. This panel will update when the seller responds.</small>
+          </div>
+          <span className="p2pApprovalWaitDots" aria-hidden="true"><i /><i /><i /></span>
+        </div>
+      )}
+
       {canCancelOrder && (
         <div className={`${paymentTimeStyles.cancelOrderRow} p2pBottomCancel`}>
           <button
@@ -1441,7 +1413,13 @@ export default function BuyDetailsCard({
           canDispute={canDispute}
           canClaim={canClaim}
           submitting={submitting}
-          onStatusUpdate={handleStatusUpdate}
+          onStatusUpdate={async (status, notes) => {
+            if (status === 6) {
+              setShowPaymentReceivedModal(true);
+              return;
+            }
+            await handleStatusUpdate(status, notes);
+          }}
         />
       )}
 
@@ -1482,24 +1460,57 @@ export default function BuyDetailsCard({
           void fetchTrade();
         }}
       />
+      <PaymentReceivedModel
+        isOpen={showPaymentReceivedModal}
+        onClose={() => setShowPaymentReceivedModal(false)}
+        setConfirmPayment={() => {
+          setShowPaymentReceivedModal(false);
+          void handleStatusUpdate(6);
+        }}
+        buyerName={trade.customer?.name ?? "Buyer"}
+        amount={fiatAmount}
+        currency={fiat}
+        details={[
+          { label: "Order ID", value: trade.order_id || String(trade.id), icon: "fa-hashtag" },
+          ...localOrderSummaryRows({
+            side: "sell",
+            fiat,
+            asset,
+            fiatAmount,
+            assetAmount: cryptoAmount,
+            price,
+            feeAmount: feeCryptoAmount,
+            feePercent: displayedFeePercent,
+            feeLabel: "Ad Fee (Already Paid)",
+          }),
+        ]}
+      />
       {showTimeExtension && (
         <div className={`${paymentTimeStyles.modalOverlay} ${paymentTimeStyles.buy}`} onClick={() => !extendingTime && setShowTimeExtension(false)}>
           <section className={paymentTimeStyles.modal} role="dialog" aria-modal="true" aria-labelledby="buy-time-extension-title" onClick={event => event.stopPropagation()}>
             <button className={paymentTimeStyles.modalClose} type="button" aria-label="Close" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
-            <span className={paymentTimeStyles.modalIcon}><i className="fa-regular fa-clock" aria-hidden="true" /></span>
+            <span className={paymentTimeStyles.modalIcon}><i className="fa-solid fa-exclamation" aria-hidden="true" /></span>
             <h2 id="buy-time-extension-title">Need more time to pay?</h2>
-            <p>Choose how many extra minutes you need to complete this payment.</p>
+            <p>Your payment window has 5 minutes or less remaining. You can request extra time to complete the payment.</p>
             <div className={paymentTimeStyles.modalChoices} role="group" aria-label="Additional payment time">
               {[5, 10, 15, 20, 30, 40].map(minutes => (
-                <button key={minutes} className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`} type="button" onClick={() => setExtensionMinutes(minutes)} disabled={extendingTime} aria-pressed={extensionMinutes === minutes}>
-                  <b>{minutes}</b><small>minutes</small>
+                <button
+                  key={minutes}
+                  type="button"
+                  className={`${paymentTimeStyles.duration} ${extensionMinutes === minutes ? paymentTimeStyles.durationSelected : ""}`}
+                  onClick={() => setExtensionMinutes(minutes)}
+                  disabled={extendingTime}
+                  aria-pressed={extensionMinutes === minutes}
+                >
+                  <b>{minutes}</b>
+                  <small>minutes</small>
                 </button>
               ))}
             </div>
             <div className={paymentTimeStyles.modalActions}>
-              <button className={paymentTimeStyles.cancel} type="button" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>Cancel</button>
+              <button className={paymentTimeStyles.cancel} type="button" onClick={() => setShowTimeExtension(false)} disabled={extendingTime}>Continue Payment</button>
               <button className={paymentTimeStyles.submit} type="button" onClick={() => void handleExtendPaymentTime()} disabled={extendingTime}>
                 {extendingTime ? <><span className="spinner-border spinner-border-sm" aria-hidden="true" /> Extending…</> : <>Request More Time <i className="fa-solid fa-arrow-right" aria-hidden="true" /></>}
               </button>

@@ -631,7 +631,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
               </div> */}
 
               <details className="qbm-summary">
-                <summary className="qbm-summary-title">Order Summary</summary>
+                <summary className="qbm-summary-title"><span><i className="fa-solid fa-clipboard-list" aria-hidden="true" />Order Summary</span></summary>
+
+                <div className="qbm-summary-row">
+                  <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span>
+                  <b>{currencyMethods.find(method => method.id === methodId)?.method_name || "—"}</b>
+                </div>
 
                 <div className="qbm-summary-row">
                   <span><i className="fa-solid fa-coins" aria-hidden="true" />Currency</span><b>{fiat}</b>
@@ -735,7 +740,12 @@ export default function QuickBuyModal({ onClose, onSuccess, editId }: Props) {
 
               {/* Summary */}
               <div className="qbm-summary">
-                <h4 className="qbm-summary-title qbm-summary-title--static">Order Summary</h4>
+                <h4 className="qbm-summary-title qbm-summary-title--static"><span><i className="fa-solid fa-clipboard-list" aria-hidden="true" />Order Summary</span></h4>
+
+                <div className="qbm-summary-row">
+                  <span><i className="fa-solid fa-credit-card" aria-hidden="true" />Payment Method</span>
+                  <b>{currencyMethods.find(method => method.id === methodId)?.method_name || "—"}</b>
+                </div>
 
                 <div className="qbm-summary-row">
                   <span><i className="fa-solid fa-coins" aria-hidden="true" />Currency</span><b>{fiat}</b>
