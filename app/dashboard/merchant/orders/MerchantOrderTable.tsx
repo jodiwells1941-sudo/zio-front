@@ -20,6 +20,7 @@ interface Trade {
   date: string;
   orderNumber: string;
   price: string;
+  merchant_tier?: { bonus_percent: number; charge_percent: number; bonus_usd: number; charge_usd: number } | null;
   cryptoAmount: string;
   cryptoValue: string;
   counterparty: string;
@@ -380,7 +381,7 @@ export default function MerchantOrderTable() {
                         </div><small>{trade.date}</small></div></td>
                       <td><span className={`merchant-orders-side merchant-orders-side--${trade.order_side ?? "buy"}`}>{trade.order_side === "sell" ? "Buy" : "Sell"} USD</span></td>
                       <td><strong className="merchant-orders-amount">{trade.cryptoValue.replace(/\bUSDT\b/g, "USD")}</strong><small className="merchant-orders-fiat">{trade.cryptoAmount}</small></td>
-                      <td>{trade.price}</td>
+                      <td>{trade.price}{trade.merchant_tier && <small className="d-block text-white-50">Tier: <span className="text-success">+${Number(trade.merchant_tier.bonus_usd).toFixed(2)} ({trade.merchant_tier.bonus_percent}%)</span> · <span className="text-danger">-${Number(trade.merchant_tier.charge_usd).toFixed(2)} ({trade.merchant_tier.charge_percent}%)</span></small>}</td>
 
                       {/* Counterparty */}
                       <td>
@@ -432,6 +433,7 @@ export default function MerchantOrderTable() {
                     <span className="text-white-50">Price</span>
                     <span>{trade.price}</span>
                   </div>
+                  {trade.merchant_tier && <div className="d-flex justify-content-between mt-2"><span className="text-white-50">Tier bonus / charge</span><span><span className="text-success">+${Number(trade.merchant_tier.bonus_usd).toFixed(2)}</span> / <span className="text-danger">-${Number(trade.merchant_tier.charge_usd).toFixed(2)}</span></span></div>}
 
                   <div className="d-flex justify-content-between mt-3">
                     <span className="text-white-50">USD amount</span>
