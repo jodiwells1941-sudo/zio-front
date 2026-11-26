@@ -31,6 +31,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
   const [methods,        setMethods]        = useState<any[]>([]);
   const [loadingMethods, setLoadingMethods] = useState(false);
   const [charge, setCharge] = useState(0);
+  const [platformCharge, setPlatformCharge] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
 
   const loadMethods = useCallback(async () => {
@@ -78,12 +79,15 @@ export default function AddSellModel({ onClose, ad }: Props) {
 
         if (ad.type === 'buy') {
           setCharge(Number(settings?.user_sell_charge ?? 0));
+          setPlatformCharge(Number(settings?.user_platform_charge ?? 0));
         } else {
           setCharge(0);
+          setPlatformCharge(0);
         }
       } catch (error) {
         console.error('Failed to load bonus & fees settings:', error);
         setCharge(0);
+        setPlatformCharge(0);
       }
     };
 
@@ -97,10 +101,11 @@ export default function AddSellModel({ onClose, ad }: Props) {
   // ─── Fee & net receivable calculation ───────────────────────────────────────
 
   const grossReceive = Number(receiveAmt) || 0;
-  const feeDeducted   = useMemo(() => (grossReceive * charge) / 100, [grossReceive, charge]);
-  const netReceive    = useMemo(() => Math.max(grossReceive + feeDeducted, 0), [grossReceive, feeDeducted]);
-  const sellValue     = Number(sellAmount || 0);
-  const availableValue = Math.max(walletBalance - sellValue, 0);
+  const sellValue = Number(sellAmount || 0);
+  const feeDeducted = useMemo(() => Number(ad.fixed_price) > 0 ? (grossReceive * charge / 100) / Number(ad.fixed_price) : 0, [grossReceive, charge, ad.fixed_price]);
+  const platformFee = useMemo(() => Number(ad.fixed_price) > 0 ? (grossReceive * platformCharge / 100) / Number(ad.fixed_price) : 0, [grossReceive, platformCharge, ad.fixed_price]);
+  const walletDebit = sellValue + feeDeducted + platformFee;
+  const availableValue = Math.max(walletBalance - walletDebit, 0);
   const totalValue    = walletBalance;
 
   const sellerName   = ad.merchant.full_name          ?? 'Unknown';
@@ -221,6 +226,7 @@ export default function AddSellModel({ onClose, ad }: Props) {
                     <span className="val text-danger">{charge}%</span>
                   </div>
                 )}
+                {platformCharge > 0 && <div className="d-flex align-items-center justify-content-between"><span className="text-white-50 text-lg">Platform Charge</span><span className="val text-danger">{platformCharge}%</span></div>}
               </div>
 
               {ad.remarks && (
@@ -316,19 +322,20 @@ export default function AddSellModel({ onClose, ad }: Props) {
                 </div>
 
                 {/* Net receivable breakdown */}
-                {charge > 0 && grossReceive > 0 && (
+                {(charge > 0 || platformCharge > 0) && grossReceive > 0 && (
                   <div className="netBreakdown mt-3 pt-3">
                     <div className="d-flex align-items-center justify-content-between text-sm">
                       <span className="text-white-50">Gross Amount</span>
                       <span className="text-light">{ad.with_fiat} {grossReceive.toFixed(2)}</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between text-sm my-2">
-                      <span className="text-white-50">Fee ({charge}%)</span>
-                      <span className="text-danger">+ {ad.with_fiat} {feeDeducted.toFixed(2)}</span>
+                      <span className="text-white-50">Sell Charge ({charge}%)</span>
+                      <span className="text-danger">+ {feeDeducted.toFixed(6)} {ad.asset}</span>
                     </div>
+                    <div className="d-flex align-items-center justify-content-between text-sm my-2"><span className="text-white-50">Platform Charge ({platformCharge}%)</span><span className="text-danger">+ {platformFee.toFixed(6)} {ad.asset}</span></div>
                     <div className="d-flex align-items-center justify-content-between mt-2 pt-2 netTotalRow">
-                      <span className="fw-6 text-light">Total Amount</span>
-                      <span className="fw-6 netTotalValue">{ad.with_fiat} {netReceive.toFixed(2)}</span>
+                      <span className="fw-6 text-light">Total Wallet Debit</span>
+                      <span className="fw-6 netTotalValue">{walletDebit.toFixed(6)} {ad.asset}</span>
                     </div>
                   </div>
                 )}

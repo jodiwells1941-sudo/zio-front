@@ -8,6 +8,8 @@ import StepThree from '@/components/dashboard/ads/StepThree';
 import { toast } from 'react-toastify';
 import { createAd, updateAd, P2pAdPayload } from '@/app/api/p2padsapi';
 import { GetCurrencyLimitApi } from '@/app/api/p2p';
+import { getMerchantAccountData } from '@/app/api/merchant';
+import apiClient from '@/utils/apiClient';
 import MyAds from '../../p2p-profile/MyAds';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -139,6 +141,23 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
   const [submitting,  setSubmitting]  = useState(false);
   const [formData,    setFormData]    = useState<FormData>({ ...DEFAULT_FORM, ...defaultValues });
   const [createdAd, setCreatedAd] = useState(false);
+  const [activeTier, setActiveTier] = useState<{ name: string; platform_charge_percent: number; bonus_percent: number } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getMerchantAccountData(), apiClient.get('/user/merchant-level-tiers')])
+      .then(([account, tiersResponse]) => {
+        if (cancelled) return;
+        const tiers = tiersResponse.data?.data;
+        const tier = Array.isArray(tiers) ? tiers.find((item: { id: string }) => item.id === account.merchant_level?.active_tier_id) : null;
+        if (tier) setActiveTier({
+          name: String(tier.name ?? 'Active tier'),
+          platform_charge_percent: Number(tier.platform_charge_percent ?? 0),
+          bonus_percent: Number(tier.bonus_percent ?? 0),
+        });
+      }).catch(() => { if (!cancelled) setActiveTier(null); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleFormChange = (data: Partial<FormData>) => {
     setFormData(prev => {
@@ -306,6 +325,12 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
         <div className="container-lg p-3">
           <div className="form-wrapper">
             <h6 className="pb-4 fw-7">{isEditMode ? 'Edit Ad' : 'Post Normal Ad'}</h6>
+            {activeTier && <div className="rounded border border-warning-subtle bg-dark text-light px-3 py-2 mb-3 small">
+              <strong className="text-warning">{activeTier.name} tier</strong>
+              <span className="ms-3">Platform charge: {activeTier.platform_charge_percent.toFixed(2)}%</span>
+              <span className="ms-3">Bonus: {activeTier.bonus_percent.toFixed(2)}%</span>
+              <div className="text-white-50 mt-1">These rates apply to each completed merchant order. Your ad price remains the price you set below.</div>
+            </div>}
 
             {/* Step Indicators */}
             <div className="steps-header border-bottom-0 pb-0">

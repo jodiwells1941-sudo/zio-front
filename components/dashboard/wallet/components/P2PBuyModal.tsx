@@ -29,6 +29,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
   const [receiveAmt,  setReceiveAmt]  = useState('');
   const [submitting,  setSubmitting]  = useState(false);
   const [bonus, setBonus] = useState(0);
+  const [platformCharge, setPlatformCharge] = useState(0);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // Close on Escape
@@ -48,12 +49,15 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
 
         if (ad?.type === 'sell') {
           setBonus(Number(settings?.user_buy_bonus ?? 0));
+          setPlatformCharge(Number(settings?.user_platform_charge ?? 0));
         } else {
           setBonus(0);
+          setPlatformCharge(0);
         }
       } catch (error) {
         console.error('Failed to load bonus & fees settings:', error);
         setBonus(0);
+        setPlatformCharge(0);
       }
     };
 
@@ -81,7 +85,8 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
 
   const baseReceive  = Number(receiveAmt) || 0;
   const bonusAmount  = useMemo(() => (baseReceive * bonus) / 100, [baseReceive, bonus]);
-  const totalReceive = useMemo(() => baseReceive + bonusAmount, [baseReceive, bonusAmount]);
+  const platformChargeAmount = useMemo(() => (baseReceive * platformCharge) / 100, [baseReceive, platformCharge]);
+  const totalReceive = useMemo(() => baseReceive + bonusAmount - platformChargeAmount, [baseReceive, bonusAmount, platformChargeAmount]);
 
   // ─── Submit ────────────────────────────────────────────────────────────────
 
@@ -226,6 +231,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     <span className="val text-success">+{bonus}%</span>
                   </div>
                 )}
+                {platformCharge > 0 && <div className="d-flex align-items-center justify-content-between"><span className="text-white-50 text-lg">Platform Charge</span><span className="val text-danger">{platformCharge}%</span></div>}
               </div>
 
               {ad.remarks && (
@@ -322,7 +328,7 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                 )}
 
                 {/* Final receivable breakdown */}
-                {bonus > 0 && baseReceive > 0 && (
+                {(bonus > 0 || platformCharge > 0) && baseReceive > 0 && (
                   <div className="netBreakdown mt-3 pt-3">
                     <div className="d-flex align-items-center justify-content-between text-sm">
                       <span className="text-white-50">Base Amount</span>
@@ -331,6 +337,10 @@ export default function P2PBuyModal({ onClose, ad }: Props) {
                     <div className="d-flex align-items-center justify-content-between text-sm mt-1">
                       <span className="text-white-50">Bonus (+{bonus}%)</span>
                       <span className="text-success">+ {bonusAmount.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} {ad.asset}</span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between text-sm mt-1">
+                      <span className="text-white-50">Platform Charge ({platformCharge}%)</span>
+                      <span className="text-danger">- {platformChargeAmount.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} {ad.asset}</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mt-2 pt-2 netTotalRow">
                       <span className="fw-6 text-light">You&apos;ll Receive</span>
