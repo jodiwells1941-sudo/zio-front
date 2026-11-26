@@ -432,6 +432,7 @@ export default function MerchantDashboard() {
                 {/* <th>Earning (2%)</th> */}
                 <th>Status</th>
                 <th>Date &amp; Time</th>
+                <th>Action</th>
               </tr>
             </thead>
 
@@ -468,10 +469,20 @@ export default function MerchantDashboard() {
                       </td> */}
 
                       <td>
-                        <span className="completed-badge">{order.status}</span>
+                        <span className={`completed-badge merchant-order-status merchant-order-status--${order.status.toLowerCase().replace(/[^a-z]+/g, "-")}`}>{order.status}</span>
                       </td>
 
                       <td>{order.date}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="merchant-order-view"
+                          onClick={() => router.push(`/dashboard/merchant/ads/${order.side.toLowerCase() === "buy" ? "sell" : "p2p"}?trade_id=${order.trade_id}`)}
+                          aria-label={`View order ${order.id}`}
+                        >
+                          View <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
 

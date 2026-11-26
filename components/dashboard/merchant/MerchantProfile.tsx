@@ -34,6 +34,20 @@ export type MerchantApplication = {
 
   created_at: string;
   updated_at: string;
+  active_tier_id?: string | null;
+  tier_security_deposit_amount?: string | number | null;
+};
+
+export type MerchantTier = {
+  id: string;
+  name: string;
+  level_label?: string;
+  icon?: string;
+  color?: string;
+  platform_charge_percent?: number | string;
+  bonus_percent?: number | string;
+  max_active_ads?: number;
+  security_deposit_amount?: number | string;
 };
 
 // Trading/earnings stats aren't part of the application API — they'd come
@@ -65,6 +79,8 @@ export type MerchantProfileUpdatePayload = Partial<ProfileDraft>;
 
 type MerchantProfileProps = {
   application: MerchantApplication | null;
+  activeTier?: MerchantTier | null;
+  tierLoading?: boolean;
   stats?: MerchantStats | null;
   loading?: boolean;
   error?: string | null;
@@ -144,6 +160,8 @@ const quickActions = [
 
 export default function MerchantProfile({
   application,
+  activeTier = null,
+  tierLoading = false,
   stats = null,
   loading = false,
   error = null,
@@ -689,53 +707,31 @@ export default function MerchantProfile({
 
             </section>
 
-            {/* MERCHANT LEVEL */}
-            <section className="merchant-card level-card">
-
-              <h3>Merchant Level</h3>
-
-              <div className="level-content">
-
-                <div className="level-icon">
-                  <i className="fa-solid fa-shield-halved" />
-                  <i className="fa-solid fa-star level-star" />
-                </div>
-
-                <div className="level-info">
-                  <strong>
-                    {stats?.level !== undefined ? `Level ${stats.level}` : '—'}
-                  </strong>
-                  <p>
-                    {stats?.level !== undefined
-                      ? 'Keep completing orders to level up.'
-                      : 'Level data isn\u2019t available yet.'}
-                  </p>
-                </div>
-
+            {/* ACTIVE TIER */}
+            <section className={`merchant-card merchant-active-tier ${activeTier?.color ? `merchant-active-tier--${activeTier.color}` : ''}`}>
+              <div className="merchant-tier-heading">
+                <span>Merchant level</span>
+                {application.active_tier_id && <small><i className="fa-solid fa-circle-check" aria-hidden="true" /> Active tier</small>}
               </div>
-
-              <div className="xp-row">
-                <div className="xp-progress">
-                  <span
-                    style={{
-                      width:
-                        stats?.xpCurrent !== undefined && stats?.xpTarget
-                          ? `${Math.min(
-                              100,
-                              (stats.xpCurrent / stats.xpTarget) * 100
-                            )}%`
-                          : '0%',
-                    }}
-                  />
+              <div className="merchant-tier-identity">
+                <span className="merchant-tier-icon"><i className={activeTier?.icon || 'fa-solid fa-medal'} aria-hidden="true" /></span>
+                <div>
+                  <strong>{tierLoading ? 'Loading tier…' : activeTier?.name || (application.active_tier_id ? application.active_tier_id : 'No active tier')}</strong>
+                  <p>{activeTier?.level_label || (application.active_tier_id ? 'Merchant tier' : 'Choose your first merchant tier')}</p>
                 </div>
-
-                <strong>
-                  {stats?.xpCurrent !== undefined && stats?.xpTarget
-                    ? `${stats.xpCurrent} / ${stats.xpTarget} XP`
-                    : '— / — XP'}
-                </strong>
               </div>
-
+              {activeTier && (
+                <div className="merchant-tier-benefits">
+                  <div><span>Platform charge</span><strong>{Number(activeTier.platform_charge_percent ?? 0).toFixed(2)}%</strong></div>
+                  <div><span>Tier bonus</span><strong>{Number(activeTier.bonus_percent ?? 0).toFixed(2)}%</strong></div>
+                  <div><span>Active ad limit</span><strong>{activeTier.max_active_ads ?? 0}</strong></div>
+                  <div><span>Security deposit held</span><strong>{formatMoney(application.tier_security_deposit_amount)} USD</strong></div>
+                </div>
+              )}
+              <button type="button" className="merchant-tier-change" onClick={() => router.push('/dashboard/merchant/level/')}>
+                {application.active_tier_id ? 'View or change tier' : 'Choose a tier'}
+                <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </button>
             </section>
 
             {/* QUICK ACTIONS */}

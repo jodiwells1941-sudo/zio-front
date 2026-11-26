@@ -12,6 +12,7 @@ import OrderCompleted from "./OrderCompleted";
 import { getViewerOrderAmountDisplay } from "./p2pOrderDisplay";
 import P2PPendingAmmountCard from "./P2PPendingAmmountCard";
 import OrderDetailsCard from "../wallet/sell/OrderDetailsCard";
+import PendingTradeReview from "./PendingTradeReview";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -117,12 +118,12 @@ export function parseApiDateToMs(dateStr?: string | null): number | null {
 
 // ─── Status Banner ────────────────────────────────────────────────────────────
 
-function StatusBanner({ status }: { status: number }) {
+function StatusBanner({ status, canApprove = false }: { status: number; canApprove?: boolean }) {
   const map: Record<number, React.ReactElement> = {
     1: (
       <div className="toast-body p-2 rounded-2 text-white toast-bg-warning">
         <span className="spinner-border spinner-border-sm me-2" role="status" />
-        Pending — waiting for seller to approve
+        {canApprove ? "Action required — review this trade request" : "Pending — waiting for approval"}
       </div>
     ),
     2: (
@@ -959,15 +960,15 @@ export default function P2PTransferCard({
   return (
     <>
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="p2pOrderHeader">
-        <StatusBanner status={trade.status} />
+      {!isPending && <div className="p2pOrderHeader">
+        <StatusBanner status={trade.status} canApprove={canApprove} />
 
         {/* Pending countdown banner (status === 1) */}
         {isPending && pendingExpireTime && (
           <div className="alert bg-warning alert-warning d-flex justify-content-between align-items-center mt-4 mb-2 py-2">
             <span className="d-flex align-items-center gap-2">
               <i className="fa-regular fa-clock" />
-              Waiting for approval — expires in
+              {canApprove ? "Review this request — time left" : "Waiting for approval — expires in"}
             </span>
             <strong className="font-monospace fs-20">
               {pad(pendingMm)}:{pad(pendingSs)}
@@ -1041,12 +1042,37 @@ export default function P2PTransferCard({
             <CopyBtn text={orderId} id="order_id" />
           </div>
         </div>
-      </div>
+      </div>}
+
+      {isPending && <PendingTradeReview
+        orderId={orderId}
+        isSeller={trade.is_client}
+        counterpartyName={trade.is_client ? trade.customer?.name ?? "Buyer" : trade.client?.name ?? "Seller"}
+        sellerName={trade.client?.name ?? "Seller"}
+        buyerName={trade.customer?.name ?? "Buyer"}
+        fiatAmount={Number(trade.payable_amount)}
+        assetAmount={Number(trade.receivable_amount)}
+        price={Number(trade.user_price)}
+        fiat={fiat}
+        asset={asset}
+        paymentMethod={methodName}
+        fee={fee}
+        bonus={bonus}
+        secondsLeft={pendingTimeLeft}
+        actions={(canApprove || canReject) ? <>
+          {canApprove && <button type="button" data-decision="approve" onClick={() => handleStatusUpdate(2)} disabled={submitting !== null}>
+            {submitting === 2 ? "Approving…" : "Approve Order"}
+          </button>}
+          {canReject && <button type="button" data-decision="reject" onClick={() => handleStatusUpdate(3)} disabled={submitting !== null}>
+            {submitting === 3 ? "Rejecting…" : "Reject Trade"}
+          </button>}
+        </> : undefined}
+      />}
 
       {/* ══════════════════════════════════════════════════════════════════
           PAYMENT PHASE  (trade.status = 1 or 2)
       ══════════════════════════════════════════════════════════════════ */}
-      {uiStatus === "payment" && (
+      {uiStatus === "payment" && !isPending && (
         <div className="p2pStepWrap">
           <div className="p2pStepRow">
             <div className="p2pStepNo d-flex justify-content-center align-items-center bg-warning">
@@ -1140,8 +1166,8 @@ export default function P2PTransferCard({
                   <>
                     <div className="p2pStepTitle">Review Trade Request</div>
                     <div className="p2pMuted p2pSmall">
-                      A buyer wants to purchase {vd.cryptoStr} {asset}.
-                      Approve to proceed or reject to decline.
+                      {trade.client?.name ?? "A seller"} wants to sell {vd.cryptoStr} {asset} to you.
+                      Review the order details above, then approve or reject the request.
                     </div>
                     <div className="p2pActions">
                       {canApprove && (

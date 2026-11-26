@@ -195,7 +195,7 @@ export default function AdsTable() {
       const canApr = sl.includes(2);
       const canRej = sl.includes(3);
       if (!canApr && !canRej) {
-        return <span className="text-muted text-reset">—</span>;
+        return null;
       }
       return (
         <div className="d-flex gap-1 flex-wrap">
@@ -225,7 +225,7 @@ export default function AdsTable() {
     if (trade.status === 5) {
       const canComplete = sl.includes(6) || (sl.length === 0 && trade.isCustomer);
       if (!canComplete) {
-        return <span className="text-muted text-reset">—</span>;
+        return null;
       }
       return (
         <button
@@ -238,7 +238,7 @@ export default function AdsTable() {
       );
     }
 
-    return <span className="text-muted text-reset">—</span>;
+    return null;
   };
 
   /**
@@ -429,7 +429,14 @@ export default function AdsTable() {
                       </td>
 
                       {/* Action — driven by status_list so approve/reject match detail API */}
-                      <td>{renderActions(trade)}</td>
+                      <td>
+                        <div className="trade-list-actions">
+                          <Link href={getTradeDetailsPath(trade)} className="trade-list-view">
+                            View <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                          </Link>
+                          {renderActions(trade)}
+                        </div>
+                      </td>
 
                     </tr>
                   );
@@ -491,14 +498,18 @@ export default function AdsTable() {
                       </Link>
                       <span className="trade-chat-icon">
                         <i className="fa-solid fa-message text-white" />
-                        <small className="text-black bg-warning px-1 rounded-pill top-0">2</small>
                       </span>
                     </div>
                     <div className="trade-date">{trade.date}</div>
                   </div>
 
                   {/* Mobile action buttons */}
-                  <div className="mt-3">{renderActions(trade)}</div>
+                  <div className="trade-list-actions mt-3">
+                    <Link href={getTradeDetailsPath(trade)} className="trade-list-view">
+                      View order <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                    </Link>
+                    {renderActions(trade)}
+                  </div>
 
                 </div>
               );

@@ -55,6 +55,7 @@ export interface MerchantAccountResponse {
 
 export interface MerchantOrderRow {
   id: string;
+  trade_id: number;
   type: string;
   side: string;
   amount: string;
