@@ -154,6 +154,12 @@ export const updateAd = async (id: number, data: Partial<P2pAdPayload>) => {
   return response?.data;
 };
 
+/** Update merchant ads with merchant-only escrow accounting. */
+export const updateMerchantAd = async (id: number, data: Partial<P2pAdPayload>) => {
+  const response = await apiClient.put(`/user/p2p/merchant/ads/${id}`, data);
+  return response?.data;
+};
+
 /** Toggle the status of an ad */
 export const toggleAdStatus = async (id: number) => {
   const response = await apiClient.patch(`/user/p2p/ads/${id}/toggle-status`);

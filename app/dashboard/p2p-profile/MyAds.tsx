@@ -101,7 +101,15 @@ export default function MyAds() {
 
         Swal.fire("Deleted!", "Your ad has been removed.", "success");
       } catch (err) {
-        Swal.fire("Error!", "Failed to delete ad.", "error");
+        const error = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        Swal.fire(
+          "Ad not deleted",
+          error.response?.data?.message ?? error.message ?? "Failed to delete ad.",
+          "error"
+        );
       }
     }
   };
