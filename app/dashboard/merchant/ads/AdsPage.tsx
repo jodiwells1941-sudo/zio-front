@@ -6,7 +6,7 @@ import StepOne from '@/components/dashboard/ads/StepOne';
 import StepTwo from '@/components/dashboard/ads/StepTwo';
 import StepThree from '@/components/dashboard/ads/StepThree';
 import { toast } from 'react-toastify';
-import { createAd, updateAd, P2pAdPayload } from '@/app/api/p2padsapi';
+import { createAd, updateMerchantAd, P2pAdPayload } from '@/app/api/p2padsapi';
 import { GetCurrencyLimitApi } from '@/app/api/p2p';
 import { getMerchantAccountData } from '@/app/api/merchant';
 import apiClient from '@/utils/apiClient';
@@ -230,7 +230,7 @@ export default function AdsPage({ editId, defaultValues }: AdsPageProps) {
     try {
       const payload = toPayload(formData);
       if (isEditMode && editId) {
-        await updateAd(editId, payload);
+        await updateMerchantAd(editId, payload);
         toast.success('Ad updated successfully!');
         router.push('/dashboard/merchant/ads/');
       } else {

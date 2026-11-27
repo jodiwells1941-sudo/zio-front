@@ -90,6 +90,8 @@ interface P2PTransferCardProps {
   pendingExpireTime?: string | null;
   /** Optional callback fired when the countdown hits zero. */
   onTradeExpired?: () => void;
+  /** Keep the parent detail layout in sync so it can mount the chat on approval. */
+  onStatusChange?: (status: number) => void;
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -613,6 +615,7 @@ export default function P2PTransferCard({
   pendingTimeLeft = 0,
   pendingExpireTime = null,
   onTradeExpired,
+  onStatusChange,
 }: P2PTransferCardProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -649,6 +652,7 @@ export default function P2PTransferCard({
       const t: TradeData = res?.data;
       setTrade(t);
       setUiStatus(resolveUIStatus(t.status));
+      onStatusChange?.(t.status);
       if (t.status === 2 && t.payment_expires_at) {
         const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
         const sec = expiresAtMs
@@ -662,7 +666,7 @@ export default function P2PTransferCard({
     } finally {
       setLoading(false);
     }
-  }, [tradeId]);
+  }, [tradeId, onStatusChange]);
 
   useEffect(() => {
     fetchTrade();
@@ -703,6 +707,7 @@ export default function P2PTransferCard({
         if (t.status === 2) {
           setTrade(t);
           setUiStatus(resolveUIStatus(t.status));
+          onStatusChange?.(t.status);
           if (t.payment_expires_at) {
             const expiresAtMs = parseApiDateToMs(t.payment_expires_at);
             const sec = expiresAtMs
@@ -720,6 +725,7 @@ export default function P2PTransferCard({
         if ([3, 4, 5, 6, 7, 8, 9].includes(t.status)) {
           setTrade(t);
           setUiStatus(resolveUIStatus(t.status));
+          onStatusChange?.(t.status);
           clearInterval(poll);
         }
       } catch {
@@ -728,7 +734,7 @@ export default function P2PTransferCard({
     }, 2000);
 
     return () => clearInterval(poll);
-  }, [trade?.status, tradeId]);
+  }, [trade?.status, tradeId, onStatusChange]);
 
   // ── Countdown for status=2 payment window ─────────────────────────────────
   useEffect(() => {
@@ -844,6 +850,7 @@ export default function P2PTransferCard({
       const updated = { ...trade, status: newStatus };
       setTrade(updated as TradeData);
       setUiStatus(resolveUIStatus(newStatus));
+      onStatusChange?.(newStatus);
 
       const msgs: Record<number, string> = {
         2: "Trade approved! Buyer can now send payment.",

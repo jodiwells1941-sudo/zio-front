@@ -149,6 +149,7 @@ export default function P2POrderPage() {
               pendingTimeLeft={pendingTimeLeft}
               pendingExpireTime={pendingExpire.expireTime}
               onTradeExpired={handleAutoExpire}
+              onStatusChange={setTradeStatus}
             />
           </div>
 
