@@ -101,7 +101,7 @@ export default function PaymentCompleted({ trade, from }: Props) {
   const summaryRows: LocalOrderSummaryRow[] = [
     { label: "Order ID", value: trade.order_id || `#${trade.id}`, icon: "fa-hashtag" },
     { label: "Payment Method", value: methodName, icon: "fa-credit-card" },
-    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0), feeLabel: isPrepaidAdFee && fee > 0 ? "Ad Fee (Already Paid)" : undefined }),
+    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: amountDisplay.fiat, asset, fiatAmount: amountDisplay.fiatAmount, assetAmount: amountDisplay.cryptoAmount, price: Number(trade.user_price), priceLabel: trade.user_price_label, bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0), feeLabel: isPrepaidAdFee && fee > 0 ? "Ad Fee (Already Paid)" : undefined }),
   ];
     
   return (

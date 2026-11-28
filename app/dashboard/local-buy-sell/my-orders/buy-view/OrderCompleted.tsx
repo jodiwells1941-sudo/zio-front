@@ -82,7 +82,7 @@ export default function OrderCompleted({ trade, from }: { trade?: any; from?: st
   const summaryRows: LocalOrderSummaryRow[] = trade && vd ? [
     { label: "Order ID", value: trade.order_id || `#${trade.id}`, icon: "fa-hashtag" },
     { label: "Payment Method", value: methodName, icon: "fa-credit-card" },
-    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: vd.fiat, asset, fiatAmount: vd.fiatAmount, assetAmount: vd.cryptoAmount, price: Number(trade.user_price), bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0) }),
+    ...localOrderSummaryRows({ side: isSeller ? "sell" : "buy", fiat: vd.fiat, asset, fiatAmount: vd.fiatAmount, assetAmount: vd.cryptoAmount, price: Number(trade.user_price), priceLabel: trade.user_price_label, bonusAmount: bonus, feeAmount: fee, feePercent: Number(trade.charge_percent ?? 0) }),
   ] : [];
 
 

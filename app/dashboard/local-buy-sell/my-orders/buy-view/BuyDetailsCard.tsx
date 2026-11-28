@@ -37,6 +37,7 @@ export interface TradeData {
   id: number;
   order_id: string;
   user_price: string;
+  user_price_label?: string;
   payable_amount: string;
   receivable_amount: string;
   is_client: boolean;
@@ -1264,6 +1265,7 @@ export default function BuyDetailsCard({
         currency={fiat}
         fiatAmount={fiatAmount}
         price={price}
+        priceLabel={trade.user_price_label}
         cryptoAmount={cryptoAmount}
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         remainingSeconds={isPending ? pendingTimeLeft : trade.status === 2 ? secondsLeft : null}
@@ -1479,6 +1481,7 @@ export default function BuyDetailsCard({
             fiatAmount,
             assetAmount: cryptoAmount,
             price,
+            priceLabel: trade.user_price_label,
             feeAmount: feeCryptoAmount,
             feePercent: displayedFeePercent,
             feeLabel: "Ad Fee (Already Paid)",

@@ -24,6 +24,7 @@ interface IncomingLocalOrder {
   is_ad_owner?: boolean;
   created_by?: number;
   user_price?: number;
+  user_price_label?: string;
   payable_amount?: number;
   receivable_amount?: number;
   bonus_amount?: number | string | null;
@@ -358,6 +359,7 @@ export default function IncomingLocalOrderPrompt() {
     fiatAmount: Number(order.payable_amount ?? 0),
     assetAmount: baseAssetAmount,
     price: Number(order.user_price ?? 0),
+    priceLabel: order.user_price_label,
     bonusAmount,
     feeAmount,
     feePercent: Number(order.charge_percent ?? 0),

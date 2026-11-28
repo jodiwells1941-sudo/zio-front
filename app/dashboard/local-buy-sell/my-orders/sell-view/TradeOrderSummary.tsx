@@ -14,6 +14,7 @@ type Props = {
   currency: string;
   fiatAmount: number;
   price: number;
+  priceLabel?: string;
   cryptoAmount: number;
   paymentTimeLimit: number;
   note?: string | null;
@@ -49,6 +50,7 @@ export default function TradeOrderSummary({
   currency,
   fiatAmount,
   price,
+  priceLabel,
   cryptoAmount,
   paymentTimeLimit,
   note,
@@ -64,7 +66,7 @@ export default function TradeOrderSummary({
 }: Props) {
   const isBuy = kind === "buy";
   const secondaryUsdAmount = Math.max(0, cryptoAmount + (isBuy ? bonusAmount : feeAmount));
-  const allSummaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent, feeLabel });
+  const allSummaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, priceLabel, bonusAmount, feeAmount, feePercent, feeLabel });
   const highlightedAmountRow = isBuy
     ? { label: "Pay Amount", value: `${formatAmount(fiatAmount)} ${currency}`, icon: "fa-sack-dollar", tone: "negative" as const, total: true }
     : allSummaryRows.find(row => row.label.startsWith("Received Amount"));

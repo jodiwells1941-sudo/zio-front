@@ -35,6 +35,7 @@ type TradeResponse = {
   payable_amount?: number;
   receivable_amount?: number;
   user_price?: number | string;
+  user_price_label?: string;
   bonus_amount?: number | string | null;
   charge_amount?: number | string | null;
   charge_percent?: number | string | null;
@@ -197,6 +198,7 @@ export default function PaymentProofSubmittedPrompt() {
     fiatAmount: order.fiatAmount,
     assetAmount: order.assetAmount,
     price: order.price,
+    priceLabel: order.user_price_label,
     bonusAmount: order.bonusAmount,
     feeAmount: order.feeAmount,
     feePercent: order.feePercent,

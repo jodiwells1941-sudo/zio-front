@@ -18,6 +18,7 @@ type AcceptedOrder = {
   payable_amount?: number;
   receivable_amount?: number;
   user_price?: number | string;
+  user_price_label?: string;
   bonus_amount?: number | string | null;
   charge_amount?: number | string | null;
   ad_fee_amount?: number | string | null;
@@ -143,6 +144,7 @@ export default function AcceptedLocalOrderPrompt() {
     fiatAmount: Number(order.payable_amount ?? 0),
     assetAmount: baseAmount,
     price: Number(order.user_price ?? 0),
+    priceLabel: order.user_price_label,
     bonusAmount,
     feeAmount,
     feePercent: Number(order.charge_percent ?? 0),

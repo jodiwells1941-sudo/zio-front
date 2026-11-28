@@ -14,6 +14,7 @@ type Props = {
   currency: string;
   fiatAmount: number;
   price: number;
+  priceLabel?: string;
   cryptoAmount: number;
   paymentTimeLimit: number;
   note?: string | null;
@@ -48,6 +49,7 @@ export default function TradeOrderSummary({
   currency,
   fiatAmount,
   price,
+  priceLabel,
   cryptoAmount,
   paymentTimeLimit,
   note,
@@ -62,7 +64,7 @@ export default function TradeOrderSummary({
 }: Props) {
   const isBuy = kind === "buy";
   const secondaryUsdAmount = Math.max(0, cryptoAmount + (isBuy ? bonusAmount : feeAmount));
-  const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, bonusAmount, feeAmount, feePercent });
+  const summaryRows = localOrderSummaryRows({ side: kind, fiat: currency, asset, fiatAmount, assetAmount: cryptoAmount, price, priceLabel, bonusAmount, feeAmount, feePercent });
 
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);

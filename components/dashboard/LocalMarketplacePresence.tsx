@@ -55,13 +55,26 @@ export function LocalMarketplacePresenceProvider({ children }: { children: React
       void touchLocalMarketplacePresence().catch(() => undefined);
     };
     heartbeat();
-    const heartbeatTimer = window.setInterval(heartbeat, 10000);
+    // This provider is mounted at the app root, so a signed-in user stays
+    // visible while browsing any page or keeping another tab open.
+    const heartbeatTimer = window.setInterval(heartbeat, 20000);
+    const heartbeatOnReturn = () => {
+      if (document.visibilityState === "visible") heartbeat();
+    };
+    window.addEventListener("focus", heartbeatOnReturn);
+    window.addEventListener("pageshow", heartbeatOnReturn);
+    document.addEventListener("visibilitychange", heartbeatOnReturn);
 
     // Presence heartbeats must continue even when the websocket transport is
     // unavailable; the REST marketplace endpoint uses this cache to decide
     // which advertisers are active.
     if (!echo) {
-      return () => window.clearInterval(heartbeatTimer);
+      return () => {
+        window.clearInterval(heartbeatTimer);
+        window.removeEventListener("focus", heartbeatOnReturn);
+        window.removeEventListener("pageshow", heartbeatOnReturn);
+        document.removeEventListener("visibilitychange", heartbeatOnReturn);
+      };
     }
 
     const channelName = "local-marketplace.presence";
@@ -85,6 +98,9 @@ export function LocalMarketplacePresenceProvider({ children }: { children: React
 
     return () => {
       window.clearInterval(heartbeatTimer);
+      window.removeEventListener("focus", heartbeatOnReturn);
+      window.removeEventListener("pageshow", heartbeatOnReturn);
+      document.removeEventListener("visibilitychange", heartbeatOnReturn);
       echo.leave(channelName);
       setOnlineUserIds(new Set());
     };

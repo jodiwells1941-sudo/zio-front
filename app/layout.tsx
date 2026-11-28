@@ -13,6 +13,7 @@ import ToastProvider from "@/components/containers/ToastProvider";
 import IncomingLocalOrderPrompt from "@/components/dashboard/IncomingLocalOrderPrompt";
 import AcceptedLocalOrderPrompt from "@/components/dashboard/AcceptedLocalOrderPrompt";
 import PaymentProofSubmittedPrompt from "@/components/dashboard/PaymentProofSubmittedPrompt";
+import { LocalMarketplacePresenceProvider } from "@/components/dashboard/LocalMarketplacePresence";
 
 const chakraPetch = Chakra_Petch({
 	variable: "--chakra",
@@ -80,12 +81,13 @@ export default function RootLayout({
 				<link rel="stylesheet" href="/css/p2p-profile.css" />
 			</head>
 			<body className={`${chakraPetch.variable}`}>
-
+				<LocalMarketplacePresenceProvider>
 				<IncomingLocalOrderPrompt />
 				<AcceptedLocalOrderPrompt />
 				<PaymentProofSubmittedPrompt />
 				
 				{children}
+				</LocalMarketplacePresenceProvider>
 				<ToastProvider />
 				
 				<Script src="/js/jquery-3.7.1.min.js" strategy="afterInteractive" />
