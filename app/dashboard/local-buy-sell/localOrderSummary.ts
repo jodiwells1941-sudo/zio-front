@@ -13,6 +13,7 @@ type LocalOrderSummaryInput = {
   fiatAmount: number;
   assetAmount: number;
   price: number;
+  priceLabel?: string;
   bonusAmount?: number;
   feeAmount?: number;
   feePercent?: number;
@@ -32,6 +33,7 @@ export function localOrderSummaryRows({
   fiatAmount,
   assetAmount,
   price,
+  priceLabel = "Market Price",
   bonusAmount = 0,
   feeAmount = 0,
   feePercent = 0,
@@ -40,7 +42,7 @@ export function localOrderSummaryRows({
   const assetName = asset.toUpperCase() === "USDT" ? "USD" : asset;
   const common: LocalOrderSummaryRow[] = [
     { label: "Currency", value: fiat || "—", icon: "fa-coins" },
-    { label: `Market Price (1 ${assetName})`, value: `${money(price)} ${fiat}`, icon: "fa-arrow-trend-up" },
+    { label: `${priceLabel} (1 ${assetName})`, value: `${money(price)} ${fiat}`, icon: "fa-arrow-trend-up" },
   ];
 
   if (side === "sell") {

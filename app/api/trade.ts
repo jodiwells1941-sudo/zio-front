@@ -18,6 +18,7 @@ export interface TradeData {
   customer_id: number;
   method_id: number;
   user_price: number;
+  user_price_label?: string;
   payable_amount: number;
   receivable_amount: number;
   status: number; // 1=pending,2=approved,3=rejected,4=rejected_for_balance,5=dispatched,6=dispatch_approved,7=dispatch_rejected,8=dispatch_timeout,9=completed
@@ -74,6 +75,7 @@ export interface TradeListRow {
   date: string;
   orderNumber: string;
   price: string;
+  price_label?: string | null;
   cryptoAmount: string;
   cryptoValue: string;
   isCustomer: boolean;

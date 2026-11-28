@@ -13,6 +13,7 @@ export type P2pAdsData = {
   price_type: "fixed" | "floating";
   fixed_price: number;
   market_price?: number;
+  market_price_label?: string;
   advertised_fiat_amount?: number;
   market_buy_rate?: number;
   market_sell_rate?: number;

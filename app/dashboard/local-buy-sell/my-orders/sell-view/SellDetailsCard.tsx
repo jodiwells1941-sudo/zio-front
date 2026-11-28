@@ -30,6 +30,7 @@ interface TradeData {
   payable_amount: number;
   receivable_amount: number;
   user_price: number;
+  user_price_label?: string;
   created_at: string;
   bonus_amount: number | null;
   notes: string | null;
@@ -602,6 +603,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         currency={withFiat}
         fiatAmount={fiatAmount}
         price={Number(trade.user_price)}
+        priceLabel={trade.user_price_label}
         cryptoAmount={cryptoAmount}
         paymentTimeLimit={trade.p2p_ad?.payment_time_limit ?? 0}
         remainingSeconds={trade.status === 1 ? pendingApprovalTimer.secondsLeft : trade.status === 2 ? paymentTimer.secondsLeft : trade.status === 5 && releasePhaseActive ? releaseAppealTimer.secondsLeft : null}
@@ -800,7 +802,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
           currency={withFiat}
           details={[
             { label: 'Order ID', value: String(orderId), icon: 'fa-hashtag' },
-            ...localOrderSummaryRows({ side: 'sell', fiat: withFiat, asset, fiatAmount, assetAmount: cryptoAmount, price: Number(trade.user_price), feeAmount: feeCryptoAmount, feePercent: displayedFeePercent, feeLabel }),
+            ...localOrderSummaryRows({ side: 'sell', fiat: withFiat, asset, fiatAmount, assetAmount: cryptoAmount, price: Number(trade.user_price), priceLabel: trade.user_price_label, feeAmount: feeCryptoAmount, feePercent: displayedFeePercent, feeLabel }),
           ]}
         />
       )}

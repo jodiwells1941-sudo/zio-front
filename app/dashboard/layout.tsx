@@ -12,7 +12,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { fetchUserInfoAPI } from '../api/auth'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LocalMarketplacePresenceProvider } from '@/components/dashboard/LocalMarketplacePresence'
 import IncomingChatSound from '@/components/dashboard/IncomingChatSound'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -70,7 +69,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthProvider>
-      <LocalMarketplacePresenceProvider>
       <IncomingChatSound />
       <div className="page-wrapper a-cursor">
         <button
@@ -119,7 +117,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <ClientWrapper /> 
       </div>
-      </LocalMarketplacePresenceProvider>
     </AuthProvider>
   )
 }

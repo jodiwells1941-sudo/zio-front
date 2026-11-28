@@ -37,7 +37,10 @@ function AdRow({ ad, busy, onToggle, onEdit, onDelete }: {
         <b>Ad #{ad.id}</b>
         <small>{new Date(ad.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</small>
       </div>
-      <div className={`ma-price ma-price--${ad.type}`} data-label="Price">{n2(price)} <small>{ad.with_fiat}</small></div>
+      <div className={`ma-price ma-price--${ad.type}`} data-label="Price">
+        <small className="d-block">{ad.type === 'buy' ? 'Create Buy Rate' : 'Create Sell Rate'}</small>
+        {n2(price)} <small>{ad.with_fiat}</small>
+      </div>
       <div className="ma-cell" data-label="Available">{n2(ad.total_amount)} <small>{ad.asset}</small></div>
       <div className="ma-cell ma-limits" data-label="Order limit">
         {n2(ad.order_limit_min, 0)} – {n2(ad.order_limit_max, 0)} <small>{ad.asset}</small>

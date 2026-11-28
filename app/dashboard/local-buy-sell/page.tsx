@@ -150,7 +150,8 @@ function Row({
             {n2(advertisedFiatAmount, 0)}
           </span>
         </div>
-        <div className="lbs-cell lbs-cell--price" data-label={`Market Price ${currency}`}>
+        <div className="lbs-cell lbs-cell--price" data-label={`${ad.market_price_label ?? 'Market Price'} ${currency}`}>
+          <small className="d-block">{ad.market_price_label ?? 'Market Price'}</small>
           <CurrencyMark currency={currency} />
           {n2(marketPrice)}
         </div>
@@ -230,7 +231,7 @@ function Row({
             </strong>
           </div>
           <div className="lbs-mobile-stat">
-            <span>Market Price ({currency})</span>
+            <span>{ad.market_price_label ?? 'Market Price'} ({currency})</span>
             <strong><CurrencyMark currency={currency} />{n2(marketPrice)}</strong>
           </div>
           <div className="lbs-mobile-stat">

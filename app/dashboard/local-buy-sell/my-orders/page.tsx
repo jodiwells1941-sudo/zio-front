@@ -36,6 +36,7 @@ interface Trade {
   created_at?: string | null;
   orderNumber: string;
   price: string;
+  price_label?: string | null;
   cryptoAmount: string;
   cryptoValue: string;
   counterparty: string;
@@ -599,7 +600,7 @@ export default function Page() {
                       </td>
                       
                       {/* Price */}
-                      <td>{trade.price}</td>
+                      <td>{trade.price_label && <small className="trade-crypto-sub d-block">{trade.price_label}</small>}{trade.price}</td>
 
                       {/* Fiat / Crypto */}
                       <td>
@@ -679,7 +680,7 @@ export default function Page() {
 
                   <div className="d-flex justify-content-between mt-3">
                     <span className="text-white-50">Price</span>
-                    <span>{trade.price}</span>
+                    <span>{trade.price_label ? <><small className="trade-crypto-sub d-block">{trade.price_label}</small>{trade.price}</> : trade.price}</span>
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
