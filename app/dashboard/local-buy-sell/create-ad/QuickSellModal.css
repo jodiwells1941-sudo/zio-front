@@ -874,10 +874,10 @@
   min-height: 33px;
   margin-top: 4px;
   padding: 4px 7px;
-  border: 1px solid rgba(251, 191, 36, .32);
+  border: 1px solid var(--qsm-line-2);
   border-radius: 9px;
-  background: linear-gradient(100deg, #423411, #19160e);
-  color: #fffaf0;
+  background: linear-gradient(100deg, #451a1a, #220d0d);
+  color: var(--qsm-text);
   font-weight: 700;
 }
 .qsm-summary .qsm-summary-row--total:last-child > span {
@@ -887,8 +887,8 @@
   flex: 0 0 auto;
   padding: 3px 8px;
   border-radius: 999px;
-  background: #fbbf24;
-  color: #241900;
+  background: var(--qsm-red-l);
+  color: #21090d;
   font-size: 12px;
   font-weight: 800;
   line-height: 16px;
@@ -1510,7 +1510,7 @@
   letter-spacing: 0;
 }
 .qsm-modal .qsm-summary-title > span { display: inline-flex; align-items: center; gap: 8px; }
-.qsm-modal .qsm-summary-title > span > i { color: #fb7185; font-size: 12px; }
+.qsm-modal .qsm-summary-title > span > i { color: var(--qsm-red-l); font-size: 12px; }
 .qsm-modal .qsm-summary[open] > .qsm-summary-title {
   margin-bottom: 6px;
 }
@@ -1551,7 +1551,7 @@
 }
 .qsm-summary .qsm-summary-row > span > i {
   flex: 0 0 14px;
-  color: #facc15;
+  color: var(--qsm-red-l);
   font-size: 11px;
   text-align: center;
 }

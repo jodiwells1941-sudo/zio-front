@@ -1068,7 +1068,7 @@ export default function Page() {
             <CartIcon size={18} />
             <span className="lbs-request-button-copy">
               <strong>Create Buy Request</strong>
-              <small>1 USD = {createRates.buy !== null ? `${n2(createRates.buy)} ${filterFiat}` : filterFiat ? 'Rate unavailable' : 'Select currency'}</small>
+              <small className='border p-1 rounded border-dark-subtle'>1 USD = {createRates.buy !== null ? `${n2(createRates.buy)} ${filterFiat}` : filterFiat ? 'Rate unavailable' : 'Select currency'}</small>
             </span>
           </button>
           <button
