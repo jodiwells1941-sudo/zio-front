@@ -33,7 +33,6 @@ export function localOrderSummaryRows({
   fiatAmount,
   assetAmount,
   price,
-  priceLabel = "Market Price",
   bonusAmount = 0,
   feeAmount = 0,
   feePercent = 0,
@@ -42,7 +41,7 @@ export function localOrderSummaryRows({
   const assetName = asset.toUpperCase() === "USDT" ? "USD" : asset;
   const common: LocalOrderSummaryRow[] = [
     { label: "Currency", value: fiat || "—", icon: "fa-coins" },
-    { label: `${priceLabel} (1 ${assetName})`, value: `${money(price)} ${fiat}`, icon: "fa-arrow-trend-up" },
+    { label: `Market Price (1 ${assetName})`, value: `${money(price)} ${fiat}`, icon: "fa-arrow-trend-up" },
   ];
 
   if (side === "sell") {
@@ -58,8 +57,8 @@ export function localOrderSummaryRows({
 
   return [
     ...common,
-    { label: "Amount", value: `${money(fiatAmount)} ${fiat}`, icon: "fa-layer-group" },
-    { label: `${assetName} Amount`, value: `+ ${money(assetAmount)} ${assetName}`, icon: "fa-wallet", tone: "positive" },
+    { label: "Pay Amount", value: `${money(fiatAmount)} ${fiat}`, icon: "fa-layer-group" },
+    { label: "Received USD", value: `+ ${money(assetAmount)} ${assetName}`, icon: "fa-wallet", tone: "positive" },
     { label: "Bonus", value: `+ ${money(bonusAmount)} ${assetName}`, icon: "fa-gift", tone: "positive" },
     { label: "Total You Will Receive", value: `+ ${money(assetAmount + bonusAmount)} ${assetName}`, icon: "fa-coins", tone: "positive", total: true },
   ];

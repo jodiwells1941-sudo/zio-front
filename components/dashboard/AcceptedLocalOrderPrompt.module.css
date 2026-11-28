@@ -113,7 +113,7 @@
 .orderSummary > summary > i { transition: transform .18s ease; }
 .details { margin-top: 14px; padding: 2px 13px; border: 1px solid #ffffff24; border-radius: 12px; background: #ffffff08; text-align: left; }
 .orderSummary .details { margin: 0; padding: 3px 13px; border: 0; border-radius: 0; background: transparent; }
-.details > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #ffffff1c; font-size: 12px; }
+.details > div { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid #ffffff1c; font-size: 12px; }
 .details > div:last-child { border-bottom: 0; }
 .details span { color: #aab6c8; }
 .details span i { width: 14px; margin-right: 7px; color: var(--accent); font-size: 10px; text-align: center; }

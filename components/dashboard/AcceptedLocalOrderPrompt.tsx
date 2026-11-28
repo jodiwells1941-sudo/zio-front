@@ -166,7 +166,7 @@ export default function AcceptedLocalOrderPrompt() {
         role="dialog" aria-modal="true" aria-labelledby="accepted-local-order-title">
         <div className={styles.icon} aria-hidden="true"><i className="fa-solid fa-circle-check" /></div>
         <p className={styles.eyebrow}>LOCAL BUY &amp; SELL</p>
-        <h2 id="accepted-local-order-title">Your Request Accepted</h2>
+        <h2 id="accepted-local-order-title">{isBuy ? "Please Pay Now" : "Your Request Accepted"}</h2>
         <p className={styles.subtitle}>Your {isBuy ? "buy" : "sell"} request has been accepted. Open the order to continue.</p>
 
         <div className={`${styles.amountCard} ${styles.payCard}`}>

@@ -646,74 +646,21 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     - {money(feeUsdt)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
-                <div className="qsm-summary-row">
+                {/* <div className="qsm-summary-row">
                   <span><i className="fa-solid fa-wallet text-danger" aria-hidden="true" />Total Amount</span>
                   <b className="qsm-green">- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
-                </div>
+                </div> */}
                 <div className="qsm-summary-row qsm-summary-row--total">
+                  <span><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" />Total Amount</span>
+                  <b>- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
+                </div>
+                {/* <div className="qsm-summary-row qsm-summary-row--total">
                   <span><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" />Received Amount ({fiat})</span>
                   <b>
                     {money(receiveFiat)} {fiat}
                   </b>
-                </div>
+                </div> */}
               </details>
-
-              {/* <div className="qsm-breakdown">
-                <div className="qsm-bd-row">
-                  <span className="qsm-bd-ico"><i className="fa-solid fa-coins" /></span>
-                  <span className="qsm-bd-label">Sell Amount</span>
-                  <span className="qsm-bd-value qsm-bd-value--green">
-                    - {money(amountUsdtNum)} {DISPLAY_ASSET_CODE}
-                  </span>
-                </div>
-
-                <div className="qsm-bd-row">
-                  <span className="qsm-bd-ico"><i className="fa-solid fa-percent" /></span>
-                  <span className="qsm-bd-label">
-                    Fee <small>({money(feePercent, 2)}%)</small>
-                  </span>
-                  <span className="qsm-bd-value qsm-bd-value--green">
-                    - {feeLoading ? '…' : `${money(feeUsdt)} ${DISPLAY_ASSET_CODE}`}
-                  </span>
-                </div>
-
-                <div className="qsm-bd-row">
-                  <span className="qsm-bd-ico"><i className="fa-solid fa-calculator" /></span>
-                  <span className="qsm-bd-label">Total Amount</span>
-                  <span className="qsm-bd-value qsm-bd-value--green">
-                    - {feeLoading ? '…' : `${money(totalUsdtWithFee)} ${DISPLAY_ASSET_CODE}`}
-                  </span>
-                </div>
-
-                <div className="qsm-bd-row">
-                  <span className="qsm-bd-ico"><i className="fa-solid fa-chart-line" /></span>
-                  <span className="qsm-bd-label">
-                    Market Price <small>(1 {DISPLAY_ASSET_CODE} = {rateMoney(rate)} {fiat})</small>
-                  </span>
-                  <span className="qsm-bd-value qsm-bd-value--price">
-                    {rateLoading ? '…' : `${rateMoney(rate)} ${fiat}`}
-                  </span>
-                </div>
-
-                <div className="qsm-bd-row">
-                  <span className="qsm-bd-ico"><i className="fa-solid fa-money-bill-wave" /></span>
-                  <span className="qsm-bd-label">Received Amount ({fiat})</span>
-                  <span className="qsm-bd-value text-warning">
-                    {feeLoading ? '…' : `${money(receiveFiat)} ${fiat}`}
-                  </span>
-                </div>
-              </div> */}
-
-              {/* <div className="qsm-total qsm-total--hero qsm-total--sell-hero">
-                <div className="qsm-total-left">
-                  <span className="qsm-total-icon"><i className="fa-solid fa-hand-holding-dollar" /></span>
-                  <span className='fw-bold fs-5'>Received</span>
-                </div>
-                <b className="qsm-total-value d-flex align-items-center gap-2">
-                  <span className='fw-bold fs-5'>{feeLoading ? '…' : money(receiveFiat)}</span>
-                  <span className='fw-bold fs-6'>{fiat}</span>
-                </b>
-              </div> */}
 
               {/* Payment method */}
               <div className="qsm-field">
@@ -844,16 +791,22 @@ export default function QuickSellModal({ onClose, onSuccess, editId }: Props) {
                     - {money(feeUsdt)} {DISPLAY_ASSET_CODE}
                   </b>
                 </div>
-                <div className="qsm-summary-row">
+                {/* <div className="qsm-summary-row">
                   <span><i className="fa-solid fa-wallet" aria-hidden="true" />Total Amount</span>
                   <b className="qsm-green">- {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}</b>
-                </div>
+                </div> */}
                 <div className="qsm-summary-row qsm-summary-row--total">
+                  <span><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" />Total Amount</span>
+                  <b>
+                    - {money(totalUsdtWithFee)} {DISPLAY_ASSET_CODE}
+                  </b>
+                </div>
+                {/* <div className="qsm-summary-row qsm-summary-row--total">
                   <span><i className="fa-solid fa-hand-holding-dollar" aria-hidden="true" />Received Amount ({fiat})</span>
                   <b>
                     {money(receiveFiat)} {fiat}
                   </b>
-                </div>
+                </div> */}
               </div>
 
               {selectedMethod && (

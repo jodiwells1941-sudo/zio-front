@@ -237,14 +237,37 @@
   justify-content: center;
   gap: 6px;
   min-width: 0;
-  height: 42px;
-  padding: 6px 8px;
+  min-height: 48px;
+  height: auto;
+  padding: 6px 12px;
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: 15px;
   font-weight: 700;
   position: relative;
   transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
+}
+
+.lbs .lbs-request-button-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.lbs .lbs-request-button-copy strong {
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.lbs .lbs-request-button-copy small {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: .86;
+  white-space: nowrap;
 }
 
 .lbs .lbs-topbar-tab--buy {
@@ -1556,7 +1579,15 @@
 }
 @media (max-width: 640px) {
   .lbs .lbs-topbar-tab {
-    height: 378x !important;
+    min-height: 46px;
+    padding: 5px 6px;
+    gap: 5px;
+  }
+  .lbs .lbs-request-button-copy strong {
+    font-size: 12px;
+  }
+  .lbs .lbs-request-button-copy small {
+    font-size: 9px;
   }
   .lbs .lbs-filters   { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
   .lbs .lbs-topbar-tabs,
