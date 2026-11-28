@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import styles from './PaymentReceivedModel.module.css';
 import type { LocalOrderSummaryRow } from '../../localOrderSummary';
 
@@ -22,44 +21,31 @@ export function PaymentReceivedModel({
   isOpen,
   onClose,
   setConfirmPayment,
-  buyerName,
   amount,
   currency,
   details = [],
 }: PaymentReceivedModelProps) {
-  const [isVerified, setIsVerified] = useState(false);
-
   if (!isOpen) return null;
 
   const formattedAmount = Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="modal-overlay">
-      <div className={`modal-content ${styles.dialog}`}>
+    <div className={styles.overlay} onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="payment-confirm-title">
+        <div className={styles.scrollBody}>
+          <header className={styles.header}>
+            <span className={styles.headerIcon} aria-hidden="true"><i className="fa-solid fa-shield-halved" /></span>
+            <button onClick={onClose} className={styles.close} aria-label="Close modal" type="button">×</button>
+            <h2 id="payment-confirm-title">Confirm Payment</h2>
+            <p>The buyer marked this order as paid. Verify that you received the payment before releasing the order.</p>
+          </header>
 
-        {/* Header */}
-        <div className="modal-header">
-          <h6 className="modal-title">Received payment in your account?</h6>
-          <button
-            onClick={onClose}
-            className="modal-close-btn"
-            aria-label="Close modal"
-            type="button"
-          >
-            <i className="fas fa-times" />
-          </button>
-        </div>
+          <div className={styles.expectedPayment}>
+            <span>Expected Payment</span>
+            <strong>{currency} {formattedAmount}</strong>
+          </div>
 
-        {/* Body */}
-        <div className={`m-2 bg-dark rounded ${styles.scrollBody}`}>
-          <div className="modal-body">
-            <div className={styles.receivedAmount}>
-              <span className={styles.icon} aria-hidden="true">
-                <i className="fa-solid fa-hand-holding-dollar" />
-              </span>
-              <span className={styles.label}>Total Amount</span>
-              <strong className={styles.value}>{formattedAmount} {currency}</strong>
-            </div>
+          <div className={styles.body}>
             {details.length > 0 && (
               <details className={styles.orderSummary} open>
                 <summary className={styles.summaryToggle}>
@@ -75,90 +61,20 @@ export function PaymentReceivedModel({
               </details>
             )}
 
-            {/* Steps — shown before checkbox is checked */}
-            {/* {!isVerified && (
-              <>
-                <div className="verification-step">
-                  <div className="step-indicator">
-                    <div className="step-number">
-                      <i className="fas fa-check" />
-                    </div>
-                  </div>
-                  <div className="step-content">
-                    <p className="step-text">
-                      Log in to your receiving account to verify that the payment of{' '}
-                      <strong>{currency} {formattedAmount}</strong> has been received.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="verification-step">
-                  <div className="step-indicator">
-                    <div className="step-number">
-                      <i className="fas fa-check" />
-                    </div>
-                  </div>
-                  <div className="step-content">
-                    <p className="step-text">
-                      Verify the buyer&apos;s real name is{' '}
-                      <strong>{buyerName}</strong>. Click &ldquo;Confirm Release&rdquo; to proceed.
-                    </p>
-                  </div>
-                </div>
-              </>
-            )} */}
-
-            {/* Warning — shown after checkbox is checked */}
-            {/* {isVerified && (
-              <div className="verification-step">
-                <div className="step-indicator">
-                  <div className="step-number">
-                    <i className="fas fa-exclamation-circle" />
-                  </div>
-                </div>
-                <div className="step-content">
-                  <p className="step-text">
-                    If you release the crypto without checking your payment, you may lose your assets!
-                    To avoid loss due to bank chargeback,{' '}
-                    <strong>DO NOT</strong> accept payments from an unassociated third-party account.
-                  </p>
-                </div>
-              </div>
-            )} */}
-
-            {/* Verification checkbox */}
-            <div className="verification-checkbox-wrapper">
-              <input
-                type="checkbox"
-                id="payment-verify"
-                className="verification-checkbox"
-                checked={isVerified}
-                onChange={e => setIsVerified(e.target.checked)}
-              />
-              <label htmlFor="payment-verify" className="verification-label">
-                I have verified that I received{' '}
-                <strong>{currency} {formattedAmount}</strong>{' '}
-                in my account from the buyer —{' '}
-                <strong>{buyerName}</strong>
-              </label>
-            </div>
-
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="modal-footer mx-auto mb-4 mt-4">
+        <footer className={styles.footer}>
+          <button type="button" className={styles.cancelButton} onClick={onClose}>Cancel</button>
           <button
             type="button"
-            className={`confirm-btn ${isVerified ? 'active' : 'disabled'}`}
-            disabled={!isVerified}
+            className={styles.confirmButton}
             onClick={setConfirmPayment}
           >
-            Confirm Release
+            Confirm &amp; Release
           </button>
-        </div>
-
-      </div>
+        </footer>
+      </section>
     </div>
   );
 }

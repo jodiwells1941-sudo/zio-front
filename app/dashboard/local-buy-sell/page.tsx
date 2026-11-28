@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import countryList from 'react-select-country-list';
 import { toast } from 'react-toastify';
-import { getLocalAds, LocalAdsParams, P2pAdsData } from '@/app/api/p2padsapi';
+import { getLocalAds, getLocalCurrencyRates, LocalAdsParams, P2pAdsData } from '@/app/api/p2padsapi';
 import { currencyOptions as getPaymentCurrencies, sellMethodsByCurrency } from '@/app/api/common';
 import { getLocalBonusFeesSettings as getBonusFeesSettings } from '@/app/api/localBonusFees';
 import { calculateLocalBuyBonus, type LocalBonusTier } from '@/app/api/localBonusFees';
@@ -151,7 +151,6 @@ function Row({
           </span>
         </div>
         <div className="lbs-cell lbs-cell--price" data-label={`${ad.market_price_label ?? 'Market Price'} ${currency}`}>
-          <small className="d-block">{ad.market_price_label ?? 'Market Price'}</small>
           <CurrencyMark currency={currency} />
           {n2(marketPrice)}
         </div>
@@ -162,20 +161,14 @@ function Row({
         <div className="lbs-cell lbs-cell--bonus" data-label={`${isBuy ? 'Bonus' : 'Fee'} (USD)`}>
           <span className={`lbs-bonus-value ${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
             <span className={`${isBuy ? 'lbs-bonus-pos' : 'lbs-bonus-neg'}`}>
-              {isBuy ? '+' : '-'} <span className="fs-12 fw-bold">$</span>{n2(Math.abs(bonusFee), 2)} {(isBuy ? bonus.percent != null : feePercent > 0) && <small className="lbs-bonus-pct">({Number(isBuy ? bonus.percent : feePercent).toLocaleString('en-US', { maximumFractionDigits: 2 })}%)</small>}
+              {isBuy ? '+' : '-'} <span className={`${isBuy ? 'text-success' : 'text-danger'} fs-12 fw-bold`}>$</span>{n2(Math.abs(bonusFee), 2)} {(isBuy ? bonus.percent != null : feePercent > 0) && <small className="lbs-bonus-pct">({Number(isBuy ? bonus.percent : feePercent).toLocaleString('en-US', { maximumFractionDigits: 2 })}%)</small>}
             </span>
           </span>
         </div>
         <div className="lbs-cell lbs-cell--time text-white fw-bold text-lowercase" data-label="Tibe185dme (Min)">{ad.payment_time_limit}{'m'}</div>
         <div className="lbs-cell lbs-cell--methods mx-auto" data-label="Payment Method">
           <PaymentMethodIcon methodName={method} iconImage={iconImage} size={30} className="lbs-mico" />
-          {/* <span className="lbs-method-name" title={method}>{method}</span> */}
         </div>
-        {/* <div className="lbs-cell lbs-cell--action" data-label="Action">
-          <button type="button" className={`lbs-trade-btn lbs-trade-btn--${kind}`} onClick={() => onTrade(ad, kind)}>
-            {kind === 'buy' ? 'Buy Now' : 'Sell Now'}
-          </button>
-        </div> */}
         <div className="lbs-cell lbs-cell--action w-100" data-label="Action">
           <button
               type="button"
@@ -426,7 +419,7 @@ function Panel({
         <div className="lbs-table bg-dark">
           <div className="lbs-row lbs-row--head bg-dark">
             <div className="lbs-cell">Amount {cur}</div>
-            <div className="lbs-cell">Market Price {cur}</div>
+            <div className="lbs-cell">Price {cur}</div>
             <div className="lbs-cell">USD</div>
             <div className={`lbs-cell ${buy ? 'lbs-bonus-label--buy' : 'lbs-bonus-label--sell'}`}>{buy ? 'Bonus' : 'Fee'}</div>
             <div className="lbs-cell">Time</div>
@@ -487,6 +480,7 @@ export default function Page() {
   /* ── Filter state ── */
   const [country, setCountry] = useState('');
   const [filterFiat, setFilterFiat] = useState('');
+  const [createRates, setCreateRates] = useState<{ buy: number | null; sell: number | null }>({ buy: null, sell: null });
   const [currencyPromptOpen, setCurrencyPromptOpen] = useState(false);
   const [currencyPromptSelection, setCurrencyPromptSelection] = useState('');
   const [filterMethods, setFilterMethods] = useState<string[]>([]);
@@ -511,6 +505,42 @@ export default function Page() {
   const [paymentMethodsError, setPaymentMethodsError] = useState(false);
   const [tick, setTick] = useState(0);
   const reqId = useRef<Record<Kind, number>>({ buy: 0, sell: 0 });
+  const createRateReqId = useRef(0);
+
+  useEffect(() => {
+    const requestId = ++createRateReqId.current;
+    if (!filterFiat) {
+      setCreateRates({ buy: null, sell: null });
+      return;
+    }
+
+    setCreateRates({ buy: null, sell: null });
+    const loadCreateRates = async () => {
+      try {
+        const [buyResponse, sellResponse] = await Promise.all([
+          getLocalCurrencyRates({ currency_code: filterFiat, order_type: 'buy' }),
+          getLocalCurrencyRates({ currency_code: filterFiat, order_type: 'sell' }),
+        ]);
+        if (requestId !== createRateReqId.current) return;
+
+        const buyRate = buyResponse?.data?.is_active ? Number(buyResponse?.data?.effective_rate) : NaN;
+        const sellRate = sellResponse?.data?.is_active ? Number(sellResponse?.data?.effective_rate) : NaN;
+        setCreateRates({
+          buy: Number.isFinite(buyRate) && buyRate > 0 ? buyRate : null,
+          sell: Number.isFinite(sellRate) && sellRate > 0 ? sellRate : null,
+        });
+      } catch (error) {
+        if (requestId !== createRateReqId.current) return;
+        console.error(`Failed to load ${filterFiat} create rates:`, error);
+        setCreateRates({ buy: null, sell: null });
+      }
+    };
+
+    void loadCreateRates();
+    return () => {
+      if (createRateReqId.current === requestId) createRateReqId.current += 1;
+    };
+  }, [filterFiat]);
 
   /* ── Modals ── */
   const [quickBuyOpen, setQuickBuyOpen] = useState(false);
@@ -1036,7 +1066,10 @@ export default function Page() {
             className={`lbs-topbar-tab lbs-topbar-tab--buy${activeRequestKind === 'buy' ? ' is-active' : ''}`}
           >
             <CartIcon size={18} />
-            <span>Create Buy Request</span>
+            <span className="lbs-request-button-copy">
+              <strong>Create Buy Request</strong>
+              <small>1 USD = {createRates.buy !== null ? `${n2(createRates.buy)} ${filterFiat}` : filterFiat ? 'Rate unavailable' : 'Select currency'}</small>
+            </span>
           </button>
           <button
             type="button"
@@ -1047,7 +1080,10 @@ export default function Page() {
             }}
           >
             <DownloadIcon size={18} />
-            <span>Create Sell Request</span>
+            <span className="lbs-request-button-copy">
+              <strong>Create Sell Request</strong>
+              <small>1 USD = {createRates.sell !== null ? `${n2(createRates.sell)} ${filterFiat}` : filterFiat ? 'Rate unavailable' : 'Select currency'}</small>
+            </span>
           </button>
         </div>
 

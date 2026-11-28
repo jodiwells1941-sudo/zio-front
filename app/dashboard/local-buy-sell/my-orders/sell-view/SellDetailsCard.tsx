@@ -464,7 +464,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
         )}
         {isBuyerDispatched && canRelease && (
           <button className="p2pPrimaryBtn" type="button" onClick={handlePaymentReceived} disabled={submitting}>
-            Release Order
+            Confirm &amp; Release
           </button>
         )}
         {canDispute && (
@@ -737,7 +737,7 @@ export default function SellDetailsCard({ onStatusChange }: SellDetailsCardProps
                         onClick={handlePaymentReceived}
                         disabled={submitting}
                       >
-                        Release Order
+                        Confirm &amp; Release
                       </button>
                     )}
                     {canDispute && (

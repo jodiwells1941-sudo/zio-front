@@ -1119,7 +1119,7 @@ export default function BuyDetailsCard({
         )}
         {canRelease && (
           <button className="p2pPrimaryBtn" type="button" onClick={() => setShowPaymentReceivedModal(true)} disabled={submitting !== null}>
-            Release Order
+            Confirm &amp; Release
           </button>
         )}
         {canDispute && (
