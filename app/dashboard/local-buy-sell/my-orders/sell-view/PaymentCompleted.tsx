@@ -18,6 +18,7 @@ interface TradeData {
   payable_amount: number | string;
   receivable_amount: number | string;
   user_price: number | string;
+  user_price_label?: string;
   created_at: string;
   p2p_ad?: {
     asset: string;

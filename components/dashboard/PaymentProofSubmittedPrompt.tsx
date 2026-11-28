@@ -18,6 +18,7 @@ type ProofOrder = {
   fiat: string;
   asset: string;
   price: number;
+  user_price_label?: string;
   assetAmount: number;
   bonusAmount: number;
   feeAmount: number;
@@ -130,6 +131,7 @@ export default function PaymentProofSubmittedPrompt() {
             fiat: trade.p2p_ad?.with_fiat || "BDT",
             asset: (trade.p2p_ad?.asset || "USD").toUpperCase().replace("USDT", "USD"),
             price: Number(trade.user_price ?? 0),
+            user_price_label: trade.user_price_label,
             assetAmount: Number(trade.receivable_amount ?? 0),
             bonusAmount: Number(trade.bonus_amount ?? 0),
             feeAmount: Number(trade.type === "sell" ? trade.charge_amount ?? 0 : trade.ad_fee_amount ?? trade.charge_amount ?? 0),
